@@ -33,7 +33,7 @@ export default function NavBar() {
   };
 
   return (
-    <header className="flex w-screen justify-end gap-5 border-b-[1px] border-solid px-[50px] pb-5 pt-5">
+    <header className="flex w-screen justify-end gap-5 border-b-[1px] border-solid px-[50px] pt-5 pb-5">
       {navItems.map((navItem: NavItem, index: number) => (
         <button
           className={
