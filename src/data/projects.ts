@@ -1,13 +1,13 @@
 import type {
   Project,
-  ResearchCategory,
+  ProjectCategory,
   ResearchStatus,
   SortOption,
   User,
-} from '@/types/project';
+} from '@/types/researches';
 
 // 연구 분야 목록
-export const researchCategories: ResearchCategory[] = [
+export const researchCategories: ProjectCategory[] = [
   'Bioinformatics',
   'Medical AI (Pathology)',
   'Medical AI (Signal data)',
@@ -293,19 +293,3 @@ export const allProjects: Project[] = [
     participantId: ['1', '2', '3', '4', '5', '6'],
   },
 ] as const;
-
-// 상태에 따른 배지 색상
-export const getStatusColor = (status: ResearchStatus) => {
-  switch (status) {
-    case '진행 전':
-      return 'bg-blue-100 text-blue-800 hover:bg-blue-100';
-    case '진행 중':
-      return 'bg-green-100 text-green-800 hover:bg-green-100';
-    case '진행 종료':
-      return 'bg-gray-100 text-gray-800 hover:bg-gray-100';
-    case '진행 대기':
-      return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100';
-    default:
-      return '';
-  }
-};

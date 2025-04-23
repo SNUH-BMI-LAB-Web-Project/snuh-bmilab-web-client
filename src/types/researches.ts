@@ -1,7 +1,7 @@
 // =================== ENUM TYPES ===================
 
 // 연구 카테고리
-export type ResearchCategory =
+export type ProjectCategory =
   | 'Bioinformatics'
   | 'Medical AI (Pathology)'
   | 'Medical AI (Signal data)'
@@ -57,7 +57,7 @@ export interface Project {
   content?: string;
   startDate: string;
   endDate: string;
-  category: ResearchCategory;
+  category: ProjectCategory;
   status: ResearchStatus;
   createdAt: string;
   updatedAt?: string;
@@ -74,51 +74,66 @@ export interface ProjectFile {
   type: string;
 }
 
-// 조인 테이블 타입 (DB 전용)
-export interface ProjectParticipant {
-  participantId: string;
-  projectId: string;
-  userId: string;
+// =================== RSS ===================
+export interface Rss {
+  title: string;
+  link: string;
+  description: string;
+  pubDate: string;
+  author: string;
+  category: string;
+  appbegin: string;
+  appdue: string;
+  budget: number;
 }
 
-// 확장 타입: 참여자 정보 포함
-export interface ProjectWithParticipants extends Project {
-  participantsDetail: User[];
-}
-
-// =================== REPORT ===================
-
-export interface Report {
-  reportId: string;
-  tag: string;
-  dueDate: string;
-  createdAt: string;
-}
-
-export interface UserReport {
-  userReportId: string;
-  userId: string;
-  reportId: string;
-  fileUrl: string;
-  submittedAt: string;
-}
-
-// =================== LEAVE ===================
-
-export interface Leave {
-  leaveId: string;
-  userId: string;
-  startDate: string;
-  endDate: string;
-  leaveStatus: LeaveStatus;
-  leaveType: LeaveType;
-  leaveReason?: string;
-  appliedAt: string;
-}
-
-// =================== ETC ===================
+// =================== SORT OPTION ===================
 
 export interface SortOption {
   value: string;
   label: string;
 }
+
+// // 조인 테이블 타입 (DB 전용)
+// export interface ProjectParticipant {
+//   participantId: string;
+//   projectId: string;
+//   userId: string;
+// }
+//
+// // 확장 타입: 참여자 정보 포함
+// export interface ProjectWithParticipants extends Researches {
+//   participantsDetail: User[];
+// }
+//
+// // =================== REPORT ===================
+//
+// export interface Report {
+//   reportId: string;
+//   tag: string;
+//   dueDate: string;
+//   createdAt: string;
+// }
+//
+// export interface UserReport {
+//   userReportId: string;
+//   userId: string;
+//   reportId: string;
+//   fileUrl: string;
+//   submittedAt: string;
+// }
+//
+// // =================== LEAVE ===================
+//
+// export interface Leave {
+//   leaveId: string;
+//   userId: string;
+//   startDate: string;
+//   endDate: string;
+//   leaveStatus: LeaveStatus;
+//   leaveType: LeaveType;
+//   leaveReason?: string;
+//   appliedAt: string;
+// }
+//
+// // =================== ETC ===================
