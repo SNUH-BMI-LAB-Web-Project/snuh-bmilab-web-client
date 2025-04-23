@@ -13,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -21,18 +20,30 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { CalendarIcon, X } from 'lucide-react';
+import {
+  CalendarIcon,
+  SquareLibrary,
+  NotepadText,
+  FileText,
+  Paperclip,
+  Plus,
+  User,
+  Users,
+  X,
+  Tag,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
-import { researchCategories, researchStatuses, users } from '@/data/projects';
+import { researchCategories, users } from '@/data/projects';
 import {
   Project,
   ProjectFile,
-  ResearchCategory,
+  ProjectCategory,
   ResearchStatus,
-} from '@/types/project';
+} from '@/types/researches';
+import { Separator } from '@/components/ui/separator';
 
 interface ProjectFormProps {
   initialData?: Project;
@@ -55,7 +66,7 @@ export function ProjectForm({
       content: '',
       startDate: '',
       endDate: '',
-      category: '' as ResearchCategory,
+      category: '' as ProjectCategory,
       status: '' as ResearchStatus,
       createdAt: '',
       leaderId: [],
@@ -351,6 +362,22 @@ export function ProjectForm({
     onSubmit(finalData);
   };
 
+  useEffect(() => {
+    if (initialData) {
+      setLeaders(
+        users
+          .filter((u) => initialData.leaderId.includes(u.userId))
+          .map((u) => u.name),
+      );
+
+      setParticipants(
+        users
+          .filter((u) => initialData.participantId.includes(u.userId))
+          .map((u) => u.name),
+      );
+    }
+  }, [initialData]);
+
   // 외부 클릭 시 멘션 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -380,356 +407,383 @@ export function ProjectForm({
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)}>
-      <div className="grid grid-cols-1 gap-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">프로젝트 제목</Label>
-                <Input
-                  id="title"
-                  placeholder="프로젝트 제목을 입력하세요"
-                  {...register('title', {
-                    required: '프로젝트 제목은 필수입니다',
-                  })}
+      <div className="space-y-8 rounded-lg border bg-white p-8 shadow-sm">
+        <div className="space-y-3 pt-2 pb-6">
+          <Label className="flex items-center text-base font-medium">
+            <Tag className="h-5 w-5" />
+            프로젝트 제목 <span className="text-destructive text-xs">*</span>
+          </Label>
+
+          <Input
+            id="title"
+            placeholder="프로젝트 제목을 입력하세요"
+            {...register('title', { required: '프로젝트 제목은 필수입니다' })}
+            className="focus-visible:none rounded-none border-0 border-b px-0 !text-xl font-medium shadow-none transition-colors focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+          {errors.title && (
+            <p className="mt-2 text-sm text-red-500">
+              {errors.title.message as string}
+            </p>
+          )}
+        </div>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          <div className="space-y-3">
+            <Label className="flex items-center text-base font-medium">
+              <SquareLibrary className="h-5 w-5" />
+              연구 분야 <span className="text-destructive text-xs">*</span>
+            </Label>
+            <Select
+              defaultValue={initialData?.category}
+              onValueChange={(value) =>
+                register('category').onChange({ target: { value } })
+              }
+            >
+              <SelectTrigger className="focus:none focus:none h-12 w-full border">
+                <SelectValue placeholder="연구 분야를 선택하세요" />
+              </SelectTrigger>
+              <SelectContent>
+                {researchCategories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="flex items-center text-base font-medium">
+                <CalendarIcon className="h-5 w-5" />
+                연구 기간 <span className="text-destructive text-xs">*</span>
+              </Label>
+              <div className="flex items-center gap-2">
+                <input
+                  id="status"
+                  type="checkbox"
+                  {...register('status')}
+                  className="focus:none text-muted-foreground"
+                  defaultChecked={initialData?.status === '진행 대기'}
                 />
-                {errors.title && (
-                  <p className="text-destructive text-sm">
-                    {errors.title.message as string}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="field">연구 분야</Label>
-                <Select
-                  defaultValue={initialData?.category}
-                  onValueChange={(value) =>
-                    register('category').onChange({ target: { value } })
-                  }
+                <Label
+                  className="text-muted-foreground text-sm font-normal"
+                  htmlFor="status"
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="연구 분야를 선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {researchCategories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>연구 시작일</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          'w-full justify-start text-left font-normal',
-                          !startDate && 'text-muted-foreground',
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {startDate
-                          ? format(startDate, 'PPP', { locale: ko })
-                          : '날짜 선택'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={startDate}
-                        onSelect={setStartDate}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div className="space-y-2">
-                  <Label>연구 종료일</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          'w-full justify-start text-left font-normal',
-                          !endDate && 'text-muted-foreground',
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {endDate
-                          ? format(endDate, 'PPP', { locale: ko })
-                          : '날짜 선택'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={endDate}
-                        onSelect={setEndDate}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status">연구 상태</Label>
-                <Select
-                  defaultValue={initialData?.status}
-                  onValueChange={(value) =>
-                    register('status').onChange({ target: { value } })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="연구 상태를 선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {researchStatuses.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  진행 대기
+                </Label>
               </div>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>책임자</Label>
-                <div className="mb-2 flex flex-wrap gap-2">
-                  {leaders.map((leader) => (
-                    <Badge
-                      key={leader}
-                      variant="secondary"
-                      className="flex items-center gap-1"
-                    >
-                      {leader}
-                      <button
-                        type="button"
-                        onClick={() => removeLeader(leader)}
-                        className="hover:bg-muted ml-1 rounded-full p-0.5"
-                      >
-                        <X className="h-3 w-3" />
-                        <span className="sr-only">제거</span>
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-                <div className="relative">
-                  <Input
-                    ref={leaderInputRef}
-                    placeholder="책임자 이름을 입력하세요 (@태그)"
-                    value={leaderInput}
-                    onChange={handleLeaderInputChange}
-                    onKeyDown={handleLeaderKeyDown}
-                  />
-                  {showLeaderMentions && filteredLeaderMentions.length > 0 && (
-                    <div
-                      id="leader-mention-list"
-                      className="bg-background absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border shadow-md"
-                    >
-                      {filteredLeaderMentions.map((user, index) => (
-                        <button
-                          key={user.userId}
-                          type="button"
-                          className="hover:bg-muted focus:bg-muted w-full px-4 py-2 text-left focus:outline-none"
-                          onClick={() => selectLeaderMention(user.name)}
-                          onKeyDown={(e) =>
-                            handleMentionKeyDown(e, index, 'leader')
-                          }
-                          tabIndex={0}
-                        >
-                          {user.name}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="flex justify-end">
+            <div className="flex items-center space-x-2">
+              <Popover>
+                <PopoverTrigger asChild>
                   <Button
-                    type="button"
                     variant="outline"
-                    size="sm"
-                    onClick={addLeader}
-                    disabled={!leaderInput.trim()}
-                  >
-                    추가
-                  </Button>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>참여자</Label>
-                <div className="mb-2 flex flex-wrap gap-2">
-                  {participants.map((participant) => (
-                    <Badge
-                      key={participant}
-                      variant="secondary"
-                      className="flex items-center gap-1"
-                    >
-                      {participant}
-                      <button
-                        type="button"
-                        onClick={() => removeParticipant(participant)}
-                        className="hover:bg-muted ml-1 rounded-full p-0.5"
-                      >
-                        <X className="h-3 w-3" />
-                        <span className="sr-only">제거</span>
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-                <div className="relative">
-                  <Input
-                    ref={participantInputRef}
-                    placeholder="참여자 이름을 입력하세요 (@태그)"
-                    value={participantInput}
-                    onChange={handleParticipantInputChange}
-                    onKeyDown={handleParticipantKeyDown}
-                  />
-                  {showParticipantMentions &&
-                    filteredParticipantMentions.length > 0 && (
-                      <div
-                        id="participant-mention-list"
-                        className="bg-background absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border shadow-md"
-                      >
-                        {filteredParticipantMentions.map((user, index) => (
-                          <button
-                            key={user.userId}
-                            type="button"
-                            className="hover:bg-muted focus:bg-muted w-full px-4 py-2 text-left focus:outline-none"
-                            onClick={() => selectParticipantMention(user.name)}
-                            onKeyDown={(e) =>
-                              handleMentionKeyDown(e, index, 'participant')
-                            }
-                            tabIndex={0}
-                          >
-                            {user.name}
-                          </button>
-                        ))}
-                      </div>
+                    className={cn(
+                      'flex-1 justify-start border text-left font-normal',
+                      !startDate && 'text-muted-foreground',
                     )}
-                </div>
-                <div className="flex justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addParticipant}
-                    disabled={!participantInput.trim()}
                   >
-                    추가
+                    <CalendarIcon className="h-5 w-5" />
+                    {startDate
+                      ? format(startDate, 'yyyy.MM.dd', { locale: ko })
+                      : '시작일 (필수)'}
                   </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+
+              <span>~</span>
+
+              {/* End Date */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'flex-1 justify-start border text-left font-normal',
+                      !endDate && 'text-muted-foreground',
+                    )}
+                  >
+                    <CalendarIcon className="h-5 w-5" />
+                    {endDate
+                      ? format(endDate, 'yyyy.MM.dd', { locale: ko })
+                      : '종료일 (선택)'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+        </div>
+
+        <Separator className="my-6" />
+
+        <div className="space-y-6">
+          <h3 className="flex items-center text-base font-medium">
+            <Users className="mr-2 h-5 w-5" />팀 구성원
+          </h3>
+
+          <div className="bg-muted/50 space-y-3 rounded-xl p-4">
+            <Label className="flex items-center">
+              <User className="h-4 w-4" />
+              책임자 <span className="text-destructive text-xs">*</span>
+            </Label>
+            <div className="mb-3 flex min-h-8 flex-wrap gap-2">
+              {leaders.map((leader) => (
+                <Badge
+                  key={leader}
+                  className="bg-border/90 text-mute-foreground flex items-center gap-1 rounded-full px-2.5"
+                >
+                  {leader}
+                  <button
+                    type="button"
+                    onClick={() => removeLeader(leader)}
+                    className="ml-1 rounded-full p-0.5 hover:bg-black/5"
+                  >
+                    <X className="h-3 w-3" />
+                    <span className="sr-only">제거</span>
+                  </button>
+                </Badge>
+              ))}
+            </div>
+            <div className="relative">
+              <Input
+                ref={leaderInputRef}
+                placeholder="책임자 이름을 입력하세요 (@태그)"
+                value={leaderInput}
+                onChange={handleLeaderInputChange}
+                onKeyDown={handleLeaderKeyDown}
+                className="text-sm"
+              />
+              {showLeaderMentions && filteredLeaderMentions.length > 0 && (
+                <div
+                  id="leader-mention-list"
+                  className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-xl border bg-white shadow-md"
+                >
+                  {filteredLeaderMentions.map((user, index) => (
+                    <button
+                      key={user.userId}
+                      type="button"
+                      className="hover:bg-accent focus:bg-accent w-full px-4 py-3 text-left text-sm focus:outline-none"
+                      onClick={() => selectLeaderMention(user.name)}
+                      onKeyDown={(e) =>
+                        handleMentionKeyDown(e, index, 'leader')
+                      }
+                      tabIndex={0}
+                    >
+                      {user.name} ({user.email})
+                    </button>
+                  ))}
                 </div>
-              </div>
+              )}
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="content">프로젝트 내용</Label>
-                <Textarea
-                  id="content"
-                  placeholder="프로젝트 내용을 입력하세요"
-                  rows={8}
-                  {...register('content')}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>첨부파일</Label>
-                {existingFiles.length > 0 && (
-                  <div className="mb-4 space-y-2">
-                    <p className="text-muted-foreground text-sm">기존 파일</p>
-                    <ul className="space-y-2">
-                      {existingFiles.map((file, index) => (
-                        <li
-                          key={file.name}
-                          className="flex items-center justify-between rounded-md border p-3"
-                        >
-                          <div className="flex items-center">
-                            <div className="ml-2">
-                              <div className="font-medium">{file.name}</div>
-                              <div className="text-muted-foreground text-sm">
-                                {file.size}
-                              </div>
-                            </div>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeExistingFile(index)}
-                          >
-                            <X className="h-4 w-4" />
-                            <span className="sr-only">제거</span>
-                          </Button>
-                        </li>
-                      ))}
-                    </ul>
+          </div>
+
+          <div className="bg-muted/50 space-y-3 rounded-xl p-4">
+            <Label className="flex items-center">
+              <Users className="h-4 w-4" />
+              참여자
+            </Label>
+            <div className="mb-3 flex min-h-8 flex-wrap gap-2">
+              {participants.map((participant) => (
+                <Badge
+                  key={participant}
+                  className="bg-border/90 flex items-center gap-1 rounded-full px-2.5 text-black"
+                >
+                  {participant}
+                  <button
+                    type="button"
+                    onClick={() => removeParticipant(participant)}
+                    className="ml-1 rounded-full p-0.5 hover:bg-black/5"
+                  >
+                    <X className="h-3 w-3" />
+                    <span className="sr-only">제거</span>
+                  </button>
+                </Badge>
+              ))}
+            </div>
+            <div className="relative">
+              <Input
+                ref={participantInputRef}
+                placeholder="참여자 이름을 입력하세요 (@태그)"
+                value={participantInput}
+                onChange={handleParticipantInputChange}
+                onKeyDown={handleParticipantKeyDown}
+                className="text-sm"
+              />
+              {showParticipantMentions &&
+                filteredParticipantMentions.length > 0 && (
+                  <div
+                    id="participant-mention-list"
+                    className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-xl border bg-white shadow-md"
+                  >
+                    {filteredParticipantMentions.map((user, index) => (
+                      <button
+                        key={user.userId}
+                        type="button"
+                        className="hover:bg-accent focus:bg-accent w-full px-4 py-3 text-left text-sm focus:outline-none"
+                        onClick={() => selectParticipantMention(user.name)}
+                        onKeyDown={(e) =>
+                          handleMentionKeyDown(e, index, 'participant')
+                        }
+                        tabIndex={0}
+                      >
+                        {user.name} ({user.email})
+                      </button>
+                    ))}
                   </div>
                 )}
-                {newFiles.length > 0 && (
-                  <div className="mb-4 space-y-2">
-                    <p className="text-muted-foreground text-sm">새 파일</p>
-                    <ul className="space-y-2">
-                      {newFiles.map((file, index) => (
-                        <li
-                          key={file.name}
-                          className="flex items-center justify-between rounded-md border p-3"
-                        >
-                          <div className="flex items-center">
-                            <div className="ml-2">
-                              <div className="font-medium">{file.name}</div>
-                              <div className="text-muted-foreground text-sm">
-                                {(file.size / 1024 / 1024).toFixed(2)}MB
-                              </div>
-                            </div>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeNewFile(index)}
-                          >
-                            <X className="h-4 w-4" />
-                            <span className="sr-only">제거</span>
-                          </Button>
-                        </li>
-                      ))}
-                    </ul>
+            </div>
+          </div>
+        </div>
+
+        <Separator className="my-6" />
+
+        <div className="space-y-4">
+          <Label
+            htmlFor="content"
+            className="flex items-center text-base font-medium"
+          >
+            <NotepadText className="h-5 w-5" />
+            프로젝트 내용 <span className="text-destructive text-xs">*</span>
+          </Label>
+          <Textarea
+            id="content"
+            placeholder="프로젝트 내용을 입력하세요"
+            rows={8}
+            {...register('content')}
+          />
+        </div>
+
+        <div className="space-y-4">
+          <Label className="flex items-center text-base font-medium">
+            <Paperclip className="h-5 w-5" />
+            첨부파일
+          </Label>
+
+          <div className="hover:border-primary/50 rounded-md border border-2 border-dashed p-6 text-center transition-colors">
+            {/* eslint-disable jsx-a11y/label-has-associated-control */}
+            <label className="flex cursor-pointer flex-col items-center justify-center gap-2">
+              <input
+                type="file"
+                className="hidden"
+                multiple
+                onChange={(e) => {
+                  const target = e.target as HTMLInputElement;
+                  setNewFiles((prev) => [
+                    ...prev,
+                    ...Array.from(target.files ?? []),
+                  ]);
+                }}
+              />
+              <div className="bg-primary/10 rounded-full p-2">
+                <Plus className="text-primary h-6 w-6" />
+              </div>
+              <span className="text-muted-foreground font-medium">
+                파일 추가하기
+              </span>
+              <span className="text-muted-foreground text-sm">
+                또는 파일을 여기에 끌어다 놓으세요
+              </span>
+            </label>
+          </div>
+
+          {existingFiles.length > 0 && (
+            <div className="mt-4 space-y-3">
+              <h4 className="text-sm font-medium">기존 파일</h4>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {existingFiles.map((file, index) => (
+                  <div
+                    key={file.name}
+                    className="flex items-center justify-between rounded-md border p-3 transition-colors"
+                  >
+                    <div className="flex items-center overflow-hidden">
+                      <div className="bg-muted/50 mr-3 rounded-lg p-2">
+                        <FileText className="text-muted-foreground h-5 w-5" />
+                      </div>
+                      <div className="truncate">
+                        <div className="truncate text-sm font-medium">
+                          {file.name}
+                        </div>
+                        <div className="text-muted-foreground text-xs">
+                          {file.size}
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeExistingFile(index)}
+                      className="h-8 w-8 flex-shrink-0"
+                    >
+                      <X className="h-4 w-4" />
+                      <span className="sr-only">제거</span>
+                    </Button>
                   </div>
-                )}
-                <Input
-                  type="file"
-                  multiple
-                  onChange={(e) => {
-                    const target = e.target as HTMLInputElement;
-                    setNewFiles((prev) => [
-                      ...prev,
-                      ...Array.from(target.files ?? []),
-                    ]);
-                  }}
-                />
-                <p className="text-muted-foreground text-sm">
-                  모든 사진, 동영상, PDF 등 파일을 첨부할 수 있습니다.
-                </p>
+                ))}
               </div>
             </div>
-          </CardContent>
-          <CardFooter className="flex justify-end space-x-2">
-            <Button type="submit">
-              {isEditing ? '프로젝트 수정' : '프로젝트 등록'}
-            </Button>
-          </CardFooter>
-        </Card>
+          )}
+
+          {newFiles.length > 0 && (
+            <div className="mt-4 space-y-3">
+              <h4 className="text-sm font-medium">새 파일</h4>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {newFiles.map((file, index) => (
+                  <div
+                    key={file.name}
+                    className="flex items-center justify-between rounded-md border p-3 transition-colors"
+                  >
+                    <div className="flex items-center overflow-hidden">
+                      <div className="bg-muted/50 mr-3 rounded-lg p-2">
+                        <FileText className="text-muted-foreground h-5 w-5" />
+                      </div>
+                      <div className="truncate">
+                        <div className="truncate text-sm font-medium">
+                          {file.name}
+                        </div>
+                        <div className="text-muted-foreground text-xs">
+                          {(file.size / 1024 / 1024).toFixed(2)}MB
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => removeNewFile(index)}
+                      className="h-8 w-8 flex-shrink-0"
+                    >
+                      <X className="h-4 w-4" />
+                      <span className="sr-only">제거</span>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Submit Button */}
+      <div className="mt-8 flex justify-end">
+        <Button type="submit" className="px-10">
+          {isEditing ? '저장' : '등록'}
+        </Button>
       </div>
     </form>
   );
