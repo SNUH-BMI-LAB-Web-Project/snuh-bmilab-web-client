@@ -29,6 +29,9 @@ import { currentUser, canEditProject, canDeleteProject } from '@/data/auth';
 import { formatDateTime, getStatusColor } from '@/lib/utils';
 import UserPopover from '@/components/common/user-popover';
 import Image from 'next/image';
+import MeetingTimeline from '@/components/researches/projects/meetings/meeting-timeline';
+import { Meeting } from '@/types/researches';
+import { allMeetings } from '@/data/meetings';
 
 export default function ProjectDetail({
   params,
@@ -77,8 +80,12 @@ export default function ProjectDetail({
     project.participantId.includes(u.userId),
   );
 
+  const meetings = allMeetings.filter(
+    (meeting: Meeting) => meeting.projectId === id,
+  );
+
   return (
-    <div className="flex flex-col gap-8 px-30">
+    <div className="flex flex-col gap-8 px-20">
       <div className="flex items-center justify-between">
         <div className="flex flex-row">
           <Button
@@ -138,8 +145,8 @@ export default function ProjectDetail({
 
       <div className="border-t" />
 
-      <div className="flex flex-row gap-10">
-        <div className="grid w-2/3 grid-cols-1 gap-8">
+      <div className="grid grid-cols-3 gap-8">
+        <div className="col-span-2 flex flex-col gap-8">
           <Card>
             <CardContent className="flex h-full flex-col justify-start py-4">
               <div className="whitespace-pre-line">{project.content}</div>
@@ -175,7 +182,7 @@ export default function ProjectDetail({
           </div>
         </div>
 
-        <div className="h-min w-1/3 gap-6">
+        <div className="col-span-1 flex flex-col gap-8">
           <Card>
             <CardContent className="flex h-full flex-col justify-center gap-6">
               <div className="flex flex-col gap-2">
@@ -235,6 +242,8 @@ export default function ProjectDetail({
               )}
             </CardContent>
           </Card>
+
+          <MeetingTimeline projectId={id} meetings={meetings} />
         </div>
       </div>
 
