@@ -24,9 +24,11 @@ import {
   Handshake,
   Paperclip,
 } from 'lucide-react';
-import { getStatusColor, allProjects, users } from '@/data/projects';
+import { allProjects, users } from '@/data/projects';
 import { currentUser, canEditProject, canDeleteProject } from '@/data/auth';
-import { formatDateTime } from '@/lib/utils';
+import { formatDateTime, getStatusColor } from '@/lib/utils';
+import UserPopover from '@/components/common/user-popover';
+import Image from 'next/image';
 
 export default function ProjectDetail({
   params,
@@ -39,14 +41,6 @@ export default function ProjectDetail({
   const { id } = use(params);
   const project = allProjects.find((p) => p.projectId === id);
   const authorUser = users.find((u) => u.userId === project?.authorId);
-
-  const leaderNames = users
-    .filter((u) => project?.leaderId.includes(u.userId))
-    .map((u) => u.name);
-
-  const participantNames = users
-    .filter((u) => project?.participantId.includes(u.userId))
-    .map((u) => u.name);
 
   if (!project) {
     return (
@@ -78,6 +72,11 @@ export default function ProjectDetail({
     router.push('/');
   };
 
+  const leaderUsers = users.filter((u) => project.leaderId.includes(u.userId));
+  const participantUsers = users.filter((u) =>
+    project.participantId.includes(u.userId),
+  );
+
   return (
     <div className="flex flex-col gap-8 px-30">
       <div className="flex items-center justify-between">
@@ -96,14 +95,16 @@ export default function ProjectDetail({
 
       <div className="flex flex-row items-center justify-between">
         <div className="text-muted-foreground flex items-center gap-3 text-sm">
-          <img
+          <Image
             src={authorUser?.profileImageUrl || '/default-avatar.png'}
-            alt={authorUser?.name}
+            alt={authorUser?.name || '사용자 프로필'}
+            width={40}
+            height={40}
             className="h-10 w-10 rounded-full object-cover"
           />
           <div className="flex flex-col">
             <div className="font-medium text-black">{authorUser?.name}</div>
-            <div>
+            <div className="text-xs">
               {authorUser?.department} · {authorUser?.email}
             </div>
           </div>
@@ -157,8 +158,10 @@ export default function ProjectDetail({
                 >
                   <div className="flex items-center">
                     <div className="ml-2">
-                      <div className="font-medium">{file.name}</div>
-                      <div className="text-muted-foreground text-sm">
+                      <div className="truncate text-sm font-medium">
+                        {file.name}
+                      </div>
+                      <div className="text-muted-foreground text-xs">
                         {file.size}
                       </div>
                     </div>
@@ -202,14 +205,25 @@ export default function ProjectDetail({
               <div className="flex flex-col gap-2">
                 <div className="items-center">
                   <span className="font-semibold">연구 책임자</span>
-                  <div className="text-muted-foreground text-sm font-normal">
-                    {leaderNames.join(', ')}
+                  <div className="text-muted-foreground flex flex-wrap gap-1 text-sm font-normal">
+                    {leaderUsers.map((user, index) => (
+                      <span key={user.userId} className="flex items-center">
+                        <UserPopover user={user} />
+                        {index < leaderUsers.length - 1 && ','}
+                      </span>
+                    ))}
                   </div>
                 </div>
                 <div className="items-center">
                   <span className="font-semibold">연구 참여자</span>
-                  <div className="text-muted-foreground text-sm font-normal">
-                    {participantNames.join(', ')} ({participantNames.length}명)
+                  <div className="text-muted-foreground flex flex-wrap gap-1 text-sm font-normal">
+                    {participantUsers.map((user, index) => (
+                      <span key={user.userId} className="flex items-center">
+                        <UserPopover user={user} />
+                        {index < participantUsers.length - 1 && ','}
+                      </span>
+                    ))}
+                    ({participantUsers.length}명)
                   </div>
                 </div>
               </div>
