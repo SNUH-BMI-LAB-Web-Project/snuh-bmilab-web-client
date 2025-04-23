@@ -1,4 +1,4 @@
-import type { User } from '@/types/project';
+import type { User } from '@/types/researches';
 
 export const currentUser: User = {
   userId: '1',
