@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { ProjectForm } from '@/components/researches/projects/project-form';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { Project } from '@/types/project';
+import { Project } from '@/types/researches';
 
 export default function NewProject() {
   const router = useRouter();
@@ -17,7 +17,7 @@ export default function NewProject() {
   };
 
   return (
-    <div className="container">
+    <div className="flex flex-col px-30">
       <div className="mb-6 flex items-center">
         <Button
           variant="ghost"
