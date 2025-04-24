@@ -5,7 +5,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from '@/components/ui/popover';
-import { User } from '@/types/researches';
+import { User } from '@/types/user';
 import Image from 'next/image';
 
 export default function UserPopover({ user }: { user: User }) {

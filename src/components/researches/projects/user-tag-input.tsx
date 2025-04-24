@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
-import { users } from '@/data/projects';
-import { User } from '@/types/researches';
+import { users } from '@/data/users';
+import { User } from '@/types/user';
 
 interface UserTagInputProps {
   selectedUsers: string[];
