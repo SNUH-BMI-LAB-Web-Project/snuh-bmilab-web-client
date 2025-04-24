@@ -1,4 +1,4 @@
-import { Rss } from '@/types/researches';
+import { Rss } from '@/types/rss';
 
 export const dummyRss: Rss[] = [
   {

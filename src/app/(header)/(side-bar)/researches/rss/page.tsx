@@ -5,7 +5,7 @@ import { PaginatedTable } from '@/components/common/paginated-table';
 import { ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRssFilterStore } from '@/hooks/use-rss-filters';
-import { Rss } from '@/types/researches';
+import { Rss } from '@/types/rss';
 
 const getProjectColumns = () => [
   {
