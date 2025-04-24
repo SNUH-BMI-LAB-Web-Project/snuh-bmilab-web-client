@@ -1,30 +1,24 @@
 'use client';
 
 import * as React from 'react';
+import { usePathname } from 'next/navigation';
 import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
-  SquareTerminal,
+  Users,
+  Newspaper,
+  FolderSearch,
+  Boxes,
+  CircleFadingPlus,
 } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
-import { NavProjects } from '@/components/nav-projects';
 import { NavUser } from '@/components/nav-user';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarRail,
 } from '@/components/ui/sidebar';
 
-const data = {
+const baseData = {
   user: {
     name: 'shadcn',
     email: 'm@example.com',
@@ -33,93 +27,80 @@ const data = {
   navMain: [
     {
       title: '사용자',
-      url: '#',
-      icon: SquareTerminal,
-      isActive: true,
+      url: '/users',
+      icon: Users,
       items: [
-        {
-          title: '연명부',
-          url: '#',
-        },
-        {
-          title: '휴가',
-          url: '#',
-        },
-        {
-          title: '자리배치도',
-          url: '#',
-        },
+        // { title: '연명부', url: '/members' },
+        { title: '휴가', url: '/users/leaves' },
+        { title: '자리배치도', url: '/users/seats' },
       ],
     },
     {
       title: '업무',
-      url: '#',
-      icon: Bot,
+      url: '/reports',
+      icon: Newspaper,
       items: [
-        {
-          title: '집행부 업무 보고',
-          url: '#',
-        },
-        {
-          title: '일일 업무 보고',
-          url: '#',
-        },
+        { title: '일일 업무 보고', url: '/reports/daily' },
+        { title: '집행부 업무 보고', url: '/reports/weekly' },
       ],
     },
     {
       title: '연구',
-      url: '#',
-      icon: BookOpen,
+      url: '/researches',
+      icon: FolderSearch,
       items: [
-        {
-          title: 'RSS 공고',
-          url: '#',
-        },
-        {
-          title: '연구 & 프로젝트',
-          url: '#',
-        },
+        { title: 'RSS 공고', url: '/researches/rss' },
+        { title: '연구 & 프로젝트', url: '/researches/projects' },
       ],
     },
     {
       title: '물품',
-      url: '#',
-      icon: Settings2,
+      url: '/goods',
+      icon: Boxes,
       items: [
-        {
-          title: '물자 관리',
-          url: '#',
-        },
-        {
-          title: '보안 컴퓨터 관리',
-          url: '#',
-        },
+        { title: '물자 관리', url: '/goods/management' },
+        { title: '보안 컴퓨터 관리', url: '/items/computers' },
       ],
     },
     {
       title: '기타',
-      url: '#',
-      icon: Settings2,
-      items: [
-        {
-          title: '정보 게시판',
-          url: '#',
-        },
-      ],
+      url: '/etc',
+      icon: CircleFadingPlus,
+      items: [{ title: '정보 게시판', url: '/etc/board' }],
     },
   ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar() {
+  const pathname = usePathname();
+
+  if (pathname.startsWith('/researches/projects/')) {
+    return null;
+  }
+
+  const navMain = baseData.navMain.map((group) => {
+    const updatedItems = group.items?.map((subItem) => ({
+      ...subItem,
+      isActive: true,
+    }));
+
+    return {
+      ...group,
+      isActive: true,
+      items: updatedItems,
+    };
+  });
+
   return (
-    <Sidebar {...props}>
-      <SidebarContent>
-        <NavMain groupLabel={"사용자"} items={data.navMain} />
-      </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
-      <SidebarRail />
-    </Sidebar>
+    <div className="flex h-[calc(100vh-65px)] overflow-hidden">
+      <Sidebar className="flex h-full w-[16rem] flex-col border-r">
+        <SidebarContent className="flex-1 overflow-auto">
+          <NavMain items={navMain} />
+        </SidebarContent>
+        <SidebarFooter className="shrink-0 border-t bg-white px-4 py-3">
+          <NavUser user={baseData.user} />
+        </SidebarFooter>
+      </Sidebar>
+    </div>
   );
 }

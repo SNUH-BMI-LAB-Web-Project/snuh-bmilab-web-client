@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import Image from 'next/image';
 
 interface NavItem {
   name: string;
@@ -17,13 +18,9 @@ const navItems: NavItem[] = [
     name: '포털',
     link: '',
   },
-  {
-    name: '로그아웃',
-    link: '/desktop/login',
-  },
 ];
 
-export default function NavBar() {
+export default function Header() {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(-1);
 
@@ -33,21 +30,39 @@ export default function NavBar() {
   };
 
   return (
-    <header className="flex w-screen justify-end gap-5 border-b-[1px] border-solid px-[50px] pb-5 pt-5">
-      {navItems.map((navItem: NavItem, index: number) => (
-        <button
-          className={
-            index === currentIndex
-              ? 'text-body-2-normal_semi font-bold'
-              : 'text-body-2-normal_semi hover:font-bold'
-          }
-          key={navItem.name}
-          type="button"
-          onClick={() => handleNavBtnClick(navItem, index)}
-        >
-          {navItem.name}
-        </button>
-      ))}
+    <header className="text-md flex w-screen items-center justify-between border-b py-5 pr-10 pl-4">
+      {/* 좌측 로고 */}
+      <div className="flex flex-row items-center gap-3 text-lg font-semibold">
+        <Image
+          src="/bmi-lab-tmp-logo.svg"
+          alt="BMI Lab Logo"
+          width={30}
+          height={30}
+          className="bg-transparent"
+        />
+        <Image
+          src="/bmi-lab-tmp-text-logo.svg"
+          alt="BMI Lab Text Logo"
+          width={140}
+          height={30}
+          className="bg-transparent"
+        />
+      </div>
+      {/* 우측 내비게이션 */}
+      <nav className="flex gap-5">
+        {navItems.map((navItem: NavItem, index: number) => (
+          <button
+            key={navItem.name}
+            type="button"
+            onClick={() => handleNavBtnClick(navItem, index)}
+            className={
+              index === currentIndex ? 'font-semibold' : 'hover:font-semibold'
+            }
+          >
+            {navItem.name}
+          </button>
+        ))}
+      </nav>
     </header>
   );
 }
