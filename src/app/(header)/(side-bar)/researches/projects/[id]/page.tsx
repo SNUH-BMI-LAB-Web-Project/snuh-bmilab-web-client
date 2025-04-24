@@ -154,33 +154,7 @@ export default function ProjectDetail({
             </CardContent>
           </Card>
 
-          <div>
-            <h2 className="mb-4 flex flex-row items-center gap-2 text-xl font-semibold">
-              <Paperclip className="h-4 w-4" /> 첨부파일
-            </h2>
-            <ul className="space-y-2 text-sm">
-              {project.files?.map((file) => (
-                <li
-                  key={file.name}
-                  className="flex items-center justify-between rounded-md border p-3"
-                >
-                  <div className="flex items-center">
-                    <div className="ml-2">
-                      <div className="truncate text-sm font-medium">
-                        {file.name}
-                      </div>
-                      <div className="text-muted-foreground text-xs">
-                        {file.size}
-                      </div>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="icon">
-                    <Download />
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <MeetingTimeline projectId={id} meetings={meetings} />
         </div>
 
         <div className="col-span-1 flex flex-col gap-8">
@@ -244,7 +218,33 @@ export default function ProjectDetail({
             </CardContent>
           </Card>
 
-          <MeetingTimeline projectId={id} meetings={meetings} />
+          <div>
+            <h2 className="mb-4 flex flex-row items-center gap-2 text-xl font-semibold">
+              <Paperclip className="h-4 w-4" /> 첨부파일
+            </h2>
+            <ul className="space-y-2 text-sm">
+              {project.files?.map((file) => (
+                <li
+                  key={file.name}
+                  className="flex items-center justify-between rounded-md border p-3"
+                >
+                  <div className="flex items-center">
+                    <div className="ml-2">
+                      <div className="truncate text-sm font-medium">
+                        {file.name}
+                      </div>
+                      <div className="text-muted-foreground text-xs">
+                        {file.size}
+                      </div>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon">
+                    <Download />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
 
