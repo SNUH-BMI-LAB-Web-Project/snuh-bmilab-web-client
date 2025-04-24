@@ -24,13 +24,14 @@ import {
   Handshake,
   Paperclip,
 } from 'lucide-react';
-import { allProjects, users } from '@/data/projects';
+import { allProjects } from '@/data/projects';
+import { users } from '@/data/users';
 import { currentUser, canEditProject, canDeleteProject } from '@/data/auth';
 import { formatDateTime, getStatusColor } from '@/lib/utils';
 import UserPopover from '@/components/common/user-popover';
 import Image from 'next/image';
 import MeetingTimeline from '@/components/researches/projects/meetings/meeting-timeline';
-import { Meeting } from '@/types/researches';
+import { Meeting } from '@/types/meeting';
 import { allMeetings } from '@/data/meetings';
 
 export default function ProjectDetail({

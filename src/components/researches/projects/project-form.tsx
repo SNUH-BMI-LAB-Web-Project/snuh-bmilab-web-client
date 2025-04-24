@@ -36,13 +36,14 @@ import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
-import { researchCategories, users } from '@/data/projects';
-import {
+import { projectCategories } from '@/data/projects';
+import { users } from '@/data/users';
+import type {
   Project,
   ProjectFile,
   ProjectCategory,
-  ResearchStatus,
-} from '@/types/researches';
+  ProjectStatus,
+} from '@/types/project';
 import { Separator } from '@/components/ui/separator';
 
 interface ProjectFormProps {
@@ -67,7 +68,7 @@ export function ProjectForm({
       startDate: '',
       endDate: '',
       category: '' as ProjectCategory,
-      status: '' as ResearchStatus,
+      status: '' as ProjectStatus,
       createdAt: '',
       leaderId: [],
       participantId: [],
@@ -442,7 +443,7 @@ export function ProjectForm({
                 <SelectValue placeholder="연구 분야를 선택하세요" />
               </SelectTrigger>
               <SelectContent>
-                {researchCategories.map((category) => (
+                {projectCategories.map((category: ProjectCategory) => (
                   <SelectItem key={category} value={category}>
                     {category}
                   </SelectItem>

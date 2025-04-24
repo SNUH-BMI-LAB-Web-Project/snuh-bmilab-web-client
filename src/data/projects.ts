@@ -1,13 +1,7 @@
-import type {
-  Project,
-  ProjectCategory,
-  ResearchStatus,
-  SortOption,
-  User,
-} from '@/types/researches';
+import type { SortOption } from '@/types/option';
+import type { Project, ProjectCategory, ProjectStatus } from '@/types/project';
 
-// 연구 분야 목록
-export const researchCategories: ProjectCategory[] = [
+export const projectCategories: ProjectCategory[] = [
   'Bioinformatics',
   'Medical AI (Pathology)',
   'Medical AI (Signal data)',
@@ -15,15 +9,13 @@ export const researchCategories: ProjectCategory[] = [
   'NLP',
 ];
 
-// 연구 상태 목록
-export const researchStatuses: ResearchStatus[] = [
+export const projectStatuses: ProjectStatus[] = [
   '진행 전',
   '진행 중',
   '진행 종료',
   '진행 대기',
 ];
 
-// 정렬 옵션
 export const sortOptions: SortOption[] = [
   { value: 'created-desc', label: '등록일 (최신순)' },
   { value: 'created-asc', label: '등록일 (오래된순)' },
@@ -33,101 +25,6 @@ export const sortOptions: SortOption[] = [
   { value: 'date-desc', label: '시작일 (내림차순)' },
 ];
 
-// 사용자 목록 (실제로는 API에서 가져와야 함)
-export const users: User[] = [
-  {
-    userId: '1',
-    email: 'kimcs@example.com',
-    name: '김철수',
-    department: '정보기술팀',
-    role: 'ADMIN',
-    createdAt: '2023-01-15',
-    profileImageUrl: '/profile.jpg',
-  },
-  {
-    userId: '2',
-    email: 'leeyh@example.com',
-    name: '이영희',
-    department: '기획팀',
-    role: 'USER',
-    createdAt: '2023-03-02',
-    profileImageUrl: '/profile.jpg',
-  },
-  {
-    userId: '3',
-    email: 'parkjm@example.com',
-    name: '박지민',
-    department: '연구개발팀',
-    role: 'USER',
-    createdAt: '2023-02-10',
-    profileImageUrl: '/profile.jpg',
-  },
-  {
-    userId: '4',
-    email: 'choidw@example.com',
-    name: '최동욱',
-    department: '정보기술팀',
-    role: 'USER',
-    createdAt: '2022-12-20',
-    profileImageUrl: '/profile.jpg',
-  },
-  {
-    userId: '5',
-    email: 'jungsumin@example.com',
-    name: '정수민',
-    department: '인사팀',
-    role: 'USER',
-    createdAt: '2023-04-01',
-    profileImageUrl: '/profile.jpg',
-  },
-  {
-    userId: '6',
-    email: 'hanjy@example.com',
-    name: '한지연',
-    department: '기획팀',
-    role: 'USER',
-    createdAt: '2023-01-28',
-    profileImageUrl: '/profile.jpg',
-  },
-  {
-    userId: '7',
-    email: 'leems@example.com',
-    name: '이민수',
-    department: '연구개발팀',
-    role: 'USER',
-    createdAt: '2023-02-15',
-    profileImageUrl: '/profile.jpg',
-  },
-  {
-    userId: '8',
-    email: 'kanghw@example.com',
-    name: '강현우',
-    department: '정보기술팀',
-    role: 'USER',
-    createdAt: '2023-03-19',
-    profileImageUrl: '/profile.jpg',
-  },
-  {
-    userId: '9',
-    email: 'yoonss@example.com',
-    name: '윤서연',
-    department: '인사팀',
-    role: 'USER',
-    createdAt: '2023-02-22',
-    profileImageUrl: '/profile.jpg',
-  },
-  {
-    userId: '10',
-    email: 'jangmj@example.com',
-    name: '장민준',
-    department: '연구개발팀',
-    role: 'USER',
-    createdAt: '2023-01-05',
-    profileImageUrl: '/profile.jpg',
-  },
-];
-
-// 임시 프로젝트 데이터
 export const allProjects: Project[] = [
   {
     projectId: '1',

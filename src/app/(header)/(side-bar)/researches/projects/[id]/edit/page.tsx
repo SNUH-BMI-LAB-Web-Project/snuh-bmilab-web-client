@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { ProjectForm } from '@/components/researches/projects/project-form';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { Project, ProjectCategory, ResearchStatus } from '@/types/researches';
+import { Project, ProjectCategory, ProjectStatus } from '@/types/project';
 
 // 임시 데이터
 const project = {
@@ -16,7 +16,7 @@ const project = {
   startDate: '2023-01-01',
   endDate: '2023-12-31',
   category: 'Bioinformatics' as ProjectCategory,
-  status: '진행 중' as ResearchStatus,
+  status: '진행 중' as ProjectStatus,
   createdAt: '2023-01-01T09:00:00Z',
   updatedAt: '2023-05-01T10:00:00Z',
   leaderId: ['1', '2'],

@@ -2,7 +2,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import type { ResearchStatus } from '@/types/researches';
+import type { ProjectStatus } from '@/types/project';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -27,7 +27,7 @@ export function formatDateTimeVer2(date: string | Date): string {
   return format(d, 'yyyy. M. d. (EEE)', { locale: ko });
 }
 
-export const getStatusColor = (status: ResearchStatus) => {
+export const getStatusColor = (status: ProjectStatus) => {
   switch (status) {
     case '진행 전':
       return 'bg-blue-100 text-blue-800 hover:bg-blue-100';

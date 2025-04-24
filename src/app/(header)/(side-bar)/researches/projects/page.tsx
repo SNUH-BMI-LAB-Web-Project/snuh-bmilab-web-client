@@ -17,13 +17,13 @@ import {
 } from '@/components/ui/select';
 import {
   allProjects,
-  researchCategories,
-  researchStatuses,
+  projectCategories,
+  projectStatuses,
   sortOptions,
-  users,
 } from '@/data/projects';
+import { users } from '@/data/users';
 import { getStatusColor } from '@/lib/utils';
-import type { Project } from '@/types/researches';
+import type { Project } from '@/types/project';
 import { canEditProject, canDeleteProject, currentUser } from '@/data/auth';
 import {
   DropdownMenu,
@@ -312,7 +312,7 @@ export default function ProjectPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">모든 분야</SelectItem>
-                    {researchCategories.map((category) => (
+                    {projectCategories.map((category) => (
                       <SelectItem key={category} value={category}>
                         {category}
                       </SelectItem>
@@ -328,7 +328,7 @@ export default function ProjectPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">모든 상태</SelectItem>
-                    {researchStatuses.map((status) => (
+                    {projectStatuses.map((status) => (
                       <SelectItem key={status} value={status}>
                         {status}
                       </SelectItem>
