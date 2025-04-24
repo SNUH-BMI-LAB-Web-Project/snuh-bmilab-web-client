@@ -14,7 +14,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import type { Meeting } from '@/types/researches';
+import type { Meeting } from '@/types/meeting';
 import { cn, formatDateTimeVer2 } from '@/lib/utils';
 
 interface MeetingTimelineProps {

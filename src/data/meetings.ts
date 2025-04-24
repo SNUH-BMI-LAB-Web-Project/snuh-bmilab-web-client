@@ -1,5 +1,4 @@
-import type { Meeting } from '@/types/researches';
-import { users } from '@/data/projects';
+import type { Meeting } from '@/types/meeting';
 
 export const allMeetings: Meeting[] = [
   {
@@ -192,11 +191,3 @@ export const allMeetings: Meeting[] = [
     ],
   },
 ];
-
-export function getMeetingsByProjectId(projectId: string): Meeting[] {
-  return allMeetings.filter((meeting) => meeting.projectId === projectId);
-}
-
-export function getUserById(userId: string) {
-  return users.find((user) => user.userId === userId);
-}
