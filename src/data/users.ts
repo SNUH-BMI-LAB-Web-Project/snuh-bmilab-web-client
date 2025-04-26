@@ -8,7 +8,7 @@ export const users: User[] = [
     department: '정보기술팀',
     role: 'ADMIN',
     createdAt: '2023-01-15',
-    profileImageUrl: '/profile.jpg',
+    profileImageUrl: '',
   },
   {
     userId: '2',
