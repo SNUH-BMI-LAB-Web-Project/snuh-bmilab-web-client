@@ -18,78 +18,78 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 
-const baseData = {
-  user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
+import { currentUser } from '@/data/auth';
+
+const baseNav = [
+  {
+    title: '사용자',
+    url: '/portal/users',
+    icon: Users,
+    items: [
+      { title: '연명부', url: '/portal/users' },
+      { title: '휴가', url: '/portal/users/leaves' },
+      { title: '자리배치도', url: '/portal/users/seats' },
+    ],
   },
-  navMain: [
-    {
-      title: '사용자',
-      url: '/users',
-      icon: Users,
-      items: [
-        // { title: '연명부', url: '/members' },
-        { title: '휴가', url: '/users/leaves' },
-        { title: '자리배치도', url: '/users/seats' },
-      ],
-    },
-    {
-      title: '업무',
-      url: '/reports',
-      icon: Newspaper,
-      items: [
-        { title: '일일 업무 보고', url: '/reports/daily' },
-        { title: '집행부 업무 보고', url: '/reports/weekly' },
-      ],
-    },
-    {
-      title: '연구',
-      url: '/researches',
-      icon: FolderSearch,
-      items: [
-        { title: 'RSS 공고', url: '/researches/rss' },
-        { title: '연구 & 프로젝트', url: '/researches/projects' },
-      ],
-    },
-    {
-      title: '물품',
-      url: '/goods',
-      icon: Boxes,
-      items: [
-        { title: '물자 관리', url: '/goods/management' },
-        { title: '보안 컴퓨터 관리', url: '/items/computers' },
-      ],
-    },
-    {
-      title: '기타',
-      url: '/etc',
-      icon: CircleFadingPlus,
-      items: [{ title: '정보 게시판', url: '/etc/board' }],
-    },
-  ],
-};
+  {
+    title: '업무',
+    url: '/portal/reports',
+    icon: Newspaper,
+    items: [{ title: '일일 업무 보고', url: '/portal/reports/daily' }],
+  },
+  {
+    title: '연구',
+    url: '/portal/researches',
+    icon: FolderSearch,
+    items: [
+      { title: 'RSS 공고', url: '/portal/researches/rss' },
+      { title: '연구 & 프로젝트', url: '/portal/researches/projects' },
+    ],
+  },
+  {
+    title: '물품',
+    url: '/portal/goods',
+    icon: Boxes,
+    items: [
+      { title: '물자 관리', url: '/portal/goods/management' },
+      { title: '보안 컴퓨터 관리', url: '/portal/goods/computers' },
+    ],
+    onlyAdmin: true,
+  },
+  {
+    title: '기타',
+    url: '/portal/etc',
+    icon: CircleFadingPlus,
+    items: [{ title: '정보 게시판', url: '/portal/etc/board' }],
+  },
+];
 
 export function AppSidebar() {
   const pathname = usePathname();
 
-  if (pathname.startsWith('/researches/projects/')) {
+  if (pathname.startsWith('/portal/researches/projects/')) {
     return null;
   }
 
-  const navMain = baseData.navMain.map((group) => {
-    const updatedItems = group.items?.map((subItem) => ({
-      ...subItem,
-      isActive: true,
-    }));
+  const navMain = baseNav
+    .filter((group) => {
+      if (group.onlyAdmin && currentUser.role !== 'ADMIN') {
+        return false;
+      }
+      return true;
+    })
+    .map((group) => {
+      const updatedItems = group.items?.map((subItem) => ({
+        ...subItem,
+        isActive: true,
+      }));
 
-    return {
-      ...group,
-      isActive: true,
-      items: updatedItems,
-    };
-  });
+      return {
+        ...group,
+        isActive: true,
+        items: updatedItems,
+      };
+    });
 
   return (
     <div className="flex h-[calc(100vh-65px)] overflow-hidden">
@@ -97,8 +97,15 @@ export function AppSidebar() {
         <SidebarContent className="flex-1 overflow-auto">
           <NavMain items={navMain} />
         </SidebarContent>
-        <SidebarFooter className="shrink-0 border-t bg-white px-4 py-3">
-          <NavUser user={baseData.user} />
+        <SidebarFooter className="shrink-0 border-t bg-white px-4 py-4">
+          <NavUser
+            user={{
+              name: currentUser.name,
+              email: currentUser.email,
+              avatar:
+                currentUser.profileImageUrl || '/default-profile-image.svg',
+            }}
+          />
         </SidebarFooter>
       </Sidebar>
     </div>
