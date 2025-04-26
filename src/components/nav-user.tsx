@@ -1,22 +1,13 @@
 'use client';
 
-import {
-  BadgeCheck,
-  Bell,
-  CreditCard,
-  LogOut,
-  Sparkles,
-  EllipsisVertical,
-} from 'lucide-react';
+import { LogOut, EllipsisVertical, UserCog } from 'lucide-react';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -41,10 +32,14 @@ export function NavUser({
     <SidebarMenu>
       <SidebarMenuItem className="flex items-center justify-between p-1">
         <div className="flex flex-row gap-4">
-          <Avatar className="h-9 w-9 rounded-full">
-            <AvatarImage src={user.avatar} alt={user.name} />
-            <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+          <Avatar className="aspect-square h-9 w-9 rounded-full">
+            <AvatarImage
+              src={user.avatar}
+              alt={user.name}
+              className="object-cover"
+            />
           </Avatar>
+
           <div className="flex flex-col text-sm leading-tight">
             <span className="truncate font-medium">{user.name}</span>
             <span className="text-muted-foreground truncate text-xs">
@@ -64,52 +59,21 @@ export function NavUser({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="min-w-56 rounded-lg"
+            className="min-w-42 rounded-lg"
             side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={30}
           >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-9 w-9 rounded-full">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="text-muted-foreground truncate text-xs">
-                    {user.email}
-                  </span>
-                </div>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
+                <UserCog />
+                마이페이지
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <LogOut />
+                로그아웃
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
-              Log out
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
