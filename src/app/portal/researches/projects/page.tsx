@@ -7,7 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { PaginatedTable } from '@/components/common/paginated-table';
 import { useProjectFilterStore } from '@/hooks/use-project-filters';
 import { Input } from '@/components/ui/input';
-import { MoreHorizontal, Search, SlidersHorizontal, X } from 'lucide-react';
+import {
+  MoreHorizontal,
+  Pencil,
+  Search,
+  SlidersHorizontal,
+  Trash2,
+  X,
+} from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -52,7 +59,7 @@ const getProjectColumns = (
     label: '제목',
     cell: (row: Project) => (
       <Link
-        href={`/researches/projects/${row.projectId}`}
+        href={`/portal/researches/projects/${row.projectId}`}
         className="hover:underline"
       >
         {row.title}
@@ -116,10 +123,12 @@ const getProjectColumns = (
             {canEditProject(row.participantId, currentUser.userId) && (
               <DropdownMenuItem
                 onClick={() =>
-                  router.push(`/researches/projects/${row.projectId}/edit`)
+                  router.push(
+                    `/portal/researches/projects/${row.projectId}/edit`,
+                  )
                 }
               >
-                수정
+                <Pencil /> 수정
               </DropdownMenuItem>
             )}
             {canDeleteProject(
@@ -132,7 +141,7 @@ const getProjectColumns = (
                 className="text-destructive focus:text-destructive"
                 onClick={() => handleDelete(row.projectId)}
               >
-                삭제
+                <Trash2 className="text-destructive" /> 삭제
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>
@@ -257,8 +266,8 @@ export default function ProjectPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">연구 & 프로젝트</h1>
-        <Link href="/researches/projects/new">
-          <Button>새 프로젝트 등록</Button>
+        <Link href="/portal/researches/projects/new">
+          <Button>연구 & 프로젝트 등록</Button>
         </Link>
       </div>
       <div className="space-y-4">

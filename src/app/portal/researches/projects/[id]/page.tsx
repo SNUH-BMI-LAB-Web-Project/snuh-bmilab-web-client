@@ -20,9 +20,9 @@ import {
   ArrowLeft,
   Edit,
   Trash,
-  Download,
-  Handshake,
   Paperclip,
+  Info,
+  NotepadText,
 } from 'lucide-react';
 import { allProjects } from '@/data/projects';
 import { users } from '@/data/users';
@@ -33,6 +33,8 @@ import Image from 'next/image';
 import MeetingTimeline from '@/components/researches/projects/meetings/meeting-timeline';
 import { Meeting } from '@/types/meeting';
 import { allMeetings } from '@/data/meetings';
+import { FileItem } from '@/components/researches/projects/file-item';
+import { Label } from '@/components/ui/label';
 
 export default function ProjectDetail({
   params,
@@ -76,6 +78,13 @@ export default function ProjectDetail({
     router.push('/');
   };
 
+  const downloadFile = (file: { name: string; url: string }) => {
+    const link = document.createElement('a');
+    link.href = file.url;
+    link.download = file.name;
+    link.click();
+  };
+
   const leaderUsers = users.filter((u) => project.leaderId.includes(u.userId));
   const participantUsers = users.filter((u) =>
     project.participantId.includes(u.userId),
@@ -104,7 +113,12 @@ export default function ProjectDetail({
       <div className="flex flex-row items-center justify-between">
         <div className="text-muted-foreground flex items-center gap-3 text-sm">
           <Image
-            src={authorUser?.profileImageUrl || '/default-avatar.png'}
+            src={
+              authorUser?.profileImageUrl &&
+              authorUser.profileImageUrl.trim() !== ''
+                ? authorUser.profileImageUrl
+                : '/default-profile-image.svg'
+            }
             alt={authorUser?.name || '사용자 프로필'}
             width={40}
             height={40}
@@ -123,7 +137,7 @@ export default function ProjectDetail({
             <div className="flex flex-row justify-end gap-2">
               {canEdit && (
                 <Button asChild>
-                  <Link href={`/researches/projects/${id}/edit`}>
+                  <Link href={`/portal/researches/projects/${id}/edit`}>
                     <Edit /> 수정하기
                   </Link>
                 </Button>
@@ -148,101 +162,110 @@ export default function ProjectDetail({
 
       <div className="grid grid-cols-3 gap-8">
         <div className="col-span-2 flex flex-col gap-8">
-          <Card>
-            <CardContent className="flex h-full flex-col justify-start py-4">
-              <div className="whitespace-pre-line">{project.content}</div>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col gap-4">
+            <Label className="flex flex-row text-lg font-semibold">
+              <NotepadText className="h-4 w-4" />
+              <span>연구 내용</span>
+            </Label>
+
+            <Card>
+              <CardContent className="flex h-full flex-col justify-start gap-2">
+                <div className="whitespace-pre-line">{project.content}</div>
+              </CardContent>
+            </Card>
+          </div>
 
           <MeetingTimeline projectId={id} meetings={meetings} />
         </div>
 
         <div className="col-span-1 flex flex-col gap-8">
-          <Card>
-            <CardContent className="flex h-full flex-col justify-center gap-6">
-              <div className="flex flex-col gap-2">
-                <span className="font-semibold">연구 정보</span>
-                <div className="flex items-center justify-between gap-2 text-sm">
-                  <span>연구 분야</span>
-                  <Badge variant="outline" className="whitespace-nowrap">
-                    {project.category}
-                  </Badge>{' '}
-                </div>
-                <div className="flex items-center justify-between gap-2 text-sm">
-                  <span>연구 상태</span>
-                  <Badge className={getStatusColor(project.status)}>
-                    {project.status}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between gap-2 text-sm">
-                  <span>연구 기간</span>
-                  <div className="text-muted-foreground text-sm font-normal">
-                    {project.startDate} ~ {project.endDate}
+          <div className="flex flex-col gap-4">
+            <Label className="flex flex-row text-lg font-semibold">
+              <Info className="h-4 w-4" />
+              <span>연구 정보</span>
+            </Label>
+            <Card>
+              <CardContent className="flex h-full flex-col justify-center gap-6">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <span>연구 분야</span>
+                    <Badge variant="outline" className="whitespace-nowrap">
+                      {project.category}
+                    </Badge>
                   </div>
-                </div>
-              </div>
-
-              <div className="border-t" />
-
-              <div className="flex flex-col gap-2">
-                <div className="items-center">
-                  <span className="font-semibold">연구 책임자</span>
-                  <div className="text-muted-foreground flex flex-wrap gap-1 text-sm font-normal">
-                    {leaderUsers.map((user, index) => (
-                      <span key={user.userId} className="flex items-center">
-                        <UserPopover user={user} />
-                        {index < leaderUsers.length - 1 && ','}
-                      </span>
-                    ))}
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <span>연구 상태</span>
+                    <Badge className={getStatusColor(project.status)}>
+                      {project.status}
+                    </Badge>
                   </div>
-                </div>
-                <div className="items-center">
-                  <span className="font-semibold">연구 참여자</span>
-                  <div className="text-muted-foreground flex flex-wrap gap-1 text-sm font-normal">
-                    {participantUsers.map((user, index) => (
-                      <span key={user.userId} className="flex items-center">
-                        <UserPopover user={user} />
-                        {index < participantUsers.length - 1 && ','}
-                      </span>
-                    ))}
-                    ({participantUsers.length}명)
-                  </div>
-                </div>
-              </div>
-
-              {project.status !== '진행 종료' && (
-                <Button>
-                  <Handshake /> 연구 참여 제안하기
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-
-          <div>
-            <h2 className="mb-4 flex flex-row items-center gap-2 text-xl font-semibold">
-              <Paperclip className="h-4 w-4" /> 첨부파일
-            </h2>
-            <ul className="space-y-2 text-sm">
-              {project.files?.map((file) => (
-                <li
-                  key={file.name}
-                  className="flex items-center justify-between rounded-md border p-3"
-                >
-                  <div className="flex items-center">
-                    <div className="ml-2">
-                      <div className="truncate text-sm font-medium">
-                        {file.name}
-                      </div>
-                      <div className="text-muted-foreground text-xs">
-                        {file.size}
-                      </div>
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <span>연구 기간</span>
+                    <div className="text-muted-foreground text-sm font-normal">
+                      {project.startDate} ~ {project.endDate || ''}
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon">
-                    <Download />
-                  </Button>
-                </li>
-              ))}
+                </div>
+
+                <div className="border-t" />
+
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col">
+                    <span className="mb-1 font-semibold">연구 책임자</span>
+                    <div className="text-muted-foreground flex flex-wrap gap-1 text-sm font-normal">
+                      {leaderUsers.map((user, index) => (
+                        <span key={user.userId} className="flex items-center">
+                          <UserPopover user={user} />
+                          {index < leaderUsers.length - 1 && ','}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="mb-1 font-semibold">연구 참여자</span>
+                    <div className="text-muted-foreground flex flex-wrap gap-1 text-sm font-normal">
+                      {participantUsers.length > 0 ? (
+                        participantUsers.map((user, index) => (
+                          <span key={user.userId} className="flex items-center">
+                            <UserPopover user={user} />
+                            {index < participantUsers.length - 1 && ','}
+                          </span>
+                        ))
+                      ) : (
+                        <div className="text-muted-foreground text-xs">
+                          참여자가 없습니다
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="flex flex-col gap-4">
+            <Label className="flex flex-row text-lg font-semibold">
+              <Paperclip className="h-4 w-4" />
+              <span>첨부파일</span>
+            </Label>
+            <ul className="space-y-2 text-sm">
+              {project.files && project.files.length > 0 ? (
+                project.files.map((file, index) => (
+                  <FileItem
+                    key={file.name}
+                    file={{
+                      name: file.name,
+                      size: file.size,
+                    }}
+                    index={index}
+                    onAction={() => downloadFile(file)}
+                    mode="download"
+                  />
+                ))
+              ) : (
+                <Card className="text-muted-foreground px-4 py-6 text-center text-sm">
+                  등록된 첨부파일이 없습니다.
+                </Card>
+              )}
             </ul>
           </div>
         </div>

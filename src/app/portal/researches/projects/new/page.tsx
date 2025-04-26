@@ -27,7 +27,7 @@ export default function NewProject() {
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-3xl font-bold">새 프로젝트 등록</h1>
+        <h1 className="text-3xl font-bold">연구 & 프로젝트 등록</h1>
       </div>
 
       <ProjectForm onSubmit={handleSubmit} />
