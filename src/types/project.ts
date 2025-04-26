@@ -29,4 +29,5 @@ export interface ProjectFile {
   name: string;
   size: string;
   type: string;
+  url: string;
 }

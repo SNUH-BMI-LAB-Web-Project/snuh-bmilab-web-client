@@ -41,9 +41,24 @@ export const allProjects: Project[] = [
     leaderId: ['1', '2'],
     participantId: ['1', '2', '3', '4'],
     files: [
-      { name: '연구계획서.pdf', size: '2.4MB', type: 'application/pdf' },
-      { name: '중간보고서.docx', size: '1.8MB', type: 'application/msword' },
-      { name: '데이터셋_샘플.zip', size: '15.6MB', type: 'application/zip' },
+      {
+        name: '연구계획서.pdf',
+        size: '2.4MB',
+        type: 'application/pdf',
+        url: '',
+      },
+      {
+        name: '중간보고서.docx',
+        size: '1.8MB',
+        type: 'application/msword',
+        url: '',
+      },
+      {
+        name: '데이터셋_샘플.zip',
+        size: '15.6MB',
+        type: 'application/zip',
+        url: '',
+      },
     ],
   },
   {
