@@ -16,7 +16,7 @@ export default function UserInfoCard({ user }: { user: User }) {
   const isAdmin = currentUser.role === 'ADMIN';
 
   return (
-    <div className="text-foreground flex flex-col items-center rounded-lg border bg-white p-6 shadow-sm transition hover:shadow-md">
+    <div className="text-foreground flex flex-col items-center rounded-lg border bg-white p-6 shadow-sm transition">
       {/* 프로필 이미지 */}
       <div className="relative mb-6 h-48 w-full">
         <Image
@@ -34,12 +34,16 @@ export default function UserInfoCard({ user }: { user: User }) {
       {/* 이름, 부서, 이메일 */}
       <div className="text-muted-foreground flex w-full flex-col">
         <div className="flex flex-row items-center justify-between">
-          <h2 className="mb-1 text-lg font-semibold text-black">{user.name}</h2>
+          <h2 className="text-lg font-semibold text-black">{user.name}</h2>
 
           {isAdmin && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-5 focus:outline-none focus-visible:outline-none"
+                >
                   <EllipsisVertical className="h-4 w-4" />
                   <span className="sr-only">메뉴</span>
                 </Button>
@@ -55,6 +59,7 @@ export default function UserInfoCard({ user }: { user: User }) {
             </DropdownMenu>
           )}
         </div>
+        <div className="my-1.5 border-t" />
         <p className="text-sm">{user.department}</p>
         <p className="text-sm">{user.email}</p>
       </div>
