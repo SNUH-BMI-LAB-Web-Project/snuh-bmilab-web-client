@@ -4,12 +4,14 @@ import { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { X, Check } from 'lucide-react';
-import { users } from '@/data/users';
-import { User } from '@/types/user';
+import { UserSummary } from '@/generated-api/models/UserSummary';
+import { UserApi } from '@/generated-api/apis/UserApi';
+import { Configuration } from '@/generated-api/runtime';
+import { useAuthStore } from '@/store/auth-store';
 
 interface UserTagInputProps {
-  selectedUsers: string[];
-  onChange: (users: string[]) => void;
+  selectedUsers: number[];
+  onChange: (users: number[]) => void;
   placeholder: string;
 }
 
@@ -19,15 +21,37 @@ export function UserTagInput({
   placeholder,
 }: UserTagInputProps) {
   const [input, setInput] = useState('');
-  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserSummary[]>([]);
+  const [searchResults, setSearchResults] = useState<UserSummary[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const accessToken = useAuthStore((state) => state.accessToken);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const dropdownItemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
-  // 입력 값에 따라 searchResults 업데이트
+  // TODO: 에러 토스트 처리
+  useEffect(() => {
+    async function fetchUsers() {
+      if (!accessToken) return;
+      try {
+        const api = new UserApi(
+          new Configuration({
+            basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+            accessToken: async () => accessToken,
+          }),
+        );
+        const response = await api.getAllUsers({ page: 0 });
+        setUsers(response.users || []);
+      } catch (error) {
+        console.error('사용자 목록 불러오기 실패:', error);
+      }
+    }
+    fetchUsers();
+  }, [accessToken]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setInput(value);
@@ -36,21 +60,21 @@ export function UserTagInput({
     const trimmed = value.trim();
 
     if (trimmed === '@') {
-      setSearchResults(users); // @만 입력했을 땐 전체 보여줘
+      setSearchResults(users);
       setHighlightedIndex(-1);
       return;
     }
 
-    const query = trimmed.replace(/^@/, ''); // @ 제거!
+    const query = trimmed.replace(/^@/, '');
 
     if (query === '') {
-      setSearchResults(users); // @만 입력하고 다시 지웠을 때도 전체 보여주기
+      setSearchResults(users);
       setHighlightedIndex(-1);
       return;
     }
 
     const filtered = users.filter((user) =>
-      (user.name + user.department + user.email)
+      `${user.name ?? ''}${user.department ?? ''}${user.email ?? ''}`
         .toLowerCase()
         .includes(query.toLowerCase()),
     );
@@ -58,9 +82,9 @@ export function UserTagInput({
     setHighlightedIndex(-1);
   };
 
-  const addUser = (name: string) => {
-    if (name && !selectedUsers.includes(name)) {
-      onChange([...selectedUsers, name]);
+  const addUser = (userId: number) => {
+    if (!selectedUsers.includes(userId)) {
+      onChange([...selectedUsers, userId]);
     }
     setInput('');
     setSearchResults([]);
@@ -68,11 +92,10 @@ export function UserTagInput({
     setHighlightedIndex(-1);
   };
 
-  const removeUser = (name: string) => {
-    onChange(selectedUsers.filter((user) => user !== name));
+  const removeUser = (userId: number) => {
+    onChange(selectedUsers.filter((id) => id !== userId));
   };
 
-  // 키보드 업/다운/엔터 처리
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isDropdownOpen || searchResults.length === 0) return;
 
@@ -93,13 +116,12 @@ export function UserTagInput({
     if (e.key === 'Enter') {
       e.preventDefault();
       const selectedUser = searchResults[highlightedIndex];
-      if (selectedUser && !selectedUsers.includes(selectedUser.name)) {
-        addUser(selectedUser.name);
+      if (selectedUser && selectedUser.userId !== undefined) {
+        addUser(selectedUser.userId);
       }
     }
   };
 
-  // 드롭다운 하이라이트 이동 시 스크롤 따라가기
   useEffect(() => {
     if (highlightedIndex >= 0 && dropdownItemRefs.current[highlightedIndex]) {
       dropdownItemRefs.current[highlightedIndex]?.scrollIntoView({
@@ -109,7 +131,6 @@ export function UserTagInput({
     }
   }, [highlightedIndex]);
 
-  // 외부 클릭하면 드롭다운 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -139,23 +160,26 @@ export function UserTagInput({
     <div className="flex flex-col gap-2">
       {/* 선택된 사용자 뱃지 */}
       <div className="flex flex-wrap gap-2">
-        {selectedUsers.map((user) => (
-          <Badge
-            key={user}
-            variant="secondary"
-            className="bg-border flex items-center gap-1 rounded-full px-3 py-1 text-sm"
-          >
-            {user}
-            <button
-              type="button"
-              onClick={() => removeUser(user)}
-              className="rounded-full p-0.5 transition hover:cursor-pointer hover:bg-black/5"
+        {selectedUsers.map((userId) => {
+          const user = users.find((u) => u.userId === userId);
+          return (
+            <Badge
+              key={userId}
+              variant="secondary"
+              className="bg-border flex items-center gap-1 rounded-full py-1 pr-1.5 pl-3 text-xs"
             >
-              <X className="h-3 w-3" />
-              <span className="sr-only">제거</span>
-            </button>
-          </Badge>
-        ))}
+              {user?.name ?? 'Unknown'}
+              <button
+                type="button"
+                onClick={() => removeUser(userId)}
+                className="rounded-full p-0.5 transition hover:cursor-pointer hover:bg-black/5"
+              >
+                <X className="h-3 w-3" />
+                <span className="sr-only">제거</span>
+              </button>
+            </Badge>
+          );
+        })}
       </div>
 
       {/* 입력창 */}
@@ -170,7 +194,7 @@ export function UserTagInput({
           className="bg-white text-sm"
         />
 
-        {/* 드롭다운 */}
+        {/* 커스텀 드롭다운 */}
         {isDropdownOpen && (
           <div
             ref={dropdownRef}
@@ -178,7 +202,7 @@ export function UserTagInput({
           >
             {searchResults.length > 0 ? (
               searchResults.map((user, index) => {
-                const isSelected = selectedUsers.includes(user.name);
+                const isSelected = selectedUsers.includes(user.userId ?? -1);
                 const isHighlighted = index === highlightedIndex;
 
                 let buttonClass =
@@ -201,7 +225,9 @@ export function UserTagInput({
                     type="button"
                     disabled={isSelected}
                     onClick={() => {
-                      if (!isSelected) addUser(user.name);
+                      if (!isSelected && user.userId !== undefined) {
+                        addUser(user.userId);
+                      }
                     }}
                     className={buttonClass}
                   >
