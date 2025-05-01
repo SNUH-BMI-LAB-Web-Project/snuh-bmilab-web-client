@@ -1,7 +1,7 @@
 'use client';
 
 import { users } from '@/data/users';
-import UserInfoCard from '@/components/users/user-info-card';
+import UserInfoCard from '@/components/portal/users/user-info-card';
 
 export default function UsersPage() {
   return (
