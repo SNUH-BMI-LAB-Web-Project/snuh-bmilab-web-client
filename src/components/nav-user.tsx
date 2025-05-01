@@ -1,32 +1,21 @@
 'use client';
 
-import { LogOut, EllipsisVertical, UserCog } from 'lucide-react';
-
+import { Settings } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  SidebarMenu,
-  SidebarMenuItem,
-  useSidebar,
-} from '@/components/ui/sidebar';
+import { SidebarMenu, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 
-export function NavUser({
-  user,
-}: {
+interface NavUserProps {
   user: {
     name: string;
     email: string;
-    avatar: string;
+    profileImageUrl: string;
   };
-}) {
-  const { isMobile } = useSidebar();
+}
+
+export default function NavUser({ user }: NavUserProps) {
+  const router = useRouter();
 
   return (
     <SidebarMenu>
@@ -34,7 +23,7 @@ export function NavUser({
         <div className="flex flex-row gap-4">
           <Avatar className="aspect-square h-9 w-9 rounded-full">
             <AvatarImage
-              src={user.avatar}
+              src={user.profileImageUrl || '/default-profile-image.svg'}
               alt={user.name}
               className="object-cover"
             />
@@ -47,35 +36,15 @@ export function NavUser({
             </span>
           </div>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hover:bg-muted focus:outline-none focus-visible:ring-0"
-            >
-              <EllipsisVertical className="size-4" />
-              <span className="sr-only">메뉴 열기</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="min-w-42 rounded-lg"
-            side={isMobile ? 'bottom' : 'right'}
-            align="end"
-            sideOffset={30}
-          >
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <UserCog />
-                마이페이지
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <LogOut />
-                로그아웃
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="hover:cursor-pointer"
+          onClick={() => router.push('/portal/mypage')}
+        >
+          <Settings className="h-4 w-4" />
+          <span className="sr-only">마이 페이지</span>
+        </Button>
       </SidebarMenuItem>
     </SidebarMenu>
   );
