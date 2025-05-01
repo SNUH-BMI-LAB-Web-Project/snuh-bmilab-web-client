@@ -1,53 +1,64 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { Badge } from '@/components/ui/badge';
-import { PaginatedTable } from '@/components/common/paginated-table';
-import { useProjectFilterStore } from '@/hooks/use-project-filters';
 import { Input } from '@/components/ui/input';
+import { PaginatedTable } from '@/components/common/paginated-table';
+import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
 import {
+  GetAllProjectsCategoryEnum,
+  GetAllProjectsStatusEnum,
+  ProjectApi,
+} from '@/generated-api/apis/ProjectApi';
+import { ProjectSummary } from '@/generated-api/models/ProjectSummary';
+import {
+  SlidersHorizontal,
+  Search,
+  X,
   MoreHorizontal,
   Pencil,
-  Search,
-  SlidersHorizontal,
   Trash2,
-  X,
 } from 'lucide-react';
 import {
   Select,
+  SelectTrigger,
   SelectContent,
   SelectItem,
-  SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  allProjects,
-  projectCategories,
-  projectStatuses,
-  sortOptions,
-} from '@/data/projects';
-import { users } from '@/data/users';
-import { getStatusColor } from '@/lib/utils';
-import type { Project } from '@/types/project';
-import { canEditProject, canDeleteProject, currentUser } from '@/data/auth';
+import Link from 'next/link';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import { useRouter } from 'next/navigation';
+import { Configuration } from '@/generated-api';
+import { useAuthStore } from '@/store/auth-store';
+import { cn } from '@/lib/utils';
+import {
+  getCategoryLabel,
+  getStatusClassName,
+  getStatusLabel,
+} from '@/utils/project-utils';
 
-const handleDelete = (projectId: string) => {
-  console.log('삭제 요청된 프로젝트:', projectId);
+const projectApi = new ProjectApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
+
+const formatSortOption = (option: string) => {
+  const [field, direction] = option.split('-');
+  return `${field},${direction}`;
 };
 
 const getProjectColumns = (
   currentPage: number,
   itemsPerPage: number,
   router: ReturnType<typeof useRouter>,
+  onDelete: (id: number) => void,
 ) => [
   {
     label: 'No',
@@ -57,7 +68,7 @@ const getProjectColumns = (
   },
   {
     label: '제목',
-    cell: (row: Project) => (
+    cell: (row: ProjectSummary) => (
       <Link
         href={`/portal/researches/projects/${row.projectId}`}
         className="hover:underline"
@@ -69,189 +80,155 @@ const getProjectColumns = (
   {
     label: '연구 분야',
     className: 'text-center',
-    cell: (row: Project) => (
+    cell: (row: ProjectSummary) => (
       <Badge variant="outline" className="whitespace-nowrap">
-        {row.category}
+        {getCategoryLabel(row.category)}
       </Badge>
     ),
   },
   {
     label: '연구 상태',
     className: 'text-center',
-    cell: (row: Project) => (
-      <Badge className={getStatusColor(row.status)}>{row.status}</Badge>
+    cell: (row: ProjectSummary) => (
+      <Badge
+        variant="outline"
+        className={cn('whitespace-nowrap', getStatusClassName(row.status))}
+      >
+        {getStatusLabel(row.status)}
+      </Badge>
     ),
   },
   {
     label: '책임자',
     className: 'text-center',
-    cell: (row: Project) =>
-      users
-        .filter((u) => row.leaderId.includes(u.userId))
-        .map((u) => u.name)
-        .join(', '),
+    cell: (row: ProjectSummary) =>
+      row.leaders?.map((leader) => leader.name).join(', ') ?? '',
   },
   {
     label: '참여자',
     className: 'text-center',
-    cell: (row: Project) => `${row.participantId.length}명`,
+    cell: (row: ProjectSummary) => `${row.participantCount ?? 0}명`,
   },
   {
     label: '연구 기간',
     className: 'text-center',
-    cell: (row: Project) => `${row.startDate} ~ ${row.endDate}`,
+    cell: (row: ProjectSummary) =>
+      `${row.startDate?.toISOString().substring(0, 10)} ~ ${row.endDate ? row.endDate.toISOString().substring(0, 10) : ''}`,
   },
   {
     label: '',
-    className: 'text-center w-[80px]',
-    cell: (row: Project) =>
-      canEditProject(row.leaderId, currentUser.userId) ||
-      canDeleteProject(
-        row.leaderId,
-        row.authorId,
-        currentUser.userId,
-        currentUser.role,
-      ) ? (
+    className: 'text-center',
+    cell: (row: ProjectSummary) => (
+      <div className="flex justify-end pr-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">
               <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">메뉴</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {canEditProject(row.participantId, currentUser.userId) && (
-              <DropdownMenuItem
-                onClick={() =>
-                  router.push(
-                    `/portal/researches/projects/${row.projectId}/edit`,
-                  )
-                }
-              >
-                <Pencil /> 수정
-              </DropdownMenuItem>
-            )}
-            {canDeleteProject(
-              row.leaderId,
-              row.authorId,
-              currentUser.userId,
-              currentUser.role,
-            ) && (
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() => handleDelete(row.projectId)}
-              >
-                <Trash2 className="text-destructive" /> 삭제
-              </DropdownMenuItem>
-            )}
+            <DropdownMenuItem
+              onClick={() =>
+                router.push(`/portal/researches/projects/${row.projectId}/edit`)
+              }
+            >
+              <Pencil className="mr-2 h-4 w-4" /> 수정
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => onDelete(row.projectId!)}
+            >
+              <Trash2 className="text-destructive mr-2 h-4 w-4" /> 삭제
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      ) : null,
+      </div>
+    ),
   },
 ];
 
-function getLeaderNames(leaderIds: string[]): string[] {
-  return users.filter((u) => leaderIds.includes(u.userId)).map((u) => u.name);
-}
-
-function getSortComparator(field: string, direction: string) {
-  return (a: Project, b: Project) => {
-    const getTime = (val: string) => new Date(val).getTime();
-    let aVal: string;
-    let bVal: string;
-
-    if (field === 'title') {
-      aVal = a.title;
-      bVal = b.title;
-    } else if (field === 'date') {
-      aVal = a.startDate;
-      bVal = b.startDate;
-    } else {
-      aVal = a.createdAt;
-      bVal = b.createdAt;
-    }
-
-    if (field === 'title') {
-      return direction === 'asc'
-        ? aVal.localeCompare(bVal)
-        : bVal.localeCompare(aVal);
-    }
-    return direction === 'asc'
-      ? getTime(aVal) - getTime(bVal)
-      : getTime(bVal) - getTime(aVal);
-  };
-}
-
 export default function ProjectPage() {
-  const {
-    searchTerm,
-    setSearchTerm,
-    committedSearchTerm,
-    setCommittedSearchTerm,
-    sortOption,
-    setSortOption,
-    showFilters,
-    setShowFilters,
-    fieldFilter,
-    setFieldFilter,
-    statusFilter,
-    setStatusFilter,
-    leaderFilter,
-    setLeaderFilter,
-    currentPage,
-    setCurrentPage,
-    itemsPerPage,
-    setItemsPerPage,
-  } = useProjectFilterStore();
-
   const router = useRouter();
 
-  const filteredProjects = useMemo(() => {
-    let result = [...allProjects];
+  const [searchTerm, setSearchTerm] = useState('');
+  const [committedSearchTerm, setCommittedSearchTerm] = useState('');
+  const [fieldFilter, setFieldFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [leaderFilter, setLeaderFilter] = useState('all');
+  const [leaders, setLeaders] = useState<{ id: number; name: string }[]>([]);
 
-    if (committedSearchTerm) {
-      result = result.filter((project) => {
-        const leaderNames = getLeaderNames(project.leaderId).map((name) =>
-          name.toLowerCase(),
-        );
-        return (
-          project.title
-            .toLowerCase()
-            .includes(committedSearchTerm.toLowerCase()) ||
-          leaderNames.some((name) =>
-            name.includes(committedSearchTerm.toLowerCase()),
-          )
-        );
+  const [sortOption, setSortOption] = useState('createdAt-desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showFilters, setShowFilters] = useState(false);
+
+  const [projects, setProjects] = useState<ProjectSummary[]>([]);
+  const [totalPage, setTotalPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const fetchProjects = useCallback(async () => {
+    setLoading(true);
+
+    const res = await projectApi.getAllProjects({
+      search: committedSearchTerm,
+      category:
+        fieldFilter !== 'all'
+          ? (fieldFilter as GetAllProjectsCategoryEnum)
+          : undefined,
+      status:
+        statusFilter !== 'all'
+          ? (statusFilter as GetAllProjectsStatusEnum)
+          : undefined,
+      leaderId: leaderFilter !== 'all' ? parseInt(leaderFilter, 10) : undefined,
+      page: currentPage - 1,
+      size: itemsPerPage,
+      sort: sortOption ? [formatSortOption(sortOption)] : undefined,
+    });
+
+    setProjects(res.projects ?? []);
+    setTotalPage(res.totalPage ?? 1);
+
+    const leaderSet = new Map<number, string>();
+    (res.projects ?? []).forEach((project) => {
+      (project.leaders ?? []).forEach((leader) => {
+        if (
+          leader.userId !== undefined &&
+          leader.name !== undefined &&
+          !leaderSet.has(leader.userId)
+        ) {
+          leaderSet.set(leader.userId, leader.name);
+        }
       });
-    }
+    });
 
-    if (fieldFilter && fieldFilter !== 'all') {
-      result = result.filter((project) => project.category === fieldFilter);
-    }
+    const leaderList = Array.from(leaderSet).map(([id, name]) => ({
+      id,
+      name,
+    }));
+    setLeaders(leaderList);
 
-    if (statusFilter && statusFilter !== 'all') {
-      result = result.filter((project) => project.status === statusFilter);
-    }
-
-    if (leaderFilter && leaderFilter !== 'all') {
-      result = result.filter((project) =>
-        project.leaderId.includes(leaderFilter),
-      );
-    }
-
-    if (sortOption) {
-      const [field, direction] = sortOption.split('-');
-      result.sort(getSortComparator(field, direction));
-    }
-
-    return result;
+    setLoading(false);
   }, [
     committedSearchTerm,
     fieldFilter,
     statusFilter,
     leaderFilter,
+    currentPage,
+    itemsPerPage,
     sortOption,
   ]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
+
+  // TODO: 삭제 기능 구현
+  const handleDelete = async (projectId: number) => {
+    if (window.confirm('정말로 삭제하시겠습니까?')) {
+      await projectApi.deleteProjectById({ projectId });
+      fetchProjects();
+    }
+  };
 
   const resetFilters = () => {
     setSearchTerm('');
@@ -259,19 +236,22 @@ export default function ProjectPage() {
     setFieldFilter('all');
     setStatusFilter('all');
     setLeaderFilter('all');
-    setSortOption('created-desc');
+    setSortOption('createdAt-desc');
   };
 
   return (
     <div>
+      {/* 헤더 */}
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">연구 & 프로젝트</h1>
         <Link href="/portal/researches/projects/new">
           <Button>연구 & 프로젝트 등록</Button>
         </Link>
       </div>
+
       <div className="space-y-4">
         <div className="flex flex-row gap-2">
+          {/* 검색 */}
           <div className="relative flex-1">
             <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
             <Input
@@ -281,11 +261,14 @@ export default function ProjectPage() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   setCommittedSearchTerm(searchTerm);
+                  setCurrentPage(1);
                 }
               }}
               className="pl-8"
             />
           </div>
+
+          {/* 정렬 */}
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -295,85 +278,71 @@ export default function ProjectPage() {
             >
               <SlidersHorizontal className="h-4 w-4" />
             </Button>
+
             <Select value={sortOption} onValueChange={setSortOption}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="정렬 방식" />
               </SelectTrigger>
               <SelectContent>
-                {sortOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
+                <SelectItem value="createdAt-desc">최신순</SelectItem>
+                <SelectItem value="createdAt-asc">오래된순</SelectItem>
+                <SelectItem value="startDate-asc">시작일 오름차순</SelectItem>
+                <SelectItem value="startDate-desc">시작일 내림차순</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
+        {/* 필터링 */}
         {showFilters && (
           <div className="bg-muted/30 flex flex-col gap-4 rounded-md border p-4">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="flex flex-row items-center gap-2">
-                <div className="w-[80px] text-sm font-medium">연구 분야</div>
-                <Select value={fieldFilter} onValueChange={setFieldFilter}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="모든 분야" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">모든 분야</SelectItem>
-                    {projectCategories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-row items-center gap-2">
-                <div className="w-[80px] text-sm font-medium">연구 상태</div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="모든 상태" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">모든 상태</SelectItem>
-                    {projectStatuses.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-row items-center gap-2">
-                <div className="w-[80px] text-sm font-medium">책임자</div>
-                <Select value={leaderFilter} onValueChange={setLeaderFilter}>
-                  <SelectTrigger className="w-full">
-                    {leaderFilter === 'all' ? (
-                      <span className="text-muted-foreground">모든 책임자</span>
-                    ) : (
-                      <span>
-                        {users.find((u) => u.userId === leaderFilter)?.name ??
-                          ''}
-                      </span>
-                    )}
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">모든 책임자</SelectItem>
-                    {users.map((user) => (
-                      <SelectItem key={user.userId} value={user.userId}>
-                        <div className="flex flex-col">
-                          <div>{user.name}</div>
-                          <div className="text-muted-foreground text-xs">
-                            {user.department} · {user.email}
-                          </div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="flex flex-row gap-4">
+              {/* 연구 분야 필터 */}
+              <Select value={fieldFilter} onValueChange={setFieldFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="연구 분야" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">모든 분야</SelectItem>
+                  {Object.values(GetAllProjectsCategoryEnum).map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {getCategoryLabel(category)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* 연구 상태 필터 */}
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="연구 상태" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">모든 상태</SelectItem>
+                  {Object.values(GetAllProjectsStatusEnum).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {getStatusLabel(status)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* 책임자 필터 */}
+              <Select value={leaderFilter} onValueChange={setLeaderFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="책임자 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">모든 책임자</SelectItem>
+                  {leaders.map((leader) => (
+                    <SelectItem key={leader.id} value={leader.id.toString()}>
+                      {leader.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+
             <div className="flex justify-end">
               <Button variant="ghost" size="sm" onClick={resetFilters}>
                 <X className="h-4 w-4" />
@@ -383,14 +352,22 @@ export default function ProjectPage() {
           </div>
         )}
 
+        {/* 페이지네이션 테이블 */}
         <PaginatedTable
-          data={filteredProjects}
-          rowKey={(row) => row.projectId}
-          columns={getProjectColumns(currentPage, itemsPerPage, router)}
+          data={projects}
+          rowKey={(row) => String(row.projectId)}
+          columns={getProjectColumns(
+            currentPage,
+            itemsPerPage,
+            router,
+            handleDelete,
+          )}
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
           itemsPerPage={itemsPerPage}
           setItemsPerPage={setItemsPerPage}
+          totalPage={totalPage}
+          loading={loading}
         />
       </div>
     </div>
