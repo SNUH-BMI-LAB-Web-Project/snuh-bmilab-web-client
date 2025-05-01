@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -40,6 +39,8 @@ export interface PaginatedTableProps<T> {
   setItemsPerPage: (count: number) => void;
   showPagination?: boolean;
   itemsPerPageOptions?: number[];
+  totalPage?: number;
+  loading?: boolean;
 }
 
 export function PaginatedTable<T>({
@@ -52,26 +53,59 @@ export function PaginatedTable<T>({
   setItemsPerPage,
   showPagination = true,
   itemsPerPageOptions = [5, 10, 20, 50],
+  totalPage,
+  loading = false,
 }: PaginatedTableProps<T>) {
-  const totalPages = useMemo(
-    () => Math.ceil(data.length / itemsPerPage),
-    [data.length, itemsPerPage],
-  );
-  const currentItems = useMemo(
-    () =>
-      data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
-    [data, currentPage, itemsPerPage],
-  );
+  const totalPages = totalPage ?? 1;
+
+  const currentItems = data;
 
   const changePage = (page: number) => {
     const clamped = Math.max(1, Math.min(totalPages, page));
     setCurrentPage(clamped);
   };
 
+  function renderTableBody() {
+    if (loading) {
+      return Array.from({ length: itemsPerPage }).map((_, idx) => (
+        <TableRow
+          key={crypto.randomUUID()}
+          className={idx % 2 === 0 ? 'bg-muted/30' : 'bg-white'}
+        >
+          {columns.map((col) => (
+            <TableCell key={`skeleton-${col.label}`} className="h-16">
+              <div className={idx % 2 === 0 ? 'bg-muted/30' : 'bg-white'} />
+            </TableCell>
+          ))}
+        </TableRow>
+      ));
+    }
+
+    if (currentItems.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={columns.length} className="h-24 text-center">
+            데이터가 없습니다
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return currentItems.map((row, rowIndex) => (
+      <TableRow key={rowKey(row)}>
+        {columns.map((col) => (
+          <TableCell key={col.label} className={`h-16 ${col.className}`}>
+            {col.cell(row, rowIndex)}
+          </TableCell>
+        ))}
+      </TableRow>
+    ));
+  }
+
   return (
     <div>
       <div className="rounded-md border">
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow>
               {columns.map((col) => (
@@ -81,40 +115,12 @@ export function PaginatedTable<T>({
               ))}
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {currentItems.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  데이터가 없습니다.
-                </TableCell>
-              </TableRow>
-            ) : (
-              currentItems.map((row, rowIndex) => (
-                <TableRow key={rowKey(row)}>
-                  {columns.map((col) => (
-                    <TableCell
-                      key={col.label}
-                      className={`h-16 ${col.className}`}
-                    >
-                      {col.cell(row, rowIndex)}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            )}
-          </TableBody>
+          <TableBody>{renderTableBody()}</TableBody>
         </Table>
       </div>
 
       {showPagination && (
-        <div className="mt-4 flex items-center justify-between">
-          <div className="text-muted-foreground text-sm">
-            총 {data.length}개 중 {(currentPage - 1) * itemsPerPage + 1}-
-            {Math.min(currentPage * itemsPerPage, data.length)}개 표시
-          </div>
+        <div className="mt-4 flex items-center justify-end">
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
