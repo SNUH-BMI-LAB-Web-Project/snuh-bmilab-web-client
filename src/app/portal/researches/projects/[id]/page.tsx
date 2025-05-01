@@ -27,7 +27,8 @@ import {
 import { allProjects } from '@/data/projects';
 import { users } from '@/data/users';
 import { currentUser, canEditProject, canDeleteProject } from '@/data/auth';
-import { formatDateTime, getStatusColor } from '@/lib/utils';
+import { formatDateTime } from '@/lib/utils';
+import { getStatusClassName } from '@/utils/project-utils';
 import UserPopover from '@/components/common/user-popover';
 import Image from 'next/image';
 import MeetingTimeline from '@/components/researches/projects/meetings/meeting-timeline';
@@ -195,7 +196,7 @@ export default function ProjectDetail({
                   </div>
                   <div className="flex items-center justify-between gap-2 text-sm">
                     <span>연구 상태</span>
-                    <Badge className={getStatusColor(project.status)}>
+                    <Badge className={getStatusClassName(project.status)}>
                       {project.status}
                     </Badge>
                   </div>
