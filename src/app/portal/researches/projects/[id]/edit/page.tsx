@@ -1,12 +1,21 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { use, useEffect, useState } from 'react';
 import { ProjectForm } from '@/components/researches/projects/project-form';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { Project } from '@/types/project';
-import { allProjects } from '@/data/projects';
-import { use } from 'react';
+import { ProjectApi } from '@/generated-api/apis/ProjectApi';
+import { Configuration } from '@/generated-api/runtime';
+import { useAuthStore } from '@/store/auth-store';
+import type { ProjectDetail } from '@/generated-api/models/ProjectDetail';
+import type { ProjectRequest } from '@/generated-api/models/ProjectRequest';
+
+const projectApi = new ProjectApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
 
 export default function EditProjectPage({
   params,
@@ -16,17 +25,62 @@ export default function EditProjectPage({
   const { id } = use(params);
   const router = useRouter();
 
-  const project = allProjects.find((p) => p.projectId === id);
+  const [project, setProject] = useState<ProjectDetail | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // 프로젝트 수정 처리 (실제 구현에서는 API 호출 필요)
-  const handleSubmit = (data: Project) => {
-    console.log('수정된 프로젝트 데이터:', data);
-    // 여기에 실제 수정 로직 구현
-    router.push(`/projects/${id}`);
+  useEffect(() => {
+    async function fetchProject() {
+      try {
+        const data = await projectApi.getProjectById({
+          projectId: Number(id),
+        });
+        setProject(data);
+      } catch (error) {
+        // TODO: 토스트 에러 처리
+        console.error('프로젝트 조회 실패:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProject();
+  }, [id]);
+
+  const handleUpdate = async (
+    data: { projectId: number; request: ProjectRequest },
+    // TODO: 파일 추가 및 삭제 구현
+    newFiles: File[],
+    removedFileUrls: string[],
+  ) => {
+    try {
+      await projectApi.updateProject({
+        projectId: data.projectId,
+        projectRequest: data.request,
+      });
+
+      // TODO: 토스트 에러 처리
+      console.log('프로젝트 수정 완료');
+      router.push('/portal/researches/projects');
+    } catch (error) {
+      console.error('프로젝트 수정 실패:', error);
+    }
   };
+
+  if (loading) {
+    return <div className="px-30 py-10 text-center">불러오는 중...</div>;
+  }
+
+  if (!project) {
+    return (
+      <div className="px-30 py-10 text-center">
+        프로젝트를 찾을 수 없습니다.
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col px-30">
+      {/* 헤더 */}
       <div className="mb-6 flex items-center">
         <Button
           variant="ghost"
@@ -39,7 +93,8 @@ export default function EditProjectPage({
         <h1 className="text-3xl font-bold">연구 & 프로젝트 수정</h1>
       </div>
 
-      <ProjectForm initialData={project} onSubmit={handleSubmit} isEditing />
+      {/* 수정 폼 */}
+      <ProjectForm initialData={project} onUpdate={handleUpdate} isEditing />
     </div>
   );
 }
