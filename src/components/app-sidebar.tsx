@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import {
   Users,
@@ -11,14 +10,14 @@ import {
 } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
-import { NavUser } from '@/components/nav-user';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
 } from '@/components/ui/sidebar';
+import NavUser from '@/components/nav-user';
 
-import { currentUser } from '@/data/auth';
+import { useAuthStore } from '@/store/auth-store';
 
 const baseNav = [
   {
@@ -66,30 +65,34 @@ const baseNav = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { user, role } = useAuthStore();
 
-  if (pathname.startsWith('/portal/researches/projects/')) {
+  if (
+    pathname.startsWith('/portal/researches/projects/') ||
+    pathname.startsWith('/portal/mypage')
+  ) {
+    return null;
+  }
+
+  if (!user) {
     return null;
   }
 
   const navMain = baseNav
     .filter((group) => {
-      if (group.onlyAdmin && currentUser.role !== 'ADMIN') {
+      if (group.onlyAdmin && role !== 'ADMIN') {
         return false;
       }
       return true;
     })
-    .map((group) => {
-      const updatedItems = group.items?.map((subItem) => ({
+    .map((group) => ({
+      ...group,
+      isActive: true,
+      items: group.items?.map((subItem) => ({
         ...subItem,
         isActive: true,
-      }));
-
-      return {
-        ...group,
-        isActive: true,
-        items: updatedItems,
-      };
-    });
+      })),
+    }));
 
   return (
     <div className="flex h-[calc(100vh-65px)] overflow-hidden">
@@ -100,10 +103,10 @@ export function AppSidebar() {
         <SidebarFooter className="shrink-0 border-t bg-white px-4 py-4">
           <NavUser
             user={{
-              name: currentUser.name,
-              email: currentUser.email,
-              avatar:
-                currentUser.profileImageUrl || '/default-profile-image.svg',
+              name: user.name || '이름 없음',
+              email: user.email || '이메일 없음',
+              profileImageUrl:
+                user.profileImageUrl ?? '/default-profile-image.svg',
             }}
           />
         </SidebarFooter>
