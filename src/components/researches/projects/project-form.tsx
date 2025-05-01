@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,50 +32,47 @@ import {
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-
-import { projectCategories } from '@/data/projects';
-import { users } from '@/data/users';
-import type {
-  Project,
-  ProjectFile,
-  ProjectCategory,
-  ProjectStatus,
-} from '@/types/project';
 import { Separator } from '@/components/ui/separator';
 import { FileItem } from '@/components/researches/projects/file-item';
 import { UserTagInput } from '@/components/researches/projects/user-tag-input';
+import {
+  GetAllProjectsCategoryEnum,
+  ProjectDetail,
+  ProjectRequest,
+  ProjectRequestCategoryEnum,
+} from '@/generated-api';
+import { getCategoryLabel } from '@/utils/project-utils';
 
 interface ProjectFormProps {
-  initialData?: Project;
-  onSubmit: (data: Project) => void;
+  initialData?: ProjectDetail;
+  onCreate?: (data: ProjectRequest, newFiles: File[]) => void;
+  onUpdate?: (
+    data: { projectId: number; request: ProjectRequest },
+    newFiles: File[],
+    removedFileUrls: string[],
+  ) => void;
   isEditing?: boolean;
 }
 
 export function ProjectForm({
   initialData,
-  onSubmit,
+  onCreate,
+  onUpdate,
   isEditing = false,
 }: ProjectFormProps) {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
-  } = useForm<Project>({
-    defaultValues: initialData || {
-      title: '',
-      content: '',
-      startDate: '',
-      endDate: '',
-      category: '' as ProjectCategory,
-      status: '' as ProjectStatus,
-      createdAt: '',
-      leaderId: [],
-      participantId: [],
-      files: [],
+  } = useForm<ProjectRequest>({
+    defaultValues: {
+      title: initialData?.title ?? '',
+      content: initialData?.content ?? '',
+      category: initialData?.category ?? ('' as ProjectRequestCategoryEnum),
     },
   });
 
-  // 날짜 선택 상태
   const [startDate, setStartDate] = useState<Date | undefined>(
     initialData?.startDate ? new Date(initialData.startDate) : undefined,
   );
@@ -83,67 +80,62 @@ export function ProjectForm({
     initialData?.endDate ? new Date(initialData.endDate) : undefined,
   );
 
-  // 책임자 및 참여자 상태
-  const [leaders, setLeaders] = useState<string[]>(initialData?.leaderId || []);
-  const [participants, setParticipants] = useState<string[]>(
-    initialData?.participantId || [],
+  const [isWaiting, setIsWaiting] = useState<boolean>(
+    initialData?.status === 'WAITING',
   );
 
-  // 파일 상태 – 기존 파일(ProjectFile)과 새 파일(File 객체)
-  const [existingFiles, setExistingFiles] = useState<ProjectFile[]>(
-    initialData?.files || [],
+  const [leaders, setLeaders] = useState<number[]>(
+    initialData?.leaders?.map((u) => u.userId!) ?? [],
+  );
+  const [participants, setParticipants] = useState<number[]>(
+    initialData?.participants?.map((u) => u.userId!) ?? [],
+  );
+
+  const [existingFiles, setExistingFiles] = useState<string[]>(
+    initialData?.fileUrls ?? [],
   );
   const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [removedFiles, setRemovedFiles] = useState<string[]>([]);
 
-  // 기존 파일 제거
-  const removeExistingFile = (index: number) => {
-    setExistingFiles(existingFiles.filter((_, i) => i !== index));
+  const handleRemoveExistingFile = (index: number) => {
+    const removed = existingFiles[index];
+    setRemovedFiles((prev) => [...prev, removed]);
+    setExistingFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // 새 파일 제거
-  const removeNewFile = (index: number) => {
-    setNewFiles(newFiles.filter((_, i) => i !== index));
+  const handleRemoveNewFile = (index: number) => {
+    setNewFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // 폼 제출 처리 – ProjectFormData 구조에 맞게 최종 데이터 구성
-  const handleFormSubmit = (formData: Project) => {
-    const formattedStartDate = startDate ? format(startDate, 'yyyy-MM-dd') : '';
-    const formattedEndDate = endDate ? format(endDate, 'yyyy-MM-dd') : '';
-
-    const finalData: Project = {
-      ...formData,
-      // 사용자가 입력한 값 외에 추가 필드 설정
-      startDate: formattedStartDate,
-      endDate: formattedEndDate,
-      // 편집 중이 아니라면 현재 날짜를 생성일로 지정하고, 생성자 UID는 실제 값으로 대체 필요
-      createdAt: initialData?.createdAt || format(new Date(), 'yyyy-MM-dd'),
-      authorId: initialData?.authorId || 'currentUserUID',
-      // 파일은 기존 파일만 포함 (새 파일은 별도 업로드 후 변환 필요)
-      files: existingFiles,
+  // TODO: 폼 제출 시 토스트 처리
+  const handleFormSubmit = (formData: ProjectRequest) => {
+    const request: ProjectRequest = {
+      title: formData.title,
+      content: formData.content,
+      leaderIds: leaders,
+      participantIds: participants,
+      startDate: startDate!,
+      endDate: endDate ?? undefined,
+      isWaiting,
+      category: formData.category,
     };
 
-    onSubmit(finalData);
-  };
-
-  useEffect(() => {
-    if (initialData) {
-      setLeaders(
-        users
-          .filter((u) => initialData.leaderId.includes(u.userId))
-          .map((u) => u.name),
-      );
-
-      setParticipants(
-        users
-          .filter((u) => initialData.participantId.includes(u.userId))
-          .map((u) => u.name),
-      );
+    if (isEditing) {
+      const projectId = (initialData as ProjectDetail)?.projectId;
+      if (projectId !== undefined) {
+        onUpdate?.({ projectId, request }, newFiles, removedFiles);
+      } else {
+        console.error('프로젝트 ID가 없습니다. 업데이트할 수 없습니다.');
+      }
+    } else {
+      onCreate?.(request, newFiles);
     }
-  }, [initialData]);
+  };
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)}>
       <div className="space-y-8 rounded-lg border bg-white p-8 shadow-sm">
+        {/* 연구 제목 */}
         <div className="space-y-3 pt-2 pb-6">
           <Label className="flex items-center text-base font-medium">
             <Tag className="h-4 w-4" />
@@ -162,7 +154,9 @@ export function ProjectForm({
             </p>
           )}
         </div>
+
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          {/* 연구 분야 */}
           <div className="space-y-3">
             <Label className="flex items-center text-base font-medium">
               <SquareLibrary className="h-4 w-4" />
@@ -171,22 +165,23 @@ export function ProjectForm({
             <Select
               defaultValue={initialData?.category}
               onValueChange={(value) =>
-                register('category').onChange({ target: { value } })
+                setValue('category', value as ProjectRequestCategoryEnum)
               }
             >
               <SelectTrigger className="focus:none focus:none h-12 w-full border">
                 <SelectValue placeholder="연구 분야를 선택하세요" />
               </SelectTrigger>
               <SelectContent>
-                {projectCategories.map((category: ProjectCategory) => (
+                {Object.values(GetAllProjectsCategoryEnum).map((category) => (
                   <SelectItem key={category} value={category}>
-                    {category}
+                    {getCategoryLabel(category)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
+          {/* 연구 기간 */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label className="flex items-center text-base font-medium">
@@ -197,10 +192,11 @@ export function ProjectForm({
                 <input
                   id="status"
                   type="checkbox"
-                  {...register('status')}
+                  checked={isWaiting}
+                  onChange={(e) => setIsWaiting(e.target.checked)}
                   className="focus:none text-muted-foreground"
-                  defaultChecked={initialData?.status === '진행 대기'}
                 />
+
                 <Label
                   className="text-muted-foreground text-sm font-normal"
                   htmlFor="status"
@@ -268,38 +264,34 @@ export function ProjectForm({
 
         <Separator className="my-6" />
 
+        {/* 구성원 */}
         <div className="space-y-6">
-          {/* 제목 */}
           <h3 className="flex items-center text-base font-medium">
             <Users className="mr-2 h-4 w-4" />팀 구성원
           </h3>
 
-          {/* 책임자 섹션 */}
           <div className="bg-muted/50 space-y-3 rounded-xl p-4">
             <Label className="flex items-center text-sm font-semibold">
               <User className="h-4 w-4" />
               책임자 <span className="text-destructive text-xs">*</span>
             </Label>
 
-            {/* 책임자 입력 */}
             <UserTagInput
               selectedUsers={leaders}
-              onChange={setLeaders}
+              onChange={(userIds) => setLeaders(userIds)}
               placeholder="책임자 이름을 입력하세요 (@태그)"
             />
           </div>
 
-          {/* 참여자 섹션 */}
           <div className="bg-muted/50 space-y-3 rounded-xl p-4">
             <Label className="flex items-center text-sm font-semibold">
               <Users className="h-4 w-4" />
               참여자
             </Label>
 
-            {/* 참여자 입력 */}
             <UserTagInput
               selectedUsers={participants}
-              onChange={setParticipants}
+              onChange={(userIds) => setParticipants(userIds)}
               placeholder="참여자 이름을 입력하세요 (@태그)"
             />
           </div>
@@ -307,6 +299,7 @@ export function ProjectForm({
 
         <Separator className="my-6" />
 
+        {/* 연구 내용 */}
         <div className="space-y-4">
           <Label
             htmlFor="content"
@@ -323,6 +316,7 @@ export function ProjectForm({
           />
         </div>
 
+        {/* 첨부 파일 */}
         <div className="space-y-4">
           <Label className="flex items-center text-base font-medium">
             <Paperclip className="h-4 w-4" />
@@ -359,20 +353,32 @@ export function ProjectForm({
           {existingFiles.length > 0 && (
             <div className="mt-4 space-y-3">
               <h4 className="text-sm font-medium">기존 파일</h4>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {existingFiles.map((file, index) => (
-                  <FileItem
-                    key={file.name}
-                    file={{
-                      name: file.name,
-                      size: file.size,
-                    }}
-                    index={index}
-                    onAction={removeExistingFile}
-                    mode="remove"
-                  />
-                ))}
-              </div>
+              {initialData &&
+                'fileUrls' in initialData &&
+                initialData.fileUrls &&
+                initialData.fileUrls.length > 0 && (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {initialData.fileUrls.map((url, index) => {
+                      const urlObj = new URL(url);
+                      const name =
+                        urlObj.pathname.split('/').pop() || `파일_${index}`;
+                      const sizeParam = urlObj.searchParams.get('size');
+                      const size = sizeParam
+                        ? `${(Number(sizeParam) / 1024 / 1024).toFixed(2)}MB`
+                        : 'Unknown';
+
+                      return (
+                        <FileItem
+                          key={url}
+                          file={{ name, size }}
+                          index={index}
+                          onAction={handleRemoveExistingFile}
+                          mode="download"
+                        />
+                      );
+                    })}
+                  </div>
+                )}
             </div>
           )}
 
@@ -388,7 +394,7 @@ export function ProjectForm({
                       size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
                     }}
                     index={index}
-                    onAction={removeNewFile}
+                    onAction={handleRemoveNewFile}
                     mode="remove"
                   />
                 ))}
@@ -398,7 +404,7 @@ export function ProjectForm({
         </div>
       </div>
 
-      {/* Submit Button */}
+      {/* 버튼 */}
       <div className="mt-8 flex justify-end">
         <Button type="submit" className="px-10">
           {isEditing ? '저장' : '등록'}
