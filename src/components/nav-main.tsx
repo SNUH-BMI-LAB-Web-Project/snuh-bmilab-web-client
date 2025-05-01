@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/sidebar';
 
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 export function NavMain({
   items,
@@ -53,9 +54,9 @@ export function NavMain({
                     return (
                       <SidebarMenuSubItem key={subItem.title}>
                         <SidebarMenuSubButton isActive={isSubActive} asChild>
-                          <a href={subItem.url}>
+                          <Link href={subItem.url}>
                             <span>{subItem.title}</span>
-                          </a>
+                          </Link>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                     );
