@@ -27,7 +27,7 @@ import {
 import { useAuthStore } from '@/store/auth-store';
 
 export default function ProfileEditForm() {
-  const { accessToken } = useAuthStore.getState();
+  const accessToken = useAuthStore((s) => s.accessToken);
 
   const [userDetail, setUserDetail] = useState<CurrentUserDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -98,7 +98,7 @@ export default function ProfileEditForm() {
       }
     }
     fetchUserDetail();
-  }, []);
+  }, [accessToken]);
 
   const handleChange = <K extends keyof typeof formData>(
     field: K,
