@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/store/auth-store';
 
 interface NavItem {
   name: string;
@@ -10,35 +11,30 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  {
-    name: 'Research',
-    link: '/research',
-  },
-  {
-    name: 'News',
-    link: '/news',
-  },
-  {
-    name: 'About Us',
-    link: '/about-us',
-  },
-  {
-    name: 'Contact Us',
-    link: '/contact-us',
-  },
-
-  {
-    name: 'Portal',
-    link: '/portal/researches/projects',
-  },
+  { name: 'Home', link: '/' },
+  { name: 'Members', link: '/members' },
+  { name: 'Research', link: '/research' },
+  { name: 'Lab Seminar', link: '/lab-seminar' },
+  { name: 'News', link: '/news' },
+  { name: 'Alumni', link: '/alumni' },
 ];
 
 export default function AppHeader() {
   const router = useRouter();
   const pathname = usePathname();
+  const { accessToken, role, logout } = useAuthStore();
 
-  const handleNavBtnClick = (item: NavItem) => {
-    router.push(item.link);
+  const handlePortalClick = () => {
+    if (accessToken) {
+      router.push('/portal/researches/projects');
+    } else {
+      router.push('/login');
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
   };
 
   return (
@@ -66,18 +62,14 @@ export default function AppHeader() {
       </button>
 
       {/* 우측 내비게이션 */}
-      <nav className="flex gap-8">
+      <nav className="flex gap-12">
         {navItems.map((navItem) => {
-          const isActive =
-            navItem.link === '/portal/researches/projects'
-              ? pathname.startsWith('/portal')
-              : pathname === navItem.link;
-
+          const isActive = pathname === navItem.link;
           return (
             <button
               key={navItem.name}
               type="button"
-              onClick={() => handleNavBtnClick(navItem)}
+              onClick={() => router.push(navItem.link)}
               className={cn(
                 isActive ? 'text-black' : 'text-muted-foreground font-light',
                 'cursor-pointer transition-transform duration-150 hover:scale-105',
@@ -87,6 +79,46 @@ export default function AppHeader() {
             </button>
           );
         })}
+
+        {/* Portal 또는 Log Out 버튼 */}
+        {pathname.startsWith('/portal') && accessToken ? (
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-[60px] cursor-pointer text-black transition-transform duration-150 hover:scale-105"
+          >
+            Log Out
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handlePortalClick}
+            className={cn(
+              pathname.startsWith('/portal') || pathname === '/login'
+                ? 'text-black'
+                : 'text-muted-foreground font-light',
+              'w-[60px] cursor-pointer transition-transform duration-150 hover:scale-105',
+            )}
+          >
+            Portal
+          </button>
+        )}
+
+        {/* System 버튼 (어드민만 보임) */}
+        {role === 'ADMIN' && (
+          <button
+            type="button"
+            onClick={() => router.push('/portal/system')}
+            className={cn(
+              pathname === '/portal/system'
+                ? 'text-black'
+                : 'text-muted-foreground font-light',
+              'w-[60px] cursor-pointer transition-transform duration-150 hover:scale-105',
+            )}
+          >
+            System
+          </button>
+        )}
       </nav>
     </header>
   );
