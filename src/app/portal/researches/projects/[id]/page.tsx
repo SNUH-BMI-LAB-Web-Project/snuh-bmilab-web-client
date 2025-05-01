@@ -31,10 +31,10 @@ import { formatDateTime } from '@/lib/utils';
 import { getStatusClassName } from '@/utils/project-utils';
 import UserPopover from '@/components/common/user-popover';
 import Image from 'next/image';
-import MeetingTimeline from '@/components/researches/projects/meetings/meeting-timeline';
+import MeetingTimeline from '@/components/portal/researches/projects/meetings/meeting-timeline';
 import { Meeting } from '@/types/meeting';
 import { allMeetings } from '@/data/meetings';
-import { FileItem } from '@/components/researches/projects/file-item';
+import { FileItem } from '@/components/portal/researches/projects/file-item';
 import { Label } from '@/components/ui/label';
 
 export default function ProjectDetail({

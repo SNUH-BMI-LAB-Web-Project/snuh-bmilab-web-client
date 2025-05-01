@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ProjectForm } from '@/components/researches/projects/project-form';
+import { ProjectForm } from '@/components/portal/researches/projects/project-form';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { ProjectApi } from '@/generated-api/apis/ProjectApi';
