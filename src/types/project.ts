@@ -5,7 +5,7 @@ export type ProjectCategory =
   | 'Medical Big Data'
   | 'NLP';
 
-export type ProjectStatus = '진행 전' | '진행 중' | '진행 종료' | '진행 대기';
+export type ProjectStatus = 'WAITING' | 'IN_PROGRESS' | 'COMPLETED' | 'PENDING';
 
 export interface Project {
   projectId: string;
