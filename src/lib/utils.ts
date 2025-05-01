@@ -2,7 +2,6 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import type { ProjectStatus } from '@/types/project';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -27,17 +26,10 @@ export function formatDateTimeVer2(date: string | Date): string {
   return format(d, 'yyyy. M. d. (EEE)', { locale: ko });
 }
 
-export const getStatusColor = (status: ProjectStatus) => {
-  switch (status) {
-    case '진행 전':
-      return 'bg-blue-100 text-blue-800 hover:bg-blue-100';
-    case '진행 중':
-      return 'bg-green-100 text-green-800 hover:bg-green-100';
-    case '진행 종료':
-      return 'bg-gray-100 text-gray-800 hover:bg-gray-100';
-    case '진행 대기':
-      return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100';
-    default:
-      return '';
-  }
-};
+export function formatDateTimeVer3(dateStr: string | Date): string {
+  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+  const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
+  const day = weekdays[date.getDay()];
+
+  return `${format(date, 'yyyy. M. d.', { locale: ko })} (${day})`;
+}
