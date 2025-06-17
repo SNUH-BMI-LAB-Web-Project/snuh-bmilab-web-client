@@ -20,7 +20,7 @@ export default function NavUser({ user }: NavUserProps) {
   return (
     <SidebarMenu>
       <SidebarMenuItem className="flex items-center justify-between p-1">
-        <div className="flex flex-row gap-4">
+        <div className="flex flex-row gap-2">
           <Avatar className="aspect-square h-9 w-9 rounded-full">
             <AvatarImage
               src={user.profileImageUrl || '/default-profile-image.svg'}
@@ -39,10 +39,10 @@ export default function NavUser({ user }: NavUserProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="hover:cursor-pointer"
+          className="ml-2 hover:cursor-pointer"
           onClick={() => router.push('/portal/mypage')}
         >
-          <Settings className="h-4 w-4" />
+          <Settings className="size-4" />
           <span className="sr-only">마이 페이지</span>
         </Button>
       </SidebarMenuItem>

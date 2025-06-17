@@ -28,6 +28,7 @@ import {
   User,
   Users,
   Tag,
+  ShieldCheck,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -38,18 +39,24 @@ import { UserTagInput } from '@/components/portal/researches/projects/user-tag-i
 import {
   GetAllProjectsCategoryEnum,
   ProjectDetail,
+  ProjectFileSummary,
   ProjectRequest,
   ProjectRequestCategoryEnum,
+  UserSummary,
 } from '@/generated-api';
 import { getCategoryLabel } from '@/utils/project-utils';
+import { GeneratePresignedUrlDomainTypeEnum } from '@/generated-api/apis/FileApi';
+import { uploadFileWithPresignedUrl } from '@/lib/upload';
+import { toast } from 'sonner';
+import { useAuthStore } from '@/store/auth-store';
 
 interface ProjectFormProps {
   initialData?: ProjectDetail;
-  onCreate?: (data: ProjectRequest, newFiles: File[]) => void;
+  onCreate?: (data: ProjectRequest, newFiles: ProjectFileSummary[]) => void;
   onUpdate?: (
     data: { projectId: number; request: ProjectRequest },
-    newFiles: File[],
-    removedFileUrls: string[],
+    newFiles: ProjectFileSummary[],
+    removedFileUrls: ProjectFileSummary[],
   ) => void;
   isEditing?: boolean;
 }
@@ -60,6 +67,8 @@ export function ProjectForm({
   onUpdate,
   isEditing = false,
 }: ProjectFormProps) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+
   const {
     register,
     handleSubmit,
@@ -84,18 +93,25 @@ export function ProjectForm({
     initialData?.status === 'WAITING',
   );
 
-  const [leaders, setLeaders] = useState<number[]>(
-    initialData?.leaders?.map((u) => u.userId!) ?? [],
-  );
-  const [participants, setParticipants] = useState<number[]>(
-    initialData?.participants?.map((u) => u.userId!) ?? [],
+  const [pi, setPi] = useState(initialData?.pi ?? '');
+
+  const [practicalProfessor, setPracticalProfessor] = useState(
+    initialData?.practicalProfessor ?? '',
   );
 
-  const [existingFiles, setExistingFiles] = useState<string[]>(
-    initialData?.fileUrls ?? [],
+  const [leaders, setLeaders] = useState<UserSummary[]>(
+    initialData?.leaders ?? [],
   );
-  const [newFiles, setNewFiles] = useState<File[]>([]);
-  const [removedFiles, setRemovedFiles] = useState<string[]>([]);
+
+  const [participants, setParticipants] = useState<UserSummary[]>(
+    initialData?.participants ?? [],
+  );
+
+  const [existingFiles, setExistingFiles] = useState<ProjectFileSummary[]>(
+    initialData?.files ?? [],
+  );
+  const [newFiles, setNewFiles] = useState<ProjectFileSummary[]>([]);
+  const [removedFiles, setRemovedFiles] = useState<ProjectFileSummary[]>([]);
 
   const handleRemoveExistingFile = (index: number) => {
     const removed = existingFiles[index];
@@ -107,13 +123,51 @@ export function ProjectForm({
     setNewFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleFileInputChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const { target } = e;
+    const files = Array.from(target.files ?? []);
+    if (!files.length) return;
+
+    try {
+      const uploadPromises = files.map((file) =>
+        uploadFileWithPresignedUrl(
+          file,
+          accessToken!,
+          GeneratePresignedUrlDomainTypeEnum.Project,
+        )
+          .then((fileRecord) => {
+            toast.success(`${file.name} 업로드 완료`);
+            return fileRecord;
+          })
+          .catch(() => {
+            toast.error(`${file.name} 업로드 실패`);
+            return null;
+          }),
+      );
+
+      const uploaded = await Promise.all(uploadPromises);
+      const validFiles = uploaded.filter(
+        (record): record is ProjectFileSummary => record !== null,
+      );
+      setNewFiles((prev) => [...prev, ...validFiles]);
+    } finally {
+      target.value = '';
+    }
+  };
+
   // TODO: 폼 제출 시 토스트 처리
   const handleFormSubmit = (formData: ProjectRequest) => {
     const request: ProjectRequest = {
       title: formData.title,
       content: formData.content,
-      leaderIds: leaders,
-      participantIds: participants,
+      leaderIds: leaders
+        .map((u) => u?.userId)
+        .filter((id): id is number => typeof id === 'number'),
+      participantIds: participants
+        .map((u) => u?.userId)
+        .filter((id): id is number => typeof id === 'number'),
       startDate: startDate!,
       endDate: endDate ?? undefined,
       isWaiting,
@@ -262,6 +316,26 @@ export function ProjectForm({
           </div>
         </div>
 
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          {/* IRB */}
+          <div className="space-y-3">
+            <Label className="flex items-center text-base font-medium">
+              <ShieldCheck className="h-4 w-4" />
+              IRB 번호
+            </Label>
+            <Input />
+          </div>
+
+          {/* DRB */}
+          <div className="space-y-3">
+            <Label className="flex items-center text-base font-medium">
+              <ShieldCheck className="h-4 w-4" />
+              DRB 번호
+            </Label>
+            <Input />
+          </div>
+        </div>
+
         <Separator className="my-6" />
 
         {/* 구성원 */}
@@ -269,6 +343,32 @@ export function ProjectForm({
           <h3 className="flex items-center text-base font-medium">
             <Users className="mr-2 h-4 w-4" />팀 구성원
           </h3>
+
+          <div className="bg-muted/50 space-y-3 rounded-xl p-4">
+            <Label className="flex items-center text-sm font-semibold">
+              <User className="h-4 w-4" />
+              PI
+            </Label>
+            <Input
+              placeholder="PI 이름 입력"
+              value={pi}
+              onChange={(e) => setPi(e.target.value)}
+              className="bg-white"
+            />
+          </div>
+
+          <div className="bg-muted/50 space-y-3 rounded-xl p-4">
+            <Label className="flex items-center text-sm font-semibold">
+              <User className="h-4 w-4" />
+              실무 교수
+            </Label>
+            <Input
+              placeholder="실무교수 이름 입력"
+              value={practicalProfessor}
+              onChange={(e) => setPracticalProfessor(e.target.value)}
+              className="bg-white"
+            />
+          </div>
 
           <div className="bg-muted/50 space-y-3 rounded-xl p-4">
             <Label className="flex items-center text-sm font-semibold">
@@ -330,13 +430,7 @@ export function ProjectForm({
                 type="file"
                 className="hidden"
                 multiple
-                onChange={(e) => {
-                  const target = e.target as HTMLInputElement;
-                  setNewFiles((prev) => [
-                    ...prev,
-                    ...Array.from(target.files ?? []),
-                  ]);
-                }}
+                onChange={handleFileInputChange}
               />
               <div className="bg-primary/10 rounded-full p-2">
                 <Plus className="text-primary h-6 w-6" />
@@ -354,26 +448,21 @@ export function ProjectForm({
             <div className="mt-4 space-y-3">
               <h4 className="text-sm font-medium">기존 파일</h4>
               {initialData &&
-                'fileUrls' in initialData &&
-                initialData.fileUrls &&
-                initialData.fileUrls.length > 0 && (
+                'files' in initialData &&
+                initialData.files &&
+                initialData.files.length > 0 && (
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {initialData.fileUrls.map((url, index) => {
-                      const urlObj = new URL(url);
-                      const name =
-                        urlObj.pathname.split('/').pop() || `파일_${index}`;
-                      const sizeParam = urlObj.searchParams.get('size');
-                      const size = sizeParam
-                        ? `${(Number(sizeParam) / 1024 / 1024).toFixed(2)}MB`
-                        : 'Unknown';
-
+                    {initialData.files.map((file, index) => {
                       return (
                         <FileItem
-                          key={url}
-                          file={{ name, size }}
+                          key={file.fileId}
+                          file={{
+                            name: file.fileName!,
+                            size: file.size,
+                          }}
                           index={index}
                           onAction={handleRemoveExistingFile}
-                          mode="download"
+                          mode="remove"
                         />
                       );
                     })}
@@ -388,10 +477,10 @@ export function ProjectForm({
               <div className="grid gap-3 sm:grid-cols-2">
                 {newFiles.map((file, index) => (
                   <FileItem
-                    key={file.name}
+                    key={crypto.randomUUID()}
                     file={{
-                      name: file.name,
-                      size: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
+                      name: file.fileName!,
+                      size: file.size,
                     }}
                     index={index}
                     onAction={handleRemoveNewFile}

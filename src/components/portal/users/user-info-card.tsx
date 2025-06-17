@@ -1,24 +1,15 @@
 'use client';
 
 import Image from 'next/image';
-import { User } from '@/types/user';
-import { currentUser } from '@/data/auth';
-import { Button } from '@/components/ui/button';
-import { EllipsisVertical, Pencil, Trash2 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { UserItem } from '@/generated-api';
+import { Badge } from '@/components/ui/badge';
+import { getCategoryLabel } from '@/utils/project-utils';
 
-export default function UserInfoCard({ user }: { user: User }) {
-  const isAdmin = currentUser.role === 'ADMIN';
-
+export default function UserInfoCard({ user }: { user: UserItem }) {
   return (
     <div className="text-foreground flex flex-col items-center rounded-lg border bg-white p-6 shadow-sm transition">
       {/* 프로필 이미지 */}
-      <div className="relative mb-6 h-48 w-full">
+      <div className="relative mb-6 aspect-square w-full">
         <Image
           src={
             user.profileImageUrl && user.profileImageUrl.trim() !== ''
@@ -31,37 +22,38 @@ export default function UserInfoCard({ user }: { user: User }) {
         />
       </div>
 
-      {/* 이름, 부서, 이메일 */}
       <div className="text-muted-foreground flex w-full flex-col">
         <div className="flex flex-row items-center justify-between">
-          <h2 className="text-lg font-semibold text-black">{user.name}</h2>
-
-          {isAdmin && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-5 focus:outline-none focus-visible:outline-none"
-                >
-                  <EllipsisVertical className="h-4 w-4" />
-                  <span className="sr-only">메뉴</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side="right" align="start" sideOffset={32}>
-                <DropdownMenuItem>
-                  <Pencil /> 정보 수정
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive focus:text-destructive">
-                  <Trash2 className="text-destructive" /> 유저 삭제
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          <div>
+            <h2 className="text-lg font-semibold text-black">{user.name}</h2>
+            <p className="text-xs">{user.email}</p>
+          </div>
+          <Badge variant="outline">{user.seatNumber}</Badge>
         </div>
         <div className="my-1.5 border-t" />
-        <p className="text-sm">{user.department}</p>
-        <p className="text-sm">{user.email}</p>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex flex-row gap-1 text-xs">
+            <p>{user.organization}</p>
+            <p>·</p>
+            <p>{user.department}</p>
+            {user.affiliation && (
+              <>
+                <p>·</p>
+                <p>{user.affiliation}</p>
+              </>
+            )}
+          </div>
+          <p className="text-xs">{user.education}</p>
+          {Array.isArray(user.categories) && (
+            <div className="mt-1 flex flex-wrap gap-2">
+              {user.categories.map((category) => (
+                <Badge key={category} variant="secondary">
+                  {getCategoryLabel(category)}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

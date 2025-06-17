@@ -6,12 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { X, Check } from 'lucide-react';
 import { UserSummary } from '@/generated-api/models/UserSummary';
 import { UserApi } from '@/generated-api/apis/UserApi';
-import { Configuration } from '@/generated-api/runtime';
+import { Configuration, ResponseError } from '@/generated-api/runtime';
 import { useAuthStore } from '@/store/auth-store';
 
 interface UserTagInputProps {
-  selectedUsers: number[];
-  onChange: (users: number[]) => void;
+  selectedUsers: UserSummary[];
+  onChange: (users: UserSummary[]) => void;
   placeholder: string;
 }
 
@@ -21,71 +21,26 @@ export function UserTagInput({
   placeholder,
 }: UserTagInputProps) {
   const [input, setInput] = useState('');
-  const [users, setUsers] = useState<UserSummary[]>([]);
   const [searchResults, setSearchResults] = useState<UserSummary[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
   const accessToken = useAuthStore((state) => state.accessToken);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const dropdownItemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
-  // TODO: 에러 토스트 처리
-  useEffect(() => {
-    async function fetchUsers() {
-      if (!accessToken) return;
-      try {
-        const api = new UserApi(
-          new Configuration({
-            basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-            accessToken: async () => accessToken,
-          }),
-        );
-        const response = await api.getAllUsers({ page: 0 });
-        setUsers(response.users || []);
-      } catch (error) {
-        console.error('사용자 목록 불러오기 실패:', error);
-      }
-    }
-    fetchUsers();
-  }, [accessToken]);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setInput(value);
     setIsDropdownOpen(true);
-
-    const trimmed = value.trim();
-
-    if (trimmed === '@') {
-      setSearchResults(users);
-      setHighlightedIndex(-1);
-      return;
-    }
-
-    const query = trimmed.replace(/^@/, '');
-
-    if (query === '') {
-      setSearchResults(users);
-      setHighlightedIndex(-1);
-      return;
-    }
-
-    const filtered = users.filter((user) =>
-      `${user.name ?? ''}${user.department ?? ''}${user.email ?? ''}`
-        .toLowerCase()
-        .includes(query.toLowerCase()),
-    );
-    setSearchResults(filtered);
-    setHighlightedIndex(-1);
   };
 
-  const addUser = (userId: number) => {
-    if (!selectedUsers.includes(userId)) {
-      onChange([...selectedUsers, userId]);
+  const addUser = (user: UserSummary) => {
+    if (!selectedUsers.some((u) => u.userId === user.userId)) {
+      onChange([...selectedUsers, user]);
     }
+
     setInput('');
     setSearchResults([]);
     setIsDropdownOpen(false);
@@ -93,10 +48,44 @@ export function UserTagInput({
   };
 
   const removeUser = (userId: number) => {
-    onChange(selectedUsers.filter((id) => id !== userId));
+    onChange(selectedUsers.filter((u) => u.userId !== userId));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+
+      const trimmed = input.trim().replace(/^@/, '');
+      if (!accessToken || !trimmed) {
+        setSearchResults([]);
+        return;
+      }
+
+      try {
+        const api = new UserApi(
+          new Configuration({
+            basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+            accessToken: async () => accessToken,
+          }),
+        );
+
+        const result = await api.searchUsers({ keyword: trimmed });
+        setSearchResults(result.users || []);
+        setHighlightedIndex(-1);
+      } catch (err) {
+        if (err instanceof ResponseError) {
+          const text = await err.response.text();
+          console.error('API 응답 오류:', err.response.status, text);
+        } else {
+          console.error('검색 실패:', err);
+        }
+        setSearchResults([]);
+      }
+
+      return;
+    }
+
+    // 드롭다운 탐색
     if (!isDropdownOpen || searchResults.length === 0) return;
 
     if (e.key === 'ArrowDown') {
@@ -111,14 +100,6 @@ export function UserTagInput({
       setHighlightedIndex((prev) =>
         prev > 0 ? prev - 1 : searchResults.length - 1,
       );
-    }
-
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const selectedUser = searchResults[highlightedIndex];
-      if (selectedUser && selectedUser.userId !== undefined) {
-        addUser(selectedUser.userId);
-      }
     }
   };
 
@@ -150,8 +131,8 @@ export function UserTagInput({
     };
   }, []);
 
+  // TODO: 인풋 포커스 시 모든 유저 뜨고 캐시, 수민 수정 요청
   const openDropdown = () => {
-    setSearchResults(users);
     setIsDropdownOpen(true);
     setHighlightedIndex(-1);
   };
@@ -160,26 +141,23 @@ export function UserTagInput({
     <div className="flex flex-col gap-2">
       {/* 선택된 사용자 뱃지 */}
       <div className="flex flex-wrap gap-2">
-        {selectedUsers.map((userId) => {
-          const user = users.find((u) => u.userId === userId);
-          return (
-            <Badge
-              key={userId}
-              variant="secondary"
-              className="bg-border flex items-center gap-1 rounded-full py-1 pr-1.5 pl-3 text-xs"
+        {selectedUsers.map((user) => (
+          <Badge
+            key={user.userId}
+            variant="secondary"
+            className="bg-border flex items-center gap-1 rounded-full py-1 pr-1.5 pl-3 text-xs"
+          >
+            {user.name ?? 'Unknown'}
+            <button
+              type="button"
+              onClick={() => removeUser(user.userId!)}
+              className="rounded-full p-0.5 transition hover:cursor-pointer hover:bg-black/5"
             >
-              {user?.name ?? 'Unknown'}
-              <button
-                type="button"
-                onClick={() => removeUser(userId)}
-                className="rounded-full p-0.5 transition hover:cursor-pointer hover:bg-black/5"
-              >
-                <X className="h-3 w-3" />
-                <span className="sr-only">제거</span>
-              </button>
-            </Badge>
-          );
-        })}
+              <X className="h-3 w-3" />
+              <span className="sr-only">제거</span>
+            </button>
+          </Badge>
+        ))}
       </div>
 
       {/* 입력창 */}
@@ -202,7 +180,9 @@ export function UserTagInput({
           >
             {searchResults.length > 0 ? (
               searchResults.map((user, index) => {
-                const isSelected = selectedUsers.includes(user.userId ?? -1);
+                const isSelected = selectedUsers.some(
+                  (u) => u.userId === user.userId,
+                );
                 const isHighlighted = index === highlightedIndex;
 
                 let buttonClass =
@@ -226,7 +206,7 @@ export function UserTagInput({
                     disabled={isSelected}
                     onClick={() => {
                       if (!isSelected && user.userId !== undefined) {
-                        addUser(user.userId);
+                        addUser(user);
                       }
                     }}
                     className={buttonClass}

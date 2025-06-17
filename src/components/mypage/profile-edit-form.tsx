@@ -14,28 +14,30 @@ import {
   LockKeyhole,
   UserCheck,
   UserPen,
+  Camera,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { UserApi } from '@/generated-api/apis/UserApi';
 import { Configuration } from '@/generated-api/runtime';
-import { CurrentUserDetail } from '@/generated-api/models/CurrentUserDetail';
 import {
   GetAllProjectsCategoryEnum,
   UpdateUserRequestCategoriesEnum,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
+import { toast } from 'sonner';
+import { ChangePasswordModal } from '@/components/mypage/change-password-modal';
 
 export default function ProfileEditForm() {
-  const accessToken = useAuthStore((s) => s.accessToken);
-
-  const [userDetail, setUserDetail] = useState<CurrentUserDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    organization: '',
     department: '',
+    affiliation: '',
+    education: '',
     categories: [] as string[],
     phoneNumber: '',
     seatNumber: '',
@@ -43,7 +45,7 @@ export default function ProfileEditForm() {
 
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string>(
-    '/default-profile.png',
+    '/default-profile-image.svg',
   );
   const [isEditable, setIsEditable] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -52,7 +54,10 @@ export default function ProfileEditForm() {
   const editableFields = [
     'name',
     'email',
+    'organization',
     'department',
+    'affiliation',
+    'education',
     'phoneNumber',
     'seatNumber',
   ] as const;
@@ -60,29 +65,38 @@ export default function ProfileEditForm() {
   const fieldLabels: Record<(typeof editableFields)[number], string> = {
     name: '이름',
     email: '이메일',
+    organization: '기관',
     department: '부서',
+    affiliation: '소속',
+    education: '학력',
     phoneNumber: '전화번호',
     seatNumber: '좌석번호',
   };
 
+  const accessToken = useAuthStore((s) => s.accessToken);
+
   useEffect(() => {
-    async function fetchUserDetail() {
+    if (!accessToken) return;
+
+    const fetchUserDetail = async () => {
       setIsLoading(true);
       try {
         const api = new UserApi(
           new Configuration({
             basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-            accessToken: async () => accessToken || '',
+            accessToken: async () => accessToken,
           }),
         );
         const data = await api.getCurrentUser();
-        setUserDetail(data);
 
         if (data.user) {
           setFormData({
             name: data.user.name || '',
             email: data.user.email || '',
+            organization: data.user.organization || '',
             department: data.user.department || '',
+            affiliation: data.user.affiliation || '',
+            education: data.user.education || '',
             categories: data.user.categories || [],
             phoneNumber: data.user.phoneNumber || '',
             seatNumber: data.user.seatNumber || '',
@@ -92,11 +106,12 @@ export default function ProfileEditForm() {
           );
         }
       } catch (err) {
-        console.error(err);
+        toast.error('사용자 정보를 불러오는 중 오류가 발생했습니다.');
       } finally {
         setIsLoading(false);
       }
-    }
+    };
+
     fetchUserDetail();
   }, [accessToken]);
 
@@ -125,6 +140,7 @@ export default function ProfileEditForm() {
     if (file) {
       setProfileImageFile(file);
       setProfileImagePreview(URL.createObjectURL(file));
+      toast.success('프로필 이미지가 성공적으로 업로드 되었습니다.');
     }
   };
 
@@ -145,16 +161,30 @@ export default function ProfileEditForm() {
 
     try {
       const api = new UserApi(
-        new Configuration({ basePath: process.env.NEXT_PUBLIC_API_BASE_URL! }),
+        new Configuration({
+          basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+          accessToken: async () => accessToken || '',
+        }),
       );
       await api.updateCurrentUser({
         request: payload,
         profileImage: profileImageFile ?? undefined,
       });
+
+      useAuthStore.setState((prev) => ({
+        user: {
+          ...prev.user!,
+          name: formData.name,
+          email: formData.email,
+          department: formData.department,
+          profileImageUrl: profileImagePreview,
+        },
+      }));
+
       setIsEditable(false);
-      // TODO: 토스트 알림, 수정 기능 다시 확인, 비밀번호 기능 구현
+      toast.success('개인정보가 수정이 성공적으로 완료되었습니다.');
     } catch (err) {
-      console.error(err);
+      toast.error('개인정보 수정 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
 
@@ -165,23 +195,32 @@ export default function ProfileEditForm() {
   return (
     <div className="flex flex-row gap-10">
       {/* 프로필 사진 */}
-      <div className="flex flex-col items-center gap-8">
-        <div className="relative mx-10 h-48 w-48">
-          <Image
-            src={profileImagePreview}
-            alt={`${formData.name} 프로필`}
-            fill
-            className="cursor-pointer rounded-full object-cover"
+      <div className="relative mx-10 h-48 w-48">
+        <Image
+          src={profileImagePreview}
+          alt={`${formData.name} 프로필`}
+          fill
+          className="cursor-pointer rounded-full object-cover"
+          onClick={handleImageClick}
+        />
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          onChange={handleImageChange}
+          className="hidden"
+        />
+
+        {isEditable && (
+          <button
             onClick={handleImageClick}
-          />
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            onChange={handleImageChange}
-            className="hidden"
-          />
-        </div>
+            type="button"
+            className="hover:bg-muted absolute right-2 bottom-2 rounded-full bg-white p-2 shadow transition"
+          >
+            <Camera className="size-6 text-gray-600" />
+            <span className="sr-only">프로필 사진 수정</span>
+          </button>
+        )}
       </div>
 
       {/* 개인정보 수정 */}
@@ -266,9 +305,13 @@ export default function ProfileEditForm() {
               <UserPen className="mr-2" /> 개인정보 수정
             </Button>
           )}
-          <Button>
-            <LockKeyhole className="mr-2" /> 비밀번호 변경
-          </Button>
+          <ChangePasswordModal
+            triggerButton={
+              <Button>
+                <LockKeyhole className="mr-2" /> 비밀번호 변경
+              </Button>
+            }
+          />
         </div>
       </div>
     </div>

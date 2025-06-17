@@ -68,6 +68,7 @@ const getProjectColumns = (
   },
   {
     label: '제목',
+    className: 'text-left truncate overflow-hidden whitespace-nowrap w-[300px]',
     cell: (row: ProjectSummary) => (
       <Link
         href={`/portal/researches/projects/${row.projectId}`}
@@ -79,7 +80,7 @@ const getProjectColumns = (
   },
   {
     label: '연구 분야',
-    className: 'text-center',
+    className: 'text-center w-[150px]',
     cell: (row: ProjectSummary) => (
       <Badge variant="outline" className="whitespace-nowrap">
         {getCategoryLabel(row.category)}
@@ -88,7 +89,7 @@ const getProjectColumns = (
   },
   {
     label: '연구 상태',
-    className: 'text-center',
+    className: 'text-center w-[150px]',
     cell: (row: ProjectSummary) => (
       <Badge
         variant="outline"
@@ -99,25 +100,35 @@ const getProjectColumns = (
     ),
   },
   {
+    label: 'PI',
+    className: 'text-center w-[130px]',
+    cell: (row: ProjectSummary) => row.pi ?? '-',
+  },
+  {
+    label: '실무교수',
+    className: 'text-center w-[130px]',
+    cell: (row: ProjectSummary) => row.practicalProfessor ?? '-',
+  },
+  {
     label: '책임자',
-    className: 'text-center',
+    className: 'text-center w-[130px]',
     cell: (row: ProjectSummary) =>
-      row.leaders?.map((leader) => leader.name).join(', ') ?? '',
+      row.leaders?.map((leader) => leader.name).join(', ') ?? '-',
   },
   {
     label: '참여자',
-    className: 'text-center',
+    className: 'text-center w-[130px]',
     cell: (row: ProjectSummary) => `${row.participantCount ?? 0}명`,
   },
   {
     label: '연구 기간',
-    className: 'text-center',
+    className: 'text-center w-[200px]',
     cell: (row: ProjectSummary) =>
       `${row.startDate?.toISOString().substring(0, 10)} ~ ${row.endDate ? row.endDate.toISOString().substring(0, 10) : ''}`,
   },
   {
     label: '',
-    className: 'text-center',
+    className: 'text-center w-[50px]',
     cell: (row: ProjectSummary) => (
       <div className="flex justify-end pr-2">
         <DropdownMenu>
@@ -155,6 +166,8 @@ export default function ProjectPage() {
   const [fieldFilter, setFieldFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [leaderFilter, setLeaderFilter] = useState('all');
+  const [piFilter, setPiFilter] = useState('');
+  const [practicalProfessorFilter, setPracticalProfessorFilter] = useState('');
   const [leaders, setLeaders] = useState<{ id: number; name: string }[]>([]);
 
   const [sortOption, setSortOption] = useState('createdAt-desc');
@@ -169,6 +182,7 @@ export default function ProjectPage() {
   const fetchProjects = useCallback(async () => {
     setLoading(true);
 
+    // TODO: 수민 pi, practicalProfessor 리마인드
     const res = await projectApi.getAllProjects({
       search: committedSearchTerm,
       category:
@@ -179,6 +193,8 @@ export default function ProjectPage() {
         statusFilter !== 'all'
           ? (statusFilter as GetAllProjectsStatusEnum)
           : undefined,
+      pi: piFilter || undefined,
+      practicalProfessor: practicalProfessorFilter || undefined,
       leaderId: leaderFilter !== 'all' ? parseInt(leaderFilter, 10) : undefined,
       page: currentPage - 1,
       size: itemsPerPage,
@@ -296,6 +312,7 @@ export default function ProjectPage() {
         {/* 필터링 */}
         {showFilters && (
           <div className="bg-muted/30 flex flex-col gap-4 rounded-md border p-4">
+            {/* 1줄: 분야 + 상태 */}
             <div className="flex flex-row gap-4">
               {/* 연구 분야 필터 */}
               <Select value={fieldFilter} onValueChange={setFieldFilter}>
@@ -326,8 +343,27 @@ export default function ProjectPage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
 
-              {/* 책임자 필터 */}
+            {/* 2줄: PI / 실무교수 / 책임자 */}
+            <div className="flex flex-row gap-4">
+              {/* PI Input */}
+              <Input
+                placeholder="PI 이름 입력"
+                value={piFilter}
+                onChange={(e) => setPiFilter(e.target.value)}
+                className="w-full"
+              />
+
+              {/* 실무교수 Input */}
+              <Input
+                placeholder="실무교수 이름 입력"
+                value={practicalProfessorFilter}
+                onChange={(e) => setPracticalProfessorFilter(e.target.value)}
+                className="w-full"
+              />
+
+              {/* 책임자 Select */}
               <Select value={leaderFilter} onValueChange={setLeaderFilter}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="책임자 선택" />

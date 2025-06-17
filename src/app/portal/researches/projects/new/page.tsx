@@ -7,7 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 import { ProjectApi } from '@/generated-api/apis/ProjectApi';
 import { Configuration } from '@/generated-api/runtime';
 import { useAuthStore } from '@/store/auth-store';
-import { ProjectRequest } from '@/generated-api';
+import { ProjectFileSummary, ProjectRequest } from '@/generated-api';
 
 const projectApi = new ProjectApi(
   new Configuration({
@@ -19,13 +19,18 @@ export default function NewProject() {
   const router = useRouter();
 
   // TODO: 토스트 처리
-  const handleCreate = async (data: ProjectRequest, newFiles: File[]) => {
+  const handleCreate = async (
+    data: ProjectRequest,
+    newFiles: ProjectFileSummary[],
+  ) => {
     try {
-      console.log('폼 제출 데이터:', data);
+      const fileIds = newFiles.map((file) => file.fileId!).filter(Boolean);
 
       await projectApi.createNewProject({
-        request: data,
-        files: newFiles,
+        projectRequest: {
+          ...data,
+          fileIds,
+        },
       });
 
       alert('프로젝트가 성공적으로 등록되었습니다!');

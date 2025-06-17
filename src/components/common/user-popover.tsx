@@ -5,10 +5,10 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from '@/components/ui/popover';
-import { User } from '@/types/user';
 import Image from 'next/image';
+import { UserSummary } from '@/generated-api/models/UserSummary';
 
-export default function UserPopover({ user }: { user: User }) {
+export default function UserPopover({ user }: { user: UserSummary }) {
   return (
     <Popover>
       <PopoverTrigger asChild>

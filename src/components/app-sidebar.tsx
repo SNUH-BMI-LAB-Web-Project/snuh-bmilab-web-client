@@ -1,13 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import {
-  Users,
-  Newspaper,
-  FolderSearch,
-  Boxes,
-  CircleFadingPlus,
-} from 'lucide-react';
+import { Users, Newspaper, FolderSearch, CircleFadingPlus } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import {
@@ -26,7 +20,7 @@ const baseNav = [
     icon: Users,
     items: [
       { title: '연명부', url: '/portal/users' },
-      { title: '휴가', url: '/portal/users/leaves' },
+      { title: '휴가 신청', url: '/portal/users/leaves' },
       { title: '자리배치도', url: '/portal/users/seats' },
     ],
   },
@@ -46,16 +40,6 @@ const baseNav = [
     ],
   },
   {
-    title: '물품',
-    url: '/portal/goods',
-    icon: Boxes,
-    items: [
-      { title: '물자 관리', url: '/portal/goods/management' },
-      { title: '보안 컴퓨터 관리', url: '/portal/goods/computers' },
-    ],
-    onlyAdmin: true,
-  },
-  {
     title: '기타',
     url: '/portal/etc',
     icon: CircleFadingPlus,
@@ -65,7 +49,7 @@ const baseNav = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { user, role } = useAuthStore();
+  const { user } = useAuthStore();
 
   if (
     pathname.startsWith('/portal/researches/projects/') ||
@@ -78,21 +62,14 @@ export function AppSidebar() {
     return null;
   }
 
-  const navMain = baseNav
-    .filter((group) => {
-      if (group.onlyAdmin && role !== 'ADMIN') {
-        return false;
-      }
-      return true;
-    })
-    .map((group) => ({
-      ...group,
+  const navMain = baseNav.map((group) => ({
+    ...group,
+    isActive: true,
+    items: group.items?.map((subItem) => ({
+      ...subItem,
       isActive: true,
-      items: group.items?.map((subItem) => ({
-        ...subItem,
-        isActive: true,
-      })),
-    }));
+    })),
+  }));
 
   return (
     <div className="flex h-[calc(100vh-65px)] overflow-hidden">

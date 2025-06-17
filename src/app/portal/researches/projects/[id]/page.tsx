@@ -1,11 +1,9 @@
 'use client';
 
-import React, { useState, use } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,84 +14,74 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-  ArrowLeft,
-  Edit,
-  Trash,
-  Paperclip,
-  Info,
-  NotepadText,
-} from 'lucide-react';
-import { allProjects } from '@/data/projects';
-import { users } from '@/data/users';
-import { currentUser, canEditProject, canDeleteProject } from '@/data/auth';
+import { ArrowLeft, Edit, Trash } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils';
-import { getStatusClassName } from '@/utils/project-utils';
-import UserPopover from '@/components/common/user-popover';
 import Image from 'next/image';
-import MeetingTimeline from '@/components/portal/researches/projects/meetings/meeting-timeline';
-import { Meeting } from '@/types/meeting';
-import { allMeetings } from '@/data/meetings';
-import { FileItem } from '@/components/portal/researches/projects/file-item';
-import { Label } from '@/components/ui/label';
+import { ProjectApi } from '@/generated-api/apis/ProjectApi';
+import { ProjectDetail } from '@/generated-api/models/ProjectDetail';
+import { Configuration } from '@/generated-api/runtime';
+import { useAuthStore } from '@/store/auth-store';
+import { toast } from 'sonner';
+import { canDeleteProject, canEditProject } from '@/data/auth';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ProjectInfoForm from '@/components/portal/researches/projects/project-info-form';
+import ProjectArchiveForm from '@/components/portal/researches/projects/project-archive-form';
 
-export default function ProjectDetail({
+export default function ProjectDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
+  const [project, setProject] = useState<ProjectDetail>({});
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [tab, setTab] = useState('info');
 
   const { id } = use(params);
-  const project = allProjects.find((p) => p.projectId === id);
-  const authorUser = users.find((u) => u.userId === project?.authorId);
+  useEffect(() => {
+    const fetchProject = async () => {
+      try {
+        const api = new ProjectApi(
+          new Configuration({
+            basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+            accessToken: async () => useAuthStore.getState().accessToken || '',
+          }),
+        );
+        const data = await api.getProjectById({ projectId: Number(id) });
+        setProject(data);
+      } catch (err) {
+        toast.error('프로젝트 정보를 불러오는 데 실패했습니다.');
+      }
+    };
 
-  if (!project) {
-    return (
-      <div className="container py-12 text-center">
-        <h2 className="text-2xl font-bold">프로젝트를 찾을 수 없습니다.</h2>
-        <p className="text-muted-foreground mt-2">
-          유효하지 않은 프로젝트 ID입니다.
-        </p>
-        <Button className="mt-6" onClick={() => router.push('/')}>
-          홈으로 이동
-        </Button>
-      </div>
-    );
-  }
+    fetchProject();
+  }, [id]);
+
+  const currentUserId = useAuthStore.getState().user?.userId;
+  const userRole = useAuthStore.getState().role;
 
   const canEdit =
-    project && canEditProject(project.leaderId, currentUser.userId);
+    project && currentUserId
+      ? canEditProject(
+          project.leaders?.map((u) => String(u.userId)) ?? [],
+          String(currentUserId),
+        )
+      : false;
+
   const canDelete =
-    project &&
-    canDeleteProject(
-      project.leaderId,
-      project.authorId,
-      currentUser.userId,
-      currentUser.role,
-    );
+    project && currentUserId
+      ? canDeleteProject(
+          project.leaders?.map((u) => String(u.userId)) ?? [],
+          String(project.author?.userId),
+          String(currentUserId),
+          userRole as 'USER' | 'ADMIN',
+        )
+      : false;
 
   const handleDelete = () => {
     // 실제 삭제 로직 필요
     router.push('/');
   };
-
-  const downloadFile = (file: { name: string; url: string }) => {
-    const link = document.createElement('a');
-    link.href = file.url;
-    link.download = file.name;
-    link.click();
-  };
-
-  const leaderUsers = users.filter((u) => project.leaderId.includes(u.userId));
-  const participantUsers = users.filter((u) =>
-    project.participantId.includes(u.userId),
-  );
-
-  const meetings = allMeetings.filter(
-    (meeting: Meeting) => meeting.projectId === id,
-  );
 
   return (
     <div className="flex flex-col gap-8 px-20">
@@ -110,25 +98,25 @@ export default function ProjectDetail({
           <h1 className="text-3xl font-bold">{project.title}</h1>
         </div>
       </div>
-
       <div className="flex flex-row items-center justify-between">
         <div className="text-muted-foreground flex items-center gap-3 text-sm">
           <Image
             src={
-              authorUser?.profileImageUrl &&
-              authorUser.profileImageUrl.trim() !== ''
-                ? authorUser.profileImageUrl
+              project.author?.profileImageUrl &&
+              project.author?.profileImageUrl.trim() !== ''
+                ? project.author?.profileImageUrl
                 : '/default-profile-image.svg'
             }
-            alt={authorUser?.name || '사용자 프로필'}
+            alt={project.author?.name || '사용자 프로필'}
             width={40}
             height={40}
             className="h-10 w-10 rounded-full object-cover"
           />
           <div className="flex flex-col">
-            <div className="font-medium text-black">{authorUser?.name}</div>
+            <div className="font-medium text-black">{project.author?.name}</div>
             <div className="text-xs">
-              {authorUser?.department} · {authorUser?.email}
+              {project.author?.organization} {project.author?.department}
+              {project.author?.affiliation} · {project.author?.email}
             </div>
           </div>
         </div>
@@ -154,123 +142,35 @@ export default function ProjectDetail({
             </div>
           )}
           <div className="text-muted-foreground ml-auto text-xs">
-            작성일 {formatDateTime(project.createdAt)}
+            작성일{' '}
+            {project.createdAt
+              ? formatDateTime(project.createdAt.toString())
+              : null}
           </div>
         </div>
       </div>
 
-      <div className="border-t" />
+      <Tabs value={tab} onValueChange={setTab} className="w-full">
+        <TabsList className="mb-6 w-full justify-around">
+          <TabsTrigger value="info" className="flex-1">
+            프로젝트 정보
+          </TabsTrigger>
+          <TabsTrigger value="archive" className="flex-1">
+            자료실
+          </TabsTrigger>
+        </TabsList>
 
-      <div className="grid grid-cols-3 gap-8">
-        <div className="col-span-2 flex flex-col gap-8">
-          <div className="flex flex-col gap-4">
-            <Label className="flex flex-row text-lg font-semibold">
-              <NotepadText className="h-4 w-4" />
-              <span>연구 내용</span>
-            </Label>
+        <TabsContent value="info" className="mt-6">
+          <ProjectInfoForm
+            id={project.projectId?.toString() ?? ''}
+            project={project}
+          />
+        </TabsContent>
 
-            <Card>
-              <CardContent className="flex h-full flex-col justify-start gap-2">
-                <div className="whitespace-pre-line">{project.content}</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <MeetingTimeline projectId={id} meetings={meetings} />
-        </div>
-
-        <div className="col-span-1 flex flex-col gap-8">
-          <div className="flex flex-col gap-4">
-            <Label className="flex flex-row text-lg font-semibold">
-              <Info className="h-4 w-4" />
-              <span>연구 정보</span>
-            </Label>
-            <Card>
-              <CardContent className="flex h-full flex-col justify-center gap-6">
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between gap-2 text-sm">
-                    <span>연구 분야</span>
-                    <Badge variant="outline" className="whitespace-nowrap">
-                      {project.category}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between gap-2 text-sm">
-                    <span>연구 상태</span>
-                    <Badge className={getStatusClassName(project.status)}>
-                      {project.status}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between gap-2 text-sm">
-                    <span>연구 기간</span>
-                    <div className="text-muted-foreground text-sm font-normal">
-                      {project.startDate} ~ {project.endDate || ''}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t" />
-
-                <div className="flex flex-col gap-4">
-                  <div className="flex flex-col">
-                    <span className="mb-1 font-semibold">연구 책임자</span>
-                    <div className="text-muted-foreground flex flex-wrap gap-1 text-sm font-normal">
-                      {leaderUsers.map((user, index) => (
-                        <span key={user.userId} className="flex items-center">
-                          <UserPopover user={user} />
-                          {index < leaderUsers.length - 1 && ','}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="mb-1 font-semibold">연구 참여자</span>
-                    <div className="text-muted-foreground flex flex-wrap gap-1 text-sm font-normal">
-                      {participantUsers.length > 0 ? (
-                        participantUsers.map((user, index) => (
-                          <span key={user.userId} className="flex items-center">
-                            <UserPopover user={user} />
-                            {index < participantUsers.length - 1 && ','}
-                          </span>
-                        ))
-                      ) : (
-                        <div className="text-muted-foreground text-xs">
-                          참여자가 없습니다
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          <div className="flex flex-col gap-4">
-            <Label className="flex flex-row text-lg font-semibold">
-              <Paperclip className="h-4 w-4" />
-              <span>첨부파일</span>
-            </Label>
-            <ul className="space-y-2 text-sm">
-              {project.files && project.files.length > 0 ? (
-                project.files.map((file, index) => (
-                  <FileItem
-                    key={file.name}
-                    file={{
-                      name: file.name,
-                      size: file.size,
-                    }}
-                    index={index}
-                    onAction={() => downloadFile(file)}
-                    mode="download"
-                  />
-                ))
-              ) : (
-                <Card className="text-muted-foreground px-4 py-6 text-center text-sm">
-                  등록된 첨부파일이 없습니다.
-                </Card>
-              )}
-            </ul>
-          </div>
-        </div>
-      </div>
+        <TabsContent value="archive" className="mt-6">
+          <ProjectArchiveForm projectId={project.projectId!} />
+        </TabsContent>
+      </Tabs>
 
       <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
         <AlertDialogContent>

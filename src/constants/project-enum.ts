@@ -5,10 +5,10 @@ import {
 
 // 연구 상태 → 라벨
 export const PROJECT_STATUS_LABELS: Record<GetAllProjectsStatusEnum, string> = {
-  PENDING: '진행 대기',
+  PENDING: '진행 전',
   IN_PROGRESS: '진행 중',
   COMPLETED: '진행 종료',
-  WAITING: '진행 전',
+  WAITING: '진행 대기',
 };
 
 // 연구 상태 → 스타일

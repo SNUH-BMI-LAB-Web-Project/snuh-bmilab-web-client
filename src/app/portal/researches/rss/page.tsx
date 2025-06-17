@@ -1,7 +1,7 @@
 'use client';
 
 import { PaginatedTable } from '@/components/common/paginated-table';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Search, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NTISRSSApi } from '@/generated-api/apis/NTISRSSApi';
 import { RSSItem } from '@/generated-api/models/RSSItem';
@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { Configuration } from '@/generated-api/runtime';
 import { formatDateTimeVer3 } from '@/lib/utils';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
 
 const getProjectColumns = () => [
   {
@@ -70,7 +71,12 @@ export default function RssPage() {
   const [totalPage, setTotalPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [committedSearchTerm, setCommittedSearchTerm] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [minBudget, setMinBudget] = useState<number | undefined>();
+  const [maxBudget, setMaxBudget] = useState<number | undefined>();
 
   useEffect(() => {
     const fetchRSS = async () => {
@@ -86,6 +92,9 @@ export default function RssPage() {
         const response = await api.getAllRssAssignments({
           page: currentPage - 1,
           size: itemsPerPage,
+          search: committedSearchTerm || undefined,
+          minBudget,
+          maxBudget,
         });
 
         setRssItems(response.items || []);
@@ -98,7 +107,7 @@ export default function RssPage() {
     };
 
     fetchRSS();
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, committedSearchTerm, minBudget, maxBudget]);
 
   return (
     <div>
@@ -106,6 +115,78 @@ export default function RssPage() {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">RSS 공고</h1>
       </div>
+
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        {/* 검색 input */}
+        <div className="relative flex-1">
+          <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
+          <Input
+            placeholder="제목 / 작성기관 / 부처 검색"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                setCommittedSearchTerm(searchTerm);
+                setCurrentPage(1);
+              }
+            }}
+            className="pl-8"
+          />
+        </div>
+
+        {/* 필터 토글 버튼 */}
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setShowFilters(!showFilters)}
+          className={showFilters ? 'bg-muted' : ''}
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* 예산 필터 */}
+      {showFilters && (
+        <div className="bg-muted/30 mb-6 flex flex-col gap-4 rounded-md border p-4">
+          <div className="flex flex-row gap-4">
+            <Input
+              type="number"
+              placeholder="최소 금액"
+              value={minBudget ?? ''}
+              onChange={(e) =>
+                setMinBudget(
+                  e.target.value ? Number(e.target.value) : undefined,
+                )
+              }
+              className="w-full"
+            />
+            <Input
+              type="number"
+              placeholder="최대 금액"
+              value={maxBudget ?? ''}
+              onChange={(e) =>
+                setMaxBudget(
+                  e.target.value ? Number(e.target.value) : undefined,
+                )
+              }
+              className="w-full"
+            />
+          </div>
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setMinBudget(undefined);
+                setMaxBudget(undefined);
+              }}
+            >
+              <X className="h-4 w-4" />
+              필터 초기화
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* 페이지네이션 테이블 */}
       <PaginatedTable

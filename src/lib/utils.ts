@@ -33,3 +33,9 @@ export function formatDateTimeVer3(dateStr: string | Date): string {
 
   return `${format(date, 'yyyy. M. d.', { locale: ko })} (${day})`;
 }
+
+export const formatFileSize = (size?: number) => {
+  if (!size) return '- MB';
+  const kb = size / 1024;
+  return kb > 1024 ? `${(kb / 1024).toFixed(2)} MB` : `${kb.toFixed(1)} KB`;
+};

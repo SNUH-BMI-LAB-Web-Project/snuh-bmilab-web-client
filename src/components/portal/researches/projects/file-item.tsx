@@ -3,14 +3,14 @@
 import { Button } from '@/components/ui/button';
 import { FileText, X, Download } from 'lucide-react';
 import React from 'react';
-import { cn } from '@/lib/utils';
+import { cn, formatFileSize } from '@/lib/utils';
 
 type Mode = 'remove' | 'download';
 
 interface FileItemProps {
   file: {
     name: string;
-    size: string;
+    size?: number;
   };
   index?: number;
   onAction?: (index: number) => void;
@@ -40,7 +40,9 @@ export function FileItem({
         </div>
         <div className="truncate">
           <div className="truncate text-sm font-medium">{file.name}</div>
-          <div className="text-muted-foreground text-xs">{file.size}</div>
+          <div className="text-muted-foreground text-xs">
+            {formatFileSize(file.size)}
+          </div>
         </div>
       </div>
 

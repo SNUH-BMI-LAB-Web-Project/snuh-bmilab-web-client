@@ -10,6 +10,7 @@ import { Configuration } from '@/generated-api/runtime';
 import { useAuthStore } from '@/store/auth-store';
 import type { ProjectDetail } from '@/generated-api/models/ProjectDetail';
 import type { ProjectRequest } from '@/generated-api/models/ProjectRequest';
+import { ProjectFileSummary } from '@/generated-api';
 
 const projectApi = new ProjectApi(
   new Configuration({
@@ -48,21 +49,37 @@ export default function EditProjectPage({
 
   const handleUpdate = async (
     data: { projectId: number; request: ProjectRequest },
-    // TODO: 파일 추가 및 삭제 구현
-    newFiles: File[],
-    removedFileUrls: string[],
-  ) => {
+    newFiles: ProjectFileSummary[],
+    removedFileUrls: ProjectFileSummary[],
+  ): Promise<void> => {
     try {
+      const removedFileIds = removedFileUrls
+        .map((f) => f.fileId!)
+        .filter(Boolean);
+
+      if (removedFileIds.length > 0) {
+        await Promise.all(
+          removedFileIds.map((fileId) =>
+            projectApi.deleteProjectFile({ projectId: data.projectId, fileId }),
+          ),
+        );
+      }
+
+      const fileIds = newFiles.map((f) => f.fileId!).filter(Boolean);
+
       await projectApi.updateProject({
         projectId: data.projectId,
-        projectRequest: data.request,
+        projectRequest: {
+          ...data.request,
+          fileIds,
+        },
       });
 
-      // TODO: 토스트 에러 처리
-      console.log('프로젝트 수정 완료');
+      alert('프로젝트가 성공적으로 수정되었습니다!');
       router.push('/portal/researches/projects');
     } catch (error) {
       console.error('프로젝트 수정 실패:', error);
+      alert('프로젝트 수정에 실패했습니다.');
     }
   };
 

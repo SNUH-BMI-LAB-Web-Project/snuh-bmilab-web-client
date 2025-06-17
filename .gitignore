@@ -42,8 +42,3 @@ next-env.d.ts
 
 # intellij
 .idea
-
-# open-api
-/src/generated-api/
-openapitools.json
-scripts/generate-api.ts
