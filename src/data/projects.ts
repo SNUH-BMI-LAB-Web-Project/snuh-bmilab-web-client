@@ -1,29 +1,4 @@
-import type { SortOption } from '@/types/option';
-import type { Project, ProjectCategory, ProjectStatus } from '@/types/project';
-
-export const projectCategories: ProjectCategory[] = [
-  'Bioinformatics',
-  'Medical AI (Pathology)',
-  'Medical AI (Signal data)',
-  'Medical Big Data',
-  'NLP',
-];
-
-export const projectStatuses: ProjectStatus[] = [
-  '진행 전',
-  '진행 중',
-  '진행 종료',
-  '진행 대기',
-];
-
-export const sortOptions: SortOption[] = [
-  { value: 'created-desc', label: '등록일 (최신순)' },
-  { value: 'created-asc', label: '등록일 (오래된순)' },
-  { value: 'title-asc', label: '제목 (오름차순)' },
-  { value: 'title-desc', label: '제목 (내림차순)' },
-  { value: 'date-asc', label: '시작일 (오름차순)' },
-  { value: 'date-desc', label: '시작일 (내림차순)' },
-];
+import type { Project } from '@/types/project';
 
 export const allProjects: Project[] = [
   {
@@ -35,15 +10,30 @@ export const allProjects: Project[] = [
     startDate: '2023-01-01',
     endDate: '2023-12-31',
     category: 'Bioinformatics',
-    status: '진행 중',
+    status: 'IN_PROGRESS',
     createdAt: '2023-01-01T09:00:00Z',
     updatedAt: '2023-05-01T10:00:00Z',
     leaderId: ['1', '2'],
     participantId: ['1', '2', '3', '4'],
     files: [
-      { name: '연구계획서.pdf', size: '2.4MB', type: 'application/pdf' },
-      { name: '중간보고서.docx', size: '1.8MB', type: 'application/msword' },
-      { name: '데이터셋_샘플.zip', size: '15.6MB', type: 'application/zip' },
+      {
+        name: '연구계획서.pdf',
+        size: '2.4MB',
+        type: 'application/pdf',
+        url: '',
+      },
+      {
+        name: '중간보고서.docx',
+        size: '1.8MB',
+        type: 'application/msword',
+        url: '',
+      },
+      {
+        name: '데이터셋_샘플.zip',
+        size: '15.6MB',
+        type: 'application/zip',
+        url: '',
+      },
     ],
   },
   {
@@ -53,7 +43,7 @@ export const allProjects: Project[] = [
     startDate: '2023-05-01',
     endDate: '2024-04-30',
     category: 'Medical AI (Pathology)',
-    status: '진행 전',
+    status: 'WAITING',
     createdAt: '2023-04-15T14:30:00Z',
     updatedAt: '2023-04-20T09:00:00Z',
     leaderId: ['3'],
@@ -66,7 +56,7 @@ export const allProjects: Project[] = [
     startDate: '2022-06-01',
     endDate: '2023-03-31',
     category: 'Medical AI (Signal data)',
-    status: '진행 종료',
+    status: 'COMPLETED',
     createdAt: '2022-05-20T11:15:00Z',
     updatedAt: '2023-01-01T08:00:00Z',
     leaderId: ['4'],
@@ -79,7 +69,7 @@ export const allProjects: Project[] = [
     startDate: '2023-09-01',
     endDate: '2024-08-31',
     category: 'Medical Big Data',
-    status: '진행 대기',
+    status: 'PENDING',
     createdAt: '2023-08-10T16:45:00Z',
     updatedAt: '2023-08-11T09:00:00Z',
     leaderId: ['5', '6'],
@@ -92,7 +82,7 @@ export const allProjects: Project[] = [
     startDate: '2023-03-15',
     endDate: '2023-12-15',
     category: 'NLP',
-    status: '진행 중',
+    status: 'IN_PROGRESS',
     createdAt: '2023-03-01T10:20:00Z',
     updatedAt: '2023-03-02T09:00:00Z',
     leaderId: ['7'],
@@ -105,7 +95,7 @@ export const allProjects: Project[] = [
     startDate: '2023-07-01',
     endDate: '2024-06-30',
     category: 'Bioinformatics',
-    status: '진행 전',
+    status: 'WAITING',
     createdAt: '2023-06-15T09:30:00Z',
     updatedAt: '2023-06-16T09:00:00Z',
     leaderId: ['8', '9'],
@@ -118,7 +108,7 @@ export const allProjects: Project[] = [
     startDate: '2023-02-01',
     endDate: '2023-11-30',
     category: 'Medical AI (Pathology)',
-    status: '진행 중',
+    status: 'IN_PROGRESS',
     createdAt: '2023-01-20T13:40:00Z',
     updatedAt: '2023-02-01T09:00:00Z',
     leaderId: ['10'],
@@ -131,7 +121,7 @@ export const allProjects: Project[] = [
     startDate: '2022-08-01',
     endDate: '2023-05-31',
     category: 'Medical AI (Signal data)',
-    status: '진행 종료',
+    status: 'COMPLETED',
     createdAt: '2022-07-25T15:10:00Z',
     updatedAt: '2023-05-31T09:00:00Z',
     leaderId: ['1'],
@@ -144,7 +134,7 @@ export const allProjects: Project[] = [
     startDate: '2023-04-01',
     endDate: '2024-03-31',
     category: 'Medical Big Data',
-    status: '진행 중',
+    status: 'IN_PROGRESS',
     createdAt: '2023-03-20T11:25:00Z',
     updatedAt: '2023-03-21T09:00:00Z',
     leaderId: ['2', '3'],
@@ -157,7 +147,7 @@ export const allProjects: Project[] = [
     startDate: '2023-10-01',
     endDate: '2024-09-30',
     category: 'NLP',
-    status: '진행 대기',
+    status: 'WAITING',
     createdAt: '2023-09-15T14:50:00Z',
     updatedAt: '2023-09-16T09:00:00Z',
     leaderId: ['4'],
@@ -170,7 +160,7 @@ export const allProjects: Project[] = [
     startDate: '2023-01-15',
     endDate: '2023-12-15',
     category: 'Bioinformatics',
-    status: '진행 중',
+    status: 'IN_PROGRESS',
     createdAt: '2023-01-05T10:35:00Z',
     updatedAt: '2023-01-06T09:00:00Z',
     leaderId: ['5'],
@@ -183,7 +173,7 @@ export const allProjects: Project[] = [
     startDate: '2023-06-01',
     endDate: '2024-05-31',
     category: 'Medical AI (Pathology)',
-    status: '진행 전',
+    status: 'WAITING',
     createdAt: '2023-05-20T09:15:00Z',
     updatedAt: '2023-05-21T09:00:00Z',
     leaderId: ['6', '7'],

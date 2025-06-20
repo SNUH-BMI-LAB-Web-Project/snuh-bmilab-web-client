@@ -1,50 +1,34 @@
 'use client';
 
-import {
-  BadgeCheck,
-  Bell,
-  CreditCard,
-  LogOut,
-  Sparkles,
-  EllipsisVertical,
-} from 'lucide-react';
-
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  SidebarMenu,
-  SidebarMenuItem,
-  useSidebar,
-} from '@/components/ui/sidebar';
+import { Settings } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { SidebarMenu, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 
-export function NavUser({
-  user,
-}: {
+interface NavUserProps {
   user: {
     name: string;
     email: string;
-    avatar: string;
+    profileImageUrl: string;
   };
-}) {
-  const { isMobile } = useSidebar();
+}
+
+export default function NavUser({ user }: NavUserProps) {
+  const router = useRouter();
 
   return (
     <SidebarMenu>
       <SidebarMenuItem className="flex items-center justify-between p-1">
-        <div className="flex flex-row gap-4">
-          <Avatar className="h-9 w-9 rounded-full">
-            <AvatarImage src={user.avatar} alt={user.name} />
-            <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+        <div className="flex flex-row gap-2">
+          <Avatar className="aspect-square h-9 w-9 rounded-full">
+            <AvatarImage
+              src={user.profileImageUrl || '/default-profile-image.svg'}
+              alt={user.name}
+              className="object-cover"
+            />
           </Avatar>
+
           <div className="flex flex-col text-sm leading-tight">
             <span className="truncate font-medium">{user.name}</span>
             <span className="text-muted-foreground truncate text-xs">
@@ -52,66 +36,15 @@ export function NavUser({
             </span>
           </div>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hover:bg-muted focus:outline-none focus-visible:ring-0"
-            >
-              <EllipsisVertical className="size-4" />
-              <span className="sr-only">메뉴 열기</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="min-w-56 rounded-lg"
-            side={isMobile ? 'bottom' : 'right'}
-            align="end"
-            sideOffset={30}
-          >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-9 w-9 rounded-full">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="text-muted-foreground truncate text-xs">
-                    {user.email}
-                  </span>
-                </div>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
-              Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="ml-2 hover:cursor-pointer"
+          onClick={() => router.push('/portal/mypage')}
+        >
+          <Settings className="size-4" />
+          <span className="sr-only">마이 페이지</span>
+        </Button>
       </SidebarMenuItem>
     </SidebarMenu>
   );

@@ -5,8 +5,14 @@ export const currentUser: User = {
   email: 'kimcs@example.com',
   name: '김철수',
   department: '정보기술팀',
-  role: 'USER',
-  createdAt: '2023-01-15',
+  role: 'ADMIN',
+  annualLeaveCount: 20,
+  usedLeaveCount: 5,
+  categories: ['Bioinformatics', 'Medical Big Data'],
+  seatNumber: '11-01',
+  phoneNumber: '010-1111-1111',
+  comment: '항상 최선을 다하는 개발자',
+  joinedAt: '2023-01-15',
   profileImageUrl: '/profile.jpg',
 };
 
