@@ -83,15 +83,18 @@ export default function DailyPage() {
 
           <div className="w-1/4">
             <Select onValueChange={handleProjectChange}>
-              <SelectTrigger className="w-full bg-white">
+              <SelectTrigger className="w-full cursor-pointer bg-white">
                 <SelectValue placeholder="모든 프로젝트" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">모든 프로젝트</SelectItem>
+              <SelectContent className="cursor-pointer">
+                <SelectItem value="all" className="cursor-pointer">
+                  모든 프로젝트
+                </SelectItem>
                 {projects.map((proj) => (
                   <SelectItem
                     key={proj.projectId}
                     value={String(proj.projectId)}
+                    className="cursor-pointer"
                   >
                     {proj.title}
                   </SelectItem>

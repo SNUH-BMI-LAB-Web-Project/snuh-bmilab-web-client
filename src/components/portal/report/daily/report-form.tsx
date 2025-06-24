@@ -120,12 +120,16 @@ export function ReportForm({ projectList }: ReportFormProps) {
         <div className="space-y-2">
           <Label htmlFor="project">프로젝트</Label>
           <Select value={project} onValueChange={setProject} required>
-            <SelectTrigger id="project" className="w-full">
+            <SelectTrigger id="project" className="w-full cursor-pointer">
               <SelectValue placeholder="프로젝트 선택" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="cursor-pointer">
               {projectList?.map((proj) => (
-                <SelectItem key={proj.projectId} value={String(proj.projectId)}>
+                <SelectItem
+                  key={proj.projectId}
+                  value={String(proj.projectId)}
+                  className="cursor-pointer"
+                >
                   {proj.title}
                 </SelectItem>
               ))}
