@@ -42,6 +42,8 @@ import {
   getStatusClassName,
   getStatusLabel,
 } from '@/utils/project-utils';
+import ProjectDeleteModal from '@/components/portal/researches/projects/project-delete-modal'; // 경로에 맞게 수정
+import { toast } from 'sonner';
 
 const projectApi = new ProjectApi(
   new Configuration({
@@ -58,7 +60,7 @@ const getProjectColumns = (
   currentPage: number,
   itemsPerPage: number,
   router: ReturnType<typeof useRouter>,
-  onDelete: (id: number) => void,
+  onDeleteClick: (id: number) => void,
 ) => [
   {
     label: 'No',
@@ -146,7 +148,9 @@ const getProjectColumns = (
             </DropdownMenuItem>
             <DropdownMenuItem
               className="text-destructive focus:text-destructive"
-              onClick={() => onDelete(row.projectId!)}
+              onClick={() => {
+                onDeleteClick(row.projectId!);
+              }}
             >
               <Trash2 className="text-destructive mr-2 h-4 w-4" /> 삭제
             </DropdownMenuItem>
@@ -177,6 +181,11 @@ export default function ProjectPage() {
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [totalPage, setTotalPage] = useState(1);
   const [loading, setLoading] = useState(false);
+
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [projectIdToDelete, setProjectIdToDelete] = useState<number | null>(
+    null,
+  );
 
   const fetchProjects = useCallback(async () => {
     setLoading(true);
@@ -237,11 +246,17 @@ export default function ProjectPage() {
     fetchProjects();
   }, [fetchProjects]);
 
-  // TODO: 삭제 기능 구현
-  const handleDelete = async (projectId: number) => {
-    if (window.confirm('정말로 삭제하시겠습니까?')) {
-      await projectApi.deleteProjectById({ projectId });
+  const handleDelete = async () => {
+    if (projectIdToDelete == null) return;
+    try {
+      await projectApi.deleteProjectById({ projectId: projectIdToDelete });
+      toast.success('프로젝트가 삭제되었습니다');
+      setProjectIdToDelete(null);
       fetchProjects();
+    } catch (e) {
+      toast.error('프로젝트 삭제에 실패했습니다');
+    } finally {
+      setShowDeleteDialog(false);
     }
   };
 
@@ -395,7 +410,10 @@ export default function ProjectPage() {
             currentPage,
             itemsPerPage,
             router,
-            handleDelete,
+            (id) => {
+              setProjectIdToDelete(id);
+              setShowDeleteDialog(true);
+            },
           )}
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
@@ -403,6 +421,12 @@ export default function ProjectPage() {
           setItemsPerPage={setItemsPerPage}
           totalPage={totalPage}
           loading={loading}
+        />
+
+        <ProjectDeleteModal
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          onConfirm={handleDelete}
         />
       </div>
     </div>

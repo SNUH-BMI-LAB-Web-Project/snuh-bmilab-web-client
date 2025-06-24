@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +29,7 @@ import {
   Users,
   Tag,
   ShieldCheck,
+  Upload,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -52,7 +53,12 @@ import { useAuthStore } from '@/store/auth-store';
 
 interface ProjectFormProps {
   initialData?: ProjectDetail;
-  onCreate?: (data: ProjectRequest, newFiles: ProjectFileSummary[]) => void;
+  onCreate?: (
+    data: ProjectRequest,
+    newFiles: ProjectFileSummary[],
+    irbFile?: ProjectFileSummary,
+    drbFile?: ProjectFileSummary,
+  ) => void;
   onUpdate?: (
     data: { projectId: number; request: ProjectRequest },
     newFiles: ProjectFileSummary[],
@@ -75,10 +81,13 @@ export function ProjectForm({
     setValue,
     formState: { errors },
   } = useForm<ProjectRequest>({
+    mode: 'onSubmit',
     defaultValues: {
       title: initialData?.title ?? '',
       content: initialData?.content ?? '',
       category: initialData?.category ?? ('' as ProjectRequestCategoryEnum),
+      irbId: initialData?.irbId ?? '',
+      drbId: initialData?.drbId ?? '',
     },
   });
 
@@ -112,6 +121,11 @@ export function ProjectForm({
   );
   const [newFiles, setNewFiles] = useState<ProjectFileSummary[]>([]);
   const [removedFiles, setRemovedFiles] = useState<ProjectFileSummary[]>([]);
+  const irbInputRef = useRef<HTMLInputElement>(null);
+  const drbInputRef = useRef<HTMLInputElement>(null);
+
+  const [irbFile, setIrbFile] = useState<ProjectFileSummary | null>(null);
+  const [drbFile, setDrbFile] = useState<ProjectFileSummary | null>(null);
 
   const handleRemoveExistingFile = (index: number) => {
     const removed = existingFiles[index];
@@ -157,32 +171,89 @@ export function ProjectForm({
     }
   };
 
-  // TODO: 폼 제출 시 토스트 처리
-  const handleFormSubmit = (formData: ProjectRequest) => {
+  const handleSingleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: 'IRB' | 'DRB',
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const uploaded = await uploadFileWithPresignedUrl(
+        file,
+        accessToken!,
+        GeneratePresignedUrlDomainTypeEnum.Project,
+      );
+      console.log('file:', file);
+      console.log('file.size:', file.size);
+      toast.success(`${file.name} 업로드 완료`);
+
+      if (type === 'IRB') setIrbFile(uploaded);
+      else setDrbFile(uploaded);
+    } catch {
+      toast.error(`${file.name} 업로드 실패`);
+    } finally {
+      e.target.value = '';
+    }
+  };
+
+  const handleFormSubmit = async (formData: ProjectRequest) => {
+    const hasEmptyRequiredField =
+      !formData.title?.trim() ||
+      !formData.content?.trim() ||
+      !formData.category ||
+      !startDate ||
+      leaders.length === 0;
+
+    if (hasEmptyRequiredField) {
+      toast.error('필수 항목을 모두 입력해주세요.');
+      return;
+    }
+
     const request: ProjectRequest = {
-      title: formData.title,
-      content: formData.content,
+      title: formData.title!,
+      content: formData.content!,
       leaderIds: leaders
-        .map((u) => u?.userId)
-        .filter((id): id is number => typeof id === 'number'),
+        .map((u) => u.userId)
+        .filter((id): id is number => !!id),
       participantIds: participants
-        .map((u) => u?.userId)
-        .filter((id): id is number => typeof id === 'number'),
-      startDate: startDate!,
+        .map((u) => u.userId)
+        .filter((id): id is number => !!id),
+      startDate,
       endDate: endDate ?? undefined,
       isWaiting,
-      category: formData.category,
+      category: formData.category!,
+      pi,
+      practicalProfessor,
+      irbId: formData.irbId,
+      drbId: formData.drbId,
+      irbFileIds: irbFile ? [irbFile.fileId!] : [],
+      drbFileIds: drbFile ? [drbFile.fileId!] : [],
+      fileIds: newFiles.map((file) => file.fileId!),
     };
 
-    if (isEditing) {
-      const projectId = (initialData as ProjectDetail)?.projectId;
-      if (projectId !== undefined) {
-        onUpdate?.({ projectId, request }, newFiles, removedFiles);
+    try {
+      if (isEditing) {
+        const projectId = initialData?.projectId;
+        if (projectId !== undefined) {
+          await onUpdate?.({ projectId, request }, newFiles, removedFiles);
+          toast.success('프로젝트가 성공적으로 수정되었습니다.');
+        } else {
+          console.error('프로젝트 ID가 없습니다.');
+          toast.error('수정에 실패했습니다. 프로젝트 ID가 없습니다.');
+        }
       } else {
-        console.error('프로젝트 ID가 없습니다. 업데이트할 수 없습니다.');
+        await onCreate?.(
+          request,
+          newFiles,
+          irbFile ?? undefined,
+          drbFile ?? undefined,
+        );
+        toast.success('프로젝트가 성공적으로 등록되었습니다.');
       }
-    } else {
-      onCreate?.(request, newFiles);
+    } catch (err) {
+      console.error('프로젝트 등록 실패:', err);
+      toast.error('등록 중 오류가 발생했습니다.');
     }
   };
 
@@ -199,7 +270,7 @@ export function ProjectForm({
           <Input
             id="title"
             placeholder="연구 제목을 입력하세요"
-            {...register('title', { required: '연구 제목은 필수입니다' })}
+            {...register('title')}
             className="focus-visible:none rounded-none border-0 border-b px-0 !text-xl font-medium shadow-none transition-colors focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           {errors.title && (
@@ -316,183 +387,240 @@ export function ProjectForm({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          {/* IRB */}
-          <div className="space-y-3">
-            <Label className="flex items-center text-base font-medium">
-              <ShieldCheck className="h-4 w-4" />
-              IRB 번호
-            </Label>
-            <Input />
+        <div className="grid grid-cols-1 gap-8">
+          <div className="grid grid-cols-2 gap-8">
+            {/* IRB */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center text-base font-medium">
+                  <ShieldCheck className="mr-1 h-4 w-4" />
+                  IRB 번호
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 px-2 py-1"
+                  onClick={() => irbInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4" />
+                  업로드
+                </Button>
+                <input
+                  type="file"
+                  accept="*/*"
+                  ref={irbInputRef}
+                  className="hidden"
+                  onChange={(e) => handleSingleFileUpload(e, 'IRB')}
+                />
+              </div>
+              <Input {...register('irbId')} placeholder="IRB 번호를 입력" />
+              {irbFile && (
+                <FileItem
+                  key={irbFile.fileId}
+                  file={{ name: irbFile.fileName!, size: irbFile.size }}
+                  index={0}
+                  onAction={() => setIrbFile(null)}
+                  mode="remove"
+                />
+              )}
+            </div>
+
+            {/* DRB */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center text-base font-medium">
+                  <ShieldCheck className="mr-1 h-4 w-4" />
+                  DRB 번호
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 px-2 py-1"
+                  onClick={() => drbInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4" />
+                  업로드
+                </Button>
+                <input
+                  type="file"
+                  accept="*/*"
+                  ref={drbInputRef}
+                  className="hidden"
+                  onChange={(e) => handleSingleFileUpload(e, 'DRB')}
+                />
+              </div>
+              <Input {...register('drbId')} placeholder="DRB 번호를 입력" />
+              {drbFile && (
+                <FileItem
+                  key={drbFile.fileId}
+                  file={{ name: drbFile.fileName!, size: drbFile.size }}
+                  index={0}
+                  onAction={() => setDrbFile(null)}
+                  mode="remove"
+                />
+              )}
+            </div>
           </div>
 
-          {/* DRB */}
-          <div className="space-y-3">
-            <Label className="flex items-center text-base font-medium">
-              <ShieldCheck className="h-4 w-4" />
-              DRB 번호
-            </Label>
-            <Input />
-          </div>
-        </div>
+          <Separator className="my-6" />
 
-        <Separator className="my-6" />
+          {/* 구성원 */}
+          <div className="space-y-6">
+            <h3 className="flex items-center text-base font-medium">
+              <Users className="mr-2 h-4 w-4" />팀 구성원
+            </h3>
 
-        {/* 구성원 */}
-        <div className="space-y-6">
-          <h3 className="flex items-center text-base font-medium">
-            <Users className="mr-2 h-4 w-4" />팀 구성원
-          </h3>
-
-          <div className="bg-muted/50 space-y-3 rounded-xl p-4">
-            <Label className="flex items-center text-sm font-semibold">
-              <User className="h-4 w-4" />
-              PI
-            </Label>
-            <Input
-              placeholder="PI 이름 입력"
-              value={pi}
-              onChange={(e) => setPi(e.target.value)}
-              className="bg-white"
-            />
-          </div>
-
-          <div className="bg-muted/50 space-y-3 rounded-xl p-4">
-            <Label className="flex items-center text-sm font-semibold">
-              <User className="h-4 w-4" />
-              실무 교수
-            </Label>
-            <Input
-              placeholder="실무교수 이름 입력"
-              value={practicalProfessor}
-              onChange={(e) => setPracticalProfessor(e.target.value)}
-              className="bg-white"
-            />
-          </div>
-
-          <div className="bg-muted/50 space-y-3 rounded-xl p-4">
-            <Label className="flex items-center text-sm font-semibold">
-              <User className="h-4 w-4" />
-              책임자 <span className="text-destructive text-xs">*</span>
-            </Label>
-
-            <UserTagInput
-              selectedUsers={leaders}
-              onChange={(userIds) => setLeaders(userIds)}
-              placeholder="책임자 이름을 입력하세요 (@태그)"
-            />
-          </div>
-
-          <div className="bg-muted/50 space-y-3 rounded-xl p-4">
-            <Label className="flex items-center text-sm font-semibold">
-              <Users className="h-4 w-4" />
-              참여자
-            </Label>
-
-            <UserTagInput
-              selectedUsers={participants}
-              onChange={(userIds) => setParticipants(userIds)}
-              placeholder="참여자 이름을 입력하세요 (@태그)"
-            />
-          </div>
-        </div>
-
-        <Separator className="my-6" />
-
-        {/* 연구 내용 */}
-        <div className="space-y-4">
-          <Label
-            htmlFor="content"
-            className="flex items-center text-base font-medium"
-          >
-            <NotepadText className="h-4 w-4" />
-            연구 내용 <span className="text-destructive text-xs">*</span>
-          </Label>
-          <Textarea
-            id="content"
-            placeholder="연구 내용을 입력하세요"
-            rows={8}
-            {...register('content')}
-          />
-        </div>
-
-        {/* 첨부 파일 */}
-        <div className="space-y-4">
-          <Label className="flex items-center text-base font-medium">
-            <Paperclip className="h-4 w-4" />
-            첨부파일
-          </Label>
-
-          <div className="hover:border-primary/50 rounded-md border border-2 border-dashed p-6 text-center transition-colors">
-            {/* eslint-disable jsx-a11y/label-has-associated-control */}
-            <label className="flex cursor-pointer flex-col items-center justify-center gap-2">
-              <input
-                type="file"
-                className="hidden"
-                multiple
-                onChange={handleFileInputChange}
+            <div className="bg-muted/50 space-y-3 rounded-xl p-4">
+              <Label className="flex items-center text-sm font-semibold">
+                <User className="h-4 w-4" />
+                PI
+              </Label>
+              <Input
+                placeholder="PI 이름 입력"
+                value={pi}
+                onChange={(e) => setPi(e.target.value)}
+                className="bg-white"
               />
-              <div className="bg-primary/10 rounded-full p-2">
-                <Plus className="text-primary h-6 w-6" />
-              </div>
-              <span className="text-muted-foreground font-medium">
-                파일 추가하기
-              </span>
-              <span className="text-muted-foreground text-sm">
-                또는 파일을 여기에 끌어다 놓으세요
-              </span>
-            </label>
+            </div>
+
+            <div className="bg-muted/50 space-y-3 rounded-xl p-4">
+              <Label className="flex items-center text-sm font-semibold">
+                <User className="h-4 w-4" />
+                실무 교수
+              </Label>
+              <Input
+                placeholder="실무교수 이름 입력"
+                value={practicalProfessor}
+                onChange={(e) => setPracticalProfessor(e.target.value)}
+                className="bg-white"
+              />
+            </div>
+
+            <div className="bg-muted/50 space-y-3 rounded-xl p-4">
+              <Label className="flex items-center text-sm font-semibold">
+                <User className="h-4 w-4" />
+                책임자 <span className="text-destructive text-xs">*</span>
+              </Label>
+
+              <UserTagInput
+                selectedUsers={leaders}
+                onChange={(userIds) => setLeaders(userIds)}
+                placeholder="책임자 이름을 입력하세요 (@태그)"
+              />
+            </div>
+
+            <div className="bg-muted/50 space-y-3 rounded-xl p-4">
+              <Label className="flex items-center text-sm font-semibold">
+                <Users className="h-4 w-4" />
+                참여자
+              </Label>
+
+              <UserTagInput
+                selectedUsers={participants}
+                onChange={(userIds) => setParticipants(userIds)}
+                placeholder="참여자 이름을 입력하세요 (@태그)"
+              />
+            </div>
           </div>
 
-          {existingFiles.length > 0 && (
-            <div className="mt-4 space-y-3">
-              <h4 className="text-sm font-medium">기존 파일</h4>
-              {initialData &&
-                'files' in initialData &&
-                initialData.files &&
-                initialData.files.length > 0 && (
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {initialData.files.map((file, index) => {
-                      return (
-                        <FileItem
-                          key={file.fileId}
-                          file={{
-                            name: file.fileName!,
-                            size: file.size,
-                          }}
-                          index={index}
-                          onAction={handleRemoveExistingFile}
-                          mode="remove"
-                        />
-                      );
-                    })}
-                  </div>
-                )}
-            </div>
-          )}
+          <Separator className="my-6" />
 
-          {newFiles.length > 0 && (
-            <div className="mt-4 space-y-3">
-              <h4 className="text-sm font-medium">새 파일</h4>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {newFiles.map((file, index) => (
-                  <FileItem
-                    key={crypto.randomUUID()}
-                    file={{
-                      name: file.fileName!,
-                      size: file.size,
-                    }}
-                    index={index}
-                    onAction={handleRemoveNewFile}
-                    mode="remove"
-                  />
-                ))}
-              </div>
+          {/* 연구 내용 */}
+          <div className="space-y-4">
+            <Label
+              htmlFor="content"
+              className="flex items-center text-base font-medium"
+            >
+              <NotepadText className="h-4 w-4" />
+              연구 내용 <span className="text-destructive text-xs">*</span>
+            </Label>
+            <Textarea
+              id="content"
+              placeholder="연구 내용을 입력하세요"
+              rows={8}
+              {...register('content')}
+            />
+          </div>
+
+          {/* 첨부 파일 */}
+          <div className="space-y-4">
+            <Label className="flex items-center text-base font-medium">
+              <Paperclip className="h-4 w-4" />
+              첨부파일
+            </Label>
+
+            <div className="hover:border-primary/50 rounded-md border border-2 border-dashed p-6 text-center transition-colors">
+              {/* eslint-disable jsx-a11y/label-has-associated-control */}
+              <label className="flex cursor-pointer flex-col items-center justify-center gap-2">
+                <input
+                  type="file"
+                  className="hidden"
+                  multiple
+                  onChange={handleFileInputChange}
+                />
+                <div className="bg-primary/10 rounded-full p-2">
+                  <Plus className="text-primary h-6 w-6" />
+                </div>
+                <span className="text-muted-foreground font-medium">
+                  파일 추가하기
+                </span>
+                <span className="text-muted-foreground text-sm">
+                  또는 파일을 여기에 끌어다 놓으세요
+                </span>
+              </label>
             </div>
-          )}
+
+            {existingFiles.length > 0 && (
+              <div className="mt-4 space-y-3">
+                <h4 className="text-sm font-medium">기존 파일</h4>
+                {initialData &&
+                  'files' in initialData &&
+                  initialData.files &&
+                  initialData.files.length > 0 && (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {initialData.files.map((file, index) => {
+                        return (
+                          <FileItem
+                            key={file.fileId}
+                            file={{
+                              name: file.fileName!,
+                              size: file.size,
+                            }}
+                            index={index}
+                            onAction={handleRemoveExistingFile}
+                            mode="remove"
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
+              </div>
+            )}
+
+            {newFiles.length > 0 && (
+              <div className="mt-4 space-y-3">
+                <h4 className="text-sm font-medium">새 파일</h4>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {newFiles.map((file, index) => (
+                    <FileItem
+                      key={crypto.randomUUID()}
+                      file={{
+                        name: file.fileName!,
+                        size: file.size,
+                      }}
+                      index={index}
+                      onAction={handleRemoveNewFile}
+                      mode="remove"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-
       {/* 버튼 */}
       <div className="mt-8 flex justify-end">
         <Button type="submit" className="px-10">
