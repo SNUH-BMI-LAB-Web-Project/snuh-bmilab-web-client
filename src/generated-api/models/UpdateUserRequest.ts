@@ -67,12 +67,6 @@ export interface UpdateUserRequest {
      * @memberof UpdateUserRequest
      */
     seatNumber?: string;
-    /**
-     * 학력
-     * @type {string}
-     * @memberof UpdateUserRequest
-     */
-    education?: string;
 }
 
 
@@ -114,7 +108,6 @@ export function UpdateUserRequestFromJSONTyped(json: any, ignoreDiscriminator: b
         'categories': json['categories'] == null ? undefined : json['categories'],
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
         'seatNumber': json['seatNumber'] == null ? undefined : json['seatNumber'],
-        'education': json['education'] == null ? undefined : json['education'],
     };
 }
 
@@ -137,7 +130,6 @@ export function UpdateUserRequestToJSONTyped(value?: UpdateUserRequest | null, i
         'categories': value['categories'],
         'phoneNumber': value['phoneNumber'],
         'seatNumber': value['seatNumber'],
-        'education': value['education'],
     };
 }
 

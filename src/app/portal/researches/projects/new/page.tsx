@@ -8,6 +8,7 @@ import { ProjectApi } from '@/generated-api/apis/ProjectApi';
 import { Configuration } from '@/generated-api/runtime';
 import { useAuthStore } from '@/store/auth-store';
 import { ProjectFileSummary, ProjectRequest } from '@/generated-api';
+import { toast } from 'sonner';
 
 const projectApi = new ProjectApi(
   new Configuration({
@@ -18,26 +19,27 @@ const projectApi = new ProjectApi(
 export default function NewProject() {
   const router = useRouter();
 
-  // TODO: 토스트 처리
   const handleCreate = async (
     data: ProjectRequest,
     newFiles: ProjectFileSummary[],
+    irbFile?: ProjectFileSummary,
+    drbFile?: ProjectFileSummary,
   ) => {
     try {
-      const fileIds = newFiles.map((file) => file.fileId!).filter(Boolean);
-
       await projectApi.createNewProject({
         projectRequest: {
           ...data,
-          fileIds,
+          fileIds: newFiles.map((file) => file.fileId!).filter(Boolean),
+          irbFileIds: irbFile ? [irbFile.fileId!] : [],
+          drbFileIds: drbFile ? [drbFile.fileId!] : [],
         },
       });
 
-      alert('프로젝트가 성공적으로 등록되었습니다!');
+      toast.success('프로젝트가 성공적으로 등록되었습니다!');
       router.push('/portal/researches/projects');
     } catch (error) {
       console.error('프로젝트 생성 실패:', error);
-      alert('프로젝트 등록에 실패했습니다.');
+      toast.error('프로젝트 등록에 실패했습니다.');
     }
   };
 

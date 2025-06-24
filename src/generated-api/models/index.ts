@@ -2,7 +2,6 @@
 /* eslint-disable */
 export * from './AdminUpdateUserRequest';
 export * from './ApplyLeaveRequest';
-export * from './CurrentUserDetail';
 export * from './ErrorResponse';
 export * from './FilePresignedUrlResponse';
 export * from './FileSummary';
@@ -26,6 +25,8 @@ export * from './ReportFindAllResponse';
 export * from './ReportProjectSummary';
 export * from './ReportRequest';
 export * from './ReportSummary';
+export * from './SearchProjectItem';
+export * from './SearchProjectResponse';
 export * from './SearchUserResponse';
 export * from './TimelineFindAllResponse';
 export * from './TimelineRequest';
@@ -34,6 +35,11 @@ export * from './UpdateUserPasswordRequest';
 export * from './UpdateUserRequest';
 export * from './UploadFileRequest';
 export * from './UserDetail';
+export * from './UserEducationRequest';
+export * from './UserEducationRequestEndYearMonth';
+export * from './UserEducationRequestStartYearMonth';
+export * from './UserEducationSummary';
+export * from './UserEducationSummaryStartYearMonth';
 export * from './UserFindAllResponse';
 export * from './UserItem';
 export * from './UserSummary';

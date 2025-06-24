@@ -87,6 +87,12 @@ export interface ProjectSummary {
      * @memberof ProjectSummary
      */
     status?: ProjectSummaryStatusEnum;
+    /**
+     * 연구 비공개 여부
+     * @type {boolean}
+     * @memberof ProjectSummary
+     */
+    isPrivate?: boolean;
 }
 
 
@@ -141,6 +147,7 @@ export function ProjectSummaryFromJSONTyped(json: any, ignoreDiscriminator: bool
         'leaders': json['leaders'] == null ? undefined : ((json['leaders'] as Array<any>).map(UserSummaryFromJSON)),
         'participantCount': json['participantCount'] == null ? undefined : json['participantCount'],
         'status': json['status'] == null ? undefined : json['status'],
+        'isPrivate': json['isPrivate'] == null ? undefined : json['isPrivate'],
     };
 }
 
@@ -165,6 +172,7 @@ export function ProjectSummaryToJSONTyped(value?: ProjectSummary | null, ignoreD
         'leaders': value['leaders'] == null ? undefined : ((value['leaders'] as Array<any>).map(UserSummaryToJSON)),
         'participantCount': value['participantCount'],
         'status': value['status'],
+        'isPrivate': value['isPrivate'],
     };
 }
 

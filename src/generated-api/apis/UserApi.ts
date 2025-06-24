@@ -15,16 +15,15 @@
 
 import * as runtime from '../runtime';
 import type {
-  CurrentUserDetail,
   ErrorResponse,
   SearchUserResponse,
   UpdateUserPasswordRequest,
   UpdateUserRequest,
+  UserDetail,
+  UserEducationRequest,
   UserFindAllResponse,
 } from '../models/index';
 import {
-    CurrentUserDetailFromJSON,
-    CurrentUserDetailToJSON,
     ErrorResponseFromJSON,
     ErrorResponseToJSON,
     SearchUserResponseFromJSON,
@@ -33,9 +32,21 @@ import {
     UpdateUserPasswordRequestToJSON,
     UpdateUserRequestFromJSON,
     UpdateUserRequestToJSON,
+    UserDetailFromJSON,
+    UserDetailToJSON,
+    UserEducationRequestFromJSON,
+    UserEducationRequestToJSON,
     UserFindAllResponseFromJSON,
     UserFindAllResponseToJSON,
 } from '../models/index';
+
+export interface AddEducationsRequest {
+    userEducationRequest: UserEducationRequest;
+}
+
+export interface DeleteEducationsRequest {
+    educationId: number;
+}
 
 export interface GetAllUsersRequest {
     page?: number;
@@ -59,6 +70,93 @@ export interface UpdatePasswordRequest {
  * 
  */
 export class UserApi extends runtime.BaseAPI {
+
+    /**
+     * 사용자의 학력을 추가하기 위한 PATCH API
+     * 사용자 학력 추가
+     */
+    async addEducationsRaw(requestParameters: AddEducationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['userEducationRequest'] == null) {
+            throw new runtime.RequiredError(
+                'userEducationRequest',
+                'Required parameter "userEducationRequest" was null or undefined when calling addEducations().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/users/me/educations`,
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UserEducationRequestToJSON(requestParameters['userEducationRequest']),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * 사용자의 학력을 추가하기 위한 PATCH API
+     * 사용자 학력 추가
+     */
+    async addEducations(requestParameters: AddEducationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.addEducationsRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * 사용자의 학력을 삭제하는 DELETE API
+     * 사용자 학력 삭제
+     */
+    async deleteEducationsRaw(requestParameters: DeleteEducationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['educationId'] == null) {
+            throw new runtime.RequiredError(
+                'educationId',
+                'Required parameter "educationId" was null or undefined when calling deleteEducations().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/users/me/educations/{educationId}`.replace(`{${"educationId"}}`, encodeURIComponent(String(requestParameters['educationId']))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * 사용자의 학력을 삭제하는 DELETE API
+     * 사용자 학력 삭제
+     */
+    async deleteEducations(requestParameters: DeleteEducationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteEducationsRaw(requestParameters, initOverrides);
+    }
 
     /**
      * 전체 사용자 정보를 조회하는 GET API
@@ -108,7 +206,7 @@ export class UserApi extends runtime.BaseAPI {
      * 현재 로그인한 사용자 정보를 상세 조회하는 GET API
      * 현재 사용자 정보 상세 조회
      */
-    async getCurrentUserRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CurrentUserDetail>> {
+    async getCurrentUserRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserDetail>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -128,14 +226,14 @@ export class UserApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => CurrentUserDetailFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserDetailFromJSON(jsonValue));
     }
 
     /**
      * 현재 로그인한 사용자 정보를 상세 조회하는 GET API
      * 현재 사용자 정보 상세 조회
      */
-    async getCurrentUser(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CurrentUserDetail> {
+    async getCurrentUser(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserDetail> {
         const response = await this.getCurrentUserRaw(initOverrides);
         return await response.value();
     }
