@@ -1,13 +1,24 @@
 'use client';
 
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { UserItem } from '@/generated-api';
 import { Badge } from '@/components/ui/badge';
 import { getCategoryLabel } from '@/utils/project-utils';
 
 export default function UserInfoCard({ user }: { user: UserItem }) {
+  const router = useRouter();
+
+  const handleClick = () => {
+    router.push(`/portal/users/${user.userId}`);
+  };
+
   return (
-    <div className="text-foreground flex w-full max-w-2xl items-start gap-6 rounded-lg border bg-white p-6 shadow-sm transition">
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events
+    <div
+      onClick={handleClick}
+      className="text-foreground hover:bg-muted/50 flex w-full max-w-2xl cursor-pointer items-start gap-6 rounded-lg border bg-white p-6 shadow-sm transition hover:shadow-md"
+    >
       {/* 좌측 프로필 이미지 */}
       <div className="relative aspect-square h-full shrink-0">
         <Image

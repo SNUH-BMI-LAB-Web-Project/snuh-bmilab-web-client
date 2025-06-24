@@ -19,77 +19,93 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import {
+  Configuration,
+  ReportApi,
+  ReportFindAllResponse,
+  ReportSummary,
+  SearchProjectItem,
+} from '@/generated-api';
+import { useAuthStore } from '@/store/auth-store';
+import { toast } from 'sonner';
+import { ReportEditModal } from '@/components/portal/report/daily/report-edit-form';
 
-interface ReportFilter {
-  project?: string;
+interface ReportFeedProps {
+  filters: {
+    user?: string;
+    project?: string; // projectId (string으로 전달됨)
+  };
+  projectList: SearchProjectItem[];
 }
 
-// 실제 구현에서는 API에서 데이터 가져오기
-const mockReports = [
-  {
-    id: '1',
-    user: {
-      name: '홍길동',
-      avatar: '/placeholder.svg?height=40&width=40',
-    },
-    project: {
-      id: '1',
-      name: '웹사이트 리뉴얼',
-    },
-    content:
-      '오늘은 메인 페이지 디자인을 완료했습니다. 내일은 반응형 작업을 진행할 예정입니다.',
-    files: [{ name: 'main-design.fig', url: '#' }],
-    createdAt: new Date(2023, 3, 28, 14, 30),
-  },
-  {
-    id: '2',
-    user: {
-      name: '홍길동',
-      avatar: '/placeholder.svg?height=40&width=40',
-    },
-    project: {
-      id: '2',
-      name: '모바일 앱 개발',
-    },
-    content:
-      '로그인 기능 구현 완료. 회원가입 페이지 작업 중입니다. API 연동 테스트도 진행했습니다.',
-    files: [],
-    createdAt: new Date(2023, 3, 27, 17, 45),
-  },
-];
+export function ReportFeed({ filters, projectList }: ReportFeedProps) {
+  const [reports, setReports] = useState<ReportSummary[]>([]);
+  const [page, setPage] = useState(0);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
 
-export function ReportFeed({ filters = {} }: { filters?: ReportFilter }) {
-  const [reports, setReports] = useState(mockReports);
-  const [filteredReports, setFilteredReports] = useState(mockReports);
+  const api = new ReportApi(
+    new Configuration({
+      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+      accessToken: async () => useAuthStore.getState().accessToken || '',
+    }),
+  );
 
-  // 필터 변경 시 보고서 필터링
-  useEffect(() => {
-    let result = [...mockReports];
+  const fetchReports = async () => {
+    try {
+      const response: ReportFindAllResponse = await api.getReportsByCurrentUser(
+        {
+          projectId: filters.project ? Number(filters.project) : undefined,
+        },
+      );
 
-    if (filters.project && filters.project !== 'all') {
-      result = result.filter((report) => report.project.id === filters.project);
+      setReports(response.reports ?? []);
+    } catch (err) {
+      console.error('업무 보고 불러오기 실패', err);
     }
+  };
 
-    setFilteredReports(result);
+  // 필터 변경 시 초기화
+  useEffect(() => {
+    setReports([]);
+    setPage(0);
   }, [filters]);
 
-  const handleDelete = (id: string) => {
-    // TODO: Api 연결
-    const updatedReports = reports.filter((report) => report.id !== id);
-    setReports(updatedReports);
-    setFilteredReports(
-      updatedReports.filter((report) => {
-        if (filters.project && filters.project !== 'all') {
-          return report.project.id === filters.project;
-        }
-        return true;
-      }),
+  // 필터 or 페이지 변경 시 fetch
+  useEffect(() => {
+    fetchReports();
+  }, [filters, page]);
+
+  const handleEdit = (report: any) => {
+    console.log('수정할 보고서:', report); // 🔍 확인
+
+    setSelectedReport(report);
+    setEditModalOpen(true);
+  };
+
+  const handleReportUpdate = (updated: ReportSummary) => {
+    setReports((prev) =>
+      prev.map((r) => (r.reportId === updated.reportId ? updated : r)),
     );
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await api.deleteReport({ reportId: Number(id) });
+      const updatedReports = reports.filter(
+        (report) => report.reportId !== Number(id),
+      );
+      setReports(updatedReports);
+      toast.success('업무 보고가 삭제되었습니다.');
+    } catch (err) {
+      console.error('보고서 삭제 실패:', err);
+      toast.error('삭제에 실패했습니다.');
+    }
   };
 
   return (
     <div className="space-y-4">
-      {filteredReports.length === 0 ? (
+      {reports.length === 0 ? (
         <Card className="bg-white">
           <CardContent className="flex flex-col items-center justify-center p-6">
             <p className="text-muted-foreground text-center">
@@ -98,32 +114,34 @@ export function ReportFeed({ filters = {} }: { filters?: ReportFilter }) {
           </CardContent>
         </Card>
       ) : (
-        filteredReports.map((report) => (
-          <Card key={report.id} className="bg-white">
+        reports.map((report) => (
+          <Card key={report.reportId} className="bg-white">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <Avatar>
                     <AvatarImage
-                      src={report.user.avatar || '/placeholder.svg'}
-                      alt={report.user.name}
+                      src={report.user?.profileImageUrl || '/placeholder.svg'}
+                      alt={report.user?.name}
                     />
                     <AvatarFallback>
-                      {report.user.name.charAt(0)}
+                      {report.user?.name?.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex items-center">
                     <p className="mr-2 text-sm font-medium">
-                      {report.user.name}
+                      {report.user?.name}
                     </p>
-                    <Badge variant="outline">{report.project.name}</Badge>
+                    <Badge variant="outline">{report.project?.title}</Badge>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <p className="text-right text-xs font-medium">
-                    {format(report.createdAt, 'yyyy년 MM월 dd일', {
-                      locale: ko,
-                    })}
+                    {report.createdAt
+                      ? format(new Date(report.createdAt), 'yyyy년 MM월 dd일', {
+                          locale: ko,
+                        })
+                      : '날짜 없음'}
                   </p>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -133,13 +151,13 @@ export function ReportFeed({ filters = {} }: { filters?: ReportFilter }) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleEdit(report)}>
                         <Pencil className="mr-2 h-4 w-4" />
                         수정
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
-                        onClick={() => handleDelete(report.id)}
+                        onClick={() => handleDelete(String(report.reportId))}
                       >
                         <Trash2 className="text-destructive mr-2 h-4 w-4" />
                         삭제
@@ -152,18 +170,23 @@ export function ReportFeed({ filters = {} }: { filters?: ReportFilter }) {
             <CardContent>
               <p className="text-sm whitespace-pre-line">{report.content}</p>
             </CardContent>
-            {report.files.length > 0 && (
+            {report.files && report.files.length > 0 && (
               <CardFooter className="border-t pt-4">
                 <div className="flex flex-wrap gap-2">
                   {report.files.map((file) => (
-                    <Button key={file.name} variant="outline" size="sm" asChild>
+                    <Button
+                      key={file.fileName}
+                      variant="outline"
+                      size="sm"
+                      asChild
+                    >
                       <a
-                        href={file.url}
+                        href={file.uploadUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
                         <Paperclip className="mr-2 h-4 w-4" />
-                        {file.name}
+                        {file.fileName}
                       </a>
                     </Button>
                   ))}
@@ -173,6 +196,14 @@ export function ReportFeed({ filters = {} }: { filters?: ReportFilter }) {
           </Card>
         ))
       )}
+
+      <ReportEditModal
+        report={selectedReport}
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        onReportUpdate={handleReportUpdate}
+        projectList={projectList}
+      />
     </div>
   );
 }

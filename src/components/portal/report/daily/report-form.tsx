@@ -24,36 +24,88 @@ import {
 } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
+import {
+  Configuration,
+  GeneratePresignedUrlDomainTypeEnum,
+  ReportApi,
+  SearchProjectItem,
+} from '@/generated-api';
+import { useAuthStore } from '@/store/auth-store';
+import { toast } from 'sonner';
+import { uploadFileWithPresignedUrl } from '@/lib/upload';
 
-export function ReportForm() {
+interface ReportFormProps {
+  projectList: SearchProjectItem[];
+}
+
+export function ReportForm({ projectList }: ReportFormProps) {
   const [content, setContent] = useState('');
   const [project, setProject] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [date, setDate] = useState<Date | undefined>(new Date());
 
-  // 실제 구현에서는 사용자가 참여하는 프로젝트 목록을 API에서 가져옴
-  const projects = [
-    { id: '1', name: '웹사이트 리뉴얼' },
-    { id: '2', name: '모바일 앱 개발' },
-    { id: '3', name: '마케팅 캠페인' },
-  ];
+  const api = new ReportApi(
+    new Configuration({
+      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+      accessToken: async () => useAuthStore.getState().accessToken || '',
+    }),
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setFiles(Array.from(e.target.files));
+      const newFiles = Array.from(e.target.files);
+
+      const allFiles = [...files, ...newFiles];
+      const uniqueFiles = Array.from(
+        new Map(allFiles.map((f) => [f.name + f.size, f])).values(),
+      );
+
+      setFiles(uniqueFiles);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // TODO: 파일 업로드 삭제 기능이 필요함(지금은 업로드와 동시에 업무 보고 생성) -> 추후에 플로우 수정 필요함
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Api 연결
-    console.log({ content, project, files, date });
 
-    // 폼 초기화
-    setContent('');
-    setProject('');
-    setFiles([]);
-    setDate(new Date());
+    if (!content || !project || !date) {
+      toast.error('모든 항목을 입력해주세요.');
+      return;
+    }
+
+    const accessToken = useAuthStore.getState().accessToken!;
+
+    try {
+      const uploadPromises = files.map((file) =>
+        uploadFileWithPresignedUrl(
+          file,
+          accessToken,
+          GeneratePresignedUrlDomainTypeEnum.Report,
+        ),
+      );
+
+      const uploadedRecords = await Promise.all(uploadPromises);
+      const fileIds = uploadedRecords.map((record) => record.fileId!);
+
+      // 보고서 생성 API 호출
+      await api.createReport({
+        reportRequest: {
+          content,
+          projectId: Number(project),
+          date,
+          fileIds,
+        },
+      });
+
+      toast.success('보고서가 성공적으로 등록되었습니다.');
+      setContent('');
+      setProject('');
+      setFiles([]);
+      setDate(new Date());
+    } catch (error) {
+      console.error('보고서 제출 실패:', error);
+      toast.error('보고서 제출 중 오류가 발생했습니다.');
+    }
   };
 
   const handleRemoveFile = (index: number) => {
@@ -68,13 +120,17 @@ export function ReportForm() {
         <div className="space-y-2">
           <Label htmlFor="project">프로젝트</Label>
           <Select value={project} onValueChange={setProject} required>
-            <SelectTrigger id="project" className="w-full">
+            <SelectTrigger id="project" className="w-full cursor-pointer">
               <SelectValue placeholder="프로젝트 선택" />
             </SelectTrigger>
-            <SelectContent>
-              {projects.map((proj) => (
-                <SelectItem key={proj.id} value={proj.id}>
-                  {proj.name}
+            <SelectContent className="cursor-pointer">
+              {projectList?.map((proj) => (
+                <SelectItem
+                  key={proj.projectId}
+                  value={String(proj.projectId)}
+                  className="cursor-pointer"
+                >
+                  {proj.title}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -130,7 +186,7 @@ export function ReportForm() {
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="files">파일 첨부</Label>
+          <Label htmlFor="create-report-files">파일 첨부</Label>
           {files.length > 0 && (
             <span className="text-muted-foreground text-xs">
               {files.length}개 파일 선택됨
@@ -140,14 +196,14 @@ export function ReportForm() {
 
         <div className="flex items-center gap-2">
           <Label
-            htmlFor="files"
+            htmlFor="create-report-files"
             className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full cursor-pointer items-center rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Paperclip className="mr-2 h-4 w-4" />
             파일 선택
           </Label>
           <Input
-            id="files"
+            id="create-report-files"
             type="file"
             multiple
             onChange={handleFileChange}
