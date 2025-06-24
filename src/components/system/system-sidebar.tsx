@@ -1,0 +1,87 @@
+'use client';
+
+import { usePathname } from 'next/navigation';
+import { Users, Newspaper, FolderSearch } from 'lucide-react';
+
+import { NavMain } from '@/components/nav-main';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+} from '@/components/ui/sidebar';
+import NavUser from '@/components/nav-user';
+
+import { useAuthStore } from '@/store/auth-store';
+
+const baseNav = [
+  {
+    title: '사용자 관리',
+    url: '/system/users',
+    icon: Users,
+    items: [
+      { title: '연명부', url: '/system/users' },
+      { title: '휴가 신청', url: '/system/users/leaves' },
+      { title: '자리배치도', url: '/system/users/seats' },
+    ],
+  },
+  {
+    title: '업무 관리',
+    url: '/system/reports',
+    icon: Newspaper,
+    items: [{ title: '일일 업무 보고', url: '/system/reports/daily' }],
+  },
+  {
+    title: '연구 관리',
+    url: '/system/researches',
+    icon: FolderSearch,
+    items: [
+      // { title: 'RSS 공고', url: '/system/researches/rss' },
+      { title: '연구 & 프로젝트', url: '/system/researches/projects' },
+    ],
+  },
+];
+
+export function SystemSidebar() {
+  const pathname = usePathname();
+  const { user } = useAuthStore();
+
+  if (
+    pathname.startsWith('/system/researches/projects/') ||
+    pathname.startsWith('/portal/mypage')
+  ) {
+    return null;
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  const navMain = baseNav.map((group) => ({
+    ...group,
+    isActive: true,
+    items: group.items?.map((subItem) => ({
+      ...subItem,
+      isActive: true,
+    })),
+  }));
+
+  return (
+    <div className="flex h-[calc(100vh-65px)] overflow-hidden">
+      <Sidebar className="flex h-full w-[16rem] flex-col border-r">
+        <SidebarContent className="flex-1 overflow-auto">
+          <NavMain items={navMain} />
+        </SidebarContent>
+        <SidebarFooter className="shrink-0 border-t bg-white px-4 py-4">
+          <NavUser
+            user={{
+              name: user.name || '이름 없음',
+              email: user.email || '이메일 없음',
+              profileImageUrl:
+                user.profileImageUrl ?? '/default-profile-image.svg',
+            }}
+          />
+        </SidebarFooter>
+      </Sidebar>
+    </div>
+  );
+}

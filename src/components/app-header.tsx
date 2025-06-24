@@ -108,9 +108,9 @@ export default function AppHeader() {
         {role === 'ADMIN' && (
           <button
             type="button"
-            onClick={() => router.push('/portal/system')}
+            onClick={() => router.push('/system/users')}
             className={cn(
-              pathname === '/portal/system'
+              pathname.startsWith('/system')
                 ? 'text-black'
                 : 'text-muted-foreground font-light',
               'w-[60px] cursor-pointer transition-transform duration-150 hover:scale-105',
