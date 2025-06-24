@@ -28,23 +28,21 @@ import {
   Configuration,
   GeneratePresignedUrlDomainTypeEnum,
   ReportApi,
+  SearchProjectItem,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { uploadFileWithPresignedUrl } from '@/lib/upload';
 
-export function ReportForm() {
+interface ReportFormProps {
+  projectList: SearchProjectItem[];
+}
+
+export function ReportForm({ projectList }: ReportFormProps) {
   const [content, setContent] = useState('');
   const [project, setProject] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [date, setDate] = useState<Date | undefined>(new Date());
-
-  // 실제 구현에서는 사용자가 참여하는 프로젝트 목록을 API에서 가져옴
-  const projects = [
-    { id: '1', name: '웹사이트 리뉴얼' },
-    { id: '2', name: '모바일 앱 개발' },
-    { id: '5', name: '마케팅 캠페인' },
-  ];
 
   const api = new ReportApi(
     new Configuration({
@@ -126,9 +124,9 @@ export function ReportForm() {
               <SelectValue placeholder="프로젝트 선택" />
             </SelectTrigger>
             <SelectContent>
-              {projects.map((proj) => (
-                <SelectItem key={proj.id} value={proj.id}>
-                  {proj.name}
+              {projectList?.map((proj) => (
+                <SelectItem key={proj.projectId} value={String(proj.projectId)}>
+                  {proj.title}
                 </SelectItem>
               ))}
             </SelectContent>

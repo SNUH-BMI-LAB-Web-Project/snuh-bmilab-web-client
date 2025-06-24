@@ -24,20 +24,25 @@ import {
   ReportApi,
   ReportFindAllResponse,
   ReportSummary,
+  SearchProjectItem,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
+import { ReportEditModal } from '@/components/portal/report/daily/report-edit-form';
 
 interface ReportFeedProps {
   filters: {
     user?: string;
     project?: string; // projectId (string으로 전달됨)
   };
+  projectList: SearchProjectItem[];
 }
 
-export function ReportFeed({ filters }: ReportFeedProps) {
+export function ReportFeed({ filters, projectList }: ReportFeedProps) {
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [page, setPage] = useState(0);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
 
   const api = new ReportApi(
     new Configuration({
@@ -70,6 +75,19 @@ export function ReportFeed({ filters }: ReportFeedProps) {
   useEffect(() => {
     fetchReports();
   }, [filters, page]);
+
+  const handleEdit = (report: any) => {
+    console.log('수정할 보고서:', report); // 🔍 확인
+
+    setSelectedReport(report);
+    setEditModalOpen(true);
+  };
+
+  const handleReportUpdate = (updated: ReportSummary) => {
+    setReports((prev) =>
+      prev.map((r) => (r.reportId === updated.reportId ? updated : r)),
+    );
+  };
 
   const handleDelete = async (id: string) => {
     try {
@@ -133,7 +151,7 @@ export function ReportFeed({ filters }: ReportFeedProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleEdit(report)}>
                         <Pencil className="mr-2 h-4 w-4" />
                         수정
                       </DropdownMenuItem>
@@ -178,6 +196,14 @@ export function ReportFeed({ filters }: ReportFeedProps) {
           </Card>
         ))
       )}
+
+      <ReportEditModal
+        report={selectedReport}
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        onReportUpdate={handleReportUpdate}
+        projectList={projectList}
+      />
     </div>
   );
 }
