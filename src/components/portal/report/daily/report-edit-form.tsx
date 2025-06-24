@@ -178,8 +178,28 @@ export function ReportEditModal({
     onOpenChange(false);
   };
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!open && document.body.style.pointerEvents === 'none') {
+        document.body.style.pointerEvents = 'auto';
+      }
+    }, 300); // 0.3초마다 검사
+
+    return () => clearInterval(interval);
+  }, [open]);
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        onOpenChange(isOpen);
+        if (!isOpen) {
+          setTimeout(() => {
+            document.body.style.pointerEvents = 'auto';
+          }, 50);
+        }
+      }}
+    >
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -199,14 +219,15 @@ export function ReportEditModal({
                   setFormData((prev) => ({ ...prev, project: value }))
                 }
               >
-                <SelectTrigger id="project" className="w-full">
+                <SelectTrigger id="project" className="w-full cursor-pointer">
                   <SelectValue placeholder="프로젝트 선택" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="cursor-pointer">
                   {projectList.map((proj) => (
                     <SelectItem
                       key={proj.projectId}
                       value={String(proj.projectId)}
+                      className="cursor-pointer"
                     >
                       {proj.title}
                     </SelectItem>
