@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Users, Newspaper, FolderSearch, CircleFadingPlus } from 'lucide-react';
+import { Users, Newspaper, FolderSearch } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import {
