@@ -24,6 +24,12 @@ export interface UploadFileRequest {
      * @type {string}
      * @memberof UploadFileRequest
      */
+    uuid?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UploadFileRequest
+     */
     fileName?: string;
     /**
      * 
@@ -74,6 +80,7 @@ export function UploadFileRequestFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
+        'uuid': json['uuid'] == null ? undefined : json['uuid'],
         'fileName': json['fileName'] == null ? undefined : json['fileName'],
         'extension': json['extension'] == null ? undefined : json['extension'],
         'size': json['size'] == null ? undefined : json['size'],
@@ -92,6 +99,7 @@ export function UploadFileRequestToJSONTyped(value?: UploadFileRequest | null, i
 
     return {
         
+        'uuid': value['uuid'],
         'fileName': value['fileName'],
         'extension': value['extension'],
         'size': value['size'],

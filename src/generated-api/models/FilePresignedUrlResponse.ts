@@ -24,6 +24,12 @@ export interface FilePresignedUrlResponse {
      * @type {string}
      * @memberof FilePresignedUrlResponse
      */
+    uuid?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FilePresignedUrlResponse
+     */
     presignedUrl?: string;
 }
 
@@ -44,6 +50,7 @@ export function FilePresignedUrlResponseFromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
+        'uuid': json['uuid'] == null ? undefined : json['uuid'],
         'presignedUrl': json['presignedUrl'] == null ? undefined : json['presignedUrl'],
     };
 }
@@ -59,6 +66,7 @@ export function FilePresignedUrlResponseToJSONTyped(value?: FilePresignedUrlResp
 
     return {
         
+        'uuid': value['uuid'],
         'presignedUrl': value['presignedUrl'],
     };
 }

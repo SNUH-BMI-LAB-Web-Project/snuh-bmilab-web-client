@@ -35,6 +35,8 @@ models/ReportFindAllResponse.ts
 models/ReportProjectSummary.ts
 models/ReportRequest.ts
 models/ReportSummary.ts
+models/SearchProjectItem.ts
+models/SearchProjectResponse.ts
 models/SearchUserResponse.ts
 models/TimelineFindAllResponse.ts
 models/TimelineRequest.ts

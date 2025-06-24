@@ -25,6 +25,8 @@ export * from './ReportFindAllResponse';
 export * from './ReportProjectSummary';
 export * from './ReportRequest';
 export * from './ReportSummary';
+export * from './SearchProjectItem';
+export * from './SearchProjectResponse';
 export * from './SearchUserResponse';
 export * from './TimelineFindAllResponse';
 export * from './TimelineRequest';
