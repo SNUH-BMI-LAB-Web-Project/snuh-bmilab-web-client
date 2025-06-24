@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { UserEducationSummary } from './UserEducationSummary';
+import {
+    UserEducationSummaryFromJSON,
+    UserEducationSummaryFromJSONTyped,
+    UserEducationSummaryToJSON,
+    UserEducationSummaryToJSONTyped,
+} from './UserEducationSummary';
+
 /**
  * 
  * @export
@@ -99,10 +107,10 @@ export interface UserDetail {
     phoneNumber?: string;
     /**
      * 학력
-     * @type {string}
+     * @type {Array<UserEducationSummary>}
      * @memberof UserDetail
      */
-    education?: string;
+    educations?: Array<UserEducationSummary>;
     /**
      * 비고 또는 한 줄 소개
      * @type {string}
@@ -170,7 +178,7 @@ export function UserDetailFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'categories': json['categories'] == null ? undefined : json['categories'],
         'seatNumber': json['seatNumber'] == null ? undefined : json['seatNumber'],
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
-        'education': json['education'] == null ? undefined : json['education'],
+        'educations': json['educations'] == null ? undefined : ((json['educations'] as Array<any>).map(UserEducationSummaryFromJSON)),
         'comment': json['comment'] == null ? undefined : json['comment'],
         'joinedAt': json['joinedAt'] == null ? undefined : (new Date(json['joinedAt'])),
     };
@@ -200,7 +208,7 @@ export function UserDetailToJSONTyped(value?: UserDetail | null, ignoreDiscrimin
         'categories': value['categories'],
         'seatNumber': value['seatNumber'],
         'phoneNumber': value['phoneNumber'],
-        'education': value['education'],
+        'educations': value['educations'] == null ? undefined : ((value['educations'] as Array<any>).map(UserEducationSummaryToJSON)),
         'comment': value['comment'],
         'joinedAt': value['joinedAt'] == null ? undefined : ((value['joinedAt']).toISOString().substring(0,10)),
     };

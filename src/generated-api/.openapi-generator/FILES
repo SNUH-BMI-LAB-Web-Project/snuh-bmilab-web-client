@@ -12,7 +12,6 @@ apis/index.ts
 index.ts
 models/AdminUpdateUserRequest.ts
 models/ApplyLeaveRequest.ts
-models/CurrentUserDetail.ts
 models/ErrorResponse.ts
 models/FilePresignedUrlResponse.ts
 models/FileSummary.ts
@@ -44,6 +43,11 @@ models/UpdateUserPasswordRequest.ts
 models/UpdateUserRequest.ts
 models/UploadFileRequest.ts
 models/UserDetail.ts
+models/UserEducationRequest.ts
+models/UserEducationRequestEndYearMonth.ts
+models/UserEducationRequestStartYearMonth.ts
+models/UserEducationSummary.ts
+models/UserEducationSummaryStartYearMonth.ts
 models/UserFindAllResponse.ts
 models/UserItem.ts
 models/UserSummary.ts

@@ -67,6 +67,8 @@ export interface GetAllProjectsRequest {
     leaderId?: number;
     category?: GetAllProjectsCategoryEnum;
     status?: GetAllProjectsStatusEnum;
+    pi?: string;
+    practicalProfessor?: string;
     page?: any;
     size?: any;
     sort?: Array<any>;
@@ -345,6 +347,14 @@ export class ProjectApi extends runtime.BaseAPI {
 
         if (requestParameters['status'] != null) {
             queryParameters['status'] = requestParameters['status'];
+        }
+
+        if (requestParameters['pi'] != null) {
+            queryParameters['pi'] = requestParameters['pi'];
+        }
+
+        if (requestParameters['practicalProfessor'] != null) {
+            queryParameters['practicalProfessor'] = requestParameters['practicalProfessor'];
         }
 
         if (requestParameters['page'] != null) {
