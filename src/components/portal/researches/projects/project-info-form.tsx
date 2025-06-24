@@ -1,5 +1,5 @@
 import { Label } from '@/components/ui/label';
-import { FileDown, Info, NotepadText, Paperclip } from 'lucide-react';
+import { FileDown, Info, NotepadText, Paperclip, Plus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import TimelineCard from '@/components/portal/researches/projects/timeline/timeline-card';
 import { Badge } from '@/components/ui/badge';
@@ -9,13 +9,19 @@ import UserPopover from '@/components/common/user-popover';
 import { FileItem } from '@/components/portal/researches/projects/file-item';
 import React from 'react';
 import { ProjectDetail } from '@/generated-api';
+import { Button } from '@/components/ui/button';
 
 interface ProjectInfoFormProps {
   id: string;
   project: ProjectDetail;
+  canEdit: boolean;
 }
 
-export default function ProjectInfoForm({ id, project }: ProjectInfoFormProps) {
+export default function ProjectInfoForm({
+  id,
+  project,
+  canEdit,
+}: ProjectInfoFormProps) {
   const downloadFile = (fileName: string, uploadUrl: string) => {
     const link = document.createElement('a');
     link.href = uploadUrl;
@@ -39,7 +45,7 @@ export default function ProjectInfoForm({ id, project }: ProjectInfoFormProps) {
           </Card>
         </div>
 
-        <TimelineCard projectId={id} />
+        <TimelineCard projectId={id} canEdit={canEdit} />
       </div>
 
       <div className="col-span-1 flex flex-col gap-8">
@@ -146,10 +152,23 @@ export default function ProjectInfoForm({ id, project }: ProjectInfoFormProps) {
           </Card>
         </div>
         <div className="flex flex-col gap-4">
-          <Label className="flex flex-row text-lg font-semibold">
-            <Paperclip className="h-4 w-4" />
-            <span>첨부파일</span>
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label className="flex flex-row text-lg font-semibold">
+              <Paperclip className="h-4 w-4" />
+              첨부파일
+            </Label>
+            {canEdit && (
+              <Button
+                variant="outline"
+                type="button"
+                size="sm"
+                className="gap-1 px-2 py-1"
+              >
+                <Plus className="h-4 w-4" />
+                첨부파일 추가
+              </Button>
+            )}
+          </div>
           <ul className="space-y-2 text-sm">
             {project.files && project.files.length > 0 ? (
               project.files.map((file, index) => (

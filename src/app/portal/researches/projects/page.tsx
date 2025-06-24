@@ -19,6 +19,7 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
+  Lock,
 } from 'lucide-react';
 import {
   Select,
@@ -71,14 +72,20 @@ const getProjectColumns = (
   {
     label: '제목',
     className: 'text-left truncate overflow-hidden whitespace-nowrap w-[300px]',
-    cell: (row: ProjectSummary) => (
-      <Link
-        href={`/portal/researches/projects/${row.projectId}`}
-        className="hover:underline"
-      >
-        {row.title}
-      </Link>
-    ),
+    cell: (row: ProjectSummary) =>
+      row.isPrivate ? (
+        <div className="text-muted-foreground flex cursor-not-allowed items-center gap-1">
+          <Lock className="h-4 w-4" />
+          <span>{row.title}</span>
+        </div>
+      ) : (
+        <Link
+          href={`/portal/researches/projects/${row.projectId}`}
+          className="hover:underline"
+        >
+          {row.title}
+        </Link>
+      ),
   },
   {
     label: '연구 분야',
@@ -127,38 +134,38 @@ const getProjectColumns = (
     cell: (row: ProjectSummary) =>
       `${row.startDate?.toISOString().substring(0, 10)} ~ ${row.endDate ? row.endDate.toISOString().substring(0, 10) : ''}`,
   },
-  {
-    label: '',
-    className: 'text-center w-[50px]',
-    cell: (row: ProjectSummary) => (
-      <div className="flex justify-end pr-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() =>
-                router.push(`/portal/researches/projects/${row.projectId}/edit`)
-              }
-            >
-              <Pencil className="mr-2 h-4 w-4" /> 수정
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onClick={() => {
-                onDeleteClick(row.projectId!);
-              }}
-            >
-              <Trash2 className="text-destructive mr-2 h-4 w-4" /> 삭제
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    ),
-  },
+  // {
+  //   label: '',
+  //   className: 'text-center w-[50px]',
+  //   cell: (row: ProjectSummary) => (
+  //     <div className="flex justify-end pr-2">
+  //       <DropdownMenu>
+  //         <DropdownMenuTrigger asChild>
+  //           <Button variant="ghost" size="icon">
+  //             <MoreHorizontal className="h-4 w-4" />
+  //           </Button>
+  //         </DropdownMenuTrigger>
+  //         <DropdownMenuContent align="end">
+  //           <DropdownMenuItem
+  //             onClick={() =>
+  //               router.push(`/portal/researches/projects/${row.projectId}/edit`)
+  //             }
+  //           >
+  //             <Pencil className="mr-2 h-4 w-4" /> 수정
+  //           </DropdownMenuItem>
+  //           <DropdownMenuItem
+  //             className="text-destructive focus:text-destructive"
+  //             onClick={() => {
+  //               onDeleteClick(row.projectId!);
+  //             }}
+  //           >
+  //             <Trash2 className="text-destructive mr-2 h-4 w-4" /> 삭제
+  //           </DropdownMenuItem>
+  //         </DropdownMenuContent>
+  //       </DropdownMenu>
+  //     </div>
+  //   ),
+  // },
 ];
 
 export default function ProjectPage() {
@@ -169,8 +176,11 @@ export default function ProjectPage() {
   const [fieldFilter, setFieldFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [leaderFilter, setLeaderFilter] = useState('all');
-  const [piFilter, setPiFilter] = useState('');
-  const [practicalProfessorFilter, setPracticalProfessorFilter] = useState('');
+  const [piTerm, setPiTerm] = useState('');
+  const [committedPiTerm, setCommittedPiTerm] = useState('');
+  const [practicalProfessorTerm, setPracticalProfessorTerm] = useState('');
+  const [committedPracticalProfessorTerm, setCommittedPracticalProfessorTerm] =
+    useState('');
   const [leaders, setLeaders] = useState<{ id: number; name: string }[]>([]);
 
   const [sortOption, setSortOption] = useState('createdAt-desc');
@@ -190,9 +200,8 @@ export default function ProjectPage() {
   const fetchProjects = useCallback(async () => {
     setLoading(true);
 
-    // TODO: 수민 pi, practicalProfessor 리마인드
     const res = await projectApi.getAllProjects({
-      search: committedSearchTerm,
+      search: committedSearchTerm || undefined,
       category:
         fieldFilter !== 'all'
           ? (fieldFilter as GetAllProjectsCategoryEnum)
@@ -201,8 +210,8 @@ export default function ProjectPage() {
         statusFilter !== 'all'
           ? (statusFilter as GetAllProjectsStatusEnum)
           : undefined,
-      pi: piFilter || undefined,
-      practicalProfessor: practicalProfessorFilter || undefined,
+      pi: committedPiTerm || undefined,
+      practicalProfessor: committedPracticalProfessorTerm || undefined,
       leaderId: leaderFilter !== 'all' ? parseInt(leaderFilter, 10) : undefined,
       page: currentPage - 1,
       size: itemsPerPage,
@@ -236,6 +245,8 @@ export default function ProjectPage() {
     committedSearchTerm,
     fieldFilter,
     statusFilter,
+    committedPiTerm,
+    committedPracticalProfessorTerm,
     leaderFilter,
     currentPage,
     itemsPerPage,
@@ -265,6 +276,8 @@ export default function ProjectPage() {
     setCommittedSearchTerm('');
     setFieldFilter('all');
     setStatusFilter('all');
+    setPiTerm('');
+    setPracticalProfessorTerm('');
     setLeaderFilter('all');
     setSortOption('createdAt-desc');
   };
@@ -359,21 +372,30 @@ export default function ProjectPage() {
               </Select>
             </div>
 
-            {/* 2줄: PI / 실무교수 / 책임자 */}
             <div className="flex flex-row gap-4">
-              {/* PI Input */}
               <Input
                 placeholder="PI 이름 입력"
-                value={piFilter}
-                onChange={(e) => setPiFilter(e.target.value)}
+                value={piTerm}
+                onChange={(e) => setPiTerm(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    setCommittedPiTerm(piTerm);
+                    setCurrentPage(1);
+                  }
+                }}
                 className="w-full"
               />
 
-              {/* 실무교수 Input */}
               <Input
                 placeholder="실무교수 이름 입력"
-                value={practicalProfessorFilter}
-                onChange={(e) => setPracticalProfessorFilter(e.target.value)}
+                value={practicalProfessorTerm}
+                onChange={(e) => setPracticalProfessorTerm(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    setCommittedPracticalProfessorTerm(practicalProfessorTerm);
+                    setCurrentPage(1);
+                  }
+                }}
                 className="w-full"
               />
 
@@ -423,11 +445,11 @@ export default function ProjectPage() {
           loading={loading}
         />
 
-        <ProjectDeleteModal
-          open={showDeleteDialog}
-          onOpenChange={setShowDeleteDialog}
-          onConfirm={handleDelete}
-        />
+        {/* <ProjectDeleteModal */}
+        {/*   open={showDeleteDialog} */}
+        {/*   onOpenChange={setShowDeleteDialog} */}
+        {/*   onConfirm={handleDelete} */}
+        {/* /> */}
       </div>
     </div>
   );
