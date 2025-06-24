@@ -34,8 +34,18 @@ export function formatDateTimeVer3(dateStr: string | Date): string {
   return `${format(date, 'yyyy. M. d.', { locale: ko })} (${day})`;
 }
 
+export function formatDateTimeVer4(time?: {
+  hour?: number;
+  minute?: number;
+  second?: number;
+}) {
+  if (!time) return '--:--:--';
+  const pad = (n?: number) => String(n ?? 0).padStart(2, '0');
+  return `${pad(time.hour)}:${pad(time.minute)}:${pad(time.second)}`;
+}
+
 export const formatFileSize = (size?: number) => {
   if (!size) return '- MB';
-  const kb = size / 1024;
-  return kb > 1024 ? `${(kb / 1024).toFixed(2)} MB` : `${kb.toFixed(1)} KB`;
+  const mb = size / (1024 * 1024);
+  return `${mb.toFixed(2)} MB`;
 };
