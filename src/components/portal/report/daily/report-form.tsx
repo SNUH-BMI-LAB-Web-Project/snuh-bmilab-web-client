@@ -40,7 +40,14 @@ export function ReportForm() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setFiles(Array.from(e.target.files));
+      const newFiles = Array.from(e.target.files);
+
+      const allFiles = [...files, ...newFiles];
+      const uniqueFiles = Array.from(
+        new Map(allFiles.map((f) => [f.name + f.size, f])).values(),
+      );
+
+      setFiles(uniqueFiles);
     }
   };
 
