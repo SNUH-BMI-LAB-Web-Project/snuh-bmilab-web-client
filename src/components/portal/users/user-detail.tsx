@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,30 +11,6 @@ import {
   GraduationCap,
   BookOpen,
 } from 'lucide-react';
-
-// 실제 구현에서는 API에서 데이터 가져오기
-const mockUserDetail = {
-  userId: '1',
-  name: '홍길동',
-  email: 'hong@example.com',
-  phoneNumber: '010-1234-5678',
-  role: 'USER',
-  profileImageUrl: '/placeholder.svg?height=120&width=120',
-  organization: '서울대학교',
-  department: '컴퓨터공학과',
-  affiliation: 'AI연구실',
-  education: [
-    '서울대학교 컴퓨터공학과 학사',
-    '서울대학교 컴퓨터공학과 석사',
-    '서울대학교 컴퓨터공학과 박사',
-  ],
-  seatNumber: 'A-101',
-  categories: ['NLP', 'Bioinformatics'],
-  annualLeaveCount: 15,
-  usedLeaveCount: 3.5,
-  comment: '딥러닝과 커피를 사랑하는 개발자',
-  joinedAt: '2023-03-01',
-};
 
 interface User {
   userId: string;
