@@ -12,7 +12,7 @@ import { ProjectDetail } from '@/generated-api/models/ProjectDetail';
 import { Configuration } from '@/generated-api/runtime';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
-import { canDeleteProject, canEditProject } from '@/data/auth';
+import { canDeleteProject, canEditProject } from '@/utils/project-utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProjectInfoForm from '@/components/portal/researches/projects/project-info-form';
 import ProjectArchiveForm from '@/components/portal/researches/projects/project-archive-form';
@@ -56,24 +56,20 @@ export default function ProjectDetailPage({
   }, [id]);
 
   const currentUserId = useAuthStore.getState().user?.userId;
-  const userRole = useAuthStore.getState().role;
+  const leaderIds = project?.leaders?.map((u) => String(u.userId)) ?? [];
+  const participantIds =
+    project?.participants?.map((u) => String(u.userId)) ?? []; // 참여자 리스트가 필요합니다
+  const authorId = String(project?.author?.userId ?? '');
+  const currentId = String(currentUserId);
 
   const canEdit =
     project && currentUserId
-      ? canEditProject(
-          project.leaders?.map((u) => String(u.userId)) ?? [],
-          String(currentUserId),
-        )
+      ? canEditProject(leaderIds, participantIds, authorId, currentId)
       : false;
 
   const canDelete =
     project && currentUserId
-      ? canDeleteProject(
-          project.leaders?.map((u) => String(u.userId)) ?? [],
-          String(project.author?.userId),
-          String(currentUserId),
-          userRole as 'USER' | 'ADMIN',
-        )
+      ? canDeleteProject(leaderIds, authorId, currentId)
       : false;
 
   const handleDelete = async () => {
@@ -169,6 +165,7 @@ export default function ProjectDetailPage({
           <ProjectInfoForm
             id={project.projectId?.toString() ?? ''}
             project={project}
+            canEdit={canEdit}
           />
         </TabsContent>
 

@@ -25,9 +25,13 @@ import { toast } from 'sonner';
 
 interface TimelineCardProps {
   projectId: string;
+  canEdit: boolean;
 }
 
-export default function TimelineCard({ projectId }: TimelineCardProps) {
+export default function TimelineCard({
+  projectId,
+  canEdit,
+}: TimelineCardProps) {
   const [timelines, setTimelines] = useState<TimelineSummary[]>([]);
 
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -138,9 +142,16 @@ export default function TimelineCard({ projectId }: TimelineCardProps) {
         <TimelineFormModal
           onSubmit={handleSubmit}
           trigger={
-            <Button>
-              <Plus className="h-4 w-4" /> 타임라인 추가
-            </Button>
+            canEdit ? (
+              <Button
+                variant="outline"
+                type="button"
+                size="sm"
+                className="gap-1 px-2 py-1"
+              >
+                <Plus className="h-4 w-4" /> 타임라인 추가
+              </Button>
+            ) : null
           }
         />
       </div>

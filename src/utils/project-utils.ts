@@ -29,3 +29,24 @@ export const getCategoryLabel = (
   if (!category) return '카테고리 미정';
   return PROJECT_CATEGORY_LABELS[category] ?? '카테고리 미정';
 };
+
+export function canEditProject(
+  leaderIds: string[], // 책임자 id 배열
+  participantIds: string[], // 참여자 id 배열
+  authorId: string, // 작성자 id
+  currentUserId: string, // 현재 사용자 id
+): boolean {
+  return (
+    leaderIds.includes(currentUserId) ||
+    participantIds.includes(currentUserId) ||
+    currentUserId === authorId
+  );
+}
+
+export function canDeleteProject(
+  leaderIds: string[],
+  authorId: string,
+  currentUserId: string,
+): boolean {
+  return leaderIds.includes(currentUserId) || currentUserId === authorId;
+}
