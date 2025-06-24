@@ -24,6 +24,14 @@ import {
 } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
+import {
+  Configuration,
+  GeneratePresignedUrlDomainTypeEnum,
+  ReportApi,
+} from '@/generated-api';
+import { useAuthStore } from '@/store/auth-store';
+import { toast } from 'sonner';
+import { uploadFileWithPresignedUrl } from '@/lib/upload';
 
 export function ReportForm() {
   const [content, setContent] = useState('');
@@ -35,8 +43,15 @@ export function ReportForm() {
   const projects = [
     { id: '1', name: '웹사이트 리뉴얼' },
     { id: '2', name: '모바일 앱 개발' },
-    { id: '3', name: '마케팅 캠페인' },
+    { id: '5', name: '마케팅 캠페인' },
   ];
+
+  const api = new ReportApi(
+    new Configuration({
+      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+      accessToken: async () => useAuthStore.getState().accessToken || '',
+    }),
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -51,16 +66,48 @@ export function ReportForm() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // TODO: 파일 업로드 삭제 기능이 필요함(지금은 업로드와 동시에 업무 보고 생성) -> 추후에 플로우 수정 필요함
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Api 연결
-    console.log({ content, project, files, date });
 
-    // 폼 초기화
-    setContent('');
-    setProject('');
-    setFiles([]);
-    setDate(new Date());
+    if (!content || !project || !date) {
+      toast.error('모든 항목을 입력해주세요.');
+      return;
+    }
+
+    const accessToken = useAuthStore.getState().accessToken!;
+
+    try {
+      const uploadPromises = files.map((file) =>
+        uploadFileWithPresignedUrl(
+          file,
+          accessToken,
+          GeneratePresignedUrlDomainTypeEnum.Report,
+        ),
+      );
+
+      const uploadedRecords = await Promise.all(uploadPromises);
+      const fileIds = uploadedRecords.map((record) => record.fileId!);
+
+      // 보고서 생성 API 호출
+      await api.createReport({
+        reportRequest: {
+          content,
+          projectId: Number(project),
+          date,
+          fileIds,
+        },
+      });
+
+      toast.success('보고서가 성공적으로 등록되었습니다.');
+      setContent('');
+      setProject('');
+      setFiles([]);
+      setDate(new Date());
+    } catch (error) {
+      console.error('보고서 제출 실패:', error);
+      toast.error('보고서 제출 중 오류가 발생했습니다.');
+    }
   };
 
   const handleRemoveFile = (index: number) => {
