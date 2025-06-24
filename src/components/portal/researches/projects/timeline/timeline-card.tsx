@@ -13,7 +13,7 @@ import {
   Paperclip,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { cn, formatDateTimeVer2 } from '@/lib/utils';
+import { cn, formatDateTimeVer2, formatDateTimeVer4 } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { TimelineApi } from '@/generated-api/apis/TimelineApi';
 import { Configuration } from '@/generated-api/runtime';
@@ -197,7 +197,8 @@ export default function TimelineCard({ projectId }: TimelineCardProps) {
                         <div className="flex items-center gap-1 text-xs">
                           <Clock className="h-3 w-3" />
                           <span>
-                            {timeline.startTime} - {timeline.endTime}
+                            {formatDateTimeVer4(timeline.startTime)} -{' '}
+                            {formatDateTimeVer4(timeline.endTime)}
                           </span>
                         </div>
                         <div className="flex items-center gap-1 text-xs">
