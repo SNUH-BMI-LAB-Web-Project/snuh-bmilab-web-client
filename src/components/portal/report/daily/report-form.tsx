@@ -182,7 +182,7 @@ export function ReportForm({ projectList }: ReportFormProps) {
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="files">파일 첨부</Label>
+          <Label htmlFor="create-report-files">파일 첨부</Label>
           {files.length > 0 && (
             <span className="text-muted-foreground text-xs">
               {files.length}개 파일 선택됨
@@ -192,14 +192,14 @@ export function ReportForm({ projectList }: ReportFormProps) {
 
         <div className="flex items-center gap-2">
           <Label
-            htmlFor="files"
+            htmlFor="create-report-files"
             className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full cursor-pointer items-center rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Paperclip className="mr-2 h-4 w-4" />
             파일 선택
           </Label>
           <Input
-            id="files"
+            id="create-report-files"
             type="file"
             multiple
             onChange={handleFileChange}

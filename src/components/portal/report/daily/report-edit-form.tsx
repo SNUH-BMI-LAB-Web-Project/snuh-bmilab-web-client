@@ -75,7 +75,7 @@ export function ReportEditModal({
     if (report && open) {
       setFormData({
         content: report.content || '',
-        project: report.project?.id || '',
+        project: String(report.project?.projectId) || '',
         date: report.createdAt ? new Date(report.createdAt) : new Date(),
         files: [],
         existingFiles: [...(report.files || []).map((f: any) => ({ ...f }))],
@@ -85,9 +85,16 @@ export function ReportEditModal({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+
+      const allFiles = [...formData.files, ...newFiles];
+      const uniqueFiles = Array.from(
+        new Map(allFiles.map((f) => [f.name + f.size, f])).values(),
+      );
+
       setFormData((prev) => ({
         ...prev,
-        files: [...prev.files, ...Array.from(e.target.files!)],
+        files: uniqueFiles,
       }));
     }
   };
@@ -152,8 +159,8 @@ export function ReportEditModal({
         content: formData.content,
         createdAt: formData.date,
         project: {
-          id: formData.project,
-          name:
+          projectId: formData.project,
+          title:
             projectList.find((p) => String(p.projectId) === formData.project)
               ?.title ?? '',
         },
@@ -169,10 +176,7 @@ export function ReportEditModal({
 
   const handleCancel = () => {
     onOpenChange(false);
-    // 폼 초기화는 useEffect에서 다시 처리됨
   };
-
-  if (!report || !open) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -195,7 +199,7 @@ export function ReportEditModal({
                   setFormData((prev) => ({ ...prev, project: value }))
                 }
               >
-                <SelectTrigger id="project">
+                <SelectTrigger id="project" className="w-full">
                   <SelectValue placeholder="프로젝트 선택" />
                 </SelectTrigger>
                 <SelectContent>
@@ -268,12 +272,14 @@ export function ReportEditModal({
               <div className="space-y-2">
                 {formData.existingFiles.map((file, index) => (
                   <div
-                    key={file.name}
+                    key={index}
                     className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-3"
                   >
                     <div className="flex items-center gap-2">
                       <Paperclip className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">{file.name}</span>
+                      <span className="text-sm text-gray-700">
+                        {file.fileName}
+                      </span>
                     </div>
                     <Button
                       type="button"
@@ -325,7 +331,7 @@ export function ReportEditModal({
                 </p>
                 {formData.files.map((file, index) => (
                   <div
-                    key={file.name}
+                    key={index}
                     className="flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 p-3"
                   >
                     <div className="flex items-center gap-2">
