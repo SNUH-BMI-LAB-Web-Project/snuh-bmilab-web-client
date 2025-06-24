@@ -92,7 +92,6 @@ const getProjectColumns = (
     className: 'text-center w-[150px]',
     cell: (row: ProjectSummary) => (
       <Badge
-        variant="outline"
         className={cn('whitespace-nowrap', getStatusClassName(row.status))}
       >
         {getStatusLabel(row.status)}
