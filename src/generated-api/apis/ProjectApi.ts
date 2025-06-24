@@ -22,6 +22,7 @@ import type {
   ProjectFindAllResponse,
   ProjectRequest,
   ReportFindAllResponse,
+  SearchProjectResponse,
 } from '../models/index';
 import {
     ErrorResponseFromJSON,
@@ -38,6 +39,8 @@ import {
     ProjectRequestToJSON,
     ReportFindAllResponseFromJSON,
     ReportFindAllResponseToJSON,
+    SearchProjectResponseFromJSON,
+    SearchProjectResponseToJSON,
 } from '../models/index';
 
 export interface CompleteProjectRequest {
@@ -67,6 +70,8 @@ export interface GetAllProjectsRequest {
     leaderId?: number;
     category?: GetAllProjectsCategoryEnum;
     status?: GetAllProjectsStatusEnum;
+    pi?: string;
+    practicalProfessor?: string;
     page?: any;
     size?: any;
     sort?: Array<any>;
@@ -81,6 +86,11 @@ export interface GetReportsByProjectRequest {
     userId?: number;
     startDate?: Date;
     endDate?: Date;
+}
+
+export interface SearchProjectRequest {
+    all?: boolean;
+    keyword?: string;
 }
 
 export interface UpdateProjectRequest {
@@ -347,6 +357,14 @@ export class ProjectApi extends runtime.BaseAPI {
             queryParameters['status'] = requestParameters['status'];
         }
 
+        if (requestParameters['pi'] != null) {
+            queryParameters['pi'] = requestParameters['pi'];
+        }
+
+        if (requestParameters['practicalProfessor'] != null) {
+            queryParameters['practicalProfessor'] = requestParameters['practicalProfessor'];
+        }
+
         if (requestParameters['page'] != null) {
             queryParameters['page'] = requestParameters['page'];
         }
@@ -483,6 +501,46 @@ export class ProjectApi extends runtime.BaseAPI {
      */
     async getReportsByProject(requestParameters: GetReportsByProjectRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ReportFindAllResponse> {
         const response = await this.getReportsByProjectRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async searchProjectRaw(requestParameters: SearchProjectRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SearchProjectResponse>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['all'] != null) {
+            queryParameters['all'] = requestParameters['all'];
+        }
+
+        if (requestParameters['keyword'] != null) {
+            queryParameters['keyword'] = requestParameters['keyword'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/projects/search`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => SearchProjectResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async searchProject(requestParameters: SearchProjectRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SearchProjectResponse> {
+        const response = await this.searchProjectRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

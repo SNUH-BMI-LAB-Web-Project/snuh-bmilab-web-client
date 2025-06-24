@@ -4,16 +4,6 @@ import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { ArrowLeft, Edit, Trash } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils';
 import Image from 'next/image';
@@ -26,6 +16,13 @@ import { canDeleteProject, canEditProject } from '@/data/auth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProjectInfoForm from '@/components/portal/researches/projects/project-info-form';
 import ProjectArchiveForm from '@/components/portal/researches/projects/project-archive-form';
+import ProjectDeleteModal from '@/components/portal/researches/projects/project-delete-modal';
+
+const projectApi = new ProjectApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
 
 export default function ProjectDetailPage({
   params,
@@ -33,11 +30,12 @@ export default function ProjectDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
+  const { id } = use(params);
+
   const [project, setProject] = useState<ProjectDetail>({});
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [tab, setTab] = useState('info');
 
-  const { id } = use(params);
   useEffect(() => {
     const fetchProject = async () => {
       try {
@@ -78,9 +76,16 @@ export default function ProjectDetailPage({
         )
       : false;
 
-  const handleDelete = () => {
-    // 실제 삭제 로직 필요
-    router.push('/');
+  const handleDelete = async () => {
+    try {
+      await projectApi.deleteProjectById({ projectId: Number(id) });
+      toast.success('프로젝트가 삭제되었습니다');
+      router.push('/portal/researches/projects');
+    } catch (e) {
+      toast.error('프로젝트 삭제에 실패했습니다');
+    } finally {
+      setShowDeleteAlert(false);
+    }
   };
 
   return (
@@ -172,25 +177,11 @@ export default function ProjectDetailPage({
         </TabsContent>
       </Tabs>
 
-      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>프로젝트 삭제</AlertDialogTitle>
-            <AlertDialogDescription>
-              이 프로젝트를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              삭제
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ProjectDeleteModal
+        open={showDeleteAlert}
+        onOpenChange={setShowDeleteAlert}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

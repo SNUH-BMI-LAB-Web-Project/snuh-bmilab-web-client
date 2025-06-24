@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/popover';
 import Image from 'next/image';
 import { UserSummary } from '@/generated-api/models/UserSummary';
+import React from 'react';
 
 export default function UserPopover({ user }: { user: UserSummary }) {
   return (
@@ -14,7 +15,7 @@ export default function UserPopover({ user }: { user: UserSummary }) {
       <PopoverTrigger asChild>
         <span className="cursor-pointer hover:text-black">{user.name}</span>
       </PopoverTrigger>
-      <PopoverContent side="top" align="center" className="w-72 text-sm">
+      <PopoverContent side="top" align="center" className="w-76 text-sm">
         <div className="text-muted-foreground flex items-center gap-3 text-sm">
           <Image
             src={
@@ -29,8 +30,11 @@ export default function UserPopover({ user }: { user: UserSummary }) {
           />
           <div className="flex flex-col">
             <div className="font-medium text-black">{user?.name}</div>
-            <div className="text-xs">
-              {user?.department} · {user?.email}
+            <div className="mt-1 text-xs">
+              {user?.organization} {user?.department}
+              {user?.affiliation}
+              <br />
+              {user?.email}
             </div>
           </div>
         </div>

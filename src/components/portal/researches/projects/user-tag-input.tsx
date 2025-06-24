@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { X, Check } from 'lucide-react';
 import { UserSummary } from '@/generated-api/models/UserSummary';
 import { UserApi } from '@/generated-api/apis/UserApi';
-import { Configuration, ResponseError } from '@/generated-api/runtime';
+import { Configuration } from '@/generated-api/runtime';
 import { useAuthStore } from '@/store/auth-store';
 
 interface UserTagInputProps {
@@ -30,10 +30,26 @@ export function UserTagInput({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const dropdownItemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    setInput(value);
-    setIsDropdownOpen(true);
+  const searchUsersByKeyword = async (raw: string) => {
+    const keyword = raw.trim().replace(/^@/, '');
+
+    if (!accessToken) return;
+
+    try {
+      const api = new UserApi(
+        new Configuration({
+          basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+          accessToken: async () => accessToken,
+        }),
+      );
+
+      const result = await api.searchUsers({ keyword: keyword || undefined });
+      setSearchResults(result.users || []);
+      setHighlightedIndex(-1);
+    } catch (err) {
+      console.error('사용자 검색 실패:', err);
+      setSearchResults([]);
+    }
   };
 
   const addUser = (user: UserSummary) => {
@@ -54,38 +70,10 @@ export function UserTagInput({
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-
-      const trimmed = input.trim().replace(/^@/, '');
-      if (!accessToken || !trimmed) {
-        setSearchResults([]);
-        return;
-      }
-
-      try {
-        const api = new UserApi(
-          new Configuration({
-            basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-            accessToken: async () => accessToken,
-          }),
-        );
-
-        const result = await api.searchUsers({ keyword: trimmed });
-        setSearchResults(result.users || []);
-        setHighlightedIndex(-1);
-      } catch (err) {
-        if (err instanceof ResponseError) {
-          const text = await err.response.text();
-          console.error('API 응답 오류:', err.response.status, text);
-        } else {
-          console.error('검색 실패:', err);
-        }
-        setSearchResults([]);
-      }
-
+      searchUsersByKeyword(input);
       return;
     }
 
-    // 드롭다운 탐색
     if (!isDropdownOpen || searchResults.length === 0) return;
 
     if (e.key === 'ArrowDown') {
@@ -131,10 +119,13 @@ export function UserTagInput({
     };
   }, []);
 
-  // TODO: 인풋 포커스 시 모든 유저 뜨고 캐시, 수민 수정 요청
   const openDropdown = () => {
     setIsDropdownOpen(true);
     setHighlightedIndex(-1);
+
+    if (!input.trim() && searchResults.length === 0) {
+      searchUsersByKeyword('');
+    }
   };
 
   return (
@@ -167,7 +158,7 @@ export function UserTagInput({
           placeholder={placeholder}
           value={input}
           onFocus={openDropdown}
-          onChange={handleInputChange}
+          onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           className="bg-white text-sm"
         />

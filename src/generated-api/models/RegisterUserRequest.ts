@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { UserEducationRequest } from './UserEducationRequest';
+import {
+    UserEducationRequestFromJSON,
+    UserEducationRequestFromJSONTyped,
+    UserEducationRequestToJSON,
+    UserEducationRequestToJSONTyped,
+} from './UserEducationRequest';
+
 /**
  * 
  * @export
@@ -87,10 +95,10 @@ export interface RegisterUserRequest {
     phoneNumber?: string;
     /**
      * 학력
-     * @type {string}
+     * @type {Array<UserEducationRequest>}
      * @memberof RegisterUserRequest
      */
-    education?: string;
+    educations?: Array<UserEducationRequest>;
     /**
      * 입사일
      * @type {Date}
@@ -141,7 +149,7 @@ export function RegisterUserRequestFromJSONTyped(json: any, ignoreDiscriminator:
         'categories': json['categories'] == null ? undefined : json['categories'],
         'seatNumber': json['seatNumber'] == null ? undefined : json['seatNumber'],
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
-        'education': json['education'] == null ? undefined : json['education'],
+        'educations': json['educations'] == null ? undefined : ((json['educations'] as Array<any>).map(UserEducationRequestFromJSON)),
         'joinedAt': json['joinedAt'] == null ? undefined : (new Date(json['joinedAt'])),
     };
 }
@@ -168,7 +176,7 @@ export function RegisterUserRequestToJSONTyped(value?: RegisterUserRequest | nul
         'categories': value['categories'],
         'seatNumber': value['seatNumber'],
         'phoneNumber': value['phoneNumber'],
-        'education': value['education'],
+        'educations': value['educations'] == null ? undefined : ((value['educations'] as Array<any>).map(UserEducationRequestToJSON)),
         'joinedAt': value['joinedAt'] == null ? undefined : ((value['joinedAt']).toISOString().substring(0,10)),
     };
 }
