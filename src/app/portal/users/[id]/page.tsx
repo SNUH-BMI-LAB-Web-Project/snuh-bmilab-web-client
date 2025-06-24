@@ -6,38 +6,40 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import UserDetail from '@/components/portal/users/user-detail';
-
-const mockUserDetail = {
-  userId: '1',
-  name: '홍길동',
-  email: 'hong@example.com',
-  phoneNumber: '010-1234-5678',
-  role: 'USER',
-  profileImageUrl: '/placeholder.svg?height=120&width=120',
-  organization: '서울대학교',
-  department: '컴퓨터공학과',
-  affiliation: 'AI연구실',
-  education: [
-    '서울대학교 컴퓨터공학과 학사',
-    '서울대학교 컴퓨터공학과 석사',
-    '서울대학교 컴퓨터공학과 박사',
-  ],
-  seatNumber: 'A-101',
-  categories: ['NLP', 'Bioinformatics'],
-  annualLeaveCount: 15,
-  usedLeaveCount: 3.5,
-  comment: '딥러닝과 커피를 사랑하는 개발자',
-  joinedAt: '2023-03-01',
-};
+import {
+  AdminUserApi,
+  Configuration,
+  UserDetail as UserDetailType,
+} from '@/generated-api';
+import { useAuthStore } from '@/store/auth-store';
+import { toast } from 'sonner';
 
 export default function UserDetailPage() {
   const params = useParams();
   const userId = params.id as string;
-  const [user, setUser] = useState(mockUserDetail);
+  const [user, setUser] = useState<UserDetailType | null>(null);
 
-  // TODO: 실제 구현에서는 userId로 API에서 사용자 정보 가져오기
+  const api = new AdminUserApi(
+    new Configuration({
+      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+      accessToken: async () => useAuthStore.getState().accessToken || '',
+    }),
+  );
+
   useEffect(() => {
-    console.log('사용자 정보 로딩:', userId);
+    const fetchUser = async () => {
+      try {
+        const userData = await api.getUserById({ userId: Number(userId) });
+        setUser(userData);
+      } catch (err) {
+        toast.error('사용자 정보를 불러오는 데 실패했습니다.');
+        console.error(err);
+      }
+    };
+
+    if (userId) {
+      fetchUser();
+    }
   }, [userId]);
 
   return (
