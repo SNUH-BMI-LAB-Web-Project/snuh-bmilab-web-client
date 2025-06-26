@@ -4,18 +4,13 @@ import { usePathname } from 'next/navigation';
 import { Users, Newspaper, FolderSearch } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-} from '@/components/ui/sidebar';
-import NavUser from '@/components/nav-user';
+import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
 
 import { useAuthStore } from '@/store/auth-store';
 
 const baseNav = [
   {
-    title: '사용자 관리',
+    title: '인사 관리',
     url: '/system/users',
     icon: Users,
     items: [
@@ -71,16 +66,6 @@ export function SystemSidebar() {
         <SidebarContent className="flex-1 overflow-auto">
           <NavMain items={navMain} />
         </SidebarContent>
-        <SidebarFooter className="shrink-0 border-t bg-white px-4 py-4">
-          <NavUser
-            user={{
-              name: user.name || '이름 없음',
-              email: user.email || '이메일 없음',
-              profileImageUrl:
-                user.profileImageUrl ?? '/default-profile-image.svg',
-            }}
-          />
-        </SidebarFooter>
       </Sidebar>
     </div>
   );
