@@ -74,6 +74,12 @@ export interface UserItem {
      */
     seatNumber?: string;
     /**
+     * 전화번호
+     * @type {string}
+     * @memberof UserItem
+     */
+    phoneNumber?: string;
+    /**
      * 학력
      * @type {string}
      * @memberof UserItem
@@ -121,6 +127,7 @@ export function UserItemFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'profileImageUrl': json['profileImageUrl'] == null ? undefined : json['profileImageUrl'],
         'categories': json['categories'] == null ? undefined : json['categories'],
         'seatNumber': json['seatNumber'] == null ? undefined : json['seatNumber'],
+        'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
         'education': json['education'] == null ? undefined : json['education'],
     };
 }
@@ -145,6 +152,7 @@ export function UserItemToJSONTyped(value?: UserItem | null, ignoreDiscriminator
         'profileImageUrl': value['profileImageUrl'],
         'categories': value['categories'],
         'seatNumber': value['seatNumber'],
+        'phoneNumber': value['phoneNumber'],
         'education': value['education'],
     };
 }
