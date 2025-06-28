@@ -34,6 +34,8 @@ interface TimelineFormModalProps {
   onSubmit: (data: TimelineRequest) => void;
 }
 
+// TODO: 모달 UI 수정, 등록/수정 한 모달에서 처리하도록 확장, 타임라인 수정 구현
+
 export default function TimelineFormModal({
   trigger,
   onSubmit,
