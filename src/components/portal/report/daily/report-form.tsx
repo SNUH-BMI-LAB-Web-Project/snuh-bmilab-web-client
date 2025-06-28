@@ -34,22 +34,22 @@ import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { uploadFileWithPresignedUrl } from '@/lib/upload';
 
+const reportApi = new ReportApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
+
 interface ReportFormProps {
   projectList: SearchProjectItem[];
+  onReportCreated?: () => void;
 }
 
-export function ReportForm({ projectList }: ReportFormProps) {
+export function ReportForm({ projectList, onReportCreated }: ReportFormProps) {
   const [content, setContent] = useState('');
   const [project, setProject] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [date, setDate] = useState<Date | undefined>(new Date());
-
-  const api = new ReportApi(
-    new Configuration({
-      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-      accessToken: async () => useAuthStore.getState().accessToken || '',
-    }),
-  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -88,7 +88,7 @@ export function ReportForm({ projectList }: ReportFormProps) {
       const fileIds = uploadedRecords.map((record) => record.fileId!);
 
       // 보고서 생성 API 호출
-      await api.createReport({
+      await reportApi.createReport({
         reportRequest: {
           content,
           projectId: Number(project),
@@ -102,6 +102,8 @@ export function ReportForm({ projectList }: ReportFormProps) {
       setProject('');
       setFiles([]);
       setDate(new Date());
+
+      onReportCreated?.();
     } catch (error) {
       console.error('보고서 제출 실패:', error);
       toast.error('보고서 제출 중 오류가 발생했습니다.');
