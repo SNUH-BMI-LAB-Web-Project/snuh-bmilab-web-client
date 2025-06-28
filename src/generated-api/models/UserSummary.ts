@@ -54,7 +54,7 @@ export interface UserSummary {
      * @type {string}
      * @memberof UserSummary
      */
-    affiliation?: string;
+    affiliation?: UserSummaryAffiliationEnum;
     /**
      * 프로필 이미지 URL
      * @type {string}
@@ -62,6 +62,23 @@ export interface UserSummary {
      */
     profileImageUrl?: string;
 }
+
+
+/**
+ * @export
+ */
+export const UserSummaryAffiliationEnum = {
+    Professor: 'PROFESSOR',
+    CoPrincipalInvestigator: 'CO_PRINCIPAL_INVESTIGATOR',
+    PostdoctoralResearcher: 'POSTDOCTORAL_RESEARCHER',
+    PhdStudent: 'PHD_STUDENT',
+    MastersStudent: 'MASTERS_STUDENT',
+    TranslationalMedicineTrainee: 'TRANSLATIONAL_MEDICINE_TRAINEE',
+    ResearcherOrIntern: 'RESEARCHER_OR_INTERN',
+    AdministrativeStaff: 'ADMINISTRATIVE_STAFF'
+} as const;
+export type UserSummaryAffiliationEnum = typeof UserSummaryAffiliationEnum[keyof typeof UserSummaryAffiliationEnum];
+
 
 /**
  * Check if a given object implements the UserSummary interface.

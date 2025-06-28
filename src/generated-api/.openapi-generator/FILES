@@ -6,7 +6,7 @@ apis/FileApi.ts
 apis/LeaveApi.ts
 apis/NTISRSSApi.ts
 apis/ProjectApi.ts
-apis/ProjectCategoryControllerApi.ts
+apis/ProjectCategoryApi.ts
 apis/ReportApi.ts
 apis/TimelineApi.ts
 apis/UserApi.ts
@@ -58,6 +58,8 @@ models/UserEducationSummary.ts
 models/UserEducationSummaryStartYearMonth.ts
 models/UserFindAllResponse.ts
 models/UserItem.ts
+models/UserProjectFindAllResponse.ts
+models/UserProjectItem.ts
 models/UserSummary.ts
 models/index.ts
 runtime.ts

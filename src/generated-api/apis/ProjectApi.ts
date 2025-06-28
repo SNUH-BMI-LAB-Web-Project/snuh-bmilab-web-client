@@ -23,6 +23,7 @@ import type {
   ProjectRequest,
   ReportFindAllResponse,
   SearchProjectResponse,
+  UserProjectFindAllResponse,
 } from '../models/index';
 import {
     ErrorResponseFromJSON,
@@ -41,6 +42,8 @@ import {
     ReportFindAllResponseToJSON,
     SearchProjectResponseFromJSON,
     SearchProjectResponseToJSON,
+    UserProjectFindAllResponseFromJSON,
+    UserProjectFindAllResponseToJSON,
 } from '../models/index';
 
 export interface CompleteProjectRequest {
@@ -86,6 +89,10 @@ export interface GetReportsByProjectRequest {
     userId?: number;
     startDate?: Date;
     endDate?: Date;
+}
+
+export interface GetUserProjectsRequest {
+    userId: number;
 }
 
 export interface SearchProjectRequest {
@@ -501,6 +508,49 @@ export class ProjectApi extends runtime.BaseAPI {
      */
     async getReportsByProject(requestParameters: GetReportsByProjectRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ReportFindAllResponse> {
         const response = await this.getReportsByProjectRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * 사용자가 참여하는 연구 목록을 조회하는 GET API
+     * 사용자 연구 조회
+     */
+    async getUserProjectsRaw(requestParameters: GetUserProjectsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserProjectFindAllResponse>> {
+        if (requestParameters['userId'] == null) {
+            throw new runtime.RequiredError(
+                'userId',
+                'Required parameter "userId" was null or undefined when calling getUserProjects().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/projects/users/{userId}`.replace(`{${"userId"}}`, encodeURIComponent(String(requestParameters['userId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserProjectFindAllResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * 사용자가 참여하는 연구 목록을 조회하는 GET API
+     * 사용자 연구 조회
+     */
+    async getUserProjects(requestParameters: GetUserProjectsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserProjectFindAllResponse> {
+        const response = await this.getUserProjectsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

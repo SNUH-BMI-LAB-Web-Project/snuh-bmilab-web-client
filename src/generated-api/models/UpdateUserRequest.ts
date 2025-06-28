@@ -48,7 +48,7 @@ export interface UpdateUserRequest {
      * @type {string}
      * @memberof UpdateUserRequest
      */
-    affiliation?: string;
+    affiliation?: UpdateUserRequestAffiliationEnum;
     /**
      * 추가된 연구 분야 ID 목록
      * @type {Array<number>}
@@ -74,6 +74,23 @@ export interface UpdateUserRequest {
      */
     seatNumber?: string;
 }
+
+
+/**
+ * @export
+ */
+export const UpdateUserRequestAffiliationEnum = {
+    Professor: 'PROFESSOR',
+    CoPrincipalInvestigator: 'CO_PRINCIPAL_INVESTIGATOR',
+    PostdoctoralResearcher: 'POSTDOCTORAL_RESEARCHER',
+    PhdStudent: 'PHD_STUDENT',
+    MastersStudent: 'MASTERS_STUDENT',
+    TranslationalMedicineTrainee: 'TRANSLATIONAL_MEDICINE_TRAINEE',
+    ResearcherOrIntern: 'RESEARCHER_OR_INTERN',
+    AdministrativeStaff: 'ADMINISTRATIVE_STAFF'
+} as const;
+export type UpdateUserRequestAffiliationEnum = typeof UpdateUserRequestAffiliationEnum[keyof typeof UpdateUserRequestAffiliationEnum];
+
 
 /**
  * Check if a given object implements the UpdateUserRequest interface.

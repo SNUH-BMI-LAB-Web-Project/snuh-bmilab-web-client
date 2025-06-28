@@ -62,7 +62,7 @@ export interface UserItem {
      * @type {string}
      * @memberof UserItem
      */
-    affiliation?: string;
+    affiliation?: UserItemAffiliationEnum;
     /**
      * 프로필 이미지 URL
      * @type {string}
@@ -94,6 +94,23 @@ export interface UserItem {
      */
     education?: string;
 }
+
+
+/**
+ * @export
+ */
+export const UserItemAffiliationEnum = {
+    Professor: 'PROFESSOR',
+    CoPrincipalInvestigator: 'CO_PRINCIPAL_INVESTIGATOR',
+    PostdoctoralResearcher: 'POSTDOCTORAL_RESEARCHER',
+    PhdStudent: 'PHD_STUDENT',
+    MastersStudent: 'MASTERS_STUDENT',
+    TranslationalMedicineTrainee: 'TRANSLATIONAL_MEDICINE_TRAINEE',
+    ResearcherOrIntern: 'RESEARCHER_OR_INTERN',
+    AdministrativeStaff: 'ADMINISTRATIVE_STAFF'
+} as const;
+export type UserItemAffiliationEnum = typeof UserItemAffiliationEnum[keyof typeof UserItemAffiliationEnum];
+
 
 /**
  * Check if a given object implements the UserItem interface.

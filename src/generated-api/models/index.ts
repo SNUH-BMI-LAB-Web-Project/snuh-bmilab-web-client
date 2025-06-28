@@ -46,4 +46,6 @@ export * from './UserEducationSummary';
 export * from './UserEducationSummaryStartYearMonth';
 export * from './UserFindAllResponse';
 export * from './UserItem';
+export * from './UserProjectFindAllResponse';
+export * from './UserProjectItem';
 export * from './UserSummary';

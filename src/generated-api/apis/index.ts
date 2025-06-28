@@ -8,7 +8,7 @@ export * from './FileApi';
 export * from './LeaveApi';
 export * from './NTISRSSApi';
 export * from './ProjectApi';
-export * from './ProjectCategoryControllerApi';
+export * from './ProjectCategoryApi';
 export * from './ReportApi';
 export * from './TimelineApi';
 export * from './UserApi';

@@ -69,7 +69,7 @@ export interface UserDetail {
      * @type {string}
      * @memberof UserDetail
      */
-    affiliation?: string;
+    affiliation?: UserDetailAffiliationEnum;
     /**
      * 사용자 역할
      * @type {string}
@@ -132,6 +132,21 @@ export interface UserDetail {
     joinedAt?: Date;
 }
 
+
+/**
+ * @export
+ */
+export const UserDetailAffiliationEnum = {
+    Professor: 'PROFESSOR',
+    CoPrincipalInvestigator: 'CO_PRINCIPAL_INVESTIGATOR',
+    PostdoctoralResearcher: 'POSTDOCTORAL_RESEARCHER',
+    PhdStudent: 'PHD_STUDENT',
+    MastersStudent: 'MASTERS_STUDENT',
+    TranslationalMedicineTrainee: 'TRANSLATIONAL_MEDICINE_TRAINEE',
+    ResearcherOrIntern: 'RESEARCHER_OR_INTERN',
+    AdministrativeStaff: 'ADMINISTRATIVE_STAFF'
+} as const;
+export type UserDetailAffiliationEnum = typeof UserDetailAffiliationEnum[keyof typeof UserDetailAffiliationEnum];
 
 /**
  * @export

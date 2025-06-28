@@ -62,7 +62,7 @@ export interface RegisterUserRequest {
      * @type {string}
      * @memberof RegisterUserRequest
      */
-    affiliation?: string;
+    affiliation?: RegisterUserRequestAffiliationEnum;
     /**
      * 총 연차 개수
      * @type {number}
@@ -106,6 +106,23 @@ export interface RegisterUserRequest {
      */
     joinedAt?: Date;
 }
+
+
+/**
+ * @export
+ */
+export const RegisterUserRequestAffiliationEnum = {
+    Professor: 'PROFESSOR',
+    CoPrincipalInvestigator: 'CO_PRINCIPAL_INVESTIGATOR',
+    PostdoctoralResearcher: 'POSTDOCTORAL_RESEARCHER',
+    PhdStudent: 'PHD_STUDENT',
+    MastersStudent: 'MASTERS_STUDENT',
+    TranslationalMedicineTrainee: 'TRANSLATIONAL_MEDICINE_TRAINEE',
+    ResearcherOrIntern: 'RESEARCHER_OR_INTERN',
+    AdministrativeStaff: 'ADMINISTRATIVE_STAFF'
+} as const;
+export type RegisterUserRequestAffiliationEnum = typeof RegisterUserRequestAffiliationEnum[keyof typeof RegisterUserRequestAffiliationEnum];
+
 
 /**
  * Check if a given object implements the RegisterUserRequest interface.
