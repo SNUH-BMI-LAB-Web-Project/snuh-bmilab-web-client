@@ -17,8 +17,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import {
   Configuration,
   ReportApi,
@@ -29,6 +27,13 @@ import {
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { ReportEditModal } from '@/components/portal/report/daily/report-edit-form';
+import { formatDateTimeVer2 } from '@/lib/utils';
+
+const reportApi = new ReportApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
 
 interface ReportFeedProps {
   filters: {
@@ -42,22 +47,16 @@ export function ReportFeed({ filters, projectList }: ReportFeedProps) {
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [page, setPage] = useState(0);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [selectedReport, setSelectedReport] = useState(null);
-
-  const api = new ReportApi(
-    new Configuration({
-      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-      accessToken: async () => useAuthStore.getState().accessToken || '',
-    }),
+  const [selectedReport, setSelectedReport] = useState<ReportSummary | null>(
+    null,
   );
 
   const fetchReports = async () => {
     try {
-      const response: ReportFindAllResponse = await api.getReportsByCurrentUser(
-        {
+      const response: ReportFindAllResponse =
+        await reportApi.getReportsByCurrentUser({
           projectId: filters.project ? Number(filters.project) : undefined,
-        },
-      );
+        });
 
       setReports(response.reports ?? []);
     } catch (err) {
@@ -76,22 +75,21 @@ export function ReportFeed({ filters, projectList }: ReportFeedProps) {
     fetchReports();
   }, [filters, page]);
 
-  const handleEdit = (report: any) => {
+  const handleEdit = (report: ReportSummary) => {
     console.log('수정할 보고서:', report); // 🔍 확인
 
     setSelectedReport(report);
     setEditModalOpen(true);
   };
 
-  const handleReportUpdate = (updated: ReportSummary) => {
-    setReports((prev) =>
-      prev.map((r) => (r.reportId === updated.reportId ? updated : r)),
-    );
+  const handleReportUpdate = () => {
+    setEditModalOpen(false);
+    fetchReports();
   };
 
   const handleDelete = async (id: string) => {
     try {
-      await api.deleteReport({ reportId: Number(id) });
+      await reportApi.deleteReport({ reportId: Number(id) });
       const updatedReports = reports.filter(
         (report) => report.reportId !== Number(id),
       );
@@ -137,11 +135,7 @@ export function ReportFeed({ filters, projectList }: ReportFeedProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   <p className="text-right text-xs font-medium">
-                    {report.createdAt
-                      ? format(new Date(report.createdAt), 'yyyy년 MM월 dd일', {
-                          locale: ko,
-                        })
-                      : '날짜 없음'}
+                    {formatDateTimeVer2(report.date!)}
                   </p>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -198,7 +192,7 @@ export function ReportFeed({ filters, projectList }: ReportFeedProps) {
       )}
 
       <ReportEditModal
-        report={selectedReport}
+        report={selectedReport!}
         open={editModalOpen}
         onOpenChange={setEditModalOpen}
         onReportUpdate={handleReportUpdate}
