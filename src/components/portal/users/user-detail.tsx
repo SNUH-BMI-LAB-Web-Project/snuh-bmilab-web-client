@@ -18,46 +18,66 @@ interface UserDetailProps {
   user: UserDetailType;
 }
 
+// TODO: 학력 기간 표시 개선 (현재 어떻게 해서 포맷팅 하더라도 기간 정보 안뜸)
+
 export default function UserDetail({ user }: UserDetailProps) {
   if (!user) return null;
 
-  // 상태 매핑
+  type EducationStatus =
+    | 'ENROLLED'
+    | 'GRADUATED'
+    | 'DROPPED_OUT'
+    | 'SUSPENDED'
+    | 'TRANSFERRED';
+
   const getStatusInfo = (status: string) => {
-    const statusMap = {
-      ENROLLED: { label: '재학중', color: 'bg-blue-100 text-blue-800' },
-      GRADUATED: { label: '졸업', color: 'bg-green-100 text-green-800' },
-      DROPPED_OUT: { label: '중퇴', color: 'bg-gray-100 text-gray-800' },
-      SUSPENDED: { label: '휴학', color: 'bg-yellow-100 text-yellow-800' },
-      TRANSFERRED: { label: '편입', color: 'bg-purple-100 text-purple-800' },
-    };
-    return (
-      statusMap[status] || { label: status, color: 'bg-gray-100 text-gray-800' }
-    );
+    const statusMap: Record<EducationStatus, { label: string; color: string }> =
+      {
+        ENROLLED: { label: '재학중', color: 'bg-blue-100 text-blue-800' },
+        GRADUATED: { label: '졸업', color: 'bg-green-100 text-green-800' },
+        DROPPED_OUT: { label: '중퇴', color: 'bg-gray-100 text-gray-800' },
+        SUSPENDED: { label: '휴학', color: 'bg-yellow-100 text-yellow-800' },
+        TRANSFERRED: { label: '편입', color: 'bg-purple-100 text-purple-800' },
+      };
+
+    if (status in statusMap) {
+      return statusMap[status as EducationStatus];
+    }
+
+    return { label: status, color: 'bg-gray-100 text-gray-800' };
   };
 
-  // 기간 포맷팅
-  const formatPeriod = (
-    startYearMonth: { year: number; monthValue: number } | undefined,
-    endYearMonth: { year: number; monthValue: number } | undefined,
-    status: string,
-  ) => {
-    if (!startYearMonth || !startYearMonth.year || !startYearMonth.monthValue) {
+  const toYearMonthString = (ym?: {
+    year?: number;
+    monthValue?: number;
+  }): string | undefined => {
+    if (!ym?.year || !ym?.monthValue) return undefined;
+    return `${ym.year}-${ym.monthValue.toString().padStart(2, '0')}`;
+  };
+
+  const formatYearMonthRange = (
+    start?: { year?: number; monthValue?: number },
+    end?: { year?: number; monthValue?: number },
+  ): string => {
+    if (
+      typeof start?.year !== 'number' ||
+      typeof start?.monthValue !== 'number'
+    ) {
       return '기간 정보 없음';
     }
 
-    const startYear = startYearMonth.year;
-    const startMonth = startYearMonth.monthValue;
-    let period = `${startYear}.${startMonth.toString().padStart(2, '0')}`;
+    const startStr = `${start.year}.${start.monthValue
+      .toString()
+      .padStart(2, '0')}`;
 
-    if (status === 'ENROLLED') {
-      period += ' - 현재';
-    } else if (endYearMonth?.year && endYearMonth?.monthValue) {
-      const endYear = endYearMonth.year;
-      const endMonth = endYearMonth.monthValue;
-      period += ` - ${endYear}.${endMonth.toString().padStart(2, '0')}`;
+    if (typeof end?.year === 'number' && typeof end?.monthValue === 'number') {
+      const endStr = `${end.year}.${end.monthValue
+        .toString()
+        .padStart(2, '0')}`;
+      return `${startStr} - ${endStr}`;
     }
 
-    return period;
+    return startStr;
   };
 
   return (
@@ -71,7 +91,7 @@ export default function UserDetail({ user }: UserDetailProps) {
               <CardContent className="p-8">
                 <div className="flex h-full flex-col">
                   {/* 프로필 헤더 */}
-                  <div className="mb-8 text-center">
+                  <div className="text-center">
                     <Avatar className="mx-auto mb-6 h-32 w-32 border-2 border-gray-200">
                       <AvatarImage
                         src={user.profileImageUrl || '/placeholder.svg'}
@@ -82,16 +102,16 @@ export default function UserDetail({ user }: UserDetailProps) {
                       </AvatarFallback>
                     </Avatar>
 
-                    <h1 className="mb-4 text-4xl font-semibold tracking-tight">
+                    <h1 className="mb-4 text-2xl font-semibold tracking-tight">
                       {user.name}
                     </h1>
 
-                    <div className="space-y-2">
-                      <Badge className="bg-gray-100 px-4 py-1 text-base font-medium text-gray-800">
+                    <div className="mb-4 space-y-2">
+                      <Badge className="text-md bg-gray-100 px-4 py-1 font-medium text-gray-800">
                         {user.organization}
                       </Badge>
-                      <p className="text-lg text-gray-600">{user.department}</p>
-                      <p className="text-base text-gray-500">
+                      <p className="text-md text-gray-600">{user.department}</p>
+                      <p className="text-md text-gray-500">
                         {user.affiliation}
                       </p>
                     </div>
@@ -101,15 +121,17 @@ export default function UserDetail({ user }: UserDetailProps) {
                   <div className="mb-8 flex-1">
                     <div className="rounded-lg border border-gray-200 p-6">
                       <div className="mb-4 flex items-center gap-2">
-                        <BookOpen className="h-4 w-4 text-gray-500" />
-                        <h3 className="text-sm font-semibold tracking-wide uppercase">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100">
+                          <BookOpen className="h-4 w-4 text-gray-500" />
+                        </div>
+                        <h3 className="text-lg font-semibold tracking-wide uppercase">
                           연구분야
                         </h3>
                       </div>
                       <div className="space-x-2 leading-relaxed">
                         {user.categories?.map((category) => (
-                          <Badge key={category} variant="secondary">
-                            {category}
+                          <Badge key={category.categoryId} variant="secondary">
+                            {category.name}
                           </Badge>
                         ))}
                       </div>
@@ -129,12 +151,12 @@ export default function UserDetail({ user }: UserDetailProps) {
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100">
                     <Mail className="h-4 w-4 text-gray-600" />
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-lg font-semibold text-gray-900">
                     연락처 정보
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                   <div className="text-center">
                     <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
                       <Mail className="h-5 w-5 text-gray-600" />
@@ -142,7 +164,7 @@ export default function UserDetail({ user }: UserDetailProps) {
                     <p className="mb-2 text-xs font-medium tracking-wide text-gray-500 uppercase">
                       이메일
                     </p>
-                    <p className="font-medium break-all text-gray-900">
+                    <p className="text-sm font-medium break-all text-gray-900">
                       {user.email}
                     </p>
                   </div>
@@ -154,7 +176,7 @@ export default function UserDetail({ user }: UserDetailProps) {
                     <p className="mb-2 text-xs font-medium tracking-wide text-gray-500 uppercase">
                       전화번호
                     </p>
-                    <p className="font-medium text-gray-900">
+                    <p className="text-sm font-medium text-gray-900">
                       {user.phoneNumber}
                     </p>
                   </div>
@@ -168,7 +190,7 @@ export default function UserDetail({ user }: UserDetailProps) {
                     </p>
                     <Badge
                       variant="outline"
-                      className="border-gray-300 px-3 py-1 font-mono text-lg"
+                      className="border-gray-300 px-3 py-1 font-mono text-sm"
                     >
                       {user.seatNumber}
                     </Badge>
@@ -184,7 +206,7 @@ export default function UserDetail({ user }: UserDetailProps) {
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100">
                     <Building className="h-4 w-4 text-gray-600" />
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-lg font-semibold text-gray-900">
                     소속 정보
                   </h2>
                 </div>
@@ -194,7 +216,7 @@ export default function UserDetail({ user }: UserDetailProps) {
                     <p className="mb-2 text-xs font-medium tracking-wide text-gray-500 uppercase">
                       기관
                     </p>
-                    <p className="font-semibold text-gray-900">
+                    <p className="text-sm font-semibold text-gray-900">
                       {user.organization}
                     </p>
                   </div>
@@ -203,7 +225,7 @@ export default function UserDetail({ user }: UserDetailProps) {
                     <p className="mb-2 text-xs font-medium tracking-wide text-gray-500 uppercase">
                       부서
                     </p>
-                    <p className="font-semibold text-gray-900">
+                    <p className="text-sm font-semibold text-gray-900">
                       {user.department}
                     </p>
                   </div>
@@ -212,7 +234,7 @@ export default function UserDetail({ user }: UserDetailProps) {
                     <p className="mb-2 text-xs font-medium tracking-wide text-gray-500 uppercase">
                       소속
                     </p>
-                    <p className="font-semibold text-gray-900">
+                    <p className="text-sm font-semibold text-gray-900">
                       {user.affiliation}
                     </p>
                   </div>
@@ -227,7 +249,7 @@ export default function UserDetail({ user }: UserDetailProps) {
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100">
                     <GraduationCap className="h-4 w-4 text-gray-600" />
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900">
+                  <h2 className="text-lg font-semibold text-gray-900">
                     학력 사항
                   </h2>
                 </div>
@@ -235,11 +257,6 @@ export default function UserDetail({ user }: UserDetailProps) {
                 <div className="space-y-6">
                   {user.educations?.map((education, index) => {
                     const statusInfo = getStatusInfo(education.status || '');
-                    const period = formatPeriod(
-                      education.startYearMonth,
-                      education.endYearMonth,
-                      education.status || '',
-                    );
 
                     return (
                       <div key={education.educationId} className="relative">
@@ -254,16 +271,19 @@ export default function UserDetail({ user }: UserDetailProps) {
                           <div className="flex-1 pb-2">
                             <div className="rounded-lg border border-gray-200 bg-gray-50 p-5 transition-colors hover:bg-gray-100/50">
                               {/* 학력 제목 */}
-                              <h3 className="mb-3 text-lg font-semibold text-gray-900">
+                              <h3 className="mb-2 text-sm font-semibold text-gray-900">
                                 {education.title}
                               </h3>
 
                               {/* 기간 및 상태 */}
-                              <div className="mb-3 flex items-center justify-between">
+                              <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-gray-600">
                                   <Calendar className="h-4 w-4" />
-                                  <span className="text-sm font-medium">
-                                    {period}
+                                  <span className="text-xs font-medium">
+                                    {formatYearMonthRange(
+                                      education.startYearMonth,
+                                      education.endYearMonth,
+                                    )}
                                   </span>
                                 </div>
                                 <Badge
