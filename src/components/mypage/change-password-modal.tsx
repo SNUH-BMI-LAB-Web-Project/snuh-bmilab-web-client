@@ -17,6 +17,12 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 
+const userApi = new UserApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
+
 interface ChangePasswordModalProps {
   triggerButton?: React.ReactNode; // 외부에서 버튼 넘기고 싶을 때
 }
@@ -30,8 +36,6 @@ export function ChangePasswordModal({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const accessToken = useAuthStore((s) => s.accessToken);
-
   const handleSubmit = async () => {
     if (newPassword !== confirmPassword) {
       toast.error('새 비밀번호가 일치하지 않습니다.');
@@ -40,14 +44,7 @@ export function ChangePasswordModal({
 
     setIsSubmitting(true);
     try {
-      const api = new UserApi(
-        new Configuration({
-          basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-          accessToken: async () => accessToken || '',
-        }),
-      );
-
-      await api.updatePassword({
+      await userApi.updatePassword({
         updateUserPasswordRequest: {
           currentPassword,
           newPassword,
