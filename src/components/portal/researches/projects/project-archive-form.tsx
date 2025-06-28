@@ -21,6 +21,12 @@ import { Configuration } from '@/generated-api/runtime';
 import { Download, Paperclip } from 'lucide-react';
 import { formatFileSize } from '@/lib/utils';
 
+const projectApi = new ProjectApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
+
 interface ProjectArchiveFormProps {
   projectId?: number;
 }
@@ -43,13 +49,7 @@ export default function ProjectArchiveForm({
       if (!projectId) return;
 
       try {
-        const api = new ProjectApi(
-          new Configuration({
-            basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-            accessToken: async () => accessToken || '',
-          }),
-        );
-        const data = await api.getAllProjectFiles({ projectId });
+        const data = await projectApi.getAllProjectFiles({ projectId });
         setFiles(data.files ?? []);
       } catch {
         console.error('파일 불러오기 실패');
