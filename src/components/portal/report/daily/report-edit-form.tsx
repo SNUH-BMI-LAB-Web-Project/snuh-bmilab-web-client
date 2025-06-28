@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Paperclip, Calendar, X, Save } from 'lucide-react';
+import { Paperclip, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import {
@@ -35,16 +35,25 @@ import {
   GeneratePresignedUrlDomainTypeEnum,
   ReportApi,
   SearchProjectItem,
+  ProjectFileSummary,
+  ReportSummary,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { uploadFileWithPresignedUrl } from '@/lib/upload';
+import { FileItem } from '@/components/portal/researches/projects/file-item';
+
+const reportApi = new ReportApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
 
 interface ReportEditModalProps {
-  report: any;
+  report: ReportSummary;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onReportUpdate: (reportData: any) => void;
+  onReportUpdate: (reportData: ReportSummary) => void;
   projectList: SearchProjectItem[];
 }
 
@@ -60,15 +69,8 @@ export function ReportEditModal({
     project: '',
     date: undefined as Date | undefined,
     files: [] as File[],
-    existingFiles: [] as any[],
+    existingFiles: [] as ProjectFileSummary[],
   });
-
-  const api = new ReportApi(
-    new Configuration({
-      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-      accessToken: async () => useAuthStore.getState().accessToken || '',
-    }),
-  );
 
   // 보고서 데이터로 폼 초기화
   useEffect(() => {
@@ -78,7 +80,9 @@ export function ReportEditModal({
         project: String(report.project?.projectId) || '',
         date: report.createdAt ? new Date(report.createdAt) : new Date(),
         files: [],
-        existingFiles: [...(report.files || []).map((f: any) => ({ ...f }))],
+        existingFiles: [
+          ...(report.files || []).map((f: ProjectFileSummary) => ({ ...f })),
+        ],
       });
     }
   }, [report, open]);
@@ -141,8 +145,8 @@ export function ReportEditModal({
       const allFileIds = [...existingFileIds, ...newFileIds];
 
       // 수정 요청
-      await api.updateReport({
-        reportId: report.reportId,
+      await reportApi.updateReport({
+        reportId: report.reportId!,
         reportRequest: {
           content: formData.content,
           projectId: Number(formData.project),
@@ -159,7 +163,7 @@ export function ReportEditModal({
         content: formData.content,
         createdAt: formData.date,
         project: {
-          projectId: formData.project,
+          projectId: Number(formData.project),
           title:
             projectList.find((p) => String(p.projectId) === formData.project)
               ?.title ?? '',
@@ -203,7 +207,6 @@ export function ReportEditModal({
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Save className="h-5 w-5" />
             업무 보고 수정
           </DialogTitle>
         </DialogHeader>
@@ -212,7 +215,9 @@ export function ReportEditModal({
           {/* 프로젝트 및 날짜 */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="project">프로젝트 *</Label>
+              <Label htmlFor="project">
+                프로젝트 <span className="text-destructive text-xs">*</span>
+              </Label>
               <Select
                 value={formData.project}
                 onValueChange={(value) =>
@@ -237,7 +242,9 @@ export function ReportEditModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="date">보고 날짜 *</Label>
+              <Label htmlFor="date">
+                보고 날짜 <span className="text-destructive text-xs">*</span>
+              </Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -273,7 +280,9 @@ export function ReportEditModal({
 
           {/* 보고 내용 */}
           <div className="space-y-2">
-            <Label htmlFor="content">보고 내용 *</Label>
+            <Label htmlFor="content">
+              보고 내용 <span className="text-destructive text-xs">*</span>
+            </Label>
             <Textarea
               id="content"
               placeholder="수정할 업무 내용을 작성하세요."
@@ -290,28 +299,18 @@ export function ReportEditModal({
           {formData.existingFiles.length > 0 && (
             <div className="space-y-2">
               <Label>기존 첨부파일</Label>
-              <div className="space-y-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {formData.existingFiles.map((file, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-3"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Paperclip className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">
-                        {file.fileName}
-                      </span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeExistingFile(index)}
-                      className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <FileItem
+                    key={file.fileId}
+                    file={{
+                      name: file.fileName!,
+                      size: file.size,
+                    }}
+                    index={index}
+                    onAction={() => removeExistingFile(index)}
+                    mode="remove"
+                  />
                 ))}
               </div>
             </div>
@@ -327,6 +326,7 @@ export function ReportEditModal({
                 </span>
               )}
             </div>
+
             <div className="flex items-center gap-2">
               <Label
                 htmlFor="files"
@@ -344,33 +344,23 @@ export function ReportEditModal({
               />
             </div>
 
-            {/* 새로 추가된 파일들 */}
             {formData.files.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-700">
-                  새로 추가된 파일:
-                </p>
-                {formData.files.map((file, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 p-3"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Paperclip className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm text-blue-700">{file.name}</span>
-                      <span className="text-xs text-blue-500">(새 파일)</span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeNewFile(index)}
-                      className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium">새로 추가된 파일</h4>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {formData.files.map((file, index) => (
+                    <FileItem
+                      key={crypto.randomUUID()}
+                      file={{
+                        name: file.name,
+                        size: file.size,
+                      }}
+                      index={index}
+                      onAction={() => removeNewFile(index)}
+                      mode="remove"
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </div>
