@@ -9,6 +9,12 @@ import { UserApi } from '@/generated-api/apis/UserApi';
 import { Configuration } from '@/generated-api/runtime';
 import { useAuthStore } from '@/store/auth-store';
 
+const userApi = new UserApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
+
 interface UserTagInputProps {
   selectedUsers: UserSummary[];
   onChange: (users: UserSummary[]) => void;
@@ -36,14 +42,9 @@ export function UserTagInput({
     if (!accessToken) return;
 
     try {
-      const api = new UserApi(
-        new Configuration({
-          basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-          accessToken: async () => accessToken,
-        }),
-      );
-
-      const result = await api.searchUsers({ keyword: keyword || undefined });
+      const result = await userApi.searchUsers({
+        keyword: keyword || undefined,
+      });
       setSearchResults(result.users || []);
       setHighlightedIndex(-1);
     } catch (err) {
