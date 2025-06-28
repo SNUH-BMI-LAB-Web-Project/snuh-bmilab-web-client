@@ -16,32 +16,39 @@ import {
   UserPen,
   Camera,
 } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
-
 import { UserApi } from '@/generated-api/apis/UserApi';
 import { Configuration } from '@/generated-api/runtime';
 import {
   GetAllProjectsCategoryEnum,
   UpdateUserRequestCategoriesEnum,
+  UserEducationSummary,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { ChangePasswordModal } from '@/components/mypage/change-password-modal';
+import EducationEditor from '@/components/mypage/education-editor';
+import { getCategoryLabel } from '@/utils/project-utils';
+
+const userApi = new UserApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
+
+// TODO: 대공사 (소속 ENUM 적용, 분야 ENUM 없애고 타입 맞추기, 학력 CRD 테스트 등)
 
 export default function ProfileEditForm() {
-  const [isLoading, setIsLoading] = useState(true);
-
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     organization: '',
     department: '',
     affiliation: '',
-    education: '',
     categories: [] as string[],
     phoneNumber: '',
     seatNumber: '',
   });
+  const [educations, setEducations] = useState<UserEducationSummary[]>([]);
 
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string>(
@@ -57,7 +64,6 @@ export default function ProfileEditForm() {
     'organization',
     'department',
     'affiliation',
-    'education',
     'phoneNumber',
     'seatNumber',
   ] as const;
@@ -67,8 +73,7 @@ export default function ProfileEditForm() {
     email: '이메일',
     organization: '기관',
     department: '부서',
-    affiliation: '소속',
-    education: '학력',
+    affiliation: '소속 (선택)',
     phoneNumber: '전화번호',
     seatNumber: '좌석번호',
   };
@@ -79,36 +84,27 @@ export default function ProfileEditForm() {
     if (!accessToken) return;
 
     const fetchUserDetail = async () => {
-      setIsLoading(true);
       try {
-        const api = new UserApi(
-          new Configuration({
-            basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-            accessToken: async () => accessToken,
-          }),
-        );
-        const data = await api.getCurrentUser();
+        const data = await userApi.getCurrentUser();
 
-        if (data.user) {
+        if (data) {
           setFormData({
-            name: data.user.name || '',
-            email: data.user.email || '',
-            organization: data.user.organization || '',
-            department: data.user.department || '',
-            affiliation: data.user.affiliation || '',
-            education: data.user.education || '',
-            categories: data.user.categories || [],
-            phoneNumber: data.user.phoneNumber || '',
-            seatNumber: data.user.seatNumber || '',
+            name: data.name || '',
+            email: data.email || '',
+            organization: data.organization || '',
+            department: data.department || '',
+            affiliation: data.affiliation || '',
+            categories: data.categories || [],
+            phoneNumber: data.phoneNumber || '',
+            seatNumber: data.seatNumber || '',
           });
           setProfileImagePreview(
-            data.user.profileImageUrl || '/default-profile-image.svg',
+            data.profileImageUrl || '/default-profile-image.svg',
           );
+          setEducations(data.educations || []);
         }
       } catch (err) {
         toast.error('사용자 정보를 불러오는 중 오류가 발생했습니다.');
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -122,12 +118,15 @@ export default function ProfileEditForm() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const toggleCategory = (category: string) => {
+  const toggleCategory = (category: GetAllProjectsCategoryEnum) => {
     if (!isEditable) return;
-    const newCategories = formData.categories.includes(category)
-      ? formData.categories.filter((c) => c !== category)
-      : [...formData.categories, category];
-    handleChange('categories', newCategories);
+
+    setFormData((prev) => ({
+      ...prev,
+      categories: prev.categories.includes(category)
+        ? prev.categories.filter((c) => c !== category) // 선택 해제
+        : [...prev.categories, category], // 선택
+    }));
   };
 
   const handleImageClick = () => {
@@ -143,6 +142,21 @@ export default function ProfileEditForm() {
       toast.success('프로필 이미지가 성공적으로 업로드 되었습니다.');
     }
   };
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+
+  const toRequest = (edu: UserEducationSummary) => ({
+    title: edu.title,
+    status: edu.status,
+    startYearMonth:
+      edu.startYearMonth?.year && edu.startYearMonth?.monthValue
+        ? `${edu.startYearMonth.year}-${pad(edu.startYearMonth.monthValue)}`
+        : undefined,
+    endYearMonth:
+      edu.endYearMonth?.year && edu.endYearMonth?.monthValue
+        ? `${edu.endYearMonth.year}-${pad(edu.endYearMonth.monthValue)}`
+        : undefined,
+  });
 
   const handleSubmit = async () => {
     const payload = {
@@ -160,16 +174,18 @@ export default function ProfileEditForm() {
     );
 
     try {
-      const api = new UserApi(
-        new Configuration({
-          basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-          accessToken: async () => accessToken || '',
-        }),
-      );
-      await api.updateCurrentUser({
+      await userApi.updateCurrentUser({
         request: payload,
         profileImage: profileImageFile ?? undefined,
       });
+
+      await Promise.all(
+        educations.map((edu) =>
+          userApi.addEducationsRaw({
+            userEducationRequest: toRequest(edu) as any,
+          }),
+        ),
+      );
 
       useAuthStore.setState((prev) => ({
         user: {
@@ -182,15 +198,11 @@ export default function ProfileEditForm() {
       }));
 
       setIsEditable(false);
-      toast.success('개인정보가 수정이 성공적으로 완료되었습니다.');
+      toast.success('개인정보 및 학력이 성공적으로 저장되었습니다.');
     } catch (err) {
-      toast.error('개인정보 수정 중 오류가 발생했습니다. 다시 시도해주세요.');
+      toast.error('저장 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
-
-  if (isLoading) {
-    return <Skeleton className="h-[500px] w-full" />;
-  }
 
   return (
     <div className="flex flex-row gap-10">
@@ -259,9 +271,14 @@ export default function ProfileEditForm() {
                         : 'text-muted-foreground'
                     }
                   >
-                    {formData.categories.length > 0
-                      ? formData.categories.join(', ')
-                      : '연구 분야 선택'}
+                    {formData.categories
+                      .filter((c): c is GetAllProjectsCategoryEnum =>
+                        Object.values(GetAllProjectsCategoryEnum).includes(
+                          c as GetAllProjectsCategoryEnum,
+                        ),
+                      )
+                      .map(getCategoryLabel)
+                      .join(', ')}
                   </span>
                   <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                 </div>
@@ -269,45 +286,52 @@ export default function ProfileEditForm() {
             </PopoverTrigger>
             <PopoverContent className="bg-background w-auto min-w-[var(--radix-popover-trigger-width)] rounded-md border p-2 shadow-md">
               <div className="flex flex-col gap-1 overflow-y-auto">
-                {Object.values(GetAllProjectsCategoryEnum).map((category) => (
-                  <button
-                    type="button"
-                    key={category}
-                    onClick={() => toggleCategory(category)}
-                    disabled={
-                      !isEditable || formData.categories.includes(category)
-                    }
-                    className={`flex w-full flex-row items-center justify-between rounded-md px-3 py-2 text-sm transition ${
-                      formData.categories.includes(category)
-                        ? 'bg-muted/50 cursor-not-allowed'
-                        : 'hover:bg-muted'
-                    }`}
-                  >
-                    <span>{category}</span>
-                    {formData.categories.includes(category) && (
-                      <Check className="text-primary h-4 w-4" />
-                    )}
-                  </button>
-                ))}
+                {Object.values(GetAllProjectsCategoryEnum).map((category) => {
+                  const isSelected = formData.categories.includes(category);
+
+                  return (
+                    <button
+                      type="button"
+                      key={category}
+                      onClick={() => toggleCategory(category)}
+                      className={`flex w-full flex-row items-center justify-between rounded-md px-3 py-2 text-sm transition ${
+                        isSelected ? 'bg-muted/50' : 'hover:bg-muted'
+                      }`}
+                    >
+                      <span>{getCategoryLabel(category)}</span>
+                      {isSelected && <Check className="text-primary h-4 w-4" />}
+                    </button>
+                  );
+                })}
               </div>
             </PopoverContent>
           </Popover>
         </div>
 
+        <EducationEditor
+          educations={educations}
+          editMode={isEditable}
+          onChange={setEducations}
+          userApi={userApi}
+        />
+
         {/* 버튼 */}
         <div className="flex w-full flex-row justify-end gap-4">
           {isEditable ? (
-            <Button onClick={handleSubmit}>
+            <Button onClick={handleSubmit} className="min-w-[130px]">
               <UserCheck className="mr-2" /> 변경사항 저장
             </Button>
           ) : (
-            <Button onClick={() => setIsEditable(true)}>
+            <Button
+              onClick={() => setIsEditable(true)}
+              className="min-w-[130px]"
+            >
               <UserPen className="mr-2" /> 개인정보 수정
             </Button>
           )}
           <ChangePasswordModal
             triggerButton={
-              <Button>
+              <Button className="min-w-[130px]">
                 <LockKeyhole className="mr-2" /> 비밀번호 변경
               </Button>
             }
