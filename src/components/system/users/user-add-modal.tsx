@@ -1,0 +1,700 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Plus, RefreshCw, Copy, CalendarIcon, X, Mail } from 'lucide-react';
+import { format } from 'date-fns';
+import { ko } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+import {
+  AdminUserApi,
+  Configuration,
+  ProjectCategoryApi,
+  ProjectCategorySummary,
+  RegisterUserRequestAffiliationEnum,
+} from '@/generated-api';
+import { useAuthStore } from '@/store/auth-store';
+import EmailConfirmationModal from '@/components/system/users/email-confirmation-modal';
+import YearMonthPicker from '@/components/system/users/year-month-picker';
+
+interface UserAddModalProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  onUserAdd: (userData: any) => void;
+}
+
+export default function UserAddModal({
+  open,
+  setOpen,
+  onUserAdd,
+}: UserAddModalProps) {
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [createdUserData, setCreatedUserData] = useState(null);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    organization: '',
+    department: '',
+    affiliation: undefined,
+    annualLeaveCount: 15,
+    usedLeaveCount: 0,
+    categoryIds: [] as number[],
+    seatNumber: '',
+    phoneNumber: '',
+    educations: [] as any[],
+    joinedAt: new Date(),
+  });
+  const [newEducation, setNewEducation] = useState({
+    title: '',
+    status: '',
+    startYearMonth: '',
+    endYearMonth: '',
+  });
+
+  // 소속 옵션들
+  const affiliationLabels: Record<RegisterUserRequestAffiliationEnum, string> =
+    {
+      PROFESSOR: '교수',
+      CO_PRINCIPAL_INVESTIGATOR: '공동연구책임자',
+      POSTDOCTORAL_RESEARCHER: '박사후 연구원',
+      PHD_STUDENT: '대학원생-박사과정',
+      MASTERS_STUDENT: '대학원생-석사과정',
+      TRANSLATIONAL_MEDICINE_TRAINEE: '융합의학연수생',
+      RESEARCHER_OR_INTERN: '연구원 및 인턴',
+      ADMINISTRATIVE_STAFF: '행정',
+    };
+
+  const affiliationOptions = Object.entries(affiliationLabels).map(
+    ([value, label]) => ({
+      value: value as RegisterUserRequestAffiliationEnum,
+      label,
+    }),
+  );
+
+  // 카테고리 옵션들
+  const [categoryOptions, setCategoryOptions] = useState<
+    ProjectCategorySummary[]
+  >([]);
+
+  // 학력 상태 옵션들
+  const educationStatusOptions = [
+    { value: 'ENROLLED', label: '재학 중' },
+    { value: 'LEAVE_OF_ABSENCE', label: '휴학' },
+    { value: 'DROPPED_OUT', label: '졸업' },
+  ];
+
+  const adminUserApi = new AdminUserApi(
+    new Configuration({
+      accessToken: async () => useAuthStore.getState().accessToken ?? '',
+    }),
+  );
+
+  const categoryApi = new ProjectCategoryApi(
+    new Configuration({
+      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+      accessToken: async () => useAuthStore.getState().accessToken || '',
+    }),
+  );
+
+  useEffect(() => {
+    const fetchCategorys = async () => {
+      try {
+        const res = await categoryApi.getAllProjectCategories();
+        setCategoryOptions(res.categories ?? []);
+      } catch (error) {
+        console.error('카테고리 불러오기 실패:', error);
+      }
+    };
+
+    fetchCategorys();
+  }, []);
+
+  // 임의 비밀번호 생성
+  const generatePassword = () => {
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let password = '';
+    for (let i = 0; i < 12; i += 1) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setFormData((prev) => ({ ...prev, password }));
+  };
+
+  const handleCopyPassword = async () => {
+    if (formData.password) {
+      try {
+        await navigator.clipboard.writeText(formData.password);
+        alert('비밀번호가 클립보드에 복사되었습니다!');
+      } catch (err) {
+        console.error('복사 실패:', err);
+        alert('복사에 실패했습니다.');
+      }
+    }
+  };
+
+  const handleCategoryChange = (categoryId: number, checked: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      categoryIds: checked
+        ? [...prev.categoryIds, categoryId]
+        : prev.categoryIds.filter((id) => id !== categoryId),
+    }));
+  };
+
+  const addEducation = () => {
+    if (
+      newEducation.title &&
+      newEducation.status &&
+      newEducation.startYearMonth
+    ) {
+      setFormData((prev) => ({
+        ...prev,
+        educations: [...prev.educations, { ...newEducation }],
+      }));
+      setNewEducation({
+        title: '',
+        status: '',
+        startYearMonth: '',
+        endYearMonth: '',
+      });
+    }
+  };
+
+  const removeEducation = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      educations: prev.educations.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.name || !formData.email || !formData.password) {
+      alert('이름, 이메일, 비밀번호는 필수 입력 항목입니다.');
+      return;
+    }
+
+    const userData = {
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      organization: formData.organization,
+      department: formData.department,
+      affiliation: formData.affiliation,
+      annualLeaveCount: formData.annualLeaveCount,
+      usedLeaveCount: formData.usedLeaveCount,
+      categoryIds: formData.categoryIds,
+      seatNumber: formData.seatNumber,
+      phoneNumber: formData.phoneNumber,
+      educations: formData.educations,
+      joinedAt: formData.joinedAt,
+    };
+
+    try {
+      await adminUserApi.registerNewUser({ registerUserRequest: userData });
+      onUserAdd(userData); // optimistic update
+      alert('사용자가 성공적으로 등록되었습니다.');
+      setOpen(false);
+      // 초기화
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        organization: '',
+        department: '',
+        affiliation: undefined,
+        annualLeaveCount: 15,
+        usedLeaveCount: 0,
+        categoryIds: [],
+        seatNumber: '',
+        phoneNumber: '',
+        educations: [],
+        joinedAt: new Date(),
+      });
+      setNewEducation({
+        title: '',
+        status: '',
+        startYearMonth: '',
+        endYearMonth: '',
+      });
+    } catch (error: any) {
+      console.error(error);
+      alert('사용자 등록에 실패했습니다.');
+    }
+  };
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleEmailConfirmation = () => {
+    // TODO: 이메일 발송 API 호출
+    console.log('이메일 발송:', createdUserData);
+  };
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-h-[90vh] !max-w-4xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>새 사용자 추가</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* 기본 정보 */}
+            <div className="space-y-4 rounded-lg border bg-gray-50 p-4">
+              <h3 className="text-sm font-semibold">기본 정보</h3>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="name">이름 *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    placeholder="홍길동"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">이메일 *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    placeholder="hong.gildong@example.com"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* 비밀번호 */}
+              <div className="space-y-2">
+                <Label htmlFor="password">비밀번호 *</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="password"
+                    type="text"
+                    value={formData.password}
+                    onChange={(e) =>
+                      handleInputChange('password', e.target.value)
+                    }
+                    placeholder="비밀번호 생성 필요"
+                    className="flex-1"
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={generatePassword}
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={handleCopyPassword}
+                    disabled={!formData.password}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={handleCopyPassword}
+                    disabled={!formData.password}
+                  >
+                    <Mail className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* 입사일 */}
+              <div className="space-y-2">
+                <Label>입사일</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        'w-full justify-start text-left font-normal',
+                        !formData.joinedAt && 'text-muted-foreground',
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formData.joinedAt ? (
+                        format(formData.joinedAt, 'PPP', { locale: ko })
+                      ) : (
+                        <span>날짜 선택</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.joinedAt}
+                      onSelect={(date) =>
+                        handleInputChange('joinedAt', date || new Date())
+                      }
+                      initialFocus
+                      locale={ko}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            {/* 소속 정보 */}
+            <div className="space-y-4 rounded-lg border p-4">
+              <h3 className="text-sm font-semibold">소속 정보</h3>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <Label htmlFor="organization">기관</Label>
+                  <Input
+                    id="organization"
+                    value={formData.organization}
+                    onChange={(e) =>
+                      handleInputChange('organization', e.target.value)
+                    }
+                    placeholder="서울대병원 융합의학연구실"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="department">부서</Label>
+                  <Input
+                    id="department"
+                    value={formData.department}
+                    onChange={(e) =>
+                      handleInputChange('department', e.target.value)
+                    }
+                    placeholder="개발팀"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="affiliation">소속 *</Label>
+                  <Select
+                    value={formData.affiliation ?? ''}
+                    onValueChange={(value) =>
+                      handleInputChange(
+                        'affiliation',
+                        value as RegisterUserRequestAffiliationEnum,
+                      )
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="소속 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {affiliationOptions.map((affiliation) => (
+                        <SelectItem
+                          key={affiliation.value}
+                          value={affiliation.value}
+                        >
+                          {affiliation.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* 연차 정보 */}
+            <div className="space-y-4 rounded-lg border p-4">
+              <h3 className="text-sm font-semibold">연차 정보</h3>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="annualLeaveCount">연간 연차 일수</Label>
+                  <Input
+                    id="annualLeaveCount"
+                    type="number"
+                    value={formData.annualLeaveCount}
+                    onChange={(e) =>
+                      handleInputChange(
+                        'annualLeaveCount',
+                        Number(e.target.value),
+                      )
+                    }
+                    placeholder="15"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="usedLeaveCount">사용한 연차 일수</Label>
+                  <Input
+                    id="usedLeaveCount"
+                    type="number"
+                    step="0.5"
+                    value={formData.usedLeaveCount}
+                    onChange={(e) =>
+                      handleInputChange(
+                        'usedLeaveCount',
+                        Number(e.target.value),
+                      )
+                    }
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 카테고리 */}
+            <div className="space-y-4 rounded-lg border p-4">
+              <h3 className="text-sm font-semibold">연구 분야 카테고리</h3>
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                {categoryOptions.map((category) => (
+                  <div
+                    key={category.categoryId}
+                    className="flex items-center space-x-2"
+                  >
+                    <Checkbox
+                      id={String(category.categoryId)}
+                      checked={formData.categoryIds.includes(
+                        category.categoryId || -1,
+                      )}
+                      onCheckedChange={(checked) =>
+                        handleCategoryChange(
+                          category.categoryId || -1,
+                          checked as boolean,
+                        )
+                      }
+                    />
+
+                    <Label
+                      htmlFor={String(category.categoryId)}
+                      className="text-sm font-normal"
+                    >
+                      {category.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 연락처 및 위치 정보 */}
+            <div className="space-y-4 rounded-lg border p-4">
+              <h3 className="text-sm font-semibold">연락처 및 위치</h3>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNumber">전화번호</Label>
+                  <Input
+                    id="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={(e) =>
+                      handleInputChange('phoneNumber', e.target.value)
+                    }
+                    placeholder="010-1234-5678"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="seatNumber">좌석번호</Label>
+                  <Input
+                    id="seatNumber"
+                    value={formData.seatNumber}
+                    onChange={(e) =>
+                      handleInputChange('seatNumber', e.target.value)
+                    }
+                    placeholder="12-30"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 학력 정보 */}
+            <div className="space-y-4 rounded-lg border p-4">
+              <h3 className="text-sm font-semibold">학력 정보</h3>
+
+              {/* 기존 학력 목록 */}
+              {formData.educations.length > 0 && (
+                <div className="space-y-2">
+                  <Label>등록된 학력</Label>
+                  {formData.educations.map((edu, index) => (
+                    <div
+                      key={edu}
+                      className="flex items-center gap-2 rounded-lg bg-gray-50 p-3"
+                    >
+                      <div className="flex-1">
+                        <p className="font-medium">{edu.title}</p>
+                        <p className="text-sm text-gray-600">
+                          {edu.startYearMonth} ~ {edu.endYearMonth || '현재'} |{' '}
+                          {
+                            educationStatusOptions.find(
+                              (s) => s.value === edu.status,
+                            )?.label
+                          }
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => removeEducation(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* 새 학력 추가 */}
+              <div className="space-y-4 rounded-lg bg-blue-50 p-4">
+                <Label className="text-sm font-medium">새 학력 추가</Label>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="eduTitle">학교 및 학과</Label>
+                    <Input
+                      id="eduTitle"
+                      value={newEducation.title}
+                      onChange={(e) =>
+                        setNewEducation((prev) => ({
+                          ...prev,
+                          title: e.target.value,
+                        }))
+                      }
+                      placeholder="국민대학교 소프트웨어학부"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="eduStatus">상태</Label>
+                    <Select
+                      value={newEducation.status}
+                      onValueChange={(value) =>
+                        setNewEducation((prev) => ({ ...prev, status: value }))
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="상태 선택" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {educationStatusOptions.map((status) => (
+                          <SelectItem key={status.value} value={status.value}>
+                            {status.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="eduStart">시작 년월</Label>
+                    <YearMonthPicker
+                      value={
+                        newEducation.startYearMonth
+                          ? {
+                              year: Number.parseInt(
+                                newEducation.startYearMonth.split('-')[0],
+                                10,
+                              ),
+                              month: Number.parseInt(
+                                newEducation.startYearMonth.split('-')[1],
+                                10,
+                              ),
+                            }
+                          : null
+                      }
+                      onChange={(value) => {
+                        const dateString = value
+                          ? `${value.year}-${value.month.toString().padStart(2, '0')}`
+                          : '';
+                        setNewEducation((prev) => ({
+                          ...prev,
+                          startYearMonth: dateString,
+                        }));
+                      }}
+                      placeholder="시작 년월 선택"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="eduEnd">종료 년월 (선택사항)</Label>
+                    <YearMonthPicker
+                      value={
+                        newEducation.endYearMonth
+                          ? {
+                              year: Number.parseInt(
+                                newEducation.endYearMonth.split('-')[0],
+                                10,
+                              ),
+                              month: Number.parseInt(
+                                newEducation.endYearMonth.split('-')[1],
+                                10,
+                              ),
+                            }
+                          : null
+                      }
+                      onChange={(value) => {
+                        const dateString = value
+                          ? `${value.year}-${value.month.toString().padStart(2, '0')}`
+                          : '';
+                        setNewEducation((prev) => ({
+                          ...prev,
+                          endYearMonth: dateString,
+                        }));
+                      }}
+                      placeholder="종료 년월 선택 (현재 재학중이면 비워두세요)"
+                      allowClear
+                    />
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addEducation}
+                  className="w-full bg-transparent"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  학력 추가
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
+                취소
+              </Button>
+              <Button type="submit">사용자 추가</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* 이메일 발송 확인 모달 */}
+      <EmailConfirmationModal
+        open={emailModalOpen}
+        onOpenChange={setEmailModalOpen}
+        userData={createdUserData}
+        onConfirmSend={handleEmailConfirmation}
+      />
+    </>
+  );
+}
