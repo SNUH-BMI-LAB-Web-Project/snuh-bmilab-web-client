@@ -12,11 +12,11 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { name: 'Home', link: '/' },
-  { name: 'Members', link: '/members' },
-  { name: 'Research', link: '/research' },
-  { name: 'Lab Seminar', link: '/lab-seminar' },
-  { name: 'News', link: '/news' },
-  { name: 'Alumni', link: '/alumni' },
+  // { name: 'Members', link: '/members' },
+  // { name: 'Research', link: '/research' },
+  // { name: 'Lab Seminar', link: '/lab-seminar' },
+  // { name: 'News', link: '/news' },
+  // { name: 'Alumni', link: '/alumni' },
 ];
 
 export default function AppHeader() {
