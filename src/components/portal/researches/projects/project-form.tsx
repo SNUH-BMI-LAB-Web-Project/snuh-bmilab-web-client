@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,6 +30,7 @@ import {
   Tag,
   ShieldCheck,
   Upload,
+  Minus,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -38,18 +39,18 @@ import { Separator } from '@/components/ui/separator';
 import { FileItem } from '@/components/portal/researches/projects/file-item';
 import { UserTagInput } from '@/components/portal/researches/projects/user-tag-input';
 import {
-  GetAllProjectsCategoryEnum,
+  ExternalProfessorSummary,
   ProjectDetail,
   ProjectFileSummary,
   ProjectRequest,
-  ProjectRequestCategoryEnum,
   UserSummary,
 } from '@/generated-api';
-import { getCategoryLabel } from '@/utils/project-utils';
 import { GeneratePresignedUrlDomainTypeEnum } from '@/generated-api/apis/FileApi';
 import { uploadFileWithPresignedUrl } from '@/lib/upload';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/auth-store';
+import { Switch } from '@/components/ui/switch';
+import { useProjectCategories } from '@/hooks/use-project-categories';
 
 interface ProjectFormProps {
   initialData?: ProjectDetail;
@@ -67,6 +68,8 @@ interface ProjectFormProps {
   isEditing?: boolean;
 }
 
+// TODO: 프로젝트 수정 시 pi, 실무교수 수정 막아야 함 (readOnly)
+
 export function ProjectForm({
   initialData,
   onCreate,
@@ -78,18 +81,23 @@ export function ProjectForm({
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
+    control,
   } = useForm<ProjectRequest>({
     mode: 'onSubmit',
     defaultValues: {
       title: initialData?.title ?? '',
       content: initialData?.content ?? '',
-      category: initialData?.category ?? ('' as ProjectRequestCategoryEnum),
+      categoryId: initialData?.category?.categoryId ?? undefined,
       irbId: initialData?.irbId ?? '',
       drbId: initialData?.drbId ?? '',
     },
   });
+  const [isPrivate, setIsPrivate] = useState<boolean>(
+    initialData?.isPrivate ?? false,
+  );
+
+  const { data: categoryList = [] } = useProjectCategories();
 
   const [startDate, setStartDate] = useState<Date | undefined>(
     initialData?.startDate ? new Date(initialData.startDate) : undefined,
@@ -102,11 +110,13 @@ export function ProjectForm({
     initialData?.status === 'WAITING',
   );
 
-  const [pi, setPi] = useState(initialData?.pi ?? '');
-
-  const [practicalProfessor, setPracticalProfessor] = useState(
-    initialData?.practicalProfessor ?? '',
+  const [piList, setPiList] = useState<ExternalProfessorSummary[]>(
+    initialData?.piList ?? [],
   );
+
+  const [practicalProfessors, setPracticalProfessors] = useState<
+    ExternalProfessorSummary[]
+  >(initialData?.practicalProfessors ?? []);
 
   const [leaders, setLeaders] = useState<UserSummary[]>(
     initialData?.leaders ?? [],
@@ -201,7 +211,7 @@ export function ProjectForm({
     const hasEmptyRequiredField =
       !formData.title?.trim() ||
       !formData.content?.trim() ||
-      !formData.category ||
+      !formData.categoryId ||
       !startDate ||
       leaders.length === 0;
 
@@ -214,22 +224,22 @@ export function ProjectForm({
       title: formData.title!,
       content: formData.content!,
       leaderIds: leaders
-        .map((u) => u.userId)
-        .filter((id): id is number => !!id),
+        .map((u) => Number(u.userId))
+        .filter((id): id is number => !Number.isNaN(id)),
       participantIds: participants
         .map((u) => u.userId)
         .filter((id): id is number => !!id),
       startDate,
       endDate: endDate ?? undefined,
       isWaiting,
-      category: formData.category!,
-      pi,
-      practicalProfessor,
+      piList,
+      practicalProfessors,
       irbId: formData.irbId,
       drbId: formData.drbId,
       irbFileIds: irbFile ? [irbFile.fileId!] : [],
       drbFileIds: drbFile ? [drbFile.fileId!] : [],
       fileIds: newFiles.map((file) => file.fileId!),
+      isPrivate,
     };
 
     try {
@@ -249,6 +259,9 @@ export function ProjectForm({
           irbFile ?? undefined,
           drbFile ?? undefined,
         );
+        console.log(request.piList);
+        console.log(request.practicalProfessors);
+        console.log(JSON.stringify(request, null, 2));
         toast.success('프로젝트가 성공적으로 등록되었습니다.');
       }
     } catch (err) {
@@ -262,10 +275,23 @@ export function ProjectForm({
       <div className="space-y-8 rounded-lg border bg-white p-8 shadow-sm">
         {/* 연구 제목 */}
         <div className="space-y-3 pt-2 pb-6">
-          <Label className="flex items-center text-base font-medium">
-            <Tag className="h-4 w-4" />
-            연구 제목 <span className="text-destructive text-xs">*</span>
-          </Label>
+          <div className="flex items-center justify-between">
+            {/* 왼쪽: 아이콘 + 텍스트 */}
+            <Label className="flex items-center gap-1 text-base font-medium">
+              <Tag className="h-4 w-4" />
+              연구 제목 <span className="text-destructive text-xs">*</span>
+            </Label>
+
+            {/* 오른쪽: 공개/비공개 스위치 */}
+            <div className="flex items-center gap-2">
+              <Switch
+                id="is-public"
+                checked={isPrivate}
+                onCheckedChange={setIsPrivate}
+              />
+              <span className="text-muted-foreground text-sm">비공개 여부</span>
+            </div>
+          </div>
 
           <Input
             id="title"
@@ -287,23 +313,32 @@ export function ProjectForm({
               <SquareLibrary className="h-4 w-4" />
               연구 분야 <span className="text-destructive text-xs">*</span>
             </Label>
-            <Select
-              defaultValue={initialData?.category}
-              onValueChange={(value) =>
-                setValue('category', value as ProjectRequestCategoryEnum)
-              }
-            >
-              <SelectTrigger className="focus:none focus:none h-12 w-full border">
-                <SelectValue placeholder="연구 분야를 선택하세요" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.values(GetAllProjectsCategoryEnum).map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {getCategoryLabel(category)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Controller
+              name="categoryId"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  value={field.value?.toString()}
+                  onValueChange={(value) => field.onChange(Number(value))}
+                >
+                  <div className="w-full">
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="연구 분야 선택" />
+                    </SelectTrigger>
+                  </div>
+                  <SelectContent>
+                    {categoryList.map((cat) => (
+                      <SelectItem
+                        key={cat.categoryId}
+                        value={cat.categoryId!.toString()}
+                      >
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
 
           {/* 연구 기간 */}
@@ -414,7 +449,7 @@ export function ProjectForm({
                   onChange={(e) => handleSingleFileUpload(e, 'IRB')}
                 />
               </div>
-              <Input {...register('irbId')} placeholder="IRB 번호를 입력" />
+              <Input {...register('irbId')} placeholder="IRB 번호 입력" />
               {irbFile && (
                 <FileItem
                   key={irbFile.fileId}
@@ -451,7 +486,7 @@ export function ProjectForm({
                   onChange={(e) => handleSingleFileUpload(e, 'DRB')}
                 />
               </div>
-              <Input {...register('drbId')} placeholder="DRB 번호를 입력" />
+              <Input {...register('drbId')} placeholder="DRB 번호 입력" />
               {drbFile && (
                 <FileItem
                   key={drbFile.fileId}
@@ -473,34 +508,146 @@ export function ProjectForm({
             </h3>
 
             <div className="bg-muted/50 space-y-3 rounded-xl p-4">
-              <Label className="flex items-center text-sm font-semibold">
-                <User className="h-4 w-4" />
-                PI
-              </Label>
-              <Input
-                placeholder="PI 이름 입력"
-                value={pi}
-                onChange={(e) => setPi(e.target.value)}
-                className="bg-white"
-              />
+              {/* 상단 헤더: 라벨 + + 버튼 */}
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center text-sm font-semibold">
+                  <User className="h-4 w-4" />
+                  PI
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() =>
+                    setPiList([
+                      ...piList,
+                      { organization: '', department: '', name: '' },
+                    ])
+                  }
+                >
+                  <Plus />
+                </Button>
+              </div>
+
+              {/* 입력 리스트 */}
+              {piList.map((pi, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    placeholder="PI 소속 기관"
+                    value={pi.organization || ''}
+                    onChange={(e) => {
+                      const updated = [...piList];
+                      updated[index].organization = e.target.value;
+                      setPiList(updated);
+                    }}
+                    className="bg-white"
+                  />
+                  <Input
+                    placeholder="PI 소속 부서"
+                    value={pi.department || ''}
+                    onChange={(e) => {
+                      const updated = [...piList];
+                      updated[index].department = e.target.value;
+                      setPiList(updated);
+                    }}
+                    className="bg-white"
+                  />
+                  <Input
+                    placeholder="PI 이름"
+                    value={pi.name || ''}
+                    onChange={(e) => {
+                      const updated = [...piList];
+                      updated[index].name = e.target.value;
+                      setPiList(updated);
+                    }}
+                    className="bg-white"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() =>
+                      setPiList(piList.filter((_, i) => i !== index))
+                    }
+                  >
+                    <Minus />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-muted/50 space-y-3 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center text-sm font-semibold">
+                  <User className="h-4 w-4" />
+                  실무 교수
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() =>
+                    setPracticalProfessors([
+                      ...practicalProfessors,
+                      { organization: '', department: '', name: '' },
+                    ])
+                  }
+                >
+                  <Plus />
+                </Button>
+              </div>
+
+              {practicalProfessors.map((prof, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <Input
+                    placeholder="실무교수 소속 기관"
+                    value={prof.organization || ''}
+                    onChange={(e) => {
+                      const updated = [...practicalProfessors];
+                      updated[index].organization = e.target.value;
+                      setPracticalProfessors(updated);
+                    }}
+                    className="bg-white"
+                  />
+                  <Input
+                    placeholder="실무교수 소속 부서"
+                    value={prof.department || ''}
+                    onChange={(e) => {
+                      const updated = [...practicalProfessors];
+                      updated[index].department = e.target.value;
+                      setPracticalProfessors(updated);
+                    }}
+                    className="bg-white"
+                  />
+                  <Input
+                    placeholder="실무교수 이름"
+                    value={prof.name || ''}
+                    onChange={(e) => {
+                      const updated = [...practicalProfessors];
+                      updated[index].name = e.target.value;
+                      setPracticalProfessors(updated);
+                    }}
+                    className="bg-white"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() =>
+                      setPracticalProfessors(
+                        practicalProfessors.filter((_, i) => i !== index),
+                      )
+                    }
+                  >
+                    <Minus />
+                  </Button>
+                </div>
+              ))}
             </div>
 
             <div className="bg-muted/50 space-y-3 rounded-xl p-4">
               <Label className="flex items-center text-sm font-semibold">
-                <User className="h-4 w-4" />
-                실무 교수
-              </Label>
-              <Input
-                placeholder="실무교수 이름 입력"
-                value={practicalProfessor}
-                onChange={(e) => setPracticalProfessor(e.target.value)}
-                className="bg-white"
-              />
-            </div>
-
-            <div className="bg-muted/50 space-y-3 rounded-xl p-4">
-              <Label className="flex items-center text-sm font-semibold">
-                <User className="h-4 w-4" />
+                <Users className="h-4 w-4" />
                 책임자 <span className="text-destructive text-xs">*</span>
               </Label>
 
