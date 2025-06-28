@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { ProjectCategorySummary } from './ProjectCategorySummary';
+import {
+    ProjectCategorySummaryFromJSON,
+    ProjectCategorySummaryFromJSONTyped,
+    ProjectCategorySummaryToJSON,
+    ProjectCategorySummaryToJSONTyped,
+} from './ProjectCategorySummary';
+
 /**
  * 
  * @export
@@ -63,10 +71,10 @@ export interface UserItem {
     profileImageUrl?: string;
     /**
      * 연구 분야 목록
-     * @type {Array<string>}
+     * @type {Array<ProjectCategorySummary>}
      * @memberof UserItem
      */
-    categories?: Array<UserItemCategoriesEnum>;
+    categories?: Array<ProjectCategorySummary>;
     /**
      * 좌석 번호
      * @type {string}
@@ -86,20 +94,6 @@ export interface UserItem {
      */
     education?: string;
 }
-
-
-/**
- * @export
- */
-export const UserItemCategoriesEnum = {
-    Bioinformatics: 'BIOINFORMATICS',
-    AiPathology: 'AI_PATHOLOGY',
-    AiSignalData: 'AI_SIGNAL_DATA',
-    BigData: 'BIG_DATA',
-    Nlp: 'NLP'
-} as const;
-export type UserItemCategoriesEnum = typeof UserItemCategoriesEnum[keyof typeof UserItemCategoriesEnum];
-
 
 /**
  * Check if a given object implements the UserItem interface.
@@ -125,7 +119,7 @@ export function UserItemFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'department': json['department'] == null ? undefined : json['department'],
         'affiliation': json['affiliation'] == null ? undefined : json['affiliation'],
         'profileImageUrl': json['profileImageUrl'] == null ? undefined : json['profileImageUrl'],
-        'categories': json['categories'] == null ? undefined : json['categories'],
+        'categories': json['categories'] == null ? undefined : ((json['categories'] as Array<any>).map(ProjectCategorySummaryFromJSON)),
         'seatNumber': json['seatNumber'] == null ? undefined : json['seatNumber'],
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
         'education': json['education'] == null ? undefined : json['education'],
@@ -150,7 +144,7 @@ export function UserItemToJSONTyped(value?: UserItem | null, ignoreDiscriminator
         'department': value['department'],
         'affiliation': value['affiliation'],
         'profileImageUrl': value['profileImageUrl'],
-        'categories': value['categories'],
+        'categories': value['categories'] == null ? undefined : ((value['categories'] as Array<any>).map(ProjectCategorySummaryToJSON)),
         'seatNumber': value['seatNumber'],
         'phoneNumber': value['phoneNumber'],
         'education': value['education'],

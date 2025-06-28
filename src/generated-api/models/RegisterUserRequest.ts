@@ -76,11 +76,11 @@ export interface RegisterUserRequest {
      */
     usedLeaveCount?: number;
     /**
-     * 연구 분야 목록
-     * @type {Array<string>}
+     * 연구 분야 ID 목록
+     * @type {Array<number>}
      * @memberof RegisterUserRequest
      */
-    categories?: Array<RegisterUserRequestCategoriesEnum>;
+    categoryIds?: Array<number>;
     /**
      * 좌석 번호
      * @type {string}
@@ -107,20 +107,6 @@ export interface RegisterUserRequest {
     joinedAt?: Date;
 }
 
-
-/**
- * @export
- */
-export const RegisterUserRequestCategoriesEnum = {
-    Bioinformatics: 'BIOINFORMATICS',
-    AiPathology: 'AI_PATHOLOGY',
-    AiSignalData: 'AI_SIGNAL_DATA',
-    BigData: 'BIG_DATA',
-    Nlp: 'NLP'
-} as const;
-export type RegisterUserRequestCategoriesEnum = typeof RegisterUserRequestCategoriesEnum[keyof typeof RegisterUserRequestCategoriesEnum];
-
-
 /**
  * Check if a given object implements the RegisterUserRequest interface.
  */
@@ -146,7 +132,7 @@ export function RegisterUserRequestFromJSONTyped(json: any, ignoreDiscriminator:
         'affiliation': json['affiliation'] == null ? undefined : json['affiliation'],
         'annualLeaveCount': json['annualLeaveCount'] == null ? undefined : json['annualLeaveCount'],
         'usedLeaveCount': json['usedLeaveCount'] == null ? undefined : json['usedLeaveCount'],
-        'categories': json['categories'] == null ? undefined : json['categories'],
+        'categoryIds': json['categoryIds'] == null ? undefined : json['categoryIds'],
         'seatNumber': json['seatNumber'] == null ? undefined : json['seatNumber'],
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
         'educations': json['educations'] == null ? undefined : ((json['educations'] as Array<any>).map(UserEducationRequestFromJSON)),
@@ -173,7 +159,7 @@ export function RegisterUserRequestToJSONTyped(value?: RegisterUserRequest | nul
         'affiliation': value['affiliation'],
         'annualLeaveCount': value['annualLeaveCount'],
         'usedLeaveCount': value['usedLeaveCount'],
-        'categories': value['categories'],
+        'categoryIds': value['categoryIds'],
         'seatNumber': value['seatNumber'],
         'phoneNumber': value['phoneNumber'],
         'educations': value['educations'] == null ? undefined : ((value['educations'] as Array<any>).map(UserEducationRequestToJSON)),

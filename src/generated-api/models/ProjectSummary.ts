@@ -20,6 +20,20 @@ import {
     UserSummaryToJSON,
     UserSummaryToJSONTyped,
 } from './UserSummary';
+import type { ProjectCategorySummary } from './ProjectCategorySummary';
+import {
+    ProjectCategorySummaryFromJSON,
+    ProjectCategorySummaryFromJSONTyped,
+    ProjectCategorySummaryToJSON,
+    ProjectCategorySummaryToJSONTyped,
+} from './ProjectCategorySummary';
+import type { ExternalProfessorSummary } from './ExternalProfessorSummary';
+import {
+    ExternalProfessorSummaryFromJSON,
+    ExternalProfessorSummaryFromJSONTyped,
+    ExternalProfessorSummaryToJSON,
+    ExternalProfessorSummaryToJSONTyped,
+} from './ExternalProfessorSummary';
 
 /**
  * 
@@ -41,10 +55,10 @@ export interface ProjectSummary {
     title?: string;
     /**
      * 연구 분야
-     * @type {string}
+     * @type {ProjectCategorySummary}
      * @memberof ProjectSummary
      */
-    category?: ProjectSummaryCategoryEnum;
+    category?: ProjectCategorySummary;
     /**
      * 연구 시작일
      * @type {Date}
@@ -58,17 +72,17 @@ export interface ProjectSummary {
      */
     endDate?: Date;
     /**
-     * PI
-     * @type {string}
+     * PI 목록
+     * @type {Array<ExternalProfessorSummary>}
      * @memberof ProjectSummary
      */
-    pi?: string;
+    piList?: Array<ExternalProfessorSummary>;
     /**
-     * 실무 교수
-     * @type {string}
+     * 실무 교수 목록
+     * @type {Array<ExternalProfessorSummary>}
      * @memberof ProjectSummary
      */
-    practicalProfessor?: string;
+    practicalProfessors?: Array<ExternalProfessorSummary>;
     /**
      * 연구 책임자 목록
      * @type {Array<UserSummary>}
@@ -93,20 +107,14 @@ export interface ProjectSummary {
      * @memberof ProjectSummary
      */
     isPrivate?: boolean;
+    /**
+     * 연구 접근 가능 여부
+     * @type {boolean}
+     * @memberof ProjectSummary
+     */
+    isAccessible?: boolean;
 }
 
-
-/**
- * @export
- */
-export const ProjectSummaryCategoryEnum = {
-    Bioinformatics: 'BIOINFORMATICS',
-    AiPathology: 'AI_PATHOLOGY',
-    AiSignalData: 'AI_SIGNAL_DATA',
-    BigData: 'BIG_DATA',
-    Nlp: 'NLP'
-} as const;
-export type ProjectSummaryCategoryEnum = typeof ProjectSummaryCategoryEnum[keyof typeof ProjectSummaryCategoryEnum];
 
 /**
  * @export
@@ -139,15 +147,16 @@ export function ProjectSummaryFromJSONTyped(json: any, ignoreDiscriminator: bool
         
         'projectId': json['projectId'] == null ? undefined : json['projectId'],
         'title': json['title'] == null ? undefined : json['title'],
-        'category': json['category'] == null ? undefined : json['category'],
+        'category': json['category'] == null ? undefined : ProjectCategorySummaryFromJSON(json['category']),
         'startDate': json['startDate'] == null ? undefined : (new Date(json['startDate'])),
         'endDate': json['endDate'] == null ? undefined : (new Date(json['endDate'])),
-        'pi': json['pi'] == null ? undefined : json['pi'],
-        'practicalProfessor': json['practicalProfessor'] == null ? undefined : json['practicalProfessor'],
+        'piList': json['piList'] == null ? undefined : ((json['piList'] as Array<any>).map(ExternalProfessorSummaryFromJSON)),
+        'practicalProfessors': json['practicalProfessors'] == null ? undefined : ((json['practicalProfessors'] as Array<any>).map(ExternalProfessorSummaryFromJSON)),
         'leaders': json['leaders'] == null ? undefined : ((json['leaders'] as Array<any>).map(UserSummaryFromJSON)),
         'participantCount': json['participantCount'] == null ? undefined : json['participantCount'],
         'status': json['status'] == null ? undefined : json['status'],
         'isPrivate': json['isPrivate'] == null ? undefined : json['isPrivate'],
+        'isAccessible': json['isAccessible'] == null ? undefined : json['isAccessible'],
     };
 }
 
@@ -164,15 +173,16 @@ export function ProjectSummaryToJSONTyped(value?: ProjectSummary | null, ignoreD
         
         'projectId': value['projectId'],
         'title': value['title'],
-        'category': value['category'],
+        'category': ProjectCategorySummaryToJSON(value['category']),
         'startDate': value['startDate'] == null ? undefined : ((value['startDate']).toISOString().substring(0,10)),
         'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString().substring(0,10)),
-        'pi': value['pi'],
-        'practicalProfessor': value['practicalProfessor'],
+        'piList': value['piList'] == null ? undefined : ((value['piList'] as Array<any>).map(ExternalProfessorSummaryToJSON)),
+        'practicalProfessors': value['practicalProfessors'] == null ? undefined : ((value['practicalProfessors'] as Array<any>).map(ExternalProfessorSummaryToJSON)),
         'leaders': value['leaders'] == null ? undefined : ((value['leaders'] as Array<any>).map(UserSummaryToJSON)),
         'participantCount': value['participantCount'],
         'status': value['status'],
         'isPrivate': value['isPrivate'],
+        'isAccessible': value['isAccessible'],
     };
 }
 

@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { ProjectCategorySummary } from './ProjectCategorySummary';
+import {
+    ProjectCategorySummaryFromJSON,
+    ProjectCategorySummaryFromJSONTyped,
+    ProjectCategorySummaryToJSON,
+    ProjectCategorySummaryToJSONTyped,
+} from './ProjectCategorySummary';
 import type { UserEducationSummary } from './UserEducationSummary';
 import {
     UserEducationSummaryFromJSON,
@@ -89,10 +96,10 @@ export interface UserDetail {
     usedLeaveCount?: number;
     /**
      * 연구 분야 목록
-     * @type {Array<string>}
+     * @type {Array<ProjectCategorySummary>}
      * @memberof UserDetail
      */
-    categories?: Array<UserDetailCategoriesEnum>;
+    categories?: Array<ProjectCategorySummary>;
     /**
      * 좌석 번호
      * @type {string}
@@ -135,18 +142,6 @@ export const UserDetailRoleEnum = {
 } as const;
 export type UserDetailRoleEnum = typeof UserDetailRoleEnum[keyof typeof UserDetailRoleEnum];
 
-/**
- * @export
- */
-export const UserDetailCategoriesEnum = {
-    Bioinformatics: 'BIOINFORMATICS',
-    AiPathology: 'AI_PATHOLOGY',
-    AiSignalData: 'AI_SIGNAL_DATA',
-    BigData: 'BIG_DATA',
-    Nlp: 'NLP'
-} as const;
-export type UserDetailCategoriesEnum = typeof UserDetailCategoriesEnum[keyof typeof UserDetailCategoriesEnum];
-
 
 /**
  * Check if a given object implements the UserDetail interface.
@@ -175,7 +170,7 @@ export function UserDetailFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'profileImageUrl': json['profileImageUrl'] == null ? undefined : json['profileImageUrl'],
         'annualLeaveCount': json['annualLeaveCount'] == null ? undefined : json['annualLeaveCount'],
         'usedLeaveCount': json['usedLeaveCount'] == null ? undefined : json['usedLeaveCount'],
-        'categories': json['categories'] == null ? undefined : json['categories'],
+        'categories': json['categories'] == null ? undefined : ((json['categories'] as Array<any>).map(ProjectCategorySummaryFromJSON)),
         'seatNumber': json['seatNumber'] == null ? undefined : json['seatNumber'],
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
         'educations': json['educations'] == null ? undefined : ((json['educations'] as Array<any>).map(UserEducationSummaryFromJSON)),
@@ -205,7 +200,7 @@ export function UserDetailToJSONTyped(value?: UserDetail | null, ignoreDiscrimin
         'profileImageUrl': value['profileImageUrl'],
         'annualLeaveCount': value['annualLeaveCount'],
         'usedLeaveCount': value['usedLeaveCount'],
-        'categories': value['categories'],
+        'categories': value['categories'] == null ? undefined : ((value['categories'] as Array<any>).map(ProjectCategorySummaryToJSON)),
         'seatNumber': value['seatNumber'],
         'phoneNumber': value['phoneNumber'],
         'educations': value['educations'] == null ? undefined : ((value['educations'] as Array<any>).map(UserEducationSummaryToJSON)),

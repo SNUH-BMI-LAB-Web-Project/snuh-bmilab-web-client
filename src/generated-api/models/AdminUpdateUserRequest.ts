@@ -20,6 +20,60 @@ import { mapValues } from '../runtime';
  */
 export interface AdminUpdateUserRequest {
     /**
+     * 사용자 이름
+     * @type {string}
+     * @memberof AdminUpdateUserRequest
+     */
+    name?: string;
+    /**
+     * 이메일 주소
+     * @type {string}
+     * @memberof AdminUpdateUserRequest
+     */
+    email?: string;
+    /**
+     * 기관
+     * @type {string}
+     * @memberof AdminUpdateUserRequest
+     */
+    organization?: string;
+    /**
+     * 부서
+     * @type {string}
+     * @memberof AdminUpdateUserRequest
+     */
+    department?: string;
+    /**
+     * 소속 (있으면)
+     * @type {string}
+     * @memberof AdminUpdateUserRequest
+     */
+    affiliation?: string;
+    /**
+     * 추가된 연구 분야 ID 목록
+     * @type {Array<number>}
+     * @memberof AdminUpdateUserRequest
+     */
+    newCategoryIds?: Array<number>;
+    /**
+     * 삭제된 연구 분야 ID 목록
+     * @type {Array<number>}
+     * @memberof AdminUpdateUserRequest
+     */
+    deletedCategoryIds?: Array<number>;
+    /**
+     * 전화번호
+     * @type {string}
+     * @memberof AdminUpdateUserRequest
+     */
+    phoneNumber?: string;
+    /**
+     * 좌석 번호
+     * @type {string}
+     * @memberof AdminUpdateUserRequest
+     */
+    seatNumber?: string;
+    /**
      * 연가 개수
      * @type {number}
      * @memberof AdminUpdateUserRequest
@@ -50,6 +104,15 @@ export function AdminUpdateUserRequestFromJSONTyped(json: any, ignoreDiscriminat
     }
     return {
         
+        'name': json['name'] == null ? undefined : json['name'],
+        'email': json['email'] == null ? undefined : json['email'],
+        'organization': json['organization'] == null ? undefined : json['organization'],
+        'department': json['department'] == null ? undefined : json['department'],
+        'affiliation': json['affiliation'] == null ? undefined : json['affiliation'],
+        'newCategoryIds': json['newCategoryIds'] == null ? undefined : json['newCategoryIds'],
+        'deletedCategoryIds': json['deletedCategoryIds'] == null ? undefined : json['deletedCategoryIds'],
+        'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
+        'seatNumber': json['seatNumber'] == null ? undefined : json['seatNumber'],
         'annualLeaveCount': json['annualLeaveCount'] == null ? undefined : json['annualLeaveCount'],
         'comment': json['comment'] == null ? undefined : json['comment'],
     };
@@ -66,6 +129,15 @@ export function AdminUpdateUserRequestToJSONTyped(value?: AdminUpdateUserRequest
 
     return {
         
+        'name': value['name'],
+        'email': value['email'],
+        'organization': value['organization'],
+        'department': value['department'],
+        'affiliation': value['affiliation'],
+        'newCategoryIds': value['newCategoryIds'],
+        'deletedCategoryIds': value['deletedCategoryIds'],
+        'phoneNumber': value['phoneNumber'],
+        'seatNumber': value['seatNumber'],
         'annualLeaveCount': value['annualLeaveCount'],
         'comment': value['comment'],
     };
