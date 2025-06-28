@@ -23,10 +23,18 @@ import TimelineFormModal from '@/components/portal/researches/projects/timeline/
 import { TimelineRequest } from '@/generated-api';
 import { toast } from 'sonner';
 
+const timelineApi = new TimelineApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
+
 interface TimelineCardProps {
   projectId: string;
   canEdit: boolean;
 }
+
+// TODO: 타임라인 수정, 삭제 기능 추가 필요
 
 export default function TimelineCard({
   projectId,
@@ -34,18 +42,10 @@ export default function TimelineCard({
 }: TimelineCardProps) {
   const [timelines, setTimelines] = useState<TimelineSummary[]>([]);
 
-  const accessToken = useAuthStore((s) => s.accessToken);
-
   useEffect(() => {
     const fetchTimelines = async () => {
       try {
-        const api = new TimelineApi(
-          new Configuration({
-            basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-            accessToken: async () => accessToken || '',
-          }),
-        );
-        const response = await api.getAllTimelinesByProjectId({
+        const response = await timelineApi.getAllTimelinesByProjectId({
           projectId: Number(projectId),
         });
         setTimelines(response.timelines || []);
@@ -59,14 +59,7 @@ export default function TimelineCard({
 
   const handleSubmit = async (data: TimelineRequest) => {
     try {
-      const api = new TimelineApi(
-        new Configuration({
-          basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-          accessToken: async () => accessToken || '',
-        }),
-      );
-
-      await api.createTimeline({
+      await timelineApi.createTimeline({
         projectId: Number(projectId),
         timelineRequest: data,
       });
