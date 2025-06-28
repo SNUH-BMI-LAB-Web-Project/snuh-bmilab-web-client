@@ -48,13 +48,19 @@ export interface UpdateUserRequest {
      * @type {string}
      * @memberof UpdateUserRequest
      */
-    affiliation?: string;
+    affiliation?: UpdateUserRequestAffiliationEnum;
     /**
-     * 연구 분야 목록
-     * @type {Array<string>}
+     * 추가된 연구 분야 ID 목록
+     * @type {Array<number>}
      * @memberof UpdateUserRequest
      */
-    categories?: Array<UpdateUserRequestCategoriesEnum>;
+    newCategoryIds?: Array<number>;
+    /**
+     * 삭제된 연구 분야 ID 목록
+     * @type {Array<number>}
+     * @memberof UpdateUserRequest
+     */
+    deletedCategoryIds?: Array<number>;
     /**
      * 전화번호
      * @type {string}
@@ -73,14 +79,17 @@ export interface UpdateUserRequest {
 /**
  * @export
  */
-export const UpdateUserRequestCategoriesEnum = {
-    Bioinformatics: 'BIOINFORMATICS',
-    AiPathology: 'AI_PATHOLOGY',
-    AiSignalData: 'AI_SIGNAL_DATA',
-    BigData: 'BIG_DATA',
-    Nlp: 'NLP'
+export const UpdateUserRequestAffiliationEnum = {
+    Professor: 'PROFESSOR',
+    CoPrincipalInvestigator: 'CO_PRINCIPAL_INVESTIGATOR',
+    PostdoctoralResearcher: 'POSTDOCTORAL_RESEARCHER',
+    PhdStudent: 'PHD_STUDENT',
+    MastersStudent: 'MASTERS_STUDENT',
+    TranslationalMedicineTrainee: 'TRANSLATIONAL_MEDICINE_TRAINEE',
+    ResearcherOrIntern: 'RESEARCHER_OR_INTERN',
+    AdministrativeStaff: 'ADMINISTRATIVE_STAFF'
 } as const;
-export type UpdateUserRequestCategoriesEnum = typeof UpdateUserRequestCategoriesEnum[keyof typeof UpdateUserRequestCategoriesEnum];
+export type UpdateUserRequestAffiliationEnum = typeof UpdateUserRequestAffiliationEnum[keyof typeof UpdateUserRequestAffiliationEnum];
 
 
 /**
@@ -105,7 +114,8 @@ export function UpdateUserRequestFromJSONTyped(json: any, ignoreDiscriminator: b
         'organization': json['organization'] == null ? undefined : json['organization'],
         'department': json['department'] == null ? undefined : json['department'],
         'affiliation': json['affiliation'] == null ? undefined : json['affiliation'],
-        'categories': json['categories'] == null ? undefined : json['categories'],
+        'newCategoryIds': json['newCategoryIds'] == null ? undefined : json['newCategoryIds'],
+        'deletedCategoryIds': json['deletedCategoryIds'] == null ? undefined : json['deletedCategoryIds'],
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
         'seatNumber': json['seatNumber'] == null ? undefined : json['seatNumber'],
     };
@@ -127,7 +137,8 @@ export function UpdateUserRequestToJSONTyped(value?: UpdateUserRequest | null, i
         'organization': value['organization'],
         'department': value['department'],
         'affiliation': value['affiliation'],
-        'categories': value['categories'],
+        'newCategoryIds': value['newCategoryIds'],
+        'deletedCategoryIds': value['deletedCategoryIds'],
         'phoneNumber': value['phoneNumber'],
         'seatNumber': value['seatNumber'],
     };

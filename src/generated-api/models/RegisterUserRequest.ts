@@ -62,7 +62,7 @@ export interface RegisterUserRequest {
      * @type {string}
      * @memberof RegisterUserRequest
      */
-    affiliation?: string;
+    affiliation?: RegisterUserRequestAffiliationEnum;
     /**
      * 총 연차 개수
      * @type {number}
@@ -76,11 +76,11 @@ export interface RegisterUserRequest {
      */
     usedLeaveCount?: number;
     /**
-     * 연구 분야 목록
-     * @type {Array<string>}
+     * 연구 분야 ID 목록
+     * @type {Array<number>}
      * @memberof RegisterUserRequest
      */
-    categories?: Array<RegisterUserRequestCategoriesEnum>;
+    categoryIds?: Array<number>;
     /**
      * 좌석 번호
      * @type {string}
@@ -111,14 +111,17 @@ export interface RegisterUserRequest {
 /**
  * @export
  */
-export const RegisterUserRequestCategoriesEnum = {
-    Bioinformatics: 'BIOINFORMATICS',
-    AiPathology: 'AI_PATHOLOGY',
-    AiSignalData: 'AI_SIGNAL_DATA',
-    BigData: 'BIG_DATA',
-    Nlp: 'NLP'
+export const RegisterUserRequestAffiliationEnum = {
+    Professor: 'PROFESSOR',
+    CoPrincipalInvestigator: 'CO_PRINCIPAL_INVESTIGATOR',
+    PostdoctoralResearcher: 'POSTDOCTORAL_RESEARCHER',
+    PhdStudent: 'PHD_STUDENT',
+    MastersStudent: 'MASTERS_STUDENT',
+    TranslationalMedicineTrainee: 'TRANSLATIONAL_MEDICINE_TRAINEE',
+    ResearcherOrIntern: 'RESEARCHER_OR_INTERN',
+    AdministrativeStaff: 'ADMINISTRATIVE_STAFF'
 } as const;
-export type RegisterUserRequestCategoriesEnum = typeof RegisterUserRequestCategoriesEnum[keyof typeof RegisterUserRequestCategoriesEnum];
+export type RegisterUserRequestAffiliationEnum = typeof RegisterUserRequestAffiliationEnum[keyof typeof RegisterUserRequestAffiliationEnum];
 
 
 /**
@@ -146,7 +149,7 @@ export function RegisterUserRequestFromJSONTyped(json: any, ignoreDiscriminator:
         'affiliation': json['affiliation'] == null ? undefined : json['affiliation'],
         'annualLeaveCount': json['annualLeaveCount'] == null ? undefined : json['annualLeaveCount'],
         'usedLeaveCount': json['usedLeaveCount'] == null ? undefined : json['usedLeaveCount'],
-        'categories': json['categories'] == null ? undefined : json['categories'],
+        'categoryIds': json['categoryIds'] == null ? undefined : json['categoryIds'],
         'seatNumber': json['seatNumber'] == null ? undefined : json['seatNumber'],
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
         'educations': json['educations'] == null ? undefined : ((json['educations'] as Array<any>).map(UserEducationRequestFromJSON)),
@@ -173,7 +176,7 @@ export function RegisterUserRequestToJSONTyped(value?: RegisterUserRequest | nul
         'affiliation': value['affiliation'],
         'annualLeaveCount': value['annualLeaveCount'],
         'usedLeaveCount': value['usedLeaveCount'],
-        'categories': value['categories'],
+        'categoryIds': value['categoryIds'],
         'seatNumber': value['seatNumber'],
         'phoneNumber': value['phoneNumber'],
         'educations': value['educations'] == null ? undefined : ((value['educations'] as Array<any>).map(UserEducationRequestToJSON)),

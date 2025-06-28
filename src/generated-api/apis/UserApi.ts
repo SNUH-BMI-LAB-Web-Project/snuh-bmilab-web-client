@@ -50,6 +50,7 @@ export interface DeleteEducationsRequest {
 
 export interface GetAllUsersRequest {
     page?: number;
+    size?: number;
     criteria?: string;
 }
 
@@ -167,6 +168,10 @@ export class UserApi extends runtime.BaseAPI {
 
         if (requestParameters['page'] != null) {
             queryParameters['page'] = requestParameters['page'];
+        }
+
+        if (requestParameters['size'] != null) {
+            queryParameters['size'] = requestParameters['size'];
         }
 
         if (requestParameters['criteria'] != null) {

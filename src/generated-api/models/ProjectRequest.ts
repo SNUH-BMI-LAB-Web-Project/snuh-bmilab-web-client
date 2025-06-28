@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { ExternalProfessorSummary } from './ExternalProfessorSummary';
+import {
+    ExternalProfessorSummaryFromJSON,
+    ExternalProfessorSummaryFromJSONTyped,
+    ExternalProfessorSummaryToJSON,
+    ExternalProfessorSummaryToJSONTyped,
+} from './ExternalProfessorSummary';
+
 /**
  * 
  * @export
@@ -57,16 +65,16 @@ export interface ProjectRequest {
     endDate?: Date;
     /**
      * PI
-     * @type {string}
+     * @type {Array<ExternalProfessorSummary>}
      * @memberof ProjectRequest
      */
-    pi?: string;
+    piList?: Array<ExternalProfessorSummary>;
     /**
      * 실무 교수
-     * @type {string}
+     * @type {Array<ExternalProfessorSummary>}
      * @memberof ProjectRequest
      */
-    practicalProfessor?: string;
+    practicalProfessors?: Array<ExternalProfessorSummary>;
     /**
      * IRB 번호 (있으면)
      * @type {string}
@@ -104,26 +112,18 @@ export interface ProjectRequest {
      */
     isWaiting?: boolean;
     /**
-     * 연구 분야
-     * @type {string}
+     * 연구 분야 아이디
+     * @type {number}
      * @memberof ProjectRequest
      */
-    category?: ProjectRequestCategoryEnum;
+    categoryId?: number;
+    /**
+     * 연구 비공개 여부
+     * @type {boolean}
+     * @memberof ProjectRequest
+     */
+    isPrivate?: boolean;
 }
-
-
-/**
- * @export
- */
-export const ProjectRequestCategoryEnum = {
-    Bioinformatics: 'BIOINFORMATICS',
-    AiPathology: 'AI_PATHOLOGY',
-    AiSignalData: 'AI_SIGNAL_DATA',
-    BigData: 'BIG_DATA',
-    Nlp: 'NLP'
-} as const;
-export type ProjectRequestCategoryEnum = typeof ProjectRequestCategoryEnum[keyof typeof ProjectRequestCategoryEnum];
-
 
 /**
  * Check if a given object implements the ProjectRequest interface.
@@ -148,15 +148,16 @@ export function ProjectRequestFromJSONTyped(json: any, ignoreDiscriminator: bool
         'participantIds': json['participantIds'] == null ? undefined : json['participantIds'],
         'startDate': json['startDate'] == null ? undefined : (new Date(json['startDate'])),
         'endDate': json['endDate'] == null ? undefined : (new Date(json['endDate'])),
-        'pi': json['pi'] == null ? undefined : json['pi'],
-        'practicalProfessor': json['practicalProfessor'] == null ? undefined : json['practicalProfessor'],
+        'piList': json['piList'] == null ? undefined : ((json['piList'] as Array<any>).map(ExternalProfessorSummaryFromJSON)),
+        'practicalProfessors': json['practicalProfessors'] == null ? undefined : ((json['practicalProfessors'] as Array<any>).map(ExternalProfessorSummaryFromJSON)),
         'irbId': json['irbId'] == null ? undefined : json['irbId'],
         'drbId': json['drbId'] == null ? undefined : json['drbId'],
         'irbFileIds': json['irbFileIds'] == null ? undefined : json['irbFileIds'],
         'drbFileIds': json['drbFileIds'] == null ? undefined : json['drbFileIds'],
         'fileIds': json['fileIds'] == null ? undefined : json['fileIds'],
         'isWaiting': json['isWaiting'] == null ? undefined : json['isWaiting'],
-        'category': json['category'] == null ? undefined : json['category'],
+        'categoryId': json['categoryId'] == null ? undefined : json['categoryId'],
+        'isPrivate': json['isPrivate'] == null ? undefined : json['isPrivate'],
     };
 }
 
@@ -177,15 +178,16 @@ export function ProjectRequestToJSONTyped(value?: ProjectRequest | null, ignoreD
         'participantIds': value['participantIds'],
         'startDate': value['startDate'] == null ? undefined : ((value['startDate']).toISOString().substring(0,10)),
         'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString().substring(0,10)),
-        'pi': value['pi'],
-        'practicalProfessor': value['practicalProfessor'],
+        'piList': value['piList'] == null ? undefined : ((value['piList'] as Array<any>).map(ExternalProfessorSummaryToJSON)),
+        'practicalProfessors': value['practicalProfessors'] == null ? undefined : ((value['practicalProfessors'] as Array<any>).map(ExternalProfessorSummaryToJSON)),
         'irbId': value['irbId'],
         'drbId': value['drbId'],
         'irbFileIds': value['irbFileIds'],
         'drbFileIds': value['drbFileIds'],
         'fileIds': value['fileIds'],
         'isWaiting': value['isWaiting'],
-        'category': value['category'],
+        'categoryId': value['categoryId'],
+        'isPrivate': value['isPrivate'],
     };
 }
 
