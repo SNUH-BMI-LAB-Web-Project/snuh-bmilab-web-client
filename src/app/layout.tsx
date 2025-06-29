@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import AppHeader from '@/components/app-header';
 import { Toaster } from '@/components/ui/sonner';
+import QueryProvider from '@/providers/query-provider';
 
 export const metadata: Metadata = {
   title: 'BMI-LAB',
@@ -16,9 +17,11 @@ export default function RootLayout({
   return (
     <html lang="ko" className="h-full">
       <body className="flex h-full flex-col">
-        <AppHeader />
-        <div className="flex flex-1 overflow-hidden">{children}</div>
-        <Toaster />
+        <QueryProvider>
+          <AppHeader />
+          <div className="flex flex-1 overflow-hidden">{children}</div>
+          <Toaster />
+        </QueryProvider>
       </body>
     </html>
   );

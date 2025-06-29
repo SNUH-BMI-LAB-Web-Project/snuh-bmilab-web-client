@@ -23,25 +23,29 @@ import TimelineFormModal from '@/components/portal/researches/projects/timeline/
 import { TimelineRequest } from '@/generated-api';
 import { toast } from 'sonner';
 
+const timelineApi = new TimelineApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
+
 interface TimelineCardProps {
   projectId: string;
+  canEdit: boolean;
 }
 
-export default function TimelineCard({ projectId }: TimelineCardProps) {
-  const [timelines, setTimelines] = useState<TimelineSummary[]>([]);
+// TODO: 타임라인 수정, 삭제 기능 추가 필요
 
-  const accessToken = useAuthStore((s) => s.accessToken);
+export default function TimelineCard({
+  projectId,
+  canEdit,
+}: TimelineCardProps) {
+  const [timelines, setTimelines] = useState<TimelineSummary[]>([]);
 
   useEffect(() => {
     const fetchTimelines = async () => {
       try {
-        const api = new TimelineApi(
-          new Configuration({
-            basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-            accessToken: async () => accessToken || '',
-          }),
-        );
-        const response = await api.getAllTimelinesByProjectId({
+        const response = await timelineApi.getAllTimelinesByProjectId({
           projectId: Number(projectId),
         });
         setTimelines(response.timelines || []);
@@ -55,14 +59,7 @@ export default function TimelineCard({ projectId }: TimelineCardProps) {
 
   const handleSubmit = async (data: TimelineRequest) => {
     try {
-      const api = new TimelineApi(
-        new Configuration({
-          basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-          accessToken: async () => accessToken || '',
-        }),
-      );
-
-      await api.createTimeline({
+      await timelineApi.createTimeline({
         projectId: Number(projectId),
         timelineRequest: data,
       });
@@ -138,9 +135,16 @@ export default function TimelineCard({ projectId }: TimelineCardProps) {
         <TimelineFormModal
           onSubmit={handleSubmit}
           trigger={
-            <Button>
-              <Plus className="h-4 w-4" /> 타임라인 추가
-            </Button>
+            canEdit ? (
+              <Button
+                variant="outline"
+                type="button"
+                size="sm"
+                className="gap-1 px-2 py-1"
+              >
+                <Plus className="h-4 w-4" /> 타임라인 추가
+              </Button>
+            ) : null
           }
         />
       </div>

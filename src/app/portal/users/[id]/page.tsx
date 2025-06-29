@@ -14,22 +14,23 @@ import {
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 
+const adminUserApi = new AdminUserApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
+
 export default function UserDetailPage() {
   const params = useParams();
   const userId = params.id as string;
   const [user, setUser] = useState<UserDetailType | null>(null);
 
-  const api = new AdminUserApi(
-    new Configuration({
-      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-      accessToken: async () => useAuthStore.getState().accessToken || '',
-    }),
-  );
-
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const userData = await api.getUserById({ userId: Number(userId) });
+        const userData = await adminUserApi.getUserById({
+          userId: Number(userId),
+        });
         setUser(userData);
       } catch (err) {
         toast.error('사용자 정보를 불러오는 데 실패했습니다.');
@@ -55,7 +56,7 @@ export default function UserDetailPage() {
         </div>
       </div>
 
-      <UserDetail user={user} />
+      <UserDetail user={user!} />
     </div>
   );
 }

@@ -1,7 +1,4 @@
-import {
-  GetAllProjectsCategoryEnum,
-  GetAllProjectsStatusEnum,
-} from '@/generated-api/apis/ProjectApi';
+import { GetAllProjectsStatusEnum } from '@/generated-api/apis/ProjectApi';
 
 // 연구 상태 → 라벨
 export const PROJECT_STATUS_LABELS: Record<GetAllProjectsStatusEnum, string> = {
@@ -19,15 +16,3 @@ export const PROJECT_STATUS_CLASSES: Record<GetAllProjectsStatusEnum, string> =
     COMPLETED: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
     WAITING: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
   };
-
-// 연구 분야 → 라벨
-export const PROJECT_CATEGORY_LABELS: Record<
-  GetAllProjectsCategoryEnum,
-  string
-> = {
-  BIOINFORMATICS: 'Bioinformatics',
-  AI_PATHOLOGY: 'Medical AI (Pathology)',
-  AI_SIGNAL_DATA: 'Medical AI (Signal data)',
-  BIG_DATA: 'Medical Big Data',
-  NLP: 'NLP',
-};

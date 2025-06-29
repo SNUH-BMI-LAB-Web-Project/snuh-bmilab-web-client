@@ -7,19 +7,19 @@ import { Configuration } from '@/generated-api/runtime';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 
+const userApi = new UserApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
+
 export default function UsersPage() {
   const [users, setUsers] = useState<UserItem[]>([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const api = new UserApi(
-          new Configuration({
-            basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-            accessToken: async () => useAuthStore.getState().accessToken || '',
-          }),
-        );
-        const res: UserFindAllResponse = await api.getAllUsers({
+        const res: UserFindAllResponse = await userApi.getAllUsers({
           page: 0,
           criteria: 'createdAt',
         });
