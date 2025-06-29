@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { UserItem } from '@/generated-api';
 import { Badge } from '@/components/ui/badge';
-import { getCategoryLabel } from '@/utils/project-utils';
 
 export default function UserInfoCard({ user }: { user: UserItem }) {
   const router = useRouter();
@@ -64,8 +63,8 @@ export default function UserInfoCard({ user }: { user: UserItem }) {
         {Array.isArray(user.categories) && (
           <div className="mt-1 flex flex-wrap gap-2">
             {user.categories.map((category) => (
-              <Badge key={category} variant="secondary">
-                {getCategoryLabel(category)}
+              <Badge key={category.categoryId} variant="secondary">
+                {category.name}
               </Badge>
             ))}
           </div>

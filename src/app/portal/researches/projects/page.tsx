@@ -5,22 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PaginatedTable } from '@/components/common/paginated-table';
 import { Badge } from '@/components/ui/badge';
-import { useRouter } from 'next/navigation';
 import {
-  GetAllProjectsCategoryEnum,
   GetAllProjectsStatusEnum,
   ProjectApi,
 } from '@/generated-api/apis/ProjectApi';
 import { ProjectSummary } from '@/generated-api/models/ProjectSummary';
-import {
-  SlidersHorizontal,
-  Search,
-  X,
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-  Lock,
-} from 'lucide-react';
+import { SlidersHorizontal, Search, X, Lock } from 'lucide-react';
 import {
   Select,
   SelectTrigger,
@@ -29,22 +19,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import Link from 'next/link';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
-import { Configuration } from '@/generated-api';
+import { Configuration, ExternalProfessorSummary } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import { cn } from '@/lib/utils';
-import {
-  getCategoryLabel,
-  getStatusClassName,
-  getStatusLabel,
-} from '@/utils/project-utils';
-import ProjectDeleteModal from '@/components/portal/researches/projects/project-delete-modal'; // 경로에 맞게 수정
-import { toast } from 'sonner';
+import { getStatusClassName, getStatusLabel } from '@/utils/project-utils';
+import { useProjectCategories } from '@/hooks/use-project-categories';
 
 const projectApi = new ProjectApi(
   new Configuration({
@@ -57,123 +36,129 @@ const formatSortOption = (option: string) => {
   return `${field},${direction}`;
 };
 
-const getProjectColumns = (
-  currentPage: number,
-  itemsPerPage: number,
-  router: ReturnType<typeof useRouter>,
-  onDeleteClick: (id: number) => void,
-) => [
+const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
   {
     label: 'No',
     className: 'text-center w-[50px]',
-    cell: (_: unknown, i: number) =>
-      ((currentPage - 1) * itemsPerPage + i + 1).toString(),
+    cell: (row: ProjectSummary, i: number) => (
+      <div className={cn(row.isPrivate && 'opacity-50')}>
+        {((currentPage - 1) * itemsPerPage + i + 1).toString()}
+      </div>
+    ),
   },
   {
     label: '제목',
     className: 'text-left truncate overflow-hidden whitespace-nowrap w-[300px]',
-    cell: (row: ProjectSummary) =>
-      row.isPrivate ? (
-        <div className="text-muted-foreground flex cursor-not-allowed items-center gap-1">
-          <Lock className="h-4 w-4" />
-          <span>{row.title}</span>
-        </div>
-      ) : (
-        <Link
-          href={`/portal/researches/projects/${row.projectId}`}
-          className="hover:underline"
-        >
-          {row.title}
-        </Link>
-      ),
+    cell: (row: ProjectSummary) => (
+      <div
+        className={cn('flex items-center gap-1', row.isPrivate && 'opacity-50')}
+      >
+        {row.isPrivate ? (
+          <>
+            <Lock className="h-3 w-3" />
+            <span>{row.title}</span>
+          </>
+        ) : (
+          <Link
+            href={`/portal/researches/projects/${row.projectId}`}
+            className="hover:underline"
+          >
+            {row.title}
+          </Link>
+        )}
+      </div>
+    ),
   },
   {
     label: '연구 분야',
     className: 'text-center w-[150px]',
     cell: (row: ProjectSummary) => (
-      <Badge variant="outline" className="whitespace-nowrap">
-        {getCategoryLabel(row.category)}
-      </Badge>
+      <div className={cn(row.isPrivate && 'opacity-50')}>
+        <Badge variant="outline" className="whitespace-nowrap">
+          {row.category?.name ?? ''}
+        </Badge>
+      </div>
     ),
   },
   {
     label: '연구 상태',
     className: 'text-center w-[150px]',
     cell: (row: ProjectSummary) => (
-      <Badge
-        className={cn('whitespace-nowrap', getStatusClassName(row.status))}
-      >
-        {getStatusLabel(row.status)}
-      </Badge>
+      <div className={cn(row.isPrivate && 'opacity-50')}>
+        <Badge
+          className={cn('whitespace-nowrap', getStatusClassName(row.status))}
+        >
+          {getStatusLabel(row.status)}
+        </Badge>
+      </div>
     ),
   },
   {
     label: 'PI',
     className: 'text-center w-[130px]',
-    cell: (row: ProjectSummary) => row.pi ?? '-',
+    cell: (row: ProjectSummary) => (
+      <div className={cn(row.isPrivate && 'opacity-50')}>
+        {row.piList
+          ?.map((pi: ExternalProfessorSummary) => pi.name)
+          .filter(Boolean)
+          .join(', ') || ''}
+      </div>
+    ),
   },
   {
     label: '실무교수',
     className: 'text-center w-[130px]',
-    cell: (row: ProjectSummary) => row.practicalProfessor ?? '-',
+    cell: (row: ProjectSummary) => (
+      <div className={cn(row.isPrivate && 'opacity-50')}>
+        {row.practicalProfessors
+          ?.map(
+            (practicalProfessor: ExternalProfessorSummary) =>
+              practicalProfessor.name,
+          )
+          .filter(Boolean)
+          .join(', ') || ''}
+      </div>
+    ),
   },
   {
     label: '책임자',
     className: 'text-center w-[130px]',
-    cell: (row: ProjectSummary) =>
-      row.leaders?.map((leader) => leader.name).join(', ') ?? '-',
+    cell: (row: ProjectSummary) => (
+      <div className={cn(row.isPrivate && 'opacity-50')}>
+        {row.leaders?.map((leader) => leader.name).join(', ') ?? '-'}
+      </div>
+    ),
   },
   {
     label: '참여자',
     className: 'text-center w-[130px]',
-    cell: (row: ProjectSummary) => `${row.participantCount ?? 0}명`,
+    cell: (row: ProjectSummary) => (
+      <div className={cn(row.isPrivate && 'opacity-50')}>
+        {`${row.participantCount ?? 0}명`}
+      </div>
+    ),
   },
   {
     label: '연구 기간',
     className: 'text-center w-[200px]',
-    cell: (row: ProjectSummary) =>
-      `${row.startDate?.toISOString().substring(0, 10)} ~ ${row.endDate ? row.endDate.toISOString().substring(0, 10) : ''}`,
+    cell: (row: ProjectSummary) => (
+      <div className={cn(row.isPrivate && 'opacity-50')}>
+        {`${row.startDate?.toISOString().substring(0, 10)} ~ ${
+          row.endDate ? row.endDate.toISOString().substring(0, 10) : ''
+        }`}
+      </div>
+    ),
   },
-  // {
-  //   label: '',
-  //   className: 'text-center w-[50px]',
-  //   cell: (row: ProjectSummary) => (
-  //     <div className="flex justify-end pr-2">
-  //       <DropdownMenu>
-  //         <DropdownMenuTrigger asChild>
-  //           <Button variant="ghost" size="icon">
-  //             <MoreHorizontal className="h-4 w-4" />
-  //           </Button>
-  //         </DropdownMenuTrigger>
-  //         <DropdownMenuContent align="end">
-  //           <DropdownMenuItem
-  //             onClick={() =>
-  //               router.push(`/portal/researches/projects/${row.projectId}/edit`)
-  //             }
-  //           >
-  //             <Pencil className="mr-2 h-4 w-4" /> 수정
-  //           </DropdownMenuItem>
-  //           <DropdownMenuItem
-  //             className="text-destructive focus:text-destructive"
-  //             onClick={() => {
-  //               onDeleteClick(row.projectId!);
-  //             }}
-  //           >
-  //             <Trash2 className="text-destructive mr-2 h-4 w-4" /> 삭제
-  //           </DropdownMenuItem>
-  //         </DropdownMenuContent>
-  //       </DropdownMenu>
-  //     </div>
-  //   ),
-  // },
 ];
 
+// TODO: C) 500 에러 보고 및 테스트 R) search param 점검 U) leaderIds 누락 개선 D) 문제 없음
+
 export default function ProjectPage() {
-  const router = useRouter();
+  const { data: categoryData } = useProjectCategories();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [committedSearchTerm, setCommittedSearchTerm] = useState('');
-  const [fieldFilter, setFieldFilter] = useState('all');
+  const [fieldFilter, setFieldFilter] = useState<'all' | number>('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [leaderFilter, setLeaderFilter] = useState('all');
   const [piTerm, setPiTerm] = useState('');
@@ -192,20 +177,12 @@ export default function ProjectPage() {
   const [totalPage, setTotalPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [projectIdToDelete, setProjectIdToDelete] = useState<number | null>(
-    null,
-  );
-
   const fetchProjects = useCallback(async () => {
     setLoading(true);
 
     const res = await projectApi.getAllProjects({
       search: committedSearchTerm || undefined,
-      category:
-        fieldFilter !== 'all'
-          ? (fieldFilter as GetAllProjectsCategoryEnum)
-          : undefined,
+      categoryId: fieldFilter !== 'all' ? Number(fieldFilter) : undefined,
       status:
         statusFilter !== 'all'
           ? (statusFilter as GetAllProjectsStatusEnum)
@@ -256,20 +233,6 @@ export default function ProjectPage() {
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
-
-  const handleDelete = async () => {
-    if (projectIdToDelete == null) return;
-    try {
-      await projectApi.deleteProjectById({ projectId: projectIdToDelete });
-      toast.success('프로젝트가 삭제되었습니다');
-      setProjectIdToDelete(null);
-      fetchProjects();
-    } catch (e) {
-      toast.error('프로젝트 삭제에 실패했습니다');
-    } finally {
-      setShowDeleteDialog(false);
-    }
-  };
 
   const resetFilters = () => {
     setSearchTerm('');
@@ -342,15 +305,25 @@ export default function ProjectPage() {
             {/* 1줄: 분야 + 상태 */}
             <div className="flex flex-row gap-4">
               {/* 연구 분야 필터 */}
-              <Select value={fieldFilter} onValueChange={setFieldFilter}>
+
+              <Select
+                value={fieldFilter === 'all' ? 'all' : String(fieldFilter)}
+                onValueChange={(value) => {
+                  setFieldFilter(value === 'all' ? 'all' : Number(value));
+                  setCurrentPage(1); // 페이지 초기화
+                }}
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="연구 분야" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">모든 분야</SelectItem>
-                  {Object.values(GetAllProjectsCategoryEnum).map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {getCategoryLabel(category)}
+                  {categoryData?.map((cat) => (
+                    <SelectItem
+                      key={cat.categoryId}
+                      value={String(cat.categoryId)}
+                    >
+                      {cat.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -428,15 +401,7 @@ export default function ProjectPage() {
         <PaginatedTable
           data={projects}
           rowKey={(row) => String(row.projectId)}
-          columns={getProjectColumns(
-            currentPage,
-            itemsPerPage,
-            router,
-            (id) => {
-              setProjectIdToDelete(id);
-              setShowDeleteDialog(true);
-            },
-          )}
+          columns={getProjectColumns(currentPage, itemsPerPage)}
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
           itemsPerPage={itemsPerPage}
@@ -444,12 +409,6 @@ export default function ProjectPage() {
           totalPage={totalPage}
           loading={loading}
         />
-
-        {/* <ProjectDeleteModal */}
-        {/*   open={showDeleteDialog} */}
-        {/*   onOpenChange={setShowDeleteDialog} */}
-        {/*   onConfirm={handleDelete} */}
-        {/* /> */}
       </div>
     </div>
   );

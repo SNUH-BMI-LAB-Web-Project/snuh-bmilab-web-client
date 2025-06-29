@@ -15,13 +15,13 @@ import { useAuthStore } from '@/store/auth-store';
 
 const baseNav = [
   {
-    title: '사용자',
+    title: '인사',
     url: '/portal/users',
     icon: Users,
     items: [
       { title: '연명부', url: '/portal/users' },
-      { title: '휴가 신청', url: '/portal/users/leaves' },
-      { title: '자리배치도', url: '/portal/users/seats' },
+      // { title: '휴가 신청', url: '/portal/users/leaves' },
+      // { title: '자리배치도', url: '/portal/users/seats' },
     ],
   },
   {
@@ -34,16 +34,16 @@ const baseNav = [
     title: '연구',
     url: '/portal/researches',
     icon: FolderSearch,
-    items: [
-      { title: 'RSS 공고', url: '/portal/researches/rss' },
-      { title: '연구 & 프로젝트', url: '/portal/researches/projects' },
-    ],
+    items: [{ title: '연구 & 프로젝트', url: '/portal/researches/projects' }],
   },
   {
     title: '기타',
     url: '/portal/etc',
     icon: CircleFadingPlus,
-    items: [{ title: '정보 게시판', url: '/portal/etc/board' }],
+    items: [
+      { title: 'RSS 공고', url: '/portal/etc/rss' },
+      // { title: '정보 게시판', url: '/portal/etc/board' },
+    ],
   },
 ];
 

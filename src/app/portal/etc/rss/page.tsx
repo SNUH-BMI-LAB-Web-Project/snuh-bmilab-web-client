@@ -12,6 +12,12 @@ import { formatDateTimeVer3 } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 
+const ntisrssApi = new NTISRSSApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
+
 const getProjectColumns = () => [
   {
     label: 'No',
@@ -66,6 +72,8 @@ const getProjectColumns = () => [
   },
 ];
 
+// TODO: RSS 검색 옵션 추가 (BE 구현 후)
+
 export default function RssPage() {
   const [rssItems, setRssItems] = useState<RSSItem[]>([]);
   const [totalPage, setTotalPage] = useState(0);
@@ -82,14 +90,7 @@ export default function RssPage() {
     const fetchRSS = async () => {
       setLoading(true);
       try {
-        const api = new NTISRSSApi(
-          new Configuration({
-            basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-            accessToken: async () => useAuthStore.getState().accessToken || '',
-          }),
-        );
-
-        const response = await api.getAllRssAssignments({
+        const response = await ntisrssApi.getAllRssAssignments({
           page: currentPage - 1,
           size: itemsPerPage,
           search: committedSearchTerm || undefined,

@@ -23,6 +23,7 @@ import type {
   ProjectRequest,
   ReportFindAllResponse,
   SearchProjectResponse,
+  UserProjectFindAllResponse,
 } from '../models/index';
 import {
     ErrorResponseFromJSON,
@@ -41,6 +42,8 @@ import {
     ReportFindAllResponseToJSON,
     SearchProjectResponseFromJSON,
     SearchProjectResponseToJSON,
+    UserProjectFindAllResponseFromJSON,
+    UserProjectFindAllResponseToJSON,
 } from '../models/index';
 
 export interface CompleteProjectRequest {
@@ -68,7 +71,7 @@ export interface GetAllProjectFilesRequest {
 export interface GetAllProjectsRequest {
     search?: string;
     leaderId?: number;
-    category?: GetAllProjectsCategoryEnum;
+    categoryId?: number;
     status?: GetAllProjectsStatusEnum;
     pi?: string;
     practicalProfessor?: string;
@@ -86,6 +89,10 @@ export interface GetReportsByProjectRequest {
     userId?: number;
     startDate?: Date;
     endDate?: Date;
+}
+
+export interface GetUserProjectsRequest {
+    userId: number;
 }
 
 export interface SearchProjectRequest {
@@ -349,8 +356,8 @@ export class ProjectApi extends runtime.BaseAPI {
             queryParameters['leaderId'] = requestParameters['leaderId'];
         }
 
-        if (requestParameters['category'] != null) {
-            queryParameters['category'] = requestParameters['category'];
+        if (requestParameters['categoryId'] != null) {
+            queryParameters['categoryId'] = requestParameters['categoryId'];
         }
 
         if (requestParameters['status'] != null) {
@@ -505,6 +512,51 @@ export class ProjectApi extends runtime.BaseAPI {
     }
 
     /**
+     * 사용자가 참여하는 연구 목록을 조회하는 GET API
+     * 사용자 연구 조회
+     */
+    async getUserProjectsRaw(requestParameters: GetUserProjectsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserProjectFindAllResponse>> {
+        if (requestParameters['userId'] == null) {
+            throw new runtime.RequiredError(
+                'userId',
+                'Required parameter "userId" was null or undefined when calling getUserProjects().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/projects/users/{userId}`.replace(`{${"userId"}}`, encodeURIComponent(String(requestParameters['userId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserProjectFindAllResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * 사용자가 참여하는 연구 목록을 조회하는 GET API
+     * 사용자 연구 조회
+     */
+    async getUserProjects(requestParameters: GetUserProjectsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserProjectFindAllResponse> {
+        const response = await this.getUserProjectsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * 연구 이름으로 목록을 간단하게 검색하는 GET API
+     * 연구 검색
      */
     async searchProjectRaw(requestParameters: SearchProjectRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SearchProjectResponse>> {
         const queryParameters: any = {};
@@ -538,6 +590,8 @@ export class ProjectApi extends runtime.BaseAPI {
     }
 
     /**
+     * 연구 이름으로 목록을 간단하게 검색하는 GET API
+     * 연구 검색
      */
     async searchProject(requestParameters: SearchProjectRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SearchProjectResponse> {
         const response = await this.searchProjectRaw(requestParameters, initOverrides);
@@ -598,17 +652,6 @@ export class ProjectApi extends runtime.BaseAPI {
 
 }
 
-/**
- * @export
- */
-export const GetAllProjectsCategoryEnum = {
-    Bioinformatics: 'BIOINFORMATICS',
-    AiPathology: 'AI_PATHOLOGY',
-    AiSignalData: 'AI_SIGNAL_DATA',
-    BigData: 'BIG_DATA',
-    Nlp: 'NLP'
-} as const;
-export type GetAllProjectsCategoryEnum = typeof GetAllProjectsCategoryEnum[keyof typeof GetAllProjectsCategoryEnum];
 /**
  * @export
  */

@@ -39,13 +39,7 @@ export default function ProjectDetailPage({
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const api = new ProjectApi(
-          new Configuration({
-            basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-            accessToken: async () => useAuthStore.getState().accessToken || '',
-          }),
-        );
-        const data = await api.getProjectById({ projectId: Number(id) });
+        const data = await projectApi.getProjectById({ projectId: Number(id) });
         setProject(data);
       } catch (err) {
         toast.error('프로젝트 정보를 불러오는 데 실패했습니다.');

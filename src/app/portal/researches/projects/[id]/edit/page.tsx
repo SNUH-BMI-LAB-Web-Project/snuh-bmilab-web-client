@@ -37,7 +37,6 @@ export default function EditProjectPage({
         });
         setProject(data);
       } catch (error) {
-        // TODO: 토스트 에러 처리
         console.error('프로젝트 조회 실패:', error);
       } finally {
         setLoading(false);
@@ -75,6 +74,7 @@ export default function EditProjectPage({
         },
       });
 
+      console.log(data);
       alert('프로젝트가 성공적으로 수정되었습니다!');
       router.push('/portal/researches/projects');
     } catch (error) {

@@ -60,7 +60,7 @@ export default function ProjectInfoForm({
                 <div className="flex items-center justify-between gap-2 text-sm">
                   <span>연구 분야</span>
                   <Badge variant="outline" className="whitespace-nowrap">
-                    {project.category}
+                    {project.category?.name ?? '없음'}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between gap-2 text-sm">
@@ -107,14 +107,20 @@ export default function ProjectInfoForm({
                 <div className="flex flex-col">
                   <span className="mb-1 font-semibold">PI</span>
                   <div className="text-muted-foreground flex flex-wrap gap-1 text-sm font-normal">
-                    {project.pi}
+                    {(project.piList ?? [])
+                      .map((pi) => pi.name)
+                      .filter(Boolean)
+                      .join(', ') || '없음'}
                   </div>
                 </div>
 
                 <div className="flex flex-col">
                   <span className="mb-1 font-semibold">실무 교수</span>
                   <div className="text-muted-foreground flex flex-wrap gap-1 text-sm font-normal">
-                    {project.practicalProfessor}
+                    {(project.practicalProfessors ?? [])
+                      .map((prof) => prof.name)
+                      .filter(Boolean)
+                      .join(', ') || '없음'}
                   </div>
                 </div>
 

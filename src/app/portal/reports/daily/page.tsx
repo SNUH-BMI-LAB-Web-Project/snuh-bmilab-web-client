@@ -20,21 +20,28 @@ interface ReportFilter {
   project?: string;
 }
 
+const projectApi = new ProjectApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
+
+// TODO: 해당 유저가 속한 프로젝트 리스트만 불러오기
+
 export default function DailyPage() {
   const [filters, setFilters] = useState<ReportFilter>({});
   const [projects, setProjects] = useState<SearchProjectItem[]>([]);
 
-  const api = new ProjectApi(
-    new Configuration({
-      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-      accessToken: async () => useAuthStore.getState().accessToken || '',
-    }),
-  );
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleReportCreated = () => {
+    setRefreshKey((prev) => prev + 1);
+  };
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await api.searchProject({ all: true });
+        const res = await projectApi.searchProject({ all: true });
         setProjects(
           res.projects?.map((project) => ({
             projectId: project.projectId,
@@ -73,7 +80,10 @@ export default function DailyPage() {
           <CardTitle className="text-lg">새 업무 보고 작성</CardTitle>
         </CardHeader>
         <CardContent>
-          <ReportForm projectList={projects} />
+          <ReportForm
+            projectList={projects}
+            onReportCreated={handleReportCreated}
+          />
         </CardContent>
       </Card>
 
@@ -103,7 +113,7 @@ export default function DailyPage() {
             </Select>
           </div>
         </div>
-        <ReportFeed filters={filters} projectList={projects} />
+        <ReportFeed key={refreshKey} filters={filters} projectList={projects} />
       </div>
     </div>
   );

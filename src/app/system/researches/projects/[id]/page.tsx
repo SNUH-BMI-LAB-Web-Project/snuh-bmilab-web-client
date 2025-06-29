@@ -4,16 +4,6 @@ import React, { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { ArrowLeft, Edit, Trash } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils';
 import Image from 'next/image';
@@ -22,10 +12,17 @@ import { ProjectDetail } from '@/generated-api/models/ProjectDetail';
 import { Configuration } from '@/generated-api/runtime';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
-import { canDeleteProject, canEditProject } from '@/data/auth';
+import { canDeleteProject, canEditProject } from '@/utils/project-utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProjectInfoForm from '@/components/portal/researches/projects/project-info-form';
 import ProjectArchiveForm from '@/components/portal/researches/projects/project-archive-form';
+import ProjectDeleteModal from '@/components/portal/researches/projects/project-delete-modal';
+
+const projectApi = new ProjectApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
 
 export default function ProjectDetailPage({
   params,
@@ -33,21 +30,16 @@ export default function ProjectDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
+  const { id } = use(params);
+
   const [project, setProject] = useState<ProjectDetail>({});
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [tab, setTab] = useState('info');
 
-  const { id } = use(params);
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const api = new ProjectApi(
-          new Configuration({
-            basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-            accessToken: async () => useAuthStore.getState().accessToken || '',
-          }),
-        );
-        const data = await api.getProjectById({ projectId: Number(id) });
+        const data = await projectApi.getProjectById({ projectId: Number(id) });
         setProject(data);
       } catch (err) {
         toast.error('프로젝트 정보를 불러오는 데 실패했습니다.');
@@ -58,29 +50,32 @@ export default function ProjectDetailPage({
   }, [id]);
 
   const currentUserId = useAuthStore.getState().user?.userId;
-  const userRole = useAuthStore.getState().role;
+  const leaderIds = project?.leaders?.map((u) => String(u.userId)) ?? [];
+  const participantIds =
+    project?.participants?.map((u) => String(u.userId)) ?? []; // 참여자 리스트가 필요합니다
+  const authorId = String(project?.author?.userId ?? '');
+  const currentId = String(currentUserId);
 
   const canEdit =
     project && currentUserId
-      ? canEditProject(
-          project.leaders?.map((u) => String(u.userId)) ?? [],
-          String(currentUserId),
-        )
+      ? canEditProject(leaderIds, participantIds, authorId, currentId)
       : false;
 
   const canDelete =
     project && currentUserId
-      ? canDeleteProject(
-          project.leaders?.map((u) => String(u.userId)) ?? [],
-          String(project.author?.userId),
-          String(currentUserId),
-          userRole as 'USER' | 'ADMIN',
-        )
+      ? canDeleteProject(leaderIds, authorId, currentId)
       : false;
 
-  const handleDelete = () => {
-    // 실제 삭제 로직 필요
-    router.push('/');
+  const handleDelete = async () => {
+    try {
+      await projectApi.deleteProjectById({ projectId: Number(id) });
+      toast.success('프로젝트가 삭제되었습니다');
+      router.push('/portal/researches/projects');
+    } catch (e) {
+      toast.error('프로젝트 삭제에 실패했습니다');
+    } finally {
+      setShowDeleteAlert(false);
+    }
   };
 
   return (
@@ -164,6 +159,7 @@ export default function ProjectDetailPage({
           <ProjectInfoForm
             id={project.projectId?.toString() ?? ''}
             project={project}
+            canEdit={canEdit}
           />
         </TabsContent>
 
@@ -172,25 +168,11 @@ export default function ProjectDetailPage({
         </TabsContent>
       </Tabs>
 
-      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>프로젝트 삭제</AlertDialogTitle>
-            <AlertDialogDescription>
-              이 프로젝트를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              삭제
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ProjectDeleteModal
+        open={showDeleteAlert}
+        onOpenChange={setShowDeleteAlert}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

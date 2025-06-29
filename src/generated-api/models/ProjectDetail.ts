@@ -20,6 +20,20 @@ import {
     UserSummaryToJSON,
     UserSummaryToJSONTyped,
 } from './UserSummary';
+import type { ProjectCategorySummary } from './ProjectCategorySummary';
+import {
+    ProjectCategorySummaryFromJSON,
+    ProjectCategorySummaryFromJSONTyped,
+    ProjectCategorySummaryToJSON,
+    ProjectCategorySummaryToJSONTyped,
+} from './ProjectCategorySummary';
+import type { ExternalProfessorSummary } from './ExternalProfessorSummary';
+import {
+    ExternalProfessorSummaryFromJSON,
+    ExternalProfessorSummaryFromJSONTyped,
+    ExternalProfessorSummaryToJSON,
+    ExternalProfessorSummaryToJSONTyped,
+} from './ExternalProfessorSummary';
 import type { ProjectFileSummary } from './ProjectFileSummary';
 import {
     ProjectFileSummaryFromJSON,
@@ -84,10 +98,22 @@ export interface ProjectDetail {
     participants?: Array<UserSummary>;
     /**
      * 연구 분야
-     * @type {string}
+     * @type {ProjectCategorySummary}
      * @memberof ProjectDetail
      */
-    category?: ProjectDetailCategoryEnum;
+    category?: ProjectCategorySummary;
+    /**
+     * 연구 비공개 여부
+     * @type {boolean}
+     * @memberof ProjectDetail
+     */
+    isPrivate?: boolean;
+    /**
+     * 연구 페이지 접근 가능 여부
+     * @type {boolean}
+     * @memberof ProjectDetail
+     */
+    isAccessible?: boolean;
     /**
      * 연구 상태
      * @type {string}
@@ -107,17 +133,17 @@ export interface ProjectDetail {
      */
     drbId?: string;
     /**
-     * PI
-     * @type {string}
+     * PI 목록
+     * @type {Array<ExternalProfessorSummary>}
      * @memberof ProjectDetail
      */
-    pi?: string;
+    piList?: Array<ExternalProfessorSummary>;
     /**
-     * 실무 교수
-     * @type {string}
+     * 실무 교수 목록
+     * @type {Array<ExternalProfessorSummary>}
      * @memberof ProjectDetail
      */
-    practicalProfessor?: string;
+    practicalProfessors?: Array<ExternalProfessorSummary>;
     /**
      * 첨부된 파일 정보 목록
      * @type {Array<ProjectFileSummary>}
@@ -144,18 +170,6 @@ export interface ProjectDetail {
     createdAt?: Date;
 }
 
-
-/**
- * @export
- */
-export const ProjectDetailCategoryEnum = {
-    Bioinformatics: 'BIOINFORMATICS',
-    AiPathology: 'AI_PATHOLOGY',
-    AiSignalData: 'AI_SIGNAL_DATA',
-    BigData: 'BIG_DATA',
-    Nlp: 'NLP'
-} as const;
-export type ProjectDetailCategoryEnum = typeof ProjectDetailCategoryEnum[keyof typeof ProjectDetailCategoryEnum];
 
 /**
  * @export
@@ -194,12 +208,14 @@ export function ProjectDetailFromJSONTyped(json: any, ignoreDiscriminator: boole
         'endDate': json['endDate'] == null ? undefined : (new Date(json['endDate'])),
         'leaders': json['leaders'] == null ? undefined : ((json['leaders'] as Array<any>).map(UserSummaryFromJSON)),
         'participants': json['participants'] == null ? undefined : ((json['participants'] as Array<any>).map(UserSummaryFromJSON)),
-        'category': json['category'] == null ? undefined : json['category'],
+        'category': json['category'] == null ? undefined : ProjectCategorySummaryFromJSON(json['category']),
+        'isPrivate': json['isPrivate'] == null ? undefined : json['isPrivate'],
+        'isAccessible': json['isAccessible'] == null ? undefined : json['isAccessible'],
         'status': json['status'] == null ? undefined : json['status'],
         'irbId': json['irbId'] == null ? undefined : json['irbId'],
         'drbId': json['drbId'] == null ? undefined : json['drbId'],
-        'pi': json['pi'] == null ? undefined : json['pi'],
-        'practicalProfessor': json['practicalProfessor'] == null ? undefined : json['practicalProfessor'],
+        'piList': json['piList'] == null ? undefined : ((json['piList'] as Array<any>).map(ExternalProfessorSummaryFromJSON)),
+        'practicalProfessors': json['practicalProfessors'] == null ? undefined : ((json['practicalProfessors'] as Array<any>).map(ExternalProfessorSummaryFromJSON)),
         'files': json['files'] == null ? undefined : ((json['files'] as Array<any>).map(ProjectFileSummaryFromJSON)),
         'irbFiles': json['irbFiles'] == null ? undefined : ((json['irbFiles'] as Array<any>).map(ProjectFileSummaryFromJSON)),
         'drbFiles': json['drbFiles'] == null ? undefined : ((json['drbFiles'] as Array<any>).map(ProjectFileSummaryFromJSON)),
@@ -226,12 +242,14 @@ export function ProjectDetailToJSONTyped(value?: ProjectDetail | null, ignoreDis
         'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString().substring(0,10)),
         'leaders': value['leaders'] == null ? undefined : ((value['leaders'] as Array<any>).map(UserSummaryToJSON)),
         'participants': value['participants'] == null ? undefined : ((value['participants'] as Array<any>).map(UserSummaryToJSON)),
-        'category': value['category'],
+        'category': ProjectCategorySummaryToJSON(value['category']),
+        'isPrivate': value['isPrivate'],
+        'isAccessible': value['isAccessible'],
         'status': value['status'],
         'irbId': value['irbId'],
         'drbId': value['drbId'],
-        'pi': value['pi'],
-        'practicalProfessor': value['practicalProfessor'],
+        'piList': value['piList'] == null ? undefined : ((value['piList'] as Array<any>).map(ExternalProfessorSummaryToJSON)),
+        'practicalProfessors': value['practicalProfessors'] == null ? undefined : ((value['practicalProfessors'] as Array<any>).map(ExternalProfessorSummaryToJSON)),
         'files': value['files'] == null ? undefined : ((value['files'] as Array<any>).map(ProjectFileSummaryToJSON)),
         'irbFiles': value['irbFiles'] == null ? undefined : ((value['irbFiles'] as Array<any>).map(ProjectFileSummaryToJSON)),
         'drbFiles': value['drbFiles'] == null ? undefined : ((value['drbFiles'] as Array<any>).map(ProjectFileSummaryToJSON)),
