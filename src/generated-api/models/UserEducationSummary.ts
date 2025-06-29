@@ -13,13 +13,20 @@
  */
 
 import { mapValues } from '../runtime';
-import type { UserEducationSummaryStartYearMonth } from './UserEducationSummaryStartYearMonth';
+import type { UserEducationRequestEndYearMonth } from './UserEducationRequestEndYearMonth';
 import {
-    UserEducationSummaryStartYearMonthFromJSON,
-    UserEducationSummaryStartYearMonthFromJSONTyped,
-    UserEducationSummaryStartYearMonthToJSON,
-    UserEducationSummaryStartYearMonthToJSONTyped,
-} from './UserEducationSummaryStartYearMonth';
+    UserEducationRequestEndYearMonthFromJSON,
+    UserEducationRequestEndYearMonthFromJSONTyped,
+    UserEducationRequestEndYearMonthToJSON,
+    UserEducationRequestEndYearMonthToJSONTyped,
+} from './UserEducationRequestEndYearMonth';
+import type { UserEducationRequestStartYearMonth } from './UserEducationRequestStartYearMonth';
+import {
+    UserEducationRequestStartYearMonthFromJSON,
+    UserEducationRequestStartYearMonthFromJSONTyped,
+    UserEducationRequestStartYearMonthToJSON,
+    UserEducationRequestStartYearMonthToJSONTyped,
+} from './UserEducationRequestStartYearMonth';
 
 /**
  * 
@@ -28,35 +35,35 @@ import {
  */
 export interface UserEducationSummary {
     /**
-     * 
+     * 사용자 학력 ID
      * @type {number}
      * @memberof UserEducationSummary
      */
     educationId?: number;
     /**
-     * 
+     * 학교 또는 교육 과정명
      * @type {string}
      * @memberof UserEducationSummary
      */
     title?: string;
     /**
-     * 
-     * @type {UserEducationSummaryStartYearMonth}
-     * @memberof UserEducationSummary
-     */
-    startYearMonth?: UserEducationSummaryStartYearMonth;
-    /**
-     * 
-     * @type {UserEducationSummaryStartYearMonth}
-     * @memberof UserEducationSummary
-     */
-    endYearMonth?: UserEducationSummaryStartYearMonth;
-    /**
-     * 
+     * 학적 상태 (재학, 휴학, 졸업)
      * @type {string}
      * @memberof UserEducationSummary
      */
     status?: UserEducationSummaryStatusEnum;
+    /**
+     * 
+     * @type {UserEducationRequestStartYearMonth}
+     * @memberof UserEducationSummary
+     */
+    startYearMonth?: UserEducationRequestStartYearMonth;
+    /**
+     * 
+     * @type {UserEducationRequestEndYearMonth}
+     * @memberof UserEducationSummary
+     */
+    endYearMonth?: UserEducationRequestEndYearMonth;
 }
 
 
@@ -90,9 +97,9 @@ export function UserEducationSummaryFromJSONTyped(json: any, ignoreDiscriminator
         
         'educationId': json['educationId'] == null ? undefined : json['educationId'],
         'title': json['title'] == null ? undefined : json['title'],
-        'startYearMonth': json['startYearMonth'] == null ? undefined : UserEducationSummaryStartYearMonthFromJSON(json['startYearMonth']),
-        'endYearMonth': json['endYearMonth'] == null ? undefined : UserEducationSummaryStartYearMonthFromJSON(json['endYearMonth']),
         'status': json['status'] == null ? undefined : json['status'],
+        'startYearMonth': json['startYearMonth'] == null ? undefined : UserEducationRequestStartYearMonthFromJSON(json['startYearMonth']),
+        'endYearMonth': json['endYearMonth'] == null ? undefined : UserEducationRequestEndYearMonthFromJSON(json['endYearMonth']),
     };
 }
 
@@ -109,9 +116,9 @@ export function UserEducationSummaryToJSONTyped(value?: UserEducationSummary | n
         
         'educationId': value['educationId'],
         'title': value['title'],
-        'startYearMonth': UserEducationSummaryStartYearMonthToJSON(value['startYearMonth']),
-        'endYearMonth': UserEducationSummaryStartYearMonthToJSON(value['endYearMonth']),
         'status': value['status'],
+        'startYearMonth': UserEducationRequestStartYearMonthToJSON(value['startYearMonth']),
+        'endYearMonth': UserEducationRequestEndYearMonthToJSON(value['endYearMonth']),
     };
 }
 

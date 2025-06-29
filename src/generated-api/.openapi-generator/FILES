@@ -55,7 +55,6 @@ models/UserEducationRequest.ts
 models/UserEducationRequestEndYearMonth.ts
 models/UserEducationRequestStartYearMonth.ts
 models/UserEducationSummary.ts
-models/UserEducationSummaryStartYearMonth.ts
 models/UserFindAllResponse.ts
 models/UserItem.ts
 models/UserProjectFindAllResponse.ts

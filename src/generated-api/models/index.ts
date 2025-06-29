@@ -43,7 +43,6 @@ export * from './UserEducationRequest';
 export * from './UserEducationRequestEndYearMonth';
 export * from './UserEducationRequestStartYearMonth';
 export * from './UserEducationSummary';
-export * from './UserEducationSummaryStartYearMonth';
 export * from './UserFindAllResponse';
 export * from './UserItem';
 export * from './UserProjectFindAllResponse';
