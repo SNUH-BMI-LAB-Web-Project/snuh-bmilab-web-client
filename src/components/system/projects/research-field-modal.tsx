@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,99 +31,138 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { BookOpen, Plus, Edit, Trash2, Save, X, Tag } from 'lucide-react';
 import {
-  BookOpen,
-  Plus,
-  Edit,
-  Trash2,
-  Save,
-  X,
-  Target,
-  Tag,
-} from 'lucide-react';
-
-// 목업 데이터 - 단순화
-const mockResearchFields = [
-  { id: '1', name: 'Natural Language Processing' },
-  { id: '2', name: 'Computer Vision' },
-  { id: '3', name: 'Machine Learning' },
-  { id: '4', name: 'Deep Learning' },
-  { id: '5', name: 'Bioinformatics' },
-  { id: '6', name: 'Healthcare AI' },
-  { id: '7', name: 'Medical Imaging' },
-  { id: '8', name: 'Data Science' },
-];
+  AdminProjectCategoryApi,
+  Configuration,
+  ProjectCategoryApi,
+  ProjectCategorySummary,
+} from '@/generated-api';
+import { useAuthStore } from '@/store/auth-store';
+import { toast } from 'sonner';
 
 export default function ResearchFieldModal() {
   const [open, setOpen] = useState(false);
-  const [researchFields, setResearchFields] = useState(mockResearchFields);
+  const [researchFields, setResearchFields] = useState<
+    ProjectCategorySummary[]
+  >([]);
   const [editingField, setEditingField] = useState<any>(null);
   const [deleteField, setDeleteField] = useState<any>(null);
   const [newFieldName, setNewFieldName] = useState('');
   const [editFieldName, setEditFieldName] = useState('');
 
-  // 새 연구 분야 추가
-  const handleAddField = () => {
-    if (!newFieldName.trim()) {
-      alert('연구 분야 이름을 입력해주세요.');
-      return;
-    }
+  const categoryApi = new ProjectCategoryApi(
+    new Configuration({
+      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+      accessToken: async () => useAuthStore.getState().accessToken || '',
+    }),
+  );
 
-    // 중복 체크
-    if (
-      researchFields.some(
-        (field) => field.name.toLowerCase() === newFieldName.toLowerCase(),
-      )
-    ) {
-      alert('이미 존재하는 연구 분야입니다.');
-      return;
-    }
+  const adminCategoryApi = new AdminProjectCategoryApi(
+    new Configuration({
+      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+      accessToken: async () => useAuthStore.getState().accessToken || '',
+    }),
+  );
 
-    const newField = {
-      id: Date.now().toString(),
-      name: newFieldName.trim(),
+  // 카테고리 목록 불러오기
+  useEffect(() => {
+    const fetchCategorys = async () => {
+      try {
+        const res = await categoryApi.getAllProjectCategories();
+        setResearchFields(res.categories ?? []);
+      } catch (error) {
+        console.error('카테고리 불러오기 실패:', error);
+      }
     };
 
-    setResearchFields((prev) => [...prev, newField]);
-    setNewFieldName('');
+    fetchCategorys();
+  }, []);
+
+  // 새 연구 분야 추가
+  const handleAddField = async () => {
+    if (!newFieldName.trim()) {
+      toast.error('연구 분야 이름을 입력해주세요.');
+      return;
+    }
+
+    if (
+      researchFields.some(
+        (field) => field?.name?.toLowerCase() === newFieldName.toLowerCase(),
+      )
+    ) {
+      toast.error('이미 존재하는 연구 분야입니다.');
+      return;
+    }
+
+    try {
+      await adminCategoryApi.createProjectCategory({
+        projectCategoryRequest: { name: newFieldName.trim() },
+      });
+
+      toast.success('연구 분야가 성공적으로 추가되었습니다.');
+
+      const res = await categoryApi.getAllProjectCategories(); // 최신 목록 반영
+      setResearchFields(res.categories ?? []);
+      setNewFieldName('');
+    } catch (error) {
+      console.error('연구 분야 추가 실패:', error);
+      toast.error('추가에 실패했습니다.');
+    }
   };
 
   // 연구 분야 수정
-  const handleEditField = () => {
+  const handleEditField = async () => {
     if (!editFieldName.trim()) {
-      alert('연구 분야 이름을 입력해주세요.');
+      toast.error('연구 분야 이름을 입력해주세요.');
       return;
     }
 
-    // 중복 체크 (자기 자신 제외)
     if (
       researchFields.some(
         (field) =>
-          field.id !== editingField.id &&
-          field.name.toLowerCase() === editFieldName.toLowerCase(),
+          field.categoryId !== editingField.categoryId &&
+          field?.name?.toLowerCase() === editFieldName.toLowerCase(),
       )
     ) {
-      alert('이미 존재하는 연구 분야입니다.');
+      toast.error('이미 존재하는 연구 분야입니다.');
       return;
     }
 
-    setResearchFields((prev) =>
-      prev.map((field) =>
-        field.id === editingField.id
-          ? { ...field, name: editFieldName.trim() }
-          : field,
-      ),
-    );
-    setEditingField(null);
-    setEditFieldName('');
+    try {
+      await adminCategoryApi.updateProjectCategory({
+        categoryId: editingField.categoryId,
+        projectCategoryRequest: { name: editFieldName.trim() },
+      });
+
+      toast.success('연구 분야가 성공적으로 수정되었습니다.');
+
+      const res = await categoryApi.getAllProjectCategories();
+      setResearchFields(res.categories ?? []);
+      setEditingField(null);
+      setEditFieldName('');
+    } catch (error) {
+      console.error('연구 분야 수정 실패:', error);
+      toast.error('수정에 실패했습니다.');
+    }
   };
 
   // 연구 분야 삭제
-  const handleDeleteField = () => {
-    setResearchFields((prev) =>
-      prev.filter((field) => field.id !== deleteField.id),
-    );
-    setDeleteField(null);
+  const handleDeleteField = async () => {
+    try {
+      await adminCategoryApi.deleteById({
+        categoryId: deleteField.categoryId,
+      });
+
+      toast.success('연구 분야가 성공적으로 삭제되었습니다.');
+
+      const res = await categoryApi.getAllProjectCategories();
+      setResearchFields(res.categories ?? []);
+      setDeleteField(null);
+    } catch (error) {
+      console.error('연구 분야 삭제 실패:', error);
+      toast.error('삭제에 실패했습니다.');
+    }
   };
 
   // 수정 모드 시작
@@ -218,9 +257,9 @@ export default function ResearchFieldModal() {
                     </TableHeader>
                     <TableBody>
                       {researchFields.map((field) => (
-                        <TableRow key={field.id}>
+                        <TableRow key={field.categoryId}>
                           <TableCell>
-                            {editingField?.id === field.id ? (
+                            {editingField?.categoryId === field.categoryId ? (
                               <div className="flex items-center gap-2">
                                 <Input
                                   value={editFieldName}
@@ -255,7 +294,7 @@ export default function ResearchFieldModal() {
                             )}
                           </TableCell>
                           <TableCell>
-                            {editingField?.id === field.id ? null : (
+                            {editingField?.id === field.categoryId ? null : (
                               <div className="flex gap-1">
                                 <Button
                                   size="sm"
@@ -298,13 +337,9 @@ export default function ResearchFieldModal() {
               연구 분야 삭제 확인
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
-              <p>
-                <strong>"{deleteField?.name}"</strong> 연구 분야를 정말
-                삭제하시겠습니까?
-              </p>
-              <p className="text-sm text-gray-600">
-                이 작업은 되돌릴 수 없습니다.
-              </p>
+              <strong>{deleteField?.name}</strong> 연구 분야를 정말
+              삭제하시겠습니까?
+              <br />이 작업은 되돌릴 수 없습니다.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
