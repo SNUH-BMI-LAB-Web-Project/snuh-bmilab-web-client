@@ -13,21 +13,6 @@
  */
 
 import { mapValues } from '../runtime';
-import type { UserEducationRequestEndYearMonth } from './UserEducationRequestEndYearMonth';
-import {
-    UserEducationRequestEndYearMonthFromJSON,
-    UserEducationRequestEndYearMonthFromJSONTyped,
-    UserEducationRequestEndYearMonthToJSON,
-    UserEducationRequestEndYearMonthToJSONTyped,
-} from './UserEducationRequestEndYearMonth';
-import type { UserEducationRequestStartYearMonth } from './UserEducationRequestStartYearMonth';
-import {
-    UserEducationRequestStartYearMonthFromJSON,
-    UserEducationRequestStartYearMonthFromJSONTyped,
-    UserEducationRequestStartYearMonthToJSON,
-    UserEducationRequestStartYearMonthToJSONTyped,
-} from './UserEducationRequestStartYearMonth';
-
 /**
  * 
  * @export
@@ -53,17 +38,17 @@ export interface UserEducationSummary {
      */
     status?: UserEducationSummaryStatusEnum;
     /**
-     * 
-     * @type {UserEducationRequestStartYearMonth}
+     * 시작 연월
+     * @type {string}
      * @memberof UserEducationSummary
      */
-    startYearMonth?: UserEducationRequestStartYearMonth;
+    startYearMonth?: string;
     /**
-     * 
-     * @type {UserEducationRequestEndYearMonth}
+     * 종료 연월
+     * @type {string}
      * @memberof UserEducationSummary
      */
-    endYearMonth?: UserEducationRequestEndYearMonth;
+    endYearMonth?: string;
 }
 
 
@@ -98,8 +83,8 @@ export function UserEducationSummaryFromJSONTyped(json: any, ignoreDiscriminator
         'educationId': json['educationId'] == null ? undefined : json['educationId'],
         'title': json['title'] == null ? undefined : json['title'],
         'status': json['status'] == null ? undefined : json['status'],
-        'startYearMonth': json['startYearMonth'] == null ? undefined : UserEducationRequestStartYearMonthFromJSON(json['startYearMonth']),
-        'endYearMonth': json['endYearMonth'] == null ? undefined : UserEducationRequestEndYearMonthFromJSON(json['endYearMonth']),
+        'startYearMonth': json['startYearMonth'] == null ? undefined : json['startYearMonth'],
+        'endYearMonth': json['endYearMonth'] == null ? undefined : json['endYearMonth'],
     };
 }
 
@@ -117,8 +102,8 @@ export function UserEducationSummaryToJSONTyped(value?: UserEducationSummary | n
         'educationId': value['educationId'],
         'title': value['title'],
         'status': value['status'],
-        'startYearMonth': UserEducationRequestStartYearMonthToJSON(value['startYearMonth']),
-        'endYearMonth': UserEducationRequestEndYearMonthToJSON(value['endYearMonth']),
+        'startYearMonth': value['startYearMonth'],
+        'endYearMonth': value['endYearMonth'],
     };
 }
 

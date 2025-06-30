@@ -40,8 +40,6 @@ export * from './UpdateUserRequest';
 export * from './UploadFileRequest';
 export * from './UserDetail';
 export * from './UserEducationRequest';
-export * from './UserEducationRequestEndYearMonth';
-export * from './UserEducationRequestStartYearMonth';
 export * from './UserEducationSummary';
 export * from './UserFindAllResponse';
 export * from './UserItem';

@@ -52,8 +52,6 @@ models/UpdateUserRequest.ts
 models/UploadFileRequest.ts
 models/UserDetail.ts
 models/UserEducationRequest.ts
-models/UserEducationRequestEndYearMonth.ts
-models/UserEducationRequestStartYearMonth.ts
 models/UserEducationSummary.ts
 models/UserFindAllResponse.ts
 models/UserItem.ts
