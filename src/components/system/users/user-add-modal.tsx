@@ -35,10 +35,13 @@ import {
   ProjectCategoryApi,
   ProjectCategorySummary,
   RegisterUserRequestAffiliationEnum,
+  UserEducationSummaryStatusEnum,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import EmailConfirmationModal from '@/components/system/users/email-confirmation-modal';
 import YearMonthPicker from '@/components/system/users/year-month-picker';
+import { affiliationLabelMap } from '@/constants/affiliation-enum';
+import { statusLabelMap } from '@/constants/education-enum';
 
 interface UserAddModalProps {
   open: boolean;
@@ -77,19 +80,7 @@ export default function UserAddModal({
   });
 
   // 소속 옵션들
-  const affiliationLabels: Record<RegisterUserRequestAffiliationEnum, string> =
-    {
-      PROFESSOR: '교수',
-      CO_PRINCIPAL_INVESTIGATOR: '공동연구책임자',
-      POSTDOCTORAL_RESEARCHER: '박사후 연구원',
-      PHD_STUDENT: '대학원생-박사과정',
-      MASTERS_STUDENT: '대학원생-석사과정',
-      TRANSLATIONAL_MEDICINE_TRAINEE: '융합의학연수생',
-      RESEARCHER_OR_INTERN: '연구원 및 인턴',
-      ADMINISTRATIVE_STAFF: '행정',
-    };
-
-  const affiliationOptions = Object.entries(affiliationLabels).map(
+  const affiliationOptions = Object.entries(affiliationLabelMap).map(
     ([value, label]) => ({
       value: value as RegisterUserRequestAffiliationEnum,
       label,
@@ -102,11 +93,12 @@ export default function UserAddModal({
   >([]);
 
   // 학력 상태 옵션들
-  const educationStatusOptions = [
-    { value: 'ENROLLED', label: '재학 중' },
-    { value: 'LEAVE_OF_ABSENCE', label: '휴학' },
-    { value: 'DROPPED_OUT', label: '졸업' },
-  ];
+  const educationStatusOptions = Object.entries(statusLabelMap).map(
+    ([value, label]) => ({
+      value: value as UserEducationSummaryStatusEnum,
+      label,
+    }),
+  );
 
   const adminUserApi = new AdminUserApi(
     new Configuration({
@@ -167,6 +159,7 @@ export default function UserAddModal({
   };
 
   const addEducation = () => {
+    console.log('추가 전 newEducation:', newEducation);
     if (
       newEducation.title &&
       newEducation.status &&
@@ -201,24 +194,23 @@ export default function UserAddModal({
     }
 
     const userData = {
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      organization: formData.organization,
-      department: formData.department,
-      affiliation: formData.affiliation,
-      annualLeaveCount: formData.annualLeaveCount,
-      usedLeaveCount: formData.usedLeaveCount,
-      categoryIds: formData.categoryIds,
-      seatNumber: formData.seatNumber,
-      phoneNumber: formData.phoneNumber,
-      educations: formData.educations,
-      joinedAt: formData.joinedAt,
+      ...formData,
+      educations: formData.educations.map((edu) => ({
+        ...edu,
+        startYearMonth: edu.startYearMonth || null,
+        endYearMonth: edu.endYearMonth || null,
+      })),
+      joinedAt:
+        formData.joinedAt instanceof Date
+          ? formData.joinedAt
+          : new Date(formData.joinedAt),
     };
+
+    console.log('전송 전 JSON:', JSON.stringify(userData, null, 2));
 
     try {
       await adminUserApi.registerNewUser({ registerUserRequest: userData });
-      onUserAdd(userData); // optimistic update
+      onUserAdd(userData);
       alert('사용자가 성공적으로 등록되었습니다.');
       setOpen(false);
       // 초기화
@@ -324,15 +316,6 @@ export default function UserAddModal({
                     disabled={!formData.password}
                   >
                     <Copy className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={handleCopyPassword}
-                    disabled={!formData.password}
-                  >
-                    <Mail className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -565,7 +548,7 @@ export default function UserAddModal({
               )}
 
               {/* 새 학력 추가 */}
-              <div className="space-y-4 rounded-lg bg-blue-50 p-4">
+              <div className="space-y-4 rounded-lg bg-gray-50 p-4">
                 <Label className="text-sm font-medium">새 학력 추가</Label>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
