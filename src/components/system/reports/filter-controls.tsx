@@ -1,8 +1,7 @@
 'use client';
 
-import type React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 
-import { useState, useCallback } from 'react';
 import {
   Select,
   SelectContent,
@@ -24,6 +23,14 @@ import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import type { DateRange } from 'react-day-picker';
+import {
+  Configuration,
+  ProjectApi,
+  SearchProjectItem,
+  UserApi,
+  UserSummary,
+} from '@/generated-api';
+import { useAuthStore } from '@/store/auth-store';
 
 interface FilterControlsProps {
   onFilter: (filters: any) => void;
@@ -43,19 +50,58 @@ export function FilterControls({
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 실제 구현에서는 API에서 데이터 가져오기
-  const users = [
-    { id: '1', name: '홍길동' },
-    { id: '2', name: '김철수' },
-    { id: '3', name: '이영희' },
-  ];
-
   // 프로젝트 목록
-  const projects = [
-    { id: '1', name: '웹사이트 리뉴얼' },
-    { id: '2', name: '모바일 앱 개발' },
-    { id: '3', name: '마케팅 캠페인' },
-  ];
+  const [projects, setProjects] = useState<SearchProjectItem[]>([]);
+
+  // 유저 목록
+  const [users, setUsers] = useState<UserSummary[]>([]);
+
+  const projectApi = new ProjectApi(
+    new Configuration({
+      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+      accessToken: async () => useAuthStore.getState().accessToken || '',
+    }),
+  );
+
+  const userApi = new UserApi(
+    new Configuration({
+      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+      accessToken: async () => useAuthStore.getState().accessToken || '',
+    }),
+  );
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const res = await projectApi.searchProject({ all: true });
+        setProjects(
+          res.projects?.map((proj) => ({
+            projectId: proj.projectId,
+            title: proj.title ?? '제목 없음',
+          })) ?? [],
+        );
+      } catch (error) {
+        console.error('프로젝트 목록 불러오기 실패:', error);
+      }
+    };
+
+    const fetchUsers = async () => {
+      try {
+        const res = await userApi.searchUsers();
+        setUsers(
+          res.users?.map((u) => ({
+            userId: u.userId,
+            name: u.name,
+          })) ?? [],
+        );
+      } catch (error) {
+        console.error('유저 목록 불러오기 실패:', error);
+      }
+    };
+
+    fetchProjects();
+    fetchUsers();
+  }, []);
 
   // 검색 실행
   const handleSearch = useCallback(() => {
@@ -87,6 +133,21 @@ export function FilterControls({
     [handleSearch],
   );
 
+  const renderDateRange = () => {
+    if (dateRange?.from) {
+      if (dateRange.to) {
+        return (
+          <>
+            {format(dateRange.from, 'MM/dd', { locale: ko })} -{' '}
+            {format(dateRange.to, 'MM/dd', { locale: ko })}
+          </>
+        );
+      }
+      return format(dateRange.from, 'PPP', { locale: ko });
+    }
+    return <span>날짜 선택</span>;
+  };
+
   return (
     <div className="space-y-4">
       {/* 상단 필터들 */}
@@ -104,8 +165,8 @@ export function FilterControls({
             <SelectContent>
               <SelectItem value="all">모든 프로젝트</SelectItem>
               {projects.map((proj) => (
-                <SelectItem key={proj.id} value={proj.id}>
-                  {proj.name}
+                <SelectItem key={proj.projectId} value={String(proj.projectId)}>
+                  {proj.title}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -125,9 +186,12 @@ export function FilterControls({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">모든 사용자</SelectItem>
-                {users.map((user) => (
-                  <SelectItem key={user.id} value={user.id}>
-                    {user.name}
+                {users.map((userItem) => (
+                  <SelectItem
+                    key={userItem.userId}
+                    value={String(userItem.userId)}
+                  >
+                    {userItem.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -149,18 +213,7 @@ export function FilterControls({
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange?.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, 'MM/dd', { locale: ko })} -{' '}
-                        {format(dateRange.to, 'MM/dd', { locale: ko })}
-                      </>
-                    ) : (
-                      format(dateRange.from, 'PPP', { locale: ko })
-                    )
-                  ) : (
-                    <span>날짜 선택</span>
-                  )}
+                  {renderDateRange()}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
