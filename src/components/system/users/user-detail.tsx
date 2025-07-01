@@ -288,12 +288,14 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                               <h3 className="mb-2 text-lg font-semibold text-gray-900">
                                 {project.title}
                               </h3>
-                              <Badge
-                                variant="outline"
-                                className="border-gray-300 text-xs text-gray-600"
-                              >
-                                {project.category?.name}
-                              </Badge>
+                              {project.category && (
+                                <Badge
+                                  variant="outline"
+                                  className="border-gray-300 text-xs text-gray-600"
+                                >
+                                  {project.category?.name}
+                                </Badge>
+                              )}
                             </div>
                             <Badge
                               className={`${getProjectStatusInfo(project.status!).color} ml-4 px-3 py-1 text-xs font-medium`}
@@ -309,8 +311,18 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                             </span>
                             <span className="text-sm font-medium text-gray-800">
                               {project.startDate
-                                ? format(project.startDate, 'yyyy.MM.dd')
-                                : '-'}
+                                ? format(
+                                    new Date(project.startDate),
+                                    'yyyy-MM-dd',
+                                  )
+                                : ''}
+                              {' ~ '}
+                              {project.endDate
+                                ? format(
+                                    new Date(project.endDate),
+                                    'yyyy-MM-dd',
+                                  )
+                                : ''}
                             </span>
                           </div>
                         </div>
