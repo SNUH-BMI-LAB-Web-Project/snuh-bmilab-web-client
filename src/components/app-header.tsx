@@ -38,27 +38,28 @@ export default function AppHeader() {
   };
 
   return (
-    <header className="text-md flex w-screen items-center justify-between border-b py-5 pr-10 pl-4">
+    <header className="text-md fixed top-0 z-50 flex w-screen items-center justify-between border-b bg-white py-5 pr-10 pl-4">
       {/* 좌측 로고 */}
       <button
         type="button"
         onClick={() => router.push('/')}
-        className="flex cursor-pointer flex-row items-center gap-3 text-lg font-semibold transition-transform duration-150 hover:scale-105"
+        className="flex cursor-pointer flex-row items-center gap-3 text-xl font-semibold transition-transform duration-150 hover:scale-105"
       >
-        <Image
-          src="/bmi-lab-tmp-logo.svg"
-          alt="BMI Lab Logo"
-          width={30}
-          height={30}
-          className="bg-transparent"
-        />
-        <Image
-          src="/bmi-lab-tmp-text-logo.svg"
-          alt="BMI Lab Text Logo"
-          width={140}
-          height={30}
-          className="bg-transparent"
-        />
+        {/* <Image */}
+        {/*   src="/bmi-lab-tmp-logo.svg" */}
+        {/*   alt="BMI Lab Logo" */}
+        {/*   width={30} */}
+        {/*   height={30} */}
+        {/*   className="bg-transparent" */}
+        {/* /> */}
+        {/* <Image */}
+        {/*   src="/bmi-lab-tmp-text-logo.svg" */}
+        {/*   alt="BMI Lab Text Logo" */}
+        {/*   width={140} */}
+        {/*   height={30} */}
+        {/*   className="bg-transparent" */}
+        {/* /> */}
+        SNUH BMI LAB
       </button>
 
       {/* 우측 내비게이션 */}
