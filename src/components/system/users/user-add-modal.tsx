@@ -159,7 +159,6 @@ export default function UserAddModal({
   };
 
   const addEducation = () => {
-    console.log('추가 전 newEducation:', newEducation);
     if (
       newEducation.title &&
       newEducation.status &&
@@ -205,8 +204,6 @@ export default function UserAddModal({
           ? formData.joinedAt
           : new Date(formData.joinedAt),
     };
-
-    console.log('전송 전 JSON:', JSON.stringify(userData, null, 2));
 
     try {
       await adminUserApi.registerNewUser({ registerUserRequest: userData });
