@@ -139,7 +139,7 @@ export default function ExternalProfessorModal() {
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="bg-transparent shadow-sm">
+          <Button>
             <UserCheck className="mr-2 h-4 w-4" />
             외부 인사 관리
           </Button>
