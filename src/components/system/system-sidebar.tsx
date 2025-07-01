@@ -15,8 +15,8 @@ const baseNav = [
     icon: Users,
     items: [
       { title: '연명부', url: '/system/users' },
-      { title: '휴가 신청', url: '/system/users/leaves' },
-      { title: '자리배치도', url: '/system/users/seats' },
+      // { title: '휴가 신청', url: '/system/users/leaves' },
+      // { title: '자리배치도', url: '/system/users/seats' },
     ],
   },
   {
