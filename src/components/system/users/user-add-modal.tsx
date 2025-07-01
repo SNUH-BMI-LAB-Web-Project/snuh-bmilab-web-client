@@ -25,7 +25,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Plus, RefreshCw, Copy, CalendarIcon, X, Mail } from 'lucide-react';
+import { Plus, RefreshCw, Copy, CalendarIcon, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -34,6 +34,7 @@ import {
   Configuration,
   ProjectCategoryApi,
   ProjectCategorySummary,
+  RegisterUserRequest,
   RegisterUserRequestAffiliationEnum,
   UserEducationSummaryStatusEnum,
 } from '@/generated-api';
@@ -56,7 +57,8 @@ export default function UserAddModal({
   onUserAdd,
 }: UserAddModalProps) {
   const [emailModalOpen, setEmailModalOpen] = useState(false);
-  const [createdUserData, setCreatedUserData] = useState(null);
+  const [createdUserData, setCreatedUserData] =
+    useState<RegisterUserRequest | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -218,6 +220,10 @@ export default function UserAddModal({
         ...userData,
         categories: selectedCategories,
       });
+
+      setCreatedUserData(userData);
+      setEmailModalOpen(true);
+
       setOpen(false);
       // 초기화
       setFormData({
@@ -251,11 +257,6 @@ export default function UserAddModal({
 
   const handleInputChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleEmailConfirmation = () => {
-    // TODO: 이메일 발송 API 호출
-    console.log('이메일 발송:', createdUserData);
   };
 
   return (
@@ -679,12 +680,11 @@ export default function UserAddModal({
         </DialogContent>
       </Dialog>
 
-      {/* 이메일 발송 확인 모달 */}
+      {/* 이메일 발송 모달 */}
       <EmailConfirmationModal
         open={emailModalOpen}
         onOpenChange={setEmailModalOpen}
         userData={createdUserData}
-        onConfirmSend={handleEmailConfirmation}
       />
     </>
   );
