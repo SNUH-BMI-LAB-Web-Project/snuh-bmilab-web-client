@@ -8,7 +8,6 @@ export * from './FilePresignedUrlResponse';
 export * from './FileSummary';
 export * from './LeaveDetail';
 export * from './LeaveFindAllResponse';
-export * from './LocalTime';
 export * from './LoginRequest';
 export * from './LoginResponse';
 export * from './ProjectCategoryFindAllResponse';
