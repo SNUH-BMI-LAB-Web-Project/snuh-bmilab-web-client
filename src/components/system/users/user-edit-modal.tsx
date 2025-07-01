@@ -41,7 +41,7 @@ import { statusLabelMap } from '@/constants/education-enum';
 import { toast } from 'sonner';
 
 interface UserEditModalProps {
-  user: UserDetail;
+  user: UserDetail | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUserUpdate: (userData: any) => void;
@@ -173,7 +173,7 @@ export default function UserEditModal({
       const currentIds = [...new Set(formData.categories)];
       const originalIds = [
         ...new Set(
-          user.categories
+          user?.categories
             ?.map((c) => c.categoryId)
             .filter((id): id is number => typeof id === 'number'),
         ),
@@ -203,7 +203,7 @@ export default function UserEditModal({
       console.log(requestBody);
 
       await adminUserApi.updateUserById({
-        userId: user.userId || -1,
+        userId: user?.userId || -1,
         adminUpdateUserRequest: requestBody,
       });
 
