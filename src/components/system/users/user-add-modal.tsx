@@ -42,6 +42,7 @@ import EmailConfirmationModal from '@/components/system/users/email-confirmation
 import YearMonthPicker from '@/components/system/users/year-month-picker';
 import { affiliationLabelMap } from '@/constants/affiliation-enum';
 import { statusLabelMap } from '@/constants/education-enum';
+import { toast } from 'sonner';
 
 interface UserAddModalProps {
   open: boolean;
@@ -205,10 +206,18 @@ export default function UserAddModal({
           : new Date(formData.joinedAt),
     };
 
+    const selectedCategories = categoryOptions.filter(
+      (cat): cat is ProjectCategorySummary =>
+        cat.categoryId !== undefined &&
+        formData.categoryIds.includes(cat.categoryId),
+    );
+
     try {
       await adminUserApi.registerNewUser({ registerUserRequest: userData });
-      onUserAdd(userData);
-      alert('사용자가 성공적으로 등록되었습니다.');
+      onUserAdd({
+        ...userData,
+        categories: selectedCategories,
+      });
       setOpen(false);
       // 초기화
       setFormData({
@@ -232,9 +241,11 @@ export default function UserAddModal({
         startYearMonth: '',
         endYearMonth: '',
       });
+
+      toast.success('사용자가 추가되었습니다');
     } catch (error: any) {
       console.error(error);
-      alert('사용자 등록에 실패했습니다.');
+      toast.error('사용자 등록에 실패했습니다.');
     }
   };
 
