@@ -211,7 +211,13 @@ export default function UserEditModal({
         adminUpdateUserRequest: requestBody,
       });
 
-      onUserUpdate({ ...user, ...requestBody });
+      onUserUpdate({
+        ...user,
+        ...requestBody,
+        categories: categoryOptions
+          .filter((cat) => cat.categoryId !== undefined)
+          .filter((cat) => formData.categories.includes(cat.categoryId!)),
+      });
       onOpenChange(false);
 
       toast.success('사용자 정보가 수정되었습니다.');
