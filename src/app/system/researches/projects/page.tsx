@@ -255,9 +255,6 @@ export default function ProjectPage() {
         <div className="flex gap-2">
           <ExternalProfessorModal />
           <ResearchFieldModal />
-          <Link href="/portal/researches/projects/new">
-            <Button>연구 & 프로젝트 등록</Button>
-          </Link>
         </div>
       </div>
 
