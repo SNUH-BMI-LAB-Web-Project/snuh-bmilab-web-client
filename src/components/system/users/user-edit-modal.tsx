@@ -27,6 +27,7 @@ import {
   UserDetail,
   UserEducationSummary,
   UserEducationSummaryStatusEnum,
+  UserItem,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import {
@@ -44,7 +45,7 @@ interface UserEditModalProps {
   user: UserDetail | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUserUpdate: (userData: any) => void;
+  onUserUpdate: (userData: UserItem) => void;
 }
 
 export default function UserEditModal({
@@ -142,7 +143,10 @@ export default function UserEditModal({
         affiliation: user.affiliation || null,
         annualLeaveCount: user.annualLeaveCount || 15,
         usedLeaveCount: user.usedLeaveCount || 0,
-        categories: user.categories?.map((c: any) => c.categoryId) ?? [],
+        categories:
+          user.categories
+            ?.map((c) => c.categoryId)
+            .filter((id): id is number => id !== undefined) ?? [],
         seatNumber: user.seatNumber || '',
         phoneNumber: user.phoneNumber || user.phoneNumber || '',
         educations: user.educations || [],
@@ -217,7 +221,10 @@ export default function UserEditModal({
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = <K extends keyof typeof formData>(
+    field: K,
+    value: (typeof formData)[K],
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
