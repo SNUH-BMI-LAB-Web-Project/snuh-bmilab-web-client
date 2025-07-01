@@ -260,7 +260,6 @@ export default function SystemProjectPage() {
   // 유저 생성시, 유저 리스트에 추가
   const handleUserAdd = (newUser: UserItem) => {
     setUsers((prev) => [newUser, ...prev]);
-    toast.success('사용자가 추가되었습니다');
   };
 
   // 유저 정보 수정시, 정보 업데이트
