@@ -202,10 +202,11 @@ export default function UserAddModal({
         startYearMonth: edu.startYearMonth || null,
         endYearMonth: edu.endYearMonth || null,
       })),
-      joinedAt:
-        formData.joinedAt instanceof Date
-          ? formData.joinedAt
-          : new Date(formData.joinedAt),
+      joinedAt: (() => {
+        const date = new Date(formData.joinedAt);
+        date.setHours(12, 0, 0, 0); // 오후 12시로 설정 → UTC 변환 시 날짜 유지
+        return date;
+      })(),
     };
 
     const selectedCategories = categoryOptions.filter(
