@@ -217,26 +217,29 @@ export default function SystemProjectPage() {
 
   const [addModalOpen, setAddModalOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      setLoading(true);
-      try {
-        const res = await userApi.getAllUsers({
-          page: currentPage - 1, // 0-based index
-          size: itemsPerPage,
-          criteria: formatSortOption(sortOption),
-        });
-        setUsers(res.users ?? []);
-        setTotalPage(res.totalPage ?? 1);
-      } catch (error) {
-        toast.error('연명부 정보를 불러오는 중 오류가 발생했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  // 리렌더를 위한 상태
+  const [shouldRefetch, setShouldRefetch] = useState(false);
 
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const res = await userApi.getAllUsers({
+        page: currentPage - 1, // 0-based index
+        size: itemsPerPage,
+        criteria: formatSortOption(sortOption),
+      });
+      setUsers(res.users ?? []);
+      setTotalPage(res.totalPage ?? 1);
+    } catch (error) {
+      toast.error('연명부 정보를 불러오는 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUsers();
-  }, [currentPage, itemsPerPage, sortOption]);
+  }, [currentPage, itemsPerPage, sortOption, shouldRefetch]);
 
   // 유저 정보 수정시, 상세 정보 불러오기
   const fetchUserDetail = async (userId: number) => {
@@ -258,8 +261,8 @@ export default function SystemProjectPage() {
   };
 
   // 유저 생성시, 유저 리스트에 추가
-  const handleUserAdd = (newUser: UserItem) => {
-    setUsers((prev) => [newUser, ...prev]);
+  const handleUserAdd = () => {
+    setShouldRefetch((prev) => !prev); // 트리거로 리렌더 유도
   };
 
   // 유저 정보 수정시, 정보 업데이트
