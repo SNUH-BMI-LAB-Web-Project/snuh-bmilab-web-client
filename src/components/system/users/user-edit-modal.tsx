@@ -325,7 +325,7 @@ export default function UserEditModal({
               <div className="space-y-2">
                 <Label htmlFor="affiliation">소속</Label>
                 <Select
-                  value={formData.affiliation}
+                  value={formData.affiliation || ''}
                   onValueChange={(value) =>
                     handleInputChange(
                       'affiliation',
