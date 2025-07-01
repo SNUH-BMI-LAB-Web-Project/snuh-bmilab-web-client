@@ -1,5 +1,6 @@
 apis/AdminLeaveApi.ts
 apis/AdminProjectCategoryApi.ts
+apis/AdminProjectControllerApi.ts
 apis/AdminUserApi.ts
 apis/AuthApi.ts
 apis/FileApi.ts
@@ -15,6 +16,9 @@ index.ts
 models/AdminUpdateUserRequest.ts
 models/ApplyLeaveRequest.ts
 models/ErrorResponse.ts
+models/ExternalProfessorFindAllResponse.ts
+models/ExternalProfessorItem.ts
+models/ExternalProfessorRequest.ts
 models/ExternalProfessorSummary.ts
 models/FilePresignedUrlResponse.ts
 models/FileSummary.ts
@@ -49,6 +53,7 @@ models/TimelineSummary.ts
 models/UpdateUserPasswordRequest.ts
 models/UpdateUserRequest.ts
 models/UploadFileRequest.ts
+models/UserAccountEmailRequest.ts
 models/UserDetail.ts
 models/UserEducationRequest.ts
 models/UserEducationSummary.ts

@@ -3,6 +3,9 @@
 export * from './AdminUpdateUserRequest';
 export * from './ApplyLeaveRequest';
 export * from './ErrorResponse';
+export * from './ExternalProfessorFindAllResponse';
+export * from './ExternalProfessorItem';
+export * from './ExternalProfessorRequest';
 export * from './ExternalProfessorSummary';
 export * from './FilePresignedUrlResponse';
 export * from './FileSummary';
@@ -37,6 +40,7 @@ export * from './TimelineSummary';
 export * from './UpdateUserPasswordRequest';
 export * from './UpdateUserRequest';
 export * from './UploadFileRequest';
+export * from './UserAccountEmailRequest';
 export * from './UserDetail';
 export * from './UserEducationRequest';
 export * from './UserEducationSummary';
