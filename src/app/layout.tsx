@@ -20,7 +20,7 @@ export default function RootLayout({
         <QueryProvider>
           <AppHeader />
           <div className="mt-[70px]">{children}</div>
-          <Toaster />
+          <Toaster className="fixed z-[9999]" />
         </QueryProvider>
       </body>
     </html>
