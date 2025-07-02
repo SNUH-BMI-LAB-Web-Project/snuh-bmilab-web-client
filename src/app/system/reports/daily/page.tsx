@@ -1,17 +1,25 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useState, useCallback, SetStateAction } from 'react';
+import { useState, useCallback } from 'react';
 import { AdminReportFeed } from '@/components/system/reports/admin-report-feed';
 import { FilterControls } from '@/components/system/reports/filter-controls';
+import { GetReportsByAllUserRequest } from '@/generated-api';
 
 export default function AdminPage() {
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState<GetReportsByAllUserRequest>({});
 
-  const handleFilter = useCallback((newFilters: SetStateAction<{}>) => {
-    setFilters(newFilters);
-    // TODO: api 연동
-    console.log('필터 적용:', newFilters);
+  const handleFilter = useCallback((raw: any) => {
+    const mapped: GetReportsByAllUserRequest = {
+      userId: raw.user ? parseInt(raw.user, 10) : undefined,
+      projectId: raw.project ? parseInt(raw.project, 10) : undefined,
+      startDate: raw.dateRange?.from,
+      endDate: raw.dateRange?.to,
+      keyword: raw.searchQuery || undefined,
+    };
+
+    setFilters(mapped);
+    console.log('필터 적용:', mapped);
   }, []);
 
   return (
