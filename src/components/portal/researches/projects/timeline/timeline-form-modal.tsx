@@ -47,9 +47,9 @@ interface Props {
     timelineId?: number;
     title: string;
     date: Date;
-    startTime?: string | null;
-    endTime?: string | null;
-    meetingPlace?: string | null;
+    startTime?: string;
+    endTime?: string;
+    meetingPlace?: string;
     type: TimelineRequestTypeEnum;
     summary: string;
     fileIds?: string[];
@@ -68,7 +68,7 @@ export default function TimelineFormModal({
     date: Date | undefined;
     startTime: string | undefined;
     endTime: string | undefined;
-    meetingPlace: string;
+    meetingPlace: string | undefined;
     type: TimelineRequestTypeEnum;
     summary: string;
     files: FileSummary[];
@@ -174,11 +174,13 @@ export default function TimelineFormModal({
         date: formData.date,
         startTime: formData.startTime?.trim()
           ? formatTime(formData.startTime)
-          : null,
-        endTime: formData.endTime?.trim() ? formatTime(formData.endTime) : null,
+          : undefined,
+        endTime: formData.endTime?.trim()
+          ? formatTime(formData.endTime)
+          : undefined,
         meetingPlace: formData.meetingPlace?.trim()
           ? formData.meetingPlace
-          : null,
+          : undefined,
         type: formData.type,
         summary: formData.summary,
         fileIds: [...existingFileIds, ...newFileIds],
