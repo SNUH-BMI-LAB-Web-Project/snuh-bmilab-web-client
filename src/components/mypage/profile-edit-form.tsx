@@ -203,11 +203,13 @@ export default function ProfileEditForm() {
 
       await Promise.all(
         currentEducations.map((edu) =>
-          userApi.addEducationsRaw({
+          userApi.addEducations({
             userEducationRequest: toRequest(edu),
           }),
         ),
       );
+
+      console.log(currentEducations);
 
       useAuthStore.setState((prev) => ({
         user: {
