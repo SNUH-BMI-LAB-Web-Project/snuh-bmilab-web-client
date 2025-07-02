@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProjectInfoForm from '@/components/portal/researches/projects/project-info-form';
 import ProjectArchiveForm from '@/components/portal/researches/projects/project-archive-form';
 import ConfirmModal from '@/components/common/confirm-modal';
+import { affiliationLabelMap } from '@/constants/affiliation-enum';
 
 const projectApi = new ProjectApi(
   new Configuration({
@@ -110,8 +111,10 @@ export default function ProjectDetailPage({
           <div className="flex flex-col">
             <div className="font-medium text-black">{project.author?.name}</div>
             <div className="text-xs">
-              {project.author?.organization} {project.author?.department}
-              {project.author?.affiliation} · {project.author?.email}
+              {project.author?.organization} {project.author?.department}{' '}
+              {project.author?.affiliation &&
+                affiliationLabelMap[project.author.affiliation]}{' '}
+              · {project.author?.email}
             </div>
           </div>
         </div>
