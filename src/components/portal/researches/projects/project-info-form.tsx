@@ -75,10 +75,10 @@ export default function ProjectInfoForm({
                     {formatDateTimeVer2(
                       project.startDate?.toString() || new Date().toString(),
                     )}{' '}
-                    ~{' '}
-                    {formatDateTimeVer2(
-                      project.endDate?.toString() || new Date().toString(),
-                    ) || ''}
+                    ~
+                    {project.endDate
+                      ? ` ${formatDateTimeVer2(project.endDate.toString())}`
+                      : ''}
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-2 text-sm">
