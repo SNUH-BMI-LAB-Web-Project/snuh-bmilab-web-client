@@ -61,12 +61,10 @@ export function SystemSidebar() {
   }));
 
   return (
-    <div className="flex h-[calc(100vh-65px)] overflow-hidden">
-      <Sidebar className="flex h-full w-[16rem] flex-col border-r">
-        <SidebarContent className="flex-1 overflow-auto">
-          <NavMain items={navMain} />
-        </SidebarContent>
-      </Sidebar>
-    </div>
+    <Sidebar className="fixed top-[70px] left-0 flex h-[calc(100vh-70px)] w-[16rem] flex-col border-r">
+      <SidebarContent className="flex-1 overflow-auto">
+        <NavMain items={navMain} />
+      </SidebarContent>
+    </Sidebar>
   );
 }
