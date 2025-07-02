@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { format, isAfter, addDays } from 'date-fns';
+import { format, addDays, isSameDay } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import type { DateRange } from 'react-day-picker';
+import { DateRange } from 'react-day-picker';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -15,43 +15,67 @@ import {
 } from '@/components/ui/popover';
 import { Calendar as CalendarIcon, ArrowRightLeft } from 'lucide-react';
 
+interface DateRangePickerProps {
+  className?: string;
+  value?: DateRange;
+  onChange?: (range: DateRange) => void;
+  onChangeComplete?: (range: DateRange) => void;
+}
+
 export function DateRangePicker({
   className,
-}: React.HTMLAttributes<HTMLDivElement>) {
-  const [date, setDate] = React.useState<DateRange>({
+  value,
+  onChange,
+  onChangeComplete,
+}: DateRangePickerProps) {
+  const [range, setRange] = React.useState<DateRange>({
     from: addDays(new Date(), -6),
     to: new Date(),
   });
+
   const [open, setOpen] = React.useState(false);
   const [isPickingEndDate, setIsPickingEndDate] = React.useState(false);
 
-  const handleSelect = (selected: Date | undefined) => {
-    if (!selected) return;
+  React.useEffect(() => {
+    if (value?.from) {
+      setRange(value);
+    }
+  }, [value]);
 
+  const handleDayClick = (day: Date) => {
     if (!isPickingEndDate) {
-      setDate({ from: selected, to: undefined });
+      const newRange = { from: day, to: undefined };
+      setRange(newRange);
+      onChange?.(newRange);
       setIsPickingEndDate(true);
     } else {
-      const isValid = date.from && isAfter(selected, date.from);
-      setDate({
-        from: date.from,
-        to: isValid ? selected : date.from, // 역전 방지
-      });
-      setOpen(false);
+      const isValidEnd =
+        range.from && (day > range.from || isSameDay(day, range.from));
+      const newRange = {
+        from: range.from,
+        to: isValidEnd ? day : range.from, // 역전 방지
+      };
+      setRange(newRange);
+      onChange?.(newRange);
+      onChangeComplete?.(newRange);
       setIsPickingEndDate(false);
+      setOpen(false);
     }
   };
 
-  let displayDate: React.ReactNode;
+  const handleReset = () => {
+    setRange({ from: undefined, to: undefined });
+    setIsPickingEndDate(false);
+    onChange?.({ from: undefined, to: undefined });
+  };
 
-  if (date.from) {
-    if (date.to) {
-      displayDate = `${format(date.from, 'PPP', { locale: ko })} - ${format(date.to, 'PPP', { locale: ko })}`;
-    } else {
-      displayDate = format(date.from, 'PPP', { locale: ko });
-    }
-  } else {
-    displayDate = '날짜 선택';
+  let displayDate = '날짜 선택';
+  if (range.from && range.to) {
+    displayDate = isSameDay(range.from, range.to)
+      ? format(range.from, 'PPP', { locale: ko })
+      : `${format(range.from, 'PPP', { locale: ko })} - ${format(range.to, 'PPP', { locale: ko })}`;
+  } else if (range.from) {
+    displayDate = format(range.from, 'PPP', { locale: ko });
   }
 
   return (
@@ -63,7 +87,7 @@ export function DateRangePicker({
             className={cn(
               'w-full justify-start text-left font-normal hover:bg-white',
               'h-10 min-w-[280px]',
-              !date.from && 'text-muted-foreground',
+              !range.from && 'text-muted-foreground',
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
@@ -76,29 +100,47 @@ export function DateRangePicker({
           sideOffset={4}
           align="center"
         >
-          {' '}
           <div className="flex items-center justify-between px-3 py-2">
             <span className="text-muted-foreground ml-1 py-2 text-sm">
               {isPickingEndDate ? '종료일 선택' : '시작일 선택'}
             </span>
-            {date.from && date.to && (
+            {(range.from || range.to) && (
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                onClick={() => setIsPickingEndDate((prev) => !prev)}
+                onClick={handleReset}
               >
                 <ArrowRightLeft className="h-4 w-4" />
               </Button>
             )}
           </div>
+
           <Calendar
             mode="single"
-            selected={isPickingEndDate ? date.to : date.from}
-            onSelect={handleSelect}
-            defaultMonth={isPickingEndDate ? (date.to ?? date.from) : date.from}
+            selected={undefined}
+            onDayClick={handleDayClick}
+            defaultMonth={range.from ?? new Date()}
             locale={ko}
+            numberOfMonths={1}
             initialFocus
+            modifiers={{
+              ...(range.from && { range_start: range.from }),
+              ...(range.to && { range_end: range.to }),
+              ...(range.from &&
+                range.to &&
+                +range.from !== +range.to && {
+                  range_middle: {
+                    from: addDays(range.from, 1),
+                    to: addDays(range.to, -1),
+                  },
+                }),
+            }}
+            modifiersClassNames={{
+              range_start: 'bg-primary text-white',
+              range_end: 'bg-primary text-white',
+              range_middle: 'bg-muted text-foreground rounded-none',
+            }}
           />
         </PopoverContent>
       </Popover>
