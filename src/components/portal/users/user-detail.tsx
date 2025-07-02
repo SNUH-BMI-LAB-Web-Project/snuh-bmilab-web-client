@@ -13,11 +13,7 @@ import {
   Calendar,
   Users,
   User,
-  Edit,
   FolderOpen,
-  Plane,
-  CalendarDays,
-  Coffee,
   Clock,
 } from 'lucide-react';
 import {
@@ -27,13 +23,12 @@ import {
   UserProjectItem,
 } from '@/generated-api';
 import { statusColorMap, statusLabelMap } from '@/constants/education-enum';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import {
   PROJECT_STATUS_CLASSES_USER_DETAIL,
   PROJECT_STATUS_LABELS,
 } from '@/constants/project-enum';
 import { format } from 'date-fns';
-import { Progress } from '@/components/ui/progress';
 import { affiliationLabelMap } from '@/constants/affiliation-enum';
 
 interface UserDetailProps {
@@ -68,14 +63,6 @@ export default function UserDetail({ user, projects }: UserDetailProps) {
       color: color ?? 'bg-gray-100 text-gray-800',
     };
   };
-
-  const usedLeaveCount = user.usedLeaveCount ?? 0;
-  const annualLeaveCount = user.annualLeaveCount ?? 0;
-
-  // 연차 관련 연산
-  const remainingLeave = annualLeaveCount - usedLeaveCount;
-  const leaveUsagePercentage =
-    annualLeaveCount > 0 ? (usedLeaveCount / annualLeaveCount) * 100 : 0;
 
   return (
     <div className="min-h-screen">
