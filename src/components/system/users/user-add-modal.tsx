@@ -59,7 +59,9 @@ import { roleOptions } from '@/constants/role-enum';
 interface UserAddModalProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  onUserAdd: (userData: any) => void;
+  onUserAdd: (
+    userData: RegisterUserRequest & { categories: ProjectCategorySummary[] },
+  ) => void;
 }
 
 export default function UserAddModal({
@@ -255,13 +257,16 @@ export default function UserAddModal({
       });
 
       toast.success('사용자가 추가되었습니다');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       toast.error('사용자 등록에 실패했습니다.');
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (
+    field: keyof typeof formData,
+    value: string | number | boolean | Date | null,
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
