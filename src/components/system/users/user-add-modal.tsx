@@ -41,9 +41,9 @@ import {
 import { useAuthStore } from '@/store/auth-store';
 import EmailConfirmationModal from '@/components/system/users/email-confirmation-modal';
 import YearMonthPicker from '@/components/system/users/year-month-picker';
-import { affiliationLabelMap } from '@/constants/affiliation-enum';
 import { statusLabelMap } from '@/constants/education-enum';
 import { toast } from 'sonner';
+import { affiliationOptions } from '@/constants/affiliation-enum';
 
 interface UserAddModalProps {
   open: boolean;
@@ -81,14 +81,6 @@ export default function UserAddModal({
     startYearMonth: '',
     endYearMonth: '',
   });
-
-  // 소속 옵션들
-  const affiliationOptions = Object.entries(affiliationLabelMap).map(
-    ([value, label]) => ({
-      value: value as RegisterUserRequestAffiliationEnum,
-      label,
-    }),
-  );
 
   // 카테고리 옵션들
   const [categoryOptions, setCategoryOptions] = useState<
@@ -392,13 +384,15 @@ export default function UserAddModal({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="affiliation">소속 *</Label>
+                  <Label htmlFor="affiliation">소속</Label>
                   <Select
                     value={formData.affiliation ?? ''}
                     onValueChange={(value) =>
                       handleInputChange(
                         'affiliation',
-                        value as RegisterUserRequestAffiliationEnum,
+                        value === 'none'
+                          ? null
+                          : (value as RegisterUserRequestAffiliationEnum),
                       )
                     }
                   >
@@ -460,7 +454,7 @@ export default function UserAddModal({
 
             {/* 카테고리 */}
             <div className="space-y-4 rounded-lg border p-4">
-              <h3 className="text-sm font-semibold">연구 분야 카테고리</h3>
+              <h3 className="text-sm font-semibold">연구 분야</h3>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                 {categoryOptions.map((category) => (
                   <div

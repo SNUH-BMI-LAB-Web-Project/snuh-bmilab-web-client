@@ -37,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { affiliationLabelMap } from '@/constants/affiliation-enum';
+import { affiliationOptions } from '@/constants/affiliation-enum';
 import { statusLabelMap } from '@/constants/education-enum';
 import { toast } from 'sonner';
 
@@ -102,14 +102,6 @@ export default function UserEditModal({
   const [categoryOptions, setCategoryOptions] = useState<
     ProjectCategorySummary[]
   >([]);
-
-  // 소속 옵션들
-  const affiliationOptions = Object.entries(affiliationLabelMap).map(
-    ([value, label]) => ({
-      value: value as RegisterUserRequestAffiliationEnum,
-      label,
-    }),
-  );
 
   // 학력 상태 옵션들
   const educationStatusOptions = Object.entries(statusLabelMap).map(
@@ -314,7 +306,7 @@ export default function UserEditModal({
             <h3 className="text-sm font-semibold">소속 정보</h3>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="organization">조직/연구실</Label>
+                <Label htmlFor="organization">기관</Label>
                 <Input
                   id="organization"
                   value={formData.organization}
@@ -325,7 +317,7 @@ export default function UserEditModal({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="department">부서/팀</Label>
+                <Label htmlFor="department">부서</Label>
                 <Input
                   id="department"
                   value={formData.department}
@@ -342,7 +334,9 @@ export default function UserEditModal({
                   onValueChange={(value) =>
                     handleInputChange(
                       'affiliation',
-                      value as RegisterUserRequestAffiliationEnum,
+                      value === 'none'
+                        ? null
+                        : (value as RegisterUserRequestAffiliationEnum),
                     )
                   }
                 >
@@ -421,7 +415,7 @@ export default function UserEditModal({
 
           {/* 카테고리 */}
           <div className="space-y-4 rounded-lg border p-4">
-            <h3 className="text-sm font-semibold">연구 분야 카테고리</h3>
+            <h3 className="text-sm font-semibold">연구 분야</h3>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
               {categoryOptions.map((category) =>
                 category.categoryId !== undefined ? (
@@ -517,7 +511,7 @@ export default function UserEditModal({
 
           {/* 코멘트 */}
           <div className="space-y-4 rounded-lg border p-4">
-            <h3 className="text-sm font-semibold">특이사항 및 코멘트</h3>
+            <h3 className="text-sm font-semibold">코멘트</h3>
             <div className="space-y-2">
               {/* <Label htmlFor="comment">코멘트</Label> */}
               <Textarea
