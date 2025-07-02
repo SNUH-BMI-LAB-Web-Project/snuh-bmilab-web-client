@@ -94,7 +94,8 @@ const getUserColumns = (
   },
   {
     label: '기관',
-    className: 'truncate overflow-hidden whitespace-nowrap w-[250px]',
+    className:
+      'text-center truncate overflow-hidden whitespace-nowrap w-[250px]',
     cell: (row: UserItem) => row.organization || '-',
   },
   {
