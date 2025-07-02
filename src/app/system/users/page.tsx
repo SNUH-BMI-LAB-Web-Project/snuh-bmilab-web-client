@@ -224,23 +224,41 @@ export default function SystemProjectPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await userApi.getAllUsers({
-        page: currentPage - 1, // 0-based index
-        size: itemsPerPage,
-        criteria: formatSortOption(sortOption),
-      });
-      setUsers(res.users ?? []);
-      setTotalPage(res.totalPage ?? 1);
+      if (committedSearchTerm.trim() === '') {
+        const res = await userApi.getAllUsers({
+          page: currentPage - 1, // 0-based index
+          size: itemsPerPage,
+          criteria: formatSortOption(sortOption),
+        });
+        setUsers(res.users ?? []);
+        setTotalPage(res.totalPage ?? 1);
+      } else {
+        const res = await userApi.searchUsers({
+          filterBy: stringSortOption,
+          filterValue: committedSearchTerm,
+          sort: formatSortOption(sortOption),
+        });
+        setUsers(res.users ?? []);
+        setTotalPage(1); // 검색 결과는 페이지네이션 없음 또는 단일 페이지
+      }
     } catch (error) {
-      toast.error('연명부 정보를 불러오는 중 오류가 발생했습니다.');
+      toast.error('사용자 정보를 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
   };
 
+  console.log(useAuthStore.getState().accessToken);
+
   useEffect(() => {
     fetchUsers();
-  }, [currentPage, itemsPerPage, sortOption, shouldRefetch]);
+  }, [
+    currentPage,
+    itemsPerPage,
+    sortOption,
+    committedSearchTerm,
+    shouldRefetch,
+  ]);
 
   // 유저 정보 수정시, 상세 정보 불러오기
   const fetchUserDetail = async (userId: number) => {
@@ -355,6 +373,17 @@ export default function SystemProjectPage() {
               <SelectItem value="name-desc">이름 내림차순</SelectItem>
             </SelectContent>
           </Select>
+
+          {/* 필터링 초기화 버튼 */}
+          {committedSearchTerm && (
+            <Button
+              variant="outline"
+              onClick={resetFilters}
+              className="whitespace-nowrap"
+            >
+              초기화
+            </Button>
+          )}
         </div>
 
         {/* 페이지네이션 테이블 */}
