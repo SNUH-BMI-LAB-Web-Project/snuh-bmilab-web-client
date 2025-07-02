@@ -414,6 +414,38 @@ export class ProjectApi extends runtime.BaseAPI {
     }
 
     /**
+     */
+    async getMyProjectsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserProjectFindAllResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/projects/users/me`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserProjectFindAllResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async getMyProjects(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserProjectFindAllResponse> {
+        const response = await this.getMyProjectsRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
      * ID로 연구를 상세 조회하는 GET API
      * 연구 상세 조회
      */
