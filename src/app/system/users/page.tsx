@@ -201,7 +201,7 @@ export default function SystemProjectPage() {
   const [committedSearchTerm, setCommittedSearchTerm] = useState('');
 
   const [stringSortOption, setStringSortOption] = useState('name');
-  const [sortOption, setSortOption] = useState('name-asc');
+  const [sortOption, setSortOption] = useState('이름-오름차순');
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -309,7 +309,7 @@ export default function SystemProjectPage() {
   const resetFilters = () => {
     setSearchTerm('');
     setCommittedSearchTerm('');
-    setSortOption('name-asc');
+    setSortOption('이름-오름차순');
     setStringSortOption('name');
     setCurrentPage(1);
   };
@@ -367,8 +367,8 @@ export default function SystemProjectPage() {
               <SelectValue placeholder="정렬 방식" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="name-asc">이름 오름차순</SelectItem>
-              <SelectItem value="name-desc">이름 내림차순</SelectItem>
+              <SelectItem value="이름-오름차순">이름 오름차순</SelectItem>
+              <SelectItem value="이름-내림차순">이름 내림차순</SelectItem>
             </SelectContent>
           </Select>
 
