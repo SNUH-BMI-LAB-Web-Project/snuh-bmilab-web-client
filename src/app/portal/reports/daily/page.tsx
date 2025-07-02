@@ -14,6 +14,8 @@ import {
 import { DateRangePicker } from '@/components/common/data-range-picker';
 import { Configuration, ProjectApi, SearchProjectItem } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
+import { subDays } from 'date-fns';
+import { DateRange } from 'react-day-picker';
 
 interface ReportFilter {
   user?: string;
@@ -26,12 +28,13 @@ const projectApi = new ProjectApi(
   }),
 );
 
-// TODO: 해당 유저가 속한 프로젝트 리스트만 불러오기
-
 export default function DailyPage() {
   const [filters, setFilters] = useState<ReportFilter>({});
   const [projects, setProjects] = useState<SearchProjectItem[]>([]);
-
+  const [startDate, setStartDate] = useState<Date>(() =>
+    subDays(new Date(), 7),
+  );
+  const [endDate, setEndDate] = useState<Date>(() => new Date());
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleReportCreated = () => {
@@ -41,7 +44,7 @@ export default function DailyPage() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await projectApi.searchProject({ all: true });
+        const res = await projectApi.getMyProjects();
         setProjects(
           res.projects?.map((project) => ({
             projectId: project.projectId,
@@ -49,7 +52,7 @@ export default function DailyPage() {
           })) ?? [],
         );
       } catch (error) {
-        console.error('프로젝트 목록 불러오기 실패:', error);
+        console.error('내 프로젝트 목록 불러오기 실패:', error);
       }
     };
 
@@ -68,11 +71,26 @@ export default function DailyPage() {
     });
   };
 
+  const handleDateChangeComplete = (range: DateRange) => {
+    if (range.from && range.to) {
+      setStartDate(range.from);
+      setEndDate(range.to);
+      setRefreshKey((prev) => prev + 1);
+    }
+  };
+
   return (
     <div className="bg-muted flex flex-col space-y-6 pb-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">일일 업무 보고</h1>
-        <DateRangePicker />
+        <DateRangePicker
+          value={{ from: startDate, to: endDate }}
+          onChange={(range) => {
+            if (range.from) setStartDate(range.from);
+            if (range.to) setEndDate(range.to);
+          }}
+          onChangeComplete={handleDateChangeComplete}
+        />
       </div>
 
       <Card className="bg-white">
@@ -113,7 +131,13 @@ export default function DailyPage() {
             </Select>
           </div>
         </div>
-        <ReportFeed key={refreshKey} filters={filters} projectList={projects} />
+        <ReportFeed
+          key={refreshKey}
+          filters={filters}
+          startDate={startDate}
+          endDate={endDate}
+          projectList={projects}
+        />
       </div>
     </div>
   );
