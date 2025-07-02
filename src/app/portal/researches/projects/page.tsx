@@ -212,18 +212,6 @@ export default function ProjectPage() {
     setProjects(res.projects ?? []);
     setTotalPage(res.totalPage ?? 1);
 
-    console.log('API 요청 파라미터:', {
-      search: committedSearchTerm || undefined,
-      categoryId: fieldFilter !== 'all' ? Number(fieldFilter) : undefined,
-      status: statusFilter !== 'all' ? statusFilter : undefined,
-      pi: committedPiTerm || undefined,
-      practicalProfessor: committedPracticalProfessorTerm || undefined,
-      leaderId: leaderFilter !== 'all' ? parseInt(leaderFilter, 10) : undefined,
-      page: currentPage - 1,
-      size: itemsPerPage,
-      sort: [formatSortOption(sortOption)],
-    });
-
     setLoading(false);
   }, [
     committedSearchTerm,

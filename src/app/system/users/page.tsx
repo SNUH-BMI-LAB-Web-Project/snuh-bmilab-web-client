@@ -237,7 +237,9 @@ export default function SystemProjectPage() {
         setTotalPage(1); // 검색 결과는 페이지네이션 없음 또는 단일 페이지
       }
     } catch (error) {
-      toast.error('사용자 정보를 불러오는 중 오류가 발생했습니다.');
+      toast.error(
+        '사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
+      );
     } finally {
       setLoading(false);
     }
@@ -259,7 +261,9 @@ export default function SystemProjectPage() {
       const res = await adminApi.getUserById({ userId });
       return res;
     } catch (e) {
-      toast.error('상세 정보를 불러오지 못했습니다.');
+      toast.error(
+        '상세 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
+      );
       return null;
     }
   };
@@ -294,7 +298,7 @@ export default function SystemProjectPage() {
       setUsers((prev) => prev.filter((user) => user.userId !== userIdToDelete));
       toast.success('사용자가 삭제되었습니다.');
     } catch (error) {
-      toast.error('사용자 삭제에 실패했습니다.');
+      toast.error('사용자 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
       setShowDeleteDialog(false);
       setUserIdToDelete(null);

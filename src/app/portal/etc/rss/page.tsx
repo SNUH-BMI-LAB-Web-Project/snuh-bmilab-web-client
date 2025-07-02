@@ -115,7 +115,9 @@ export default function RssPage() {
         setRssItems(response.items || []);
         setTotalPage(response.totalPage || 0);
       } catch (error) {
-        toast.error('RSS 데이터를 가져오는 중 오류가 발생했습니다.');
+        toast.error(
+          'RSS 데이터를 가져오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
+        );
       } finally {
         setLoading(false);
       }

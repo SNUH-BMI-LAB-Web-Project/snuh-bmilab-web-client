@@ -152,10 +152,9 @@ export default function UserAddModal({
     if (formData.password) {
       try {
         await navigator.clipboard.writeText(formData.password);
-        alert('비밀번호가 클립보드에 복사되었습니다!');
+        toast.success('비밀번호가 클립보드에 복사되었습니다.');
       } catch (err) {
-        console.error('복사 실패:', err);
-        alert('복사에 실패했습니다.');
+        toast.error('비밀번호 복사에 실패했습니다. 다시 시도해주세요.');
       }
     }
   };
@@ -199,7 +198,7 @@ export default function UserAddModal({
     e.preventDefault();
 
     if (!formData.name || !formData.email || !formData.password) {
-      alert('이름, 이메일, 비밀번호는 필수 입력 항목입니다.');
+      toast.error('이름, 이메일, 비밀번호는 필수 입력 사항입니다.');
       return;
     }
 
@@ -258,10 +257,9 @@ export default function UserAddModal({
         endYearMonth: '',
       });
 
-      toast.success('사용자가 추가되었습니다');
+      toast.success('사용자가 성공적으로 추가되었습니다');
     } catch (error: unknown) {
-      console.error(error);
-      toast.error('사용자 등록에 실패했습니다.');
+      toast.error('사용자 등록 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 

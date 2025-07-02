@@ -8,6 +8,7 @@ import { ProjectApi } from '@/generated-api/apis/ProjectApi';
 import { Configuration } from '@/generated-api/runtime';
 import { useAuthStore } from '@/store/auth-store';
 import { ProjectFileSummary, ProjectRequest } from '@/generated-api';
+import { toast } from 'sonner';
 
 const projectApi = new ProjectApi(
   new Configuration({
@@ -32,11 +33,10 @@ export default function NewProject() {
         },
       });
 
-      alert('프로젝트가 성공적으로 등록되었습니다!');
+      toast.success('프로젝트가 성공적으로 등록되었습니다.');
       router.push('/portal/researches/projects');
     } catch (error) {
-      console.error('프로젝트 생성 실패:', error);
-      alert('프로젝트 등록에 실패했습니다.');
+      toast.error('프로젝트 등록 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 

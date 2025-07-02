@@ -11,6 +11,7 @@ import { useAuthStore } from '@/store/auth-store';
 import type { ProjectDetail } from '@/generated-api/models/ProjectDetail';
 import type { ProjectRequest } from '@/generated-api/models/ProjectRequest';
 import { ProjectFileSummary } from '@/generated-api';
+import { toast } from 'sonner';
 
 const projectApi = new ProjectApi(
   new Configuration({
@@ -74,12 +75,10 @@ export default function EditProjectPage({
         },
       });
 
-      console.log(data);
-      alert('프로젝트가 성공적으로 수정되었습니다!');
-      router.push('/portal/researches/projects');
+      toast.success('프로젝트가 성공적으로 수정되었습니다.');
+      router.push(`/portal/researches/projects/${data.projectId}`);
     } catch (error) {
-      console.error('프로젝트 수정 실패:', error);
-      alert('프로젝트 수정에 실패했습니다.');
+      toast.error('프로젝트 수정 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
 

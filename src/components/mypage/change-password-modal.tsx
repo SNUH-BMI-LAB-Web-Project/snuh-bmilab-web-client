@@ -57,7 +57,7 @@ export function ChangePasswordModal({
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {
-      toast.error('비밀번호 변경 중 오류가 발생했습니다.');
+      toast.error('비밀번호 변경 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
       setIsSubmitting(false);
     }

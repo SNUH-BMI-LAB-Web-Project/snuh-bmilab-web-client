@@ -61,7 +61,6 @@ export default function DailyPage() {
 
   const handleFilter = useCallback((newFilters: ReportFilter) => {
     setFilters(newFilters);
-    console.log('필터 적용:', newFilters);
   }, []);
 
   const handleProjectChange = (value: string) => {

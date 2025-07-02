@@ -109,8 +109,7 @@ export default function ResearchFieldModal() {
       setResearchFields(res.categories ?? []);
       setNewFieldName('');
     } catch (error) {
-      console.error('연구 분야 추가 실패:', error);
-      toast.error('추가에 실패했습니다.');
+      toast.error('연구 분야 추가 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 
@@ -145,8 +144,7 @@ export default function ResearchFieldModal() {
       setEditingField(null);
       setEditFieldName('');
     } catch (error) {
-      console.error('연구 분야 수정 실패:', error);
-      toast.error('수정에 실패했습니다.');
+      toast.error('연구 분야 수정 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 
@@ -163,8 +161,7 @@ export default function ResearchFieldModal() {
       setResearchFields(res.categories ?? []);
       setDeleteField(null);
     } catch (error) {
-      console.error('연구 분야 삭제 실패:', error);
-      toast.error('삭제에 실패했습니다.');
+      toast.error('연구 분야 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 

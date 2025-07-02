@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
+import { cn, setDateWithFixedHour } from '@/lib/utils';
 import { TimelineRequestTypeEnum } from '@/generated-api';
 import { GeneratePresignedUrlDomainTypeEnum } from '@/generated-api/apis/FileApi';
 import { FileSummary, TimelineSummary } from '@/generated-api/models';
@@ -171,7 +171,7 @@ export default function TimelineFormModal({
       onSubmit({
         timelineId: initialData?.timelineId,
         title: formData.title,
-        date: formData.date,
+        date: setDateWithFixedHour(formData.date),
         startTime: formData.startTime?.trim()
           ? formatTime(formData.startTime)
           : undefined,
@@ -188,7 +188,9 @@ export default function TimelineFormModal({
 
       onOpenChange(false);
     } catch (err) {
-      toast.error('저장 중 오류가 발생했습니다.');
+      toast.error(
+        '타임라인 등록 또는 수정 중 오류가 발생했습니다. 다시 시도해 주세요.',
+      );
     }
   };
 
