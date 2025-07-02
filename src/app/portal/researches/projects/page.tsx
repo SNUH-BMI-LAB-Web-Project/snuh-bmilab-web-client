@@ -19,13 +19,24 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import Link from 'next/link';
-import { Configuration, ExternalProfessorSummary } from '@/generated-api';
+import {
+  Configuration,
+  ExternalProfessorSummary,
+  UserApi,
+  UserSummary,
+} from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import { cn } from '@/lib/utils';
 import { getStatusClassName, getStatusLabel } from '@/utils/project-utils';
 import { useProjectCategories } from '@/hooks/use-project-categories';
 
 const projectApi = new ProjectApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
+
+const userApi = new UserApi(
   new Configuration({
     accessToken: async () => useAuthStore.getState().accessToken ?? '',
   }),
@@ -56,7 +67,12 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
         {row.isPrivate ? (
           <>
             <Lock className="h-3 w-3" />
-            <span>{row.title}</span>
+            <Link
+              href={`/portal/researches/projects/${row.projectId}`}
+              className="hover:underline"
+            >
+              {row.title}
+            </Link>
           </>
         ) : (
           <Link
@@ -166,9 +182,9 @@ export default function ProjectPage() {
   const [practicalProfessorTerm, setPracticalProfessorTerm] = useState('');
   const [committedPracticalProfessorTerm, setCommittedPracticalProfessorTerm] =
     useState('');
-  const [leaders, setLeaders] = useState<{ id: number; name: string }[]>([]);
+  const [allUsers, setAllUsers] = useState<UserSummary[]>([]);
 
-  const [sortOption, setSortOption] = useState('createdAt-desc');
+  const [sortOption, setSortOption] = useState('startDate-desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showFilters, setShowFilters] = useState(false);
@@ -198,24 +214,17 @@ export default function ProjectPage() {
     setProjects(res.projects ?? []);
     setTotalPage(res.totalPage ?? 1);
 
-    const leaderSet = new Map<number, string>();
-    (res.projects ?? []).forEach((project) => {
-      (project.leaders ?? []).forEach((leader) => {
-        if (
-          leader.userId !== undefined &&
-          leader.name !== undefined &&
-          !leaderSet.has(leader.userId)
-        ) {
-          leaderSet.set(leader.userId, leader.name);
-        }
-      });
+    console.log('API 요청 파라미터:', {
+      search: committedSearchTerm || undefined,
+      categoryId: fieldFilter !== 'all' ? Number(fieldFilter) : undefined,
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+      pi: committedPiTerm || undefined,
+      practicalProfessor: committedPracticalProfessorTerm || undefined,
+      leaderId: leaderFilter !== 'all' ? parseInt(leaderFilter, 10) : undefined,
+      page: currentPage - 1,
+      size: itemsPerPage,
+      sort: [formatSortOption(sortOption)],
     });
-
-    const leaderList = Array.from(leaderSet).map(([id, name]) => ({
-      id,
-      name,
-    }));
-    setLeaders(leaderList);
 
     setLoading(false);
   }, [
@@ -231,6 +240,19 @@ export default function ProjectPage() {
   ]);
 
   useEffect(() => {
+    const fetchAllUsers = async () => {
+      try {
+        const res = await userApi.searchUsers();
+        setAllUsers(res.users ?? []);
+      } catch (error) {
+        console.error('전체 사용자 목록 조회 실패:', error);
+      }
+    };
+
+    fetchAllUsers();
+  }, []);
+
+  useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
 
@@ -242,7 +264,7 @@ export default function ProjectPage() {
     setPiTerm('');
     setPracticalProfessorTerm('');
     setLeaderFilter('all');
-    setSortOption('createdAt-desc');
+    setSortOption('startDate-desc');
   };
 
   return (
@@ -290,10 +312,10 @@ export default function ProjectPage() {
                 <SelectValue placeholder="정렬 방식" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="createdAt-desc">최신순</SelectItem>
-                <SelectItem value="createdAt-asc">오래된순</SelectItem>
-                <SelectItem value="startDate-asc">시작일 오름차순</SelectItem>
                 <SelectItem value="startDate-desc">시작일 내림차순</SelectItem>
+                <SelectItem value="startDate-asc">시작일 오름차순</SelectItem>
+                <SelectItem value="endDate-desc">종료일 내림차순</SelectItem>
+                <SelectItem value="endDate-asc">종료일 오름차순</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -379,9 +401,12 @@ export default function ProjectPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">모든 책임자</SelectItem>
-                  {leaders.map((leader) => (
-                    <SelectItem key={leader.id} value={leader.id.toString()}>
-                      {leader.name}
+                  {allUsers.map((user) => (
+                    <SelectItem key={user.userId} value={String(user.userId)}>
+                      {user.name}{' '}
+                      <span className="text-muted-foreground text-xs">
+                        {user.email}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
