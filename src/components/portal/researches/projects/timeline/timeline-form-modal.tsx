@@ -29,7 +29,11 @@ import {
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn, setDateWithFixedHour } from '@/lib/utils';
-import { TimelineRequestTypeEnum } from '@/generated-api';
+import {
+  Configuration,
+  TimelineApi,
+  TimelineRequestTypeEnum,
+} from '@/generated-api';
 import { GeneratePresignedUrlDomainTypeEnum } from '@/generated-api/apis/FileApi';
 import { FileSummary, TimelineSummary } from '@/generated-api/models';
 import { useAuthStore } from '@/store/auth-store';
@@ -55,6 +59,12 @@ interface Props {
     fileIds?: string[];
   }) => void;
 }
+
+const timelineApi = new TimelineApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
 
 export default function TimelineFormModal({
   mode,
@@ -86,9 +96,13 @@ export default function TimelineFormModal({
   });
 
   const accessToken = useAuthStore((s) => s.accessToken);
+  const [initialExistingFiles, setInitialExistingFiles] = useState<
+    FileSummary[]
+  >([]);
 
   useEffect(() => {
     if (initialData && open) {
+      const files = initialData.files ?? [];
       setFormData({
         title: initialData.title!,
         date: new Date(initialData.date!),
@@ -100,6 +114,7 @@ export default function TimelineFormModal({
         files: [],
         existingFiles: initialData.files ?? [],
       });
+      setInitialExistingFiles(files);
     } else if (open) {
       setFormData({
         title: '',
@@ -112,6 +127,7 @@ export default function TimelineFormModal({
         files: [],
         existingFiles: [],
       });
+      setInitialExistingFiles([]);
     }
   }, [initialData, open]);
 
@@ -167,6 +183,23 @@ export default function TimelineFormModal({
     try {
       const existingFileIds = formData.existingFiles.map((f) => f.fileId!);
       const newFileIds = formData.files.map((f) => f.fileId!);
+
+      // 삭제된 기존 파일 구분
+      const deletedFiles = initialExistingFiles.filter(
+        (f) => !formData.existingFiles.some((ef) => ef.fileId === f.fileId),
+      );
+
+      // 삭제된 파일에 대해 API 요청
+      if (deletedFiles.length > 0 && initialData) {
+        const deletePromises = deletedFiles.map((file) =>
+          timelineApi.deleteTimelineFile({
+            projectId: initialData.projectId!,
+            timelineId: initialData.timelineId!,
+            fileId: file.fileId!,
+          }),
+        );
+        await Promise.all(deletePromises);
+      }
 
       onSubmit({
         timelineId: initialData?.timelineId,
