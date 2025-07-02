@@ -21,6 +21,12 @@ import { mapValues } from '../runtime';
 export interface ExternalProfessorItem {
     /**
      * 
+     * @type {number}
+     * @memberof ExternalProfessorItem
+     */
+    professorId?: number;
+    /**
+     * 
      * @type {string}
      * @memberof ExternalProfessorItem
      */
@@ -56,6 +62,7 @@ export function ExternalProfessorItemFromJSONTyped(json: any, ignoreDiscriminato
     }
     return {
         
+        'professorId': json['professorId'] == null ? undefined : json['professorId'],
         'name': json['name'] == null ? undefined : json['name'],
         'organization': json['organization'] == null ? undefined : json['organization'],
         'department': json['department'] == null ? undefined : json['department'],
@@ -73,6 +80,7 @@ export function ExternalProfessorItemToJSONTyped(value?: ExternalProfessorItem |
 
     return {
         
+        'professorId': value['professorId'],
         'name': value['name'],
         'organization': value['organization'],
         'department': value['department'],
