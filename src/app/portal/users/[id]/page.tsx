@@ -74,7 +74,7 @@ export default function UserDetailPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/system/users">
+            <Link href="/portal/users">
               <ArrowLeft className="mr-2 h-4 w-4" />
               연명부로 돌아가기
             </Link>
