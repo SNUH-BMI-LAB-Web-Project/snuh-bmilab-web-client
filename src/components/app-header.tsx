@@ -45,21 +45,13 @@ export default function AppHeader() {
         onClick={() => router.push('/')}
         className="flex cursor-pointer flex-row items-center gap-3 text-xl font-semibold transition-transform duration-150 hover:scale-105"
       >
-        {/* <Image */}
-        {/*   src="/bmi-lab-tmp-logo.svg" */}
-        {/*   alt="BMI Lab Logo" */}
-        {/*   width={30} */}
-        {/*   height={30} */}
-        {/*   className="bg-transparent" */}
-        {/* /> */}
-        {/* <Image */}
-        {/*   src="/bmi-lab-tmp-text-logo.svg" */}
-        {/*   alt="BMI Lab Text Logo" */}
-        {/*   width={140} */}
-        {/*   height={30} */}
-        {/*   className="bg-transparent" */}
-        {/* /> */}
-        SNUH BMI LAB
+        <Image
+          src="/snuh-bmi-lab-logo.svg"
+          alt="BMI Lab Logo"
+          width={165}
+          height={30}
+          className="bg-transparent"
+        />
       </button>
 
       {/* 우측 내비게이션 */}
