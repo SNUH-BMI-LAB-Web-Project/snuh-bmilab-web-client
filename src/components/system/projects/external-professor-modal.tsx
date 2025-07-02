@@ -207,7 +207,7 @@ export default function ExternalProfessorModal() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="organization">소속 기관 *</Label>
+                    <Label htmlFor="organization">기관 *</Label>
                     <Input
                       id="organization"
                       value={formData.organization}
@@ -218,7 +218,7 @@ export default function ExternalProfessorModal() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="department">학과/부서</Label>
+                    <Label htmlFor="department">부서</Label>
                     <Input
                       id="department"
                       value={formData.department}
