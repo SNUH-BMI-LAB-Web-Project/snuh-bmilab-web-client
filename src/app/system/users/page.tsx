@@ -56,11 +56,6 @@ const adminApi = new AdminUserApi(
   }),
 );
 
-const formatSortOption = (option: string) => {
-  const [field, direction] = option.split('-');
-  return `${field},${direction}`;
-};
-
 const getUserColumns = (
   currentPage: number,
   itemsPerPage: number,
@@ -201,7 +196,7 @@ export default function SystemProjectPage() {
   const [committedSearchTerm, setCommittedSearchTerm] = useState('');
 
   const [stringSortOption, setStringSortOption] = useState('name');
-  const [sortOption, setSortOption] = useState('이름-오름차순');
+  const [sortOption, setSortOption] = useState('asc');
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -228,7 +223,7 @@ export default function SystemProjectPage() {
         const res = await userApi.getAllUsers({
           page: currentPage - 1, // 0-based index
           size: itemsPerPage,
-          criteria: formatSortOption(sortOption),
+          criteria: sortOption,
         });
         setUsers(res.users ?? []);
         setTotalPage(res.totalPage ?? 1);
@@ -236,7 +231,7 @@ export default function SystemProjectPage() {
         const res = await userApi.searchUsers({
           filterBy: stringSortOption,
           filterValue: committedSearchTerm,
-          sort: formatSortOption(sortOption),
+          sort: sortOption,
         });
         setUsers(res.users ?? []);
         setTotalPage(1); // 검색 결과는 페이지네이션 없음 또는 단일 페이지
@@ -309,7 +304,7 @@ export default function SystemProjectPage() {
   const resetFilters = () => {
     setSearchTerm('');
     setCommittedSearchTerm('');
-    setSortOption('이름-오름차순');
+    setSortOption('asc');
     setStringSortOption('name');
     setCurrentPage(1);
   };
@@ -362,15 +357,15 @@ export default function SystemProjectPage() {
           </div>
 
           {/* 이름으로 정렬 */}
-          <Select value={sortOption} onValueChange={setSortOption}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="정렬 방식" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="이름-오름차순">이름 오름차순</SelectItem>
-              <SelectItem value="이름-내림차순">이름 내림차순</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* <Select value={sortOption} onValueChange={setSortOption}> */}
+          {/*   <SelectTrigger className="w-[200px]"> */}
+          {/*     <SelectValue placeholder="정렬 방식" /> */}
+          {/*   </SelectTrigger> */}
+          {/*   <SelectContent> */}
+          {/*     <SelectItem value="asc">이름 오름차순</SelectItem> */}
+          {/*     <SelectItem value="desc">이름 내림차순</SelectItem> */}
+          {/*   </SelectContent> */}
+          {/* </Select> */}
 
           {/* 필터링 초기화 버튼 */}
           {committedSearchTerm && (
