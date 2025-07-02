@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { UserCheck, Plus, Edit, Trash2, Save, Building } from 'lucide-react';
 import {
-  AdminProjectControllerApi,
+  AdminExternalProfessorApi,
   Configuration,
   ExternalProfessorItem,
 } from '@/generated-api';
@@ -53,7 +53,7 @@ export default function ExternalProfessorModal() {
     department: '',
   });
 
-  const api = new AdminProjectControllerApi(
+  const api = new AdminExternalProfessorApi(
     new Configuration({
       accessToken: async () => useAuthStore.getState().accessToken ?? '',
     }),
@@ -207,7 +207,7 @@ export default function ExternalProfessorModal() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="organization">소속 기관 *</Label>
+                    <Label htmlFor="organization">기관 *</Label>
                     <Input
                       id="organization"
                       value={formData.organization}
@@ -218,7 +218,7 @@ export default function ExternalProfessorModal() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="department">학과/부서</Label>
+                    <Label htmlFor="department">부서</Label>
                     <Input
                       id="department"
                       value={formData.department}

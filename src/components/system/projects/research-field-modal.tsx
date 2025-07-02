@@ -46,8 +46,11 @@ export default function ResearchFieldModal() {
   const [researchFields, setResearchFields] = useState<
     ProjectCategorySummary[]
   >([]);
-  const [editingField, setEditingField] = useState<any>(null);
-  const [deleteField, setDeleteField] = useState<any>(null);
+  const [editingField, setEditingField] =
+    useState<ProjectCategorySummary | null>(null);
+  const [deleteField, setDeleteField] = useState<ProjectCategorySummary | null>(
+    null,
+  );
   const [newFieldName, setNewFieldName] = useState('');
   const [editFieldName, setEditFieldName] = useState('');
 
@@ -121,7 +124,7 @@ export default function ResearchFieldModal() {
     if (
       researchFields.some(
         (field) =>
-          field.categoryId !== editingField.categoryId &&
+          field.categoryId !== editingField?.categoryId &&
           field?.name?.toLowerCase() === editFieldName.toLowerCase(),
       )
     ) {
@@ -131,7 +134,7 @@ export default function ResearchFieldModal() {
 
     try {
       await adminCategoryApi.updateProjectCategory({
-        categoryId: editingField.categoryId,
+        categoryId: editingField?.categoryId || -1,
         projectCategoryRequest: { name: editFieldName.trim() },
       });
 
@@ -151,7 +154,7 @@ export default function ResearchFieldModal() {
   const handleDeleteField = async () => {
     try {
       await adminCategoryApi.deleteById({
-        categoryId: deleteField.categoryId,
+        categoryId: deleteField?.categoryId || -1,
       });
 
       toast.success('연구 분야가 성공적으로 삭제되었습니다.');
@@ -166,9 +169,9 @@ export default function ResearchFieldModal() {
   };
 
   // 수정 모드 시작
-  const startEdit = (field: any) => {
+  const startEdit = (field: ProjectCategorySummary) => {
     setEditingField(field);
-    setEditFieldName(field.name);
+    setEditFieldName(field.name || '');
   };
 
   // 수정 취소
@@ -294,7 +297,8 @@ export default function ResearchFieldModal() {
                             )}
                           </TableCell>
                           <TableCell>
-                            {editingField?.id === field.categoryId ? null : (
+                            {editingField?.categoryId ===
+                            field.categoryId ? null : (
                               <div className="flex gap-1">
                                 <Button
                                   size="sm"

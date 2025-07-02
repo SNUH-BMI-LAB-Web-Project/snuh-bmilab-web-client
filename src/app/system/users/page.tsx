@@ -201,7 +201,7 @@ export default function SystemProjectPage() {
   const [committedSearchTerm, setCommittedSearchTerm] = useState('');
 
   const [stringSortOption, setStringSortOption] = useState('name');
-  const [sortOption, setSortOption] = useState('name-asc');
+  const [sortOption, setSortOption] = useState('이름-오름차순');
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -224,15 +224,25 @@ export default function SystemProjectPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await userApi.getAllUsers({
-        page: currentPage - 1, // 0-based index
-        size: itemsPerPage,
-        criteria: formatSortOption(sortOption),
-      });
-      setUsers(res.users ?? []);
-      setTotalPage(res.totalPage ?? 1);
+      if (committedSearchTerm.trim() === '') {
+        const res = await userApi.getAllUsers({
+          page: currentPage - 1, // 0-based index
+          size: itemsPerPage,
+          criteria: formatSortOption(sortOption),
+        });
+        setUsers(res.users ?? []);
+        setTotalPage(res.totalPage ?? 1);
+      } else {
+        const res = await userApi.searchUsers({
+          filterBy: stringSortOption,
+          filterValue: committedSearchTerm,
+          sort: formatSortOption(sortOption),
+        });
+        setUsers(res.users ?? []);
+        setTotalPage(1); // 검색 결과는 페이지네이션 없음 또는 단일 페이지
+      }
     } catch (error) {
-      toast.error('연명부 정보를 불러오는 중 오류가 발생했습니다.');
+      toast.error('사용자 정보를 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -240,7 +250,13 @@ export default function SystemProjectPage() {
 
   useEffect(() => {
     fetchUsers();
-  }, [currentPage, itemsPerPage, sortOption, shouldRefetch]);
+  }, [
+    currentPage,
+    itemsPerPage,
+    sortOption,
+    committedSearchTerm,
+    shouldRefetch,
+  ]);
 
   // 유저 정보 수정시, 상세 정보 불러오기
   const fetchUserDetail = async (userId: number) => {
@@ -293,7 +309,7 @@ export default function SystemProjectPage() {
   const resetFilters = () => {
     setSearchTerm('');
     setCommittedSearchTerm('');
-    setSortOption('name-asc');
+    setSortOption('이름-오름차순');
     setStringSortOption('name');
     setCurrentPage(1);
   };
@@ -351,10 +367,21 @@ export default function SystemProjectPage() {
               <SelectValue placeholder="정렬 방식" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="name-asc">이름 오름차순</SelectItem>
-              <SelectItem value="name-desc">이름 내림차순</SelectItem>
+              <SelectItem value="이름-오름차순">이름 오름차순</SelectItem>
+              <SelectItem value="이름-내림차순">이름 내림차순</SelectItem>
             </SelectContent>
           </Select>
+
+          {/* 필터링 초기화 버튼 */}
+          {committedSearchTerm && (
+            <Button
+              variant="outline"
+              onClick={resetFilters}
+              className="whitespace-nowrap"
+            >
+              초기화
+            </Button>
+          )}
         </div>
 
         {/* 페이지네이션 테이블 */}

@@ -25,7 +25,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Plus, RefreshCw, Copy, CalendarIcon, X } from 'lucide-react';
+import {
+  Plus,
+  RefreshCw,
+  Copy,
+  CalendarIcon,
+  X,
+  Shield,
+  User,
+  Crown,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -36,19 +45,25 @@ import {
   ProjectCategorySummary,
   RegisterUserRequest,
   RegisterUserRequestAffiliationEnum,
+  RegisterUserRequestRoleEnum,
+  UserEducationRequest,
+  UserEducationRequestStatusEnum,
   UserEducationSummaryStatusEnum,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import EmailConfirmationModal from '@/components/system/users/email-confirmation-modal';
 import YearMonthPicker from '@/components/system/users/year-month-picker';
-import { affiliationLabelMap } from '@/constants/affiliation-enum';
 import { statusLabelMap } from '@/constants/education-enum';
 import { toast } from 'sonner';
+import { affiliationOptions } from '@/constants/affiliation-enum';
+import { roleOptions } from '@/constants/role-enum';
 
 interface UserAddModalProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  onUserAdd: (userData: any) => void;
+  onUserAdd: (
+    userData: RegisterUserRequest & { categories: ProjectCategorySummary[] },
+  ) => void;
 }
 
 export default function UserAddModal({
@@ -72,23 +87,16 @@ export default function UserAddModal({
     categoryIds: [] as number[],
     seatNumber: '',
     phoneNumber: '',
-    educations: [] as any[],
+    educations: [] as UserEducationRequest[],
     joinedAt: new Date(),
+    role: RegisterUserRequestRoleEnum.User,
   });
-  const [newEducation, setNewEducation] = useState({
+  const [newEducation, setNewEducation] = useState<UserEducationRequest>({
     title: '',
-    status: '',
+    status: undefined,
     startYearMonth: '',
     endYearMonth: '',
   });
-
-  // 소속 옵션들
-  const affiliationOptions = Object.entries(affiliationLabelMap).map(
-    ([value, label]) => ({
-      value: value as RegisterUserRequestAffiliationEnum,
-      label,
-    }),
-  );
 
   // 카테고리 옵션들
   const [categoryOptions, setCategoryOptions] = useState<
@@ -173,7 +181,7 @@ export default function UserAddModal({
       }));
       setNewEducation({
         title: '',
-        status: '',
+        status: undefined,
         startYearMonth: '',
         endYearMonth: '',
       });
@@ -199,8 +207,8 @@ export default function UserAddModal({
       ...formData,
       educations: formData.educations.map((edu) => ({
         ...edu,
-        startYearMonth: edu.startYearMonth || null,
-        endYearMonth: edu.endYearMonth || null,
+        startYearMonth: edu.startYearMonth || undefined,
+        endYearMonth: edu.endYearMonth || undefined,
       })),
       joinedAt: (() => {
         const date = new Date(formData.joinedAt);
@@ -241,22 +249,26 @@ export default function UserAddModal({
         phoneNumber: '',
         educations: [],
         joinedAt: new Date(),
+        role: RegisterUserRequestRoleEnum.User,
       });
       setNewEducation({
         title: '',
-        status: '',
+        status: undefined,
         startYearMonth: '',
         endYearMonth: '',
       });
 
       toast.success('사용자가 추가되었습니다');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       toast.error('사용자 등록에 실패했습니다.');
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (
+    field: keyof typeof formData,
+    value: string | number | boolean | Date | null,
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -365,6 +377,69 @@ export default function UserAddModal({
               </div>
             </div>
 
+            {/* 시스템 권한 */}
+            <div className="space-y-4 rounded-lg border p-4">
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-gray-600" />
+                <h3 className="text-sm font-semibold">시스템 권한 설정</h3>
+              </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {roleOptions.map(({ value, label }) => {
+                  const Icon =
+                    value === RegisterUserRequestRoleEnum.Admin ? Crown : User;
+                  const isSelected = formData.role === value;
+
+                  return (
+                    // eslint-disable-next-line jsx-a11y/click-events-have-key-events
+                    <div
+                      key={value}
+                      className={`cursor-pointer rounded-lg border-2 p-4 transition-all duration-200 ${
+                        isSelected
+                          ? 'border-gray-700 bg-gray-50 shadow-md'
+                          : 'border-gray-200 bg-white hover:border-gray-400 hover:bg-gray-50'
+                      }`}
+                      onClick={() => handleInputChange('role', value)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                            isSelected ? 'bg-gray-800' : 'bg-gray-400'
+                          }`}
+                        >
+                          <Icon className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-700">
+                            {label}
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {value === RegisterUserRequestRoleEnum.Admin
+                              ? '모든 권한 보유'
+                              : '기본 기능 사용'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {String(formData.role) === RegisterUserRequestRoleEnum.Admin && (
+                <div className="mt-4 rounded-lg border border-gray-300 bg-gray-50 p-3">
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <Shield className="h-4 w-4" />
+                    <span className="text-sm font-medium">
+                      관리자 권한 주의사항
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-600">
+                    관리자는 모든 사용자 데이터에 접근하고 시스템 설정을 변경할
+                    수 있습니다. 신중하게 부여해주세요.
+                  </p>
+                </div>
+              )}
+            </div>
+
             {/* 소속 정보 */}
             <div className="space-y-4 rounded-lg border p-4">
               <h3 className="text-sm font-semibold">소속 정보</h3>
@@ -392,13 +467,15 @@ export default function UserAddModal({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="affiliation">소속 *</Label>
+                  <Label htmlFor="affiliation">소속</Label>
                   <Select
                     value={formData.affiliation ?? ''}
                     onValueChange={(value) =>
                       handleInputChange(
                         'affiliation',
-                        value as RegisterUserRequestAffiliationEnum,
+                        value === 'none'
+                          ? null
+                          : (value as RegisterUserRequestAffiliationEnum),
                       )
                     }
                   >
@@ -460,7 +537,7 @@ export default function UserAddModal({
 
             {/* 카테고리 */}
             <div className="space-y-4 rounded-lg border p-4">
-              <h3 className="text-sm font-semibold">연구 분야 카테고리</h3>
+              <h3 className="text-sm font-semibold">연구 분야</h3>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                 {categoryOptions.map((category) => (
                   <div
@@ -530,7 +607,7 @@ export default function UserAddModal({
                   <Label>등록된 학력</Label>
                   {formData.educations.map((edu, index) => (
                     <div
-                      key={edu}
+                      key={edu.title}
                       className="flex items-center gap-2 rounded-lg bg-gray-50 p-3"
                     >
                       <div className="flex-1">
@@ -580,7 +657,10 @@ export default function UserAddModal({
                     <Select
                       value={newEducation.status}
                       onValueChange={(value) =>
-                        setNewEducation((prev) => ({ ...prev, status: value }))
+                        setNewEducation((prev) => ({
+                          ...prev,
+                          status: value as UserEducationRequestStatusEnum,
+                        }))
                       }
                     >
                       <SelectTrigger className="w-full">

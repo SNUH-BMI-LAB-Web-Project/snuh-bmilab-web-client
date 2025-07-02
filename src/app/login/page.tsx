@@ -59,7 +59,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="-mt-18 flex w-full items-center justify-center">
+    <div className="-mt-18 flex h-screen w-full items-center justify-center">
       <div className="w-full max-w-sm">
         <div className={cn('flex flex-col gap-6')}>
           <Card>
