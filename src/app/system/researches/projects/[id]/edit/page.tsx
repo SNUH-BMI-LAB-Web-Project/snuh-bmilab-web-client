@@ -37,7 +37,6 @@ export default function EditProjectPage({
         });
         setProject(data);
       } catch (error) {
-        // TODO: 토스트 에러 처리
         console.error('프로젝트 조회 실패:', error);
       } finally {
         setLoading(false);

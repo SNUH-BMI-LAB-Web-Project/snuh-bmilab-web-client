@@ -18,7 +18,6 @@ const projectApi = new ProjectApi(
 export default function NewProject() {
   const router = useRouter();
 
-  // TODO: 토스트 처리
   const handleCreate = async (
     data: ProjectRequest,
     newFiles: ProjectFileSummary[],

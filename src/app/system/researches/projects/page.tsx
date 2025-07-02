@@ -153,8 +153,6 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
   },
 ];
 
-// TODO: C) 500 에러 보고 및 테스트 R) search param 점검 U) leaderIds 누락 개선 D) 문제 없음
-
 export default function ProjectPage() {
   const { data: categoryData } = useProjectCategories();
 
