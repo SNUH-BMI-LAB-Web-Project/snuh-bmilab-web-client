@@ -13,13 +13,6 @@
  */
 
 import { mapValues } from '../runtime';
-import type { LocalTime } from './LocalTime';
-import {
-    LocalTimeFromJSON,
-    LocalTimeFromJSONTyped,
-    LocalTimeToJSON,
-    LocalTimeToJSONTyped,
-} from './LocalTime';
 import type { FileSummary } from './FileSummary';
 import {
     FileSummaryFromJSON,
@@ -73,16 +66,16 @@ export interface TimelineSummary {
     date?: Date;
     /**
      * 타임라인 시작 시간 (24시간제)
-     * @type {LocalTime}
+     * @type {string}
      * @memberof TimelineSummary
      */
-    startTime?: LocalTime;
+    startTime?: string;
     /**
      * 타임라인 종료 시간 (24시간제)
-     * @type {LocalTime}
+     * @type {string}
      * @memberof TimelineSummary
      */
-    endTime?: LocalTime;
+    endTime?: string;
     /**
      * 미팅 장소
      * @type {string}
@@ -145,8 +138,8 @@ export function TimelineSummaryFromJSONTyped(json: any, ignoreDiscriminator: boo
         'recorder': json['recorder'] == null ? undefined : UserSummaryFromJSON(json['recorder']),
         'title': json['title'] == null ? undefined : json['title'],
         'date': json['date'] == null ? undefined : (new Date(json['date'])),
-        'startTime': json['startTime'] == null ? undefined : LocalTimeFromJSON(json['startTime']),
-        'endTime': json['endTime'] == null ? undefined : LocalTimeFromJSON(json['endTime']),
+        'startTime': json['startTime'] == null ? undefined : json['startTime'],
+        'endTime': json['endTime'] == null ? undefined : json['endTime'],
         'meetingPlace': json['meetingPlace'] == null ? undefined : json['meetingPlace'],
         'timelineType': json['timelineType'] == null ? undefined : json['timelineType'],
         'summary': json['summary'] == null ? undefined : json['summary'],
@@ -170,8 +163,8 @@ export function TimelineSummaryToJSONTyped(value?: TimelineSummary | null, ignor
         'recorder': UserSummaryToJSON(value['recorder']),
         'title': value['title'],
         'date': value['date'] == null ? undefined : ((value['date']).toISOString().substring(0,10)),
-        'startTime': LocalTimeToJSON(value['startTime']),
-        'endTime': LocalTimeToJSON(value['endTime']),
+        'startTime': value['startTime'],
+        'endTime': value['endTime'],
         'meetingPlace': value['meetingPlace'],
         'timelineType': value['timelineType'],
         'summary': value['summary'],

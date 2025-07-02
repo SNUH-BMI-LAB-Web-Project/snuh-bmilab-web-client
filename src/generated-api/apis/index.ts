@@ -2,6 +2,7 @@
 /* eslint-disable */
 export * from './AdminLeaveApi';
 export * from './AdminProjectCategoryApi';
+export * from './AdminProjectControllerApi';
 export * from './AdminUserApi';
 export * from './AuthApi';
 export * from './FileApi';

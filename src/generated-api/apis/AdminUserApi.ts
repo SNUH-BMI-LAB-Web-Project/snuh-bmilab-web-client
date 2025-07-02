@@ -18,6 +18,7 @@ import type {
   AdminUpdateUserRequest,
   ErrorResponse,
   RegisterUserRequest,
+  UserAccountEmailRequest,
   UserDetail,
 } from '../models/index';
 import {
@@ -27,6 +28,8 @@ import {
     ErrorResponseToJSON,
     RegisterUserRequestFromJSON,
     RegisterUserRequestToJSON,
+    UserAccountEmailRequestFromJSON,
+    UserAccountEmailRequestToJSON,
     UserDetailFromJSON,
     UserDetailToJSON,
 } from '../models/index';
@@ -41,6 +44,11 @@ export interface GetUserByIdRequest {
 
 export interface RegisterNewUserRequest {
     registerUserRequest: RegisterUserRequest;
+}
+
+export interface SendAccountEmailRequest {
+    userId: number;
+    userAccountEmailRequest: UserAccountEmailRequest;
 }
 
 export interface UpdateUserByIdRequest {
@@ -181,6 +189,58 @@ export class AdminUserApi extends runtime.BaseAPI {
      */
     async registerNewUser(requestParameters: RegisterNewUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.registerNewUserRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * 사용자에게 계정 생성 알림 이메일을 보내는 POST API
+     * 사용자 계정 생성 이메일 보내기
+     */
+    async sendAccountEmailRaw(requestParameters: SendAccountEmailRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['userId'] == null) {
+            throw new runtime.RequiredError(
+                'userId',
+                'Required parameter "userId" was null or undefined when calling sendAccountEmail().'
+            );
+        }
+
+        if (requestParameters['userAccountEmailRequest'] == null) {
+            throw new runtime.RequiredError(
+                'userAccountEmailRequest',
+                'Required parameter "userAccountEmailRequest" was null or undefined when calling sendAccountEmail().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/admin/users/{userId}/account-email`.replace(`{${"userId"}}`, encodeURIComponent(String(requestParameters['userId']))),
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UserAccountEmailRequestToJSON(requestParameters['userAccountEmailRequest']),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * 사용자에게 계정 생성 알림 이메일을 보내는 POST API
+     * 사용자 계정 생성 이메일 보내기
+     */
+    async sendAccountEmail(requestParameters: SendAccountEmailRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.sendAccountEmailRaw(requestParameters, initOverrides);
     }
 
     /**
