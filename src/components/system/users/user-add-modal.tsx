@@ -46,6 +46,8 @@ import {
   RegisterUserRequest,
   RegisterUserRequestAffiliationEnum,
   RegisterUserRequestRoleEnum,
+  UserEducationRequest,
+  UserEducationRequestStatusEnum,
   UserEducationSummaryStatusEnum,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
@@ -85,13 +87,13 @@ export default function UserAddModal({
     categoryIds: [] as number[],
     seatNumber: '',
     phoneNumber: '',
-    educations: [] as any[],
+    educations: [] as UserEducationRequest[],
     joinedAt: new Date(),
     role: RegisterUserRequestRoleEnum.User,
   });
-  const [newEducation, setNewEducation] = useState({
+  const [newEducation, setNewEducation] = useState<UserEducationRequest>({
     title: '',
-    status: '',
+    status: undefined,
     startYearMonth: '',
     endYearMonth: '',
   });
@@ -179,7 +181,7 @@ export default function UserAddModal({
       }));
       setNewEducation({
         title: '',
-        status: '',
+        status: undefined,
         startYearMonth: '',
         endYearMonth: '',
       });
@@ -205,8 +207,8 @@ export default function UserAddModal({
       ...formData,
       educations: formData.educations.map((edu) => ({
         ...edu,
-        startYearMonth: edu.startYearMonth || null,
-        endYearMonth: edu.endYearMonth || null,
+        startYearMonth: edu.startYearMonth || undefined,
+        endYearMonth: edu.endYearMonth || undefined,
       })),
       joinedAt: (() => {
         const date = new Date(formData.joinedAt);
@@ -251,7 +253,7 @@ export default function UserAddModal({
       });
       setNewEducation({
         title: '',
-        status: '',
+        status: undefined,
         startYearMonth: '',
         endYearMonth: '',
       });
@@ -605,7 +607,7 @@ export default function UserAddModal({
                   <Label>등록된 학력</Label>
                   {formData.educations.map((edu, index) => (
                     <div
-                      key={edu}
+                      key={edu.title}
                       className="flex items-center gap-2 rounded-lg bg-gray-50 p-3"
                     >
                       <div className="flex-1">
@@ -655,7 +657,10 @@ export default function UserAddModal({
                     <Select
                       value={newEducation.status}
                       onValueChange={(value) =>
-                        setNewEducation((prev) => ({ ...prev, status: value }))
+                        setNewEducation((prev) => ({
+                          ...prev,
+                          status: value as UserEducationRequestStatusEnum,
+                        }))
                       }
                     >
                       <SelectTrigger className="w-full">
