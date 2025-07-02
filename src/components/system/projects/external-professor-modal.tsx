@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,39 +32,44 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { UserCheck, Plus, Edit, Trash2, Save, Building } from 'lucide-react';
-
-// 목업 데이터 - 단순화
-const mockExternalProfessors = [
-  {
-    id: '1',
-    name: '김교수',
-    organization: '서울대학교',
-    department: '컴퓨터공학부',
-  },
-  {
-    id: '2',
-    name: '이교수',
-    organization: 'KAIST',
-    department: '전산학부',
-  },
-  {
-    id: '3',
-    name: '박교수',
-    organization: '연세대학교',
-    department: '의과대학',
-  },
-];
+import {
+  AdminProjectControllerApi,
+  Configuration,
+  ExternalProfessorItem,
+} from '@/generated-api';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function ExternalProfessorModal() {
   const [open, setOpen] = useState(false);
-  const [professors, setProfessors] = useState(mockExternalProfessors);
-  const [editingProfessor, setEditingProfessor] = useState<any>(null);
-  const [deleteProfessor, setDeleteProfessor] = useState<any>(null);
+  const [professors, setProfessors] = useState<ExternalProfessorItem[]>([]);
+  const [editingProfessor, setEditingProfessor] =
+    useState<ExternalProfessorItem | null>(null);
+  const [deleteProfessor, setDeleteProfessor] =
+    useState<ExternalProfessorItem | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     organization: '',
     department: '',
   });
+
+  const api = new AdminProjectControllerApi(
+    new Configuration({
+      accessToken: async () => useAuthStore.getState().accessToken ?? '',
+    }),
+  );
+
+  const fetchProfessors = async () => {
+    try {
+      const res = await api.getAllExternalProfessors();
+      setProfessors(res.externalProfessors ?? []);
+    } catch (e) {
+      console.error('외부 인사 조회 실패:', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfessors();
+  }, []);
 
   // 폼 초기화
   const resetForm = () => {
@@ -76,52 +81,61 @@ export default function ExternalProfessorModal() {
   };
 
   // 새 교수 추가
-  const handleAddProfessor = () => {
-    if (!formData.name.trim() || !formData.organization.trim()) {
-      alert('이름과 소속 기관은 필수 입력 항목입니다.');
-      return;
+  const handleAddProfessor = async () => {
+    try {
+      await api.createExternalProfessor({
+        externalProfessorRequest: {
+          name: formData.name,
+          organization: formData.organization,
+          department: formData.department,
+        },
+      });
+      resetForm();
+      await fetchProfessors();
+    } catch (e) {
+      alert('추가 실패');
     }
-
-    const newProfessor = {
-      id: Date.now().toString(),
-      ...formData,
-    };
-
-    setProfessors((prev) => [...prev, newProfessor]);
-    resetForm();
   };
 
   // 교수 정보 수정
-  const handleEditProfessor = () => {
-    if (!formData.name.trim() || !formData.organization.trim()) {
-      alert('이름과 소속 기관은 필수 입력 항목입니다.');
-      return;
+  const handleEditProfessor = async () => {
+    try {
+      await api.updateExternalProfessor({
+        professorId: Number(editingProfessor?.professorId),
+        externalProfessorRequest: {
+          name: formData.name,
+          organization: formData.organization,
+          department: formData.department,
+        },
+      });
+      resetForm();
+      setEditingProfessor(null);
+      await fetchProfessors();
+    } catch (e) {
+      alert('수정 실패');
     }
-
-    setProfessors((prev) =>
-      prev.map((prof) =>
-        prof.id === editingProfessor.id ? { ...prof, ...formData } : prof,
-      ),
-    );
-    setEditingProfessor(null);
-    resetForm();
   };
 
   // 교수 삭제
-  const handleDeleteProfessor = () => {
-    setProfessors((prev) =>
-      prev.filter((prof) => prof.id !== deleteProfessor.id),
-    );
-    setDeleteProfessor(null);
+  const handleDeleteProfessor = async () => {
+    try {
+      await api.deleteExternalProfessor({
+        professorId: Number(deleteProfessor?.professorId),
+      });
+      setDeleteProfessor(null);
+      await fetchProfessors();
+    } catch (e) {
+      alert('삭제 실패');
+    }
   };
 
   // 수정 모드 시작
-  const startEdit = (professor: any) => {
+  const startEdit = (professor: ExternalProfessorItem) => {
     setEditingProfessor(professor);
     setFormData({
-      name: professor.name,
-      organization: professor.organization,
-      department: professor.department,
+      name: professor.name || '',
+      organization: professor.organization || '',
+      department: professor.department || '',
     });
   };
 
@@ -258,7 +272,9 @@ export default function ExternalProfessorModal() {
                     </TableHeader>
                     <TableBody>
                       {professors.map((professor) => (
-                        <TableRow key={professor.id}>
+                        <TableRow
+                          key={`${professor.name}-${professor.organization}`}
+                        >
                           <TableCell>
                             <div className="pl-4 font-medium">
                               {professor.name}
