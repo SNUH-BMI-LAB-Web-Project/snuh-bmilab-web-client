@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -11,9 +11,12 @@ import {
   Presentation,
   MapPin,
   Paperclip,
+  EllipsisVertical,
+  Pencil,
+  Trash,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { cn, formatDateTimeVer2, formatDateTimeVer4 } from '@/lib/utils';
+import { cn, formatDateTimeVer2 } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { TimelineApi } from '@/generated-api/apis/TimelineApi';
 import { Configuration } from '@/generated-api/runtime';
@@ -22,6 +25,12 @@ import { useAuthStore } from '@/store/auth-store';
 import TimelineFormModal from '@/components/portal/researches/projects/timeline/timeline-form-modal';
 import { TimelineRequest } from '@/generated-api';
 import { toast } from 'sonner';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import ConfirmModal from '@/components/common/confirm-modal';
 
 const timelineApi = new TimelineApi(
   new Configuration({
@@ -34,13 +43,16 @@ interface TimelineCardProps {
   canEdit: boolean;
 }
 
-// TODO: 타임라인 수정, 삭제 기능 추가 필요
-
 export default function TimelineCard({
   projectId,
   canEdit,
 }: TimelineCardProps) {
   const [timelines, setTimelines] = useState<TimelineSummary[]>([]);
+  const [open, setOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<TimelineSummary | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<TimelineSummary | null>(
+    null,
+  );
 
   useEffect(() => {
     const fetchTimelines = async () => {
@@ -49,6 +61,7 @@ export default function TimelineCard({
           projectId: Number(projectId),
         });
         setTimelines(response.timelines || []);
+        console.log(response.timelines![0]);
       } catch (err) {
         toast.error('타임라인 데이터를 불러오는 데 실패했습니다.');
       }
@@ -56,6 +69,30 @@ export default function TimelineCard({
 
     fetchTimelines();
   }, [projectId]);
+
+  const fetchTimelines = useCallback(async () => {
+    try {
+      const response = await timelineApi.getAllTimelinesByProjectId({
+        projectId: Number(projectId),
+      });
+      setTimelines(response.timelines || []);
+    } catch (err) {
+      console.error('타임라인 데이터를 불러오는 데 실패');
+    }
+  }, [projectId]);
+
+  useEffect(() => {
+    fetchTimelines();
+  }, [fetchTimelines]);
+
+  const sanitizeTimelineData = (
+    data: TimelineRequest,
+  ): Partial<TimelineSummary> => ({
+    ...data,
+    startTime: data.startTime ?? undefined,
+    endTime: data.endTime ?? undefined,
+    meetingPlace: data.meetingPlace ?? undefined,
+  });
 
   const handleSubmit = async (data: TimelineRequest) => {
     try {
@@ -65,14 +102,51 @@ export default function TimelineCard({
       });
 
       toast.success('타임라인이 성공적으로 등록되었습니다.');
-      // TODO: 타임라인 새로고침 로직 호출 필요 시 여기에
+      await fetchTimelines();
     } catch (err) {
       toast.error('타임라인 등록 중 오류가 발생했습니다.');
     }
   };
 
-  const handleViewTimeline = (timeline: TimelineSummary) => {
-    console.log('Timeline view clicked', timeline.timelineId);
+  const handleUpdate = async (data: TimelineRequest) => {
+    if (!editTarget) return;
+
+    try {
+      await timelineApi.updateTimeline({
+        projectId: Number(projectId),
+        timelineId: editTarget.timelineId!,
+        timelineRequest: data,
+      });
+
+      toast.success('타임라인이 성공적으로 수정되었습니다.');
+
+      // 수정된 항목만 갱신 (전체 fetch보다 가볍게)
+      setTimelines((prev) =>
+        prev.map((t) =>
+          t.timelineId === editTarget.timelineId
+            ? { ...t, ...sanitizeTimelineData(data) }
+            : t,
+        ),
+      );
+
+      setEditTarget(null); // 모달 닫기
+    } catch (err) {
+      toast.error('타임라인 수정 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleDelete = async (timelineId: number) => {
+    try {
+      await timelineApi.deleteTimeline({
+        projectId: Number(projectId),
+        timelineId,
+      });
+
+      toast.success('타임라인이 삭제되었습니다.');
+      setTimelines((prev) => prev.filter((t) => t.timelineId !== timelineId));
+    } catch (err) {
+      toast.error('타임라인 삭제 중 오류가 발생했습니다.');
+    }
   };
 
   const sortedTimelines = [...timelines].sort(
@@ -124,6 +198,12 @@ export default function TimelineCard({
     }
   };
 
+  const getTimeText = (start?: string, end?: string) => {
+    if (start && end) return `${start} - ${end}`;
+    if (start) return `${start}`;
+    return '시간 미지정';
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-row items-center justify-between">
@@ -131,22 +211,29 @@ export default function TimelineCard({
           <Presentation className="h-4 w-4" />
           <span>타임라인</span>
         </Label>
+        {canEdit && (
+          <>
+            <Button
+              variant="outline"
+              type="button"
+              size="sm"
+              className="gap-1 px-2 py-1"
+              onClick={() => setOpen(true)}
+            >
+              <Plus className="h-4 w-4" /> 타임라인 추가
+            </Button>
 
-        <TimelineFormModal
-          onSubmit={handleSubmit}
-          trigger={
-            canEdit ? (
-              <Button
-                variant="outline"
-                type="button"
-                size="sm"
-                className="gap-1 px-2 py-1"
-              >
-                <Plus className="h-4 w-4" /> 타임라인 추가
-              </Button>
-            ) : null
-          }
-        />
+            <TimelineFormModal
+              mode="create"
+              open={open}
+              onOpenChange={setOpen}
+              onSubmit={(data) => {
+                handleSubmit(data);
+                setOpen(false);
+              }}
+            />
+          </>
+        )}
       </div>
       <Card>
         <CardContent className="max-h-[400px] overflow-y-auto pr-2">
@@ -165,16 +252,10 @@ export default function TimelineCard({
                   <div
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        handleViewTimeline(timeline);
-                      }
-                    }}
                     className={cn(
                       'ml-2 w-full cursor-pointer rounded-lg border-2 p-4 transition-colors hover:shadow-sm',
                       getTimelineColor(timeline.timelineType!),
                     )}
-                    onClick={() => handleViewTimeline(timeline)}
                   >
                     <div className="flex flex-col gap-2">
                       <div className="flex flex-row items-center justify-between">
@@ -182,12 +263,49 @@ export default function TimelineCard({
                           {timeline.title}
                         </h3>
 
-                        <Badge
-                          variant="outline"
-                          className="rounded-full bg-white text-xs"
-                        >
-                          {getTimelineTypeLabel(timeline.timelineType!)}
-                        </Badge>
+                        <div className="flex flex-row items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className="rounded-full bg-white text-xs"
+                          >
+                            {getTimelineTypeLabel(timeline.timelineType!)}
+                          </Badge>
+                          {canEdit && (
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="size-5 p-3"
+                                >
+                                  <EllipsisVertical />
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent
+                                side="bottom"
+                                align="end"
+                                className="w-28 p-1"
+                              >
+                                <Button
+                                  variant="ghost"
+                                  className="w-full justify-start gap-2 px-2 py-1 text-sm"
+                                  onClick={() => setEditTarget(timeline)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                  수정하기
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  className="text-destructive w-full justify-start gap-2 px-2 py-1 text-sm"
+                                  onClick={() => setDeleteTarget(timeline)}
+                                >
+                                  <Trash className="h-4 w-4" />
+                                  삭제하기
+                                </Button>
+                              </PopoverContent>
+                            </Popover>
+                          )}
+                        </div>
                       </div>
                       <div className="text-muted-foreground flex items-center gap-2 text-sm">
                         <div className="flex items-center gap-1 text-xs">
@@ -201,8 +319,7 @@ export default function TimelineCard({
                         <div className="flex items-center gap-1 text-xs">
                           <Clock className="h-3 w-3" />
                           <span>
-                            {formatDateTimeVer4(timeline.startTime)} -{' '}
-                            {formatDateTimeVer4(timeline.endTime)}
+                            {getTimeText(timeline.startTime, timeline.endTime)}
                           </span>
                         </div>
                         <div className="flex items-center gap-1 text-xs">
@@ -250,6 +367,33 @@ export default function TimelineCard({
           )}
         </CardContent>
       </Card>
+      {editTarget && (
+        <TimelineFormModal
+          mode="edit"
+          open={!!editTarget}
+          onOpenChange={(v) => {
+            if (!v) setEditTarget(null);
+          }}
+          initialData={editTarget}
+          onSubmit={(data) => {
+            handleUpdate(data);
+          }}
+        />
+      )}
+      {deleteTarget && (
+        <ConfirmModal
+          open={!!deleteTarget}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setDeleteTarget(null);
+          }}
+          title="타임라인 삭제"
+          description="선택한 타임라인 기록을 삭제하시겠습니까? 관련된 자료도 함께 삭제되며, 이 작업은 되돌릴 수 없습니다."
+          onConfirm={() => {
+            handleDelete(deleteTarget.timelineId!);
+            setDeleteTarget(null);
+          }}
+        />
+      )}
     </div>
   );
 }
