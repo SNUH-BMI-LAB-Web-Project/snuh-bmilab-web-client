@@ -37,7 +37,7 @@ export function UserTagInput({
   const dropdownItemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const searchUsersByKeyword = async (raw: string) => {
-    const keyword = raw.trim().replace(/^@/, '');
+    const keyword = raw.trim();
 
     if (!accessToken) return;
 
