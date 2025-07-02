@@ -19,7 +19,6 @@ import {
 import { ProjectApi } from '@/generated-api/apis/ProjectApi';
 import { Configuration } from '@/generated-api/runtime';
 import { Download, Paperclip } from 'lucide-react';
-import { formatFileSize } from '@/lib/utils';
 
 const projectApi = new ProjectApi(
   new Configuration({
@@ -42,7 +41,6 @@ export default function ProjectArchiveForm({
   projectId,
 }: ProjectArchiveFormProps) {
   const [files, setFiles] = useState<ProjectFileSummary[]>([]);
-  const accessToken = useAuthStore((s) => s.accessToken);
 
   useEffect(() => {
     const fetchFiles = async () => {
