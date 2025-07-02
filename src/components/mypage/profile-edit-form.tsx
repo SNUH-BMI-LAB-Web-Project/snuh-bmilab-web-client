@@ -3,31 +3,27 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from '@/components/ui/popover';
-import {
-  Check,
-  ChevronDown,
-  LockKeyhole,
-  UserCheck,
-  UserPen,
-  Camera,
-} from 'lucide-react';
+import { LockKeyhole, UserCheck, UserPen, Camera } from 'lucide-react';
 import { UserApi } from '@/generated-api/apis/UserApi';
 import { Configuration } from '@/generated-api/runtime';
 import {
-  GetAllProjectsCategoryEnum,
-  UpdateUserRequestCategoriesEnum,
+  UpdateUserRequest,
+  UpdateUserRequestAffiliationEnum,
   UserEducationSummary,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { ChangePasswordModal } from '@/components/mypage/change-password-modal';
 import EducationEditor from '@/components/mypage/education-editor';
-import { getCategoryLabel } from '@/utils/project-utils';
+import { useProjectCategories } from '@/hooks/use-project-categories';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { affiliationOptions } from '@/constants/affiliation-enum';
 
 const userApi = new UserApi(
   new Configuration({
@@ -35,27 +31,39 @@ const userApi = new UserApi(
   }),
 );
 
-// TODO: 대공사 (소속 ENUM 적용, 분야 ENUM 없애고 타입 맞추기, 학력 CRD 테스트 등)
-
 export default function ProfileEditForm() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    email: string;
+    organization: string;
+    department: string;
+    affiliation: undefined | UpdateUserRequestAffiliationEnum;
+    phoneNumber: string;
+    seatNumber: string;
+  }>({
     name: '',
     email: '',
     organization: '',
     department: '',
-    affiliation: '',
-    categories: [] as string[],
+    affiliation: undefined,
     phoneNumber: '',
     seatNumber: '',
   });
+  const { data: categoryList = [] } = useProjectCategories();
+
+  const [initialCategoryIds, setInitialCategoryIds] = useState<number[]>([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
+
   const [educations, setEducations] = useState<UserEducationSummary[]>([]);
+  const educationGetterRef = useRef<(() => UserEducationSummary[]) | null>(
+    null,
+  );
 
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string>(
     '/default-profile-image.svg',
   );
   const [isEditable, setIsEditable] = useState(false);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const editableFields = [
@@ -86,6 +94,11 @@ export default function ProfileEditForm() {
     const fetchUserDetail = async () => {
       try {
         const data = await userApi.getCurrentUser();
+        const existingCategoryIds =
+          data.categories?.map((c) => c.categoryId!) ?? [];
+
+        setInitialCategoryIds(existingCategoryIds);
+        setSelectedCategoryIds(existingCategoryIds);
 
         if (data) {
           setFormData({
@@ -93,8 +106,9 @@ export default function ProfileEditForm() {
             email: data.email || '',
             organization: data.organization || '',
             department: data.department || '',
-            affiliation: data.affiliation || '',
-            categories: data.categories || [],
+            affiliation:
+              (data.affiliation as UpdateUserRequestAffiliationEnum) ??
+              UpdateUserRequestAffiliationEnum.ResearcherOrIntern,
             phoneNumber: data.phoneNumber || '',
             seatNumber: data.seatNumber || '',
           });
@@ -118,15 +132,14 @@ export default function ProfileEditForm() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const toggleCategory = (category: GetAllProjectsCategoryEnum) => {
+  const toggleCategory = (categoryId: number) => {
     if (!isEditable) return;
 
-    setFormData((prev) => ({
-      ...prev,
-      categories: prev.categories.includes(category)
-        ? prev.categories.filter((c) => c !== category) // 선택 해제
-        : [...prev.categories, category], // 선택
-    }));
+    setSelectedCategoryIds((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId],
+    );
   };
 
   const handleImageClick = () => {
@@ -143,25 +156,30 @@ export default function ProfileEditForm() {
     }
   };
 
-  const pad = (n: number) => String(n).padStart(2, '0');
-
   const toRequest = (edu: UserEducationSummary) => ({
     title: edu.title,
     status: edu.status,
-    startYearMonth:
-      edu.startYearMonth?.year && edu.startYearMonth?.monthValue
-        ? `${edu.startYearMonth.year}-${pad(edu.startYearMonth.monthValue)}`
-        : undefined,
-    endYearMonth:
-      edu.endYearMonth?.year && edu.endYearMonth?.monthValue
-        ? `${edu.endYearMonth.year}-${pad(edu.endYearMonth.monthValue)}`
-        : undefined,
+    startYearMonth: edu.startYearMonth ? edu.startYearMonth : undefined,
+    endYearMonth: edu.endYearMonth ? edu.endYearMonth : undefined,
   });
 
+  const newCategoryIds = selectedCategoryIds.filter(
+    (id) => !initialCategoryIds.includes(id),
+  );
+  const deletedCategoryIds = initialCategoryIds.filter(
+    (id) => !selectedCategoryIds.includes(id),
+  );
+
   const handleSubmit = async () => {
-    const payload = {
+    type ExtendedUpdateUserRequest = Omit<UpdateUserRequest, 'affiliation'> & {
+      affiliation: UpdateUserRequestAffiliationEnum | null;
+    };
+
+    const payload: ExtendedUpdateUserRequest = {
       ...formData,
-      categories: formData.categories as UpdateUserRequestCategoriesEnum[],
+      affiliation: formData.affiliation ?? null,
+      newCategoryIds,
+      deletedCategoryIds,
     };
 
     const formDataToSend = new FormData();
@@ -170,17 +188,19 @@ export default function ProfileEditForm() {
     }
     formDataToSend.append(
       'request',
-      new Blob([JSON.stringify(formData)], { type: 'application/json' }),
+      new Blob([JSON.stringify(payload)], { type: 'application/json' }), // ✅ 정확한 전송 데이터
     );
 
     try {
       await userApi.updateCurrentUser({
-        request: payload,
+        request: payload as UpdateUserRequest,
         profileImage: profileImageFile ?? undefined,
       });
 
+      const currentEducations = educationGetterRef.current?.() ?? [];
+
       await Promise.all(
-        educations.map((edu) =>
+        currentEducations.map((edu) =>
           userApi.addEducationsRaw({
             userEducationRequest: toRequest(edu) as any,
           }),
@@ -240,79 +260,102 @@ export default function ProfileEditForm() {
         {editableFields.map((field) => (
           <div key={field} className="flex flex-col gap-2">
             <Label className="font-semibold">{fieldLabels[field]}</Label>
-            <Input
-              value={formData[field]}
-              readOnly={!isEditable}
-              className={!isEditable ? 'bg-muted' : 'bg-white'}
-              onChange={(e) => handleChange(field, e.target.value)}
-            />
+
+            {field === 'affiliation' ? (
+              <Select
+                disabled={!isEditable}
+                value={formData.affiliation ?? 'none'}
+                onValueChange={(value) =>
+                  handleChange(
+                    'affiliation',
+                    value === 'none'
+                      ? undefined
+                      : (value as UpdateUserRequestAffiliationEnum),
+                  )
+                }
+              >
+                <SelectTrigger
+                  className={`w-full ${!isEditable ? 'bg-muted' : 'bg-white'}`}
+                >
+                  <SelectValue placeholder="소속 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  {affiliationOptions.map(({ value, label }) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                value={formData[field]}
+                disabled={!isEditable}
+                className={!isEditable ? 'bg-muted' : 'bg-white'}
+                onChange={(e) => handleChange(field, e.target.value)}
+              />
+            )}
           </div>
         ))}
 
         <div className="flex w-full flex-col gap-2">
           <Label className="font-semibold">연구 분야</Label>
-          <Popover
-            open={isPopoverOpen}
-            onOpenChange={(open) => isEditable && setIsPopoverOpen(open)}
+          <Select
+            disabled={!isEditable}
+            onValueChange={(val) => {
+              if (val === 'none') {
+                setSelectedCategoryIds([]);
+              } else {
+                const categoryId = Number(val);
+                toggleCategory(categoryId);
+              }
+            }}
           >
-            <PopoverTrigger asChild>
-              <div
-                className={`w-full rounded-md border px-3 py-2 text-sm transition ${
-                  isEditable
-                    ? 'hover:bg-muted cursor-pointer bg-white'
-                    : 'bg-muted cursor-default'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span
-                    className={
-                      formData.categories.length > 0
-                        ? ''
-                        : 'text-muted-foreground'
-                    }
-                  >
-                    {formData.categories
-                      .filter((c): c is GetAllProjectsCategoryEnum =>
-                        Object.values(GetAllProjectsCategoryEnum).includes(
-                          c as GetAllProjectsCategoryEnum,
-                        ),
-                      )
-                      .map(getCategoryLabel)
-                      .join(', ')}
-                  </span>
-                  <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
-                </div>
-              </div>
-            </PopoverTrigger>
-            <PopoverContent className="bg-background w-auto min-w-[var(--radix-popover-trigger-width)] rounded-md border p-2 shadow-md">
-              <div className="flex flex-col gap-1 overflow-y-auto">
-                {Object.values(GetAllProjectsCategoryEnum).map((category) => {
-                  const isSelected = formData.categories.includes(category);
+            <SelectTrigger
+              className={`w-full ${!isEditable ? 'bg-muted' : 'bg-white'}`}
+            >
+              <SelectValue
+                placeholder={
+                  selectedCategoryIds.length > 0
+                    ? categoryList
+                        .filter((c) =>
+                          selectedCategoryIds.includes(c.categoryId!),
+                        )
+                        .map((c) => c.name)
+                        .join(', ')
+                    : '연구 분야 선택'
+                }
+              />
+            </SelectTrigger>
 
-                  return (
-                    <button
-                      type="button"
-                      key={category}
-                      onClick={() => toggleCategory(category)}
-                      className={`flex w-full flex-row items-center justify-between rounded-md px-3 py-2 text-sm transition ${
-                        isSelected ? 'bg-muted/50' : 'hover:bg-muted'
-                      }`}
-                    >
-                      <span>{getCategoryLabel(category)}</span>
-                      {isSelected && <Check className="text-primary h-4 w-4" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </PopoverContent>
-          </Popover>
+            <SelectContent>
+              <SelectItem value="none">선택 없음</SelectItem>
+
+              {categoryList.map((cat) => {
+                const isSelected = selectedCategoryIds.includes(
+                  cat.categoryId!,
+                );
+                return (
+                  <SelectItem
+                    key={cat.categoryId}
+                    value={String(cat.categoryId)}
+                    disabled={isSelected}
+                  >
+                    {cat.name}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
         </div>
 
         <EducationEditor
           educations={educations}
           editMode={isEditable}
-          onChange={setEducations}
           userApi={userApi}
+          onRefReady={(getter) => {
+            educationGetterRef.current = getter;
+          }}
         />
 
         {/* 버튼 */}
