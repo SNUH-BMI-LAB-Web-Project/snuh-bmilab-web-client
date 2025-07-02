@@ -64,8 +64,7 @@ export default function EducationEditor({
         );
       onRefReady(getter);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 초기 1회만 전달
+  }, [titles, statusList, startDates, endDates, ids]);
 
   const yearMonthOptions = Array.from(
     { length: 10 },
@@ -201,6 +200,7 @@ export default function EducationEditor({
             {/* 학교명 */}
             <Input
               disabled={!isEditable}
+              minLength={1}
               className="w-full"
               placeholder="학교명 / 과정명"
               value={titles[idx]}
