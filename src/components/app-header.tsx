@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import Image from 'next/image';
+// import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth-store';
 
