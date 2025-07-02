@@ -12,72 +12,50 @@ import {
   BookOpen,
   Calendar,
 } from 'lucide-react';
-import { UserDetail as UserDetailType } from '@/generated-api';
+import {
+  UserDetail as UserDetailType,
+  UserEducationSummaryStatusEnum,
+} from '@/generated-api';
+import { statusLabelMap } from '@/constants/education-enum';
 
 interface UserDetailProps {
   user: UserDetailType;
 }
 
-// TODO: 학력 기간 표시 개선 (현재 어떻게 해서 포맷팅 하더라도 기간 정보 안뜸)
-
 export default function UserDetail({ user }: UserDetailProps) {
   if (!user) return null;
 
-  type EducationStatus =
-    | 'ENROLLED'
-    | 'GRADUATED'
-    | 'DROPPED_OUT'
-    | 'SUSPENDED'
-    | 'TRANSFERRED';
-
   const getStatusInfo = (status: string) => {
-    const statusMap: Record<EducationStatus, { label: string; color: string }> =
-      {
-        ENROLLED: { label: '재학중', color: 'bg-blue-100 text-blue-800' },
-        GRADUATED: { label: '졸업', color: 'bg-green-100 text-green-800' },
-        DROPPED_OUT: { label: '중퇴', color: 'bg-gray-100 text-gray-800' },
-        SUSPENDED: { label: '휴학', color: 'bg-yellow-100 text-yellow-800' },
-        TRANSFERRED: { label: '편입', color: 'bg-purple-100 text-purple-800' },
-      };
+    const colorMap: Partial<Record<UserEducationSummaryStatusEnum, string>> = {
+      ENROLLED: 'bg-blue-100 text-blue-800',
+      GRADUATED: 'bg-green-100 text-green-800',
+      LEAVE_OF_ABSENCE: 'bg-yellow-100 text-yellow-800',
+    };
 
-    if (status in statusMap) {
-      return statusMap[status as EducationStatus];
-    }
+    const enumKey = status as UserEducationSummaryStatusEnum;
 
-    return { label: status, color: 'bg-gray-100 text-gray-800' };
+    return {
+      label: statusLabelMap[enumKey] ?? status,
+      color: colorMap[enumKey] ?? 'bg-gray-100 text-gray-800',
+    };
   };
 
-  const toYearMonthString = (ym?: {
-    year?: number;
-    monthValue?: number;
-  }): string | undefined => {
-    if (!ym?.year || !ym?.monthValue) return undefined;
-    return `${ym.year}-${ym.monthValue.toString().padStart(2, '0')}`;
-  };
-
-  const formatYearMonthRange = (
-    start?: { year?: number; monthValue?: number },
-    end?: { year?: number; monthValue?: number },
+  const formatYearMonthRangeDot = (
+    start?: string | null,
+    end?: string | null,
   ): string => {
-    if (
-      typeof start?.year !== 'number' ||
-      typeof start?.monthValue !== 'number'
-    ) {
-      return '기간 정보 없음';
+    if (!start) return '';
+
+    const [sy, sm] = start.split('-');
+    const startLabel = `${sy}.${sm}`;
+
+    let endLabel = '현재';
+    if (end) {
+      const [ey, em] = end.split('-');
+      endLabel = `${ey}.${em}`;
     }
 
-    const startStr = `${start.year}.${start.monthValue
-      .toString()
-      .padStart(2, '0')}`;
-
-    if (typeof end?.year === 'number' && typeof end?.monthValue === 'number') {
-      const endStr = `${end.year}.${end.monthValue
-        .toString()
-        .padStart(2, '0')}`;
-      return `${startStr} - ${endStr}`;
-    }
-
-    return startStr;
+    return `${startLabel} - ${endLabel}`;
   };
 
   return (
@@ -280,7 +258,7 @@ export default function UserDetail({ user }: UserDetailProps) {
                                 <div className="flex items-center gap-2 text-gray-600">
                                   <Calendar className="h-4 w-4" />
                                   <span className="text-xs font-medium">
-                                    {formatYearMonthRange(
+                                    {formatYearMonthRangeDot(
                                       education.startYearMonth,
                                       education.endYearMonth,
                                     )}
