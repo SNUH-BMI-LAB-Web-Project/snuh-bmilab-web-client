@@ -61,9 +61,10 @@ export default function TimelineCard({
           projectId: Number(projectId),
         });
         setTimelines(response.timelines || []);
-        console.log(response.timelines![0]);
       } catch (err) {
-        toast.error('타임라인 데이터를 불러오는 데 실패했습니다.');
+        toast.error(
+          '타임라인 데이터를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
+        );
       }
     };
 
@@ -104,7 +105,7 @@ export default function TimelineCard({
       toast.success('타임라인이 성공적으로 등록되었습니다.');
       await fetchTimelines();
     } catch (err) {
-      toast.error('타임라인 등록 중 오류가 발생했습니다.');
+      toast.error('타임라인 등록 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 
@@ -131,7 +132,7 @@ export default function TimelineCard({
 
       setEditTarget(null); // 모달 닫기
     } catch (err) {
-      toast.error('타임라인 수정 중 오류가 발생했습니다.');
+      toast.error('타임라인 수정 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 
@@ -145,7 +146,7 @@ export default function TimelineCard({
       toast.success('타임라인이 삭제되었습니다.');
       setTimelines((prev) => prev.filter((t) => t.timelineId !== timelineId));
     } catch (err) {
-      toast.error('타임라인 삭제 중 오류가 발생했습니다.');
+      toast.error('타임라인 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 

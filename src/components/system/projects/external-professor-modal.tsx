@@ -97,7 +97,7 @@ export default function ExternalProfessorModal() {
 
       await fetchProfessors();
     } catch (e) {
-      toast.error('추가에 실패했습니다.');
+      toast.error('외부 인사 등록 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 
@@ -119,7 +119,9 @@ export default function ExternalProfessorModal() {
 
       await fetchProfessors();
     } catch (e) {
-      toast.error('수정에 실패했습니다.');
+      toast.error(
+        '외부 인사 정보 수정 중 오류가 발생했습니다. 다시 시도해 주세요.',
+      );
     }
   };
 
@@ -135,7 +137,7 @@ export default function ExternalProfessorModal() {
 
       await fetchProfessors();
     } catch (e) {
-      toast.error('삭제에 실패했습니다.');
+      toast.error('외부 인사 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 

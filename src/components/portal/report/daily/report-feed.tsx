@@ -76,8 +76,6 @@ export function ReportFeed({
   }, [filters.project, filters.user, startDate, endDate]);
 
   const handleEdit = (report: ReportSummary) => {
-    console.log('수정할 보고서:', report); // 🔍 확인
-
     setSelectedReport(report);
     setEditModalOpen(true);
   };
@@ -96,8 +94,7 @@ export function ReportFeed({
       setReports(updatedReports);
       toast.success('업무 보고가 삭제되었습니다.');
     } catch (err) {
-      console.error('보고서 삭제 실패:', err);
-      toast.error('삭제에 실패했습니다.');
+      toast.error('업무 보고 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 

@@ -194,8 +194,6 @@ export function ProjectForm({
         accessToken!,
         GeneratePresignedUrlDomainTypeEnum.Project,
       );
-      console.log('file:', file);
-      console.log('file.size:', file.size);
       toast.success(`${file.name} 업로드 완료`);
 
       if (type === 'IRB') setIrbFile(uploaded);
@@ -248,12 +246,8 @@ export function ProjectForm({
         const projectId = initialData?.projectId;
         if (projectId !== undefined) {
           await onUpdate?.({ projectId, request }, newFiles, removedFiles);
-          toast.success('프로젝트가 성공적으로 수정되었습니다.');
-          console.log(JSON.stringify(request, null, 2));
         } else {
-          console.error('프로젝트 ID가 없습니다.');
-          toast.error('수정에 실패했습니다. 프로젝트 ID가 없습니다.');
-          console.log(JSON.stringify(request, null, 2));
+          console.error('프로젝트 ID가 없음');
         }
       } else {
         await onCreate?.(
@@ -262,14 +256,9 @@ export function ProjectForm({
           irbFile ?? undefined,
           drbFile ?? undefined,
         );
-        console.log(request.piList);
-        console.log(request.practicalProfessors);
-        console.log(JSON.stringify(request, null, 2));
-        toast.success('프로젝트가 성공적으로 등록되었습니다.');
       }
     } catch (err) {
-      console.error('프로젝트 등록 실패:', err);
-      toast.error('등록 중 오류가 발생했습니다.');
+      toast.error('프로젝트 등록 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 

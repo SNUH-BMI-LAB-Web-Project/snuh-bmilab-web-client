@@ -88,8 +88,7 @@ export default function EmailConfirmationModal({
         setIsLoading(false);
       }, 3000);
     } catch (error) {
-      console.error('이메일 발송 실패:', error);
-      toast.error('이메일 발송 중 오류가 발생했습니다.');
+      toast.error('이메일 발송 중 오류가 발생했습니다. 다시 시도해 주세요.');
       setIsLoading(false);
     }
   };
@@ -98,10 +97,9 @@ export default function EmailConfirmationModal({
     if (userData?.password) {
       try {
         await navigator.clipboard.writeText(userData.password);
-        alert('비밀번호가 클립보드에 복사되었습니다!');
+        toast.success('비밀번호가 클립보드에 복사되었습니다.');
       } catch (err) {
-        console.error('복사 실패:', err);
-        alert('복사에 실패했습니다.');
+        toast.error('비밀번호 복사에 실패했습니다. 다시 시도해주세요.');
       }
     }
   };

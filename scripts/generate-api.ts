@@ -16,5 +16,4 @@ if (!apiBaseUrl) {
 
 const command = `openapi-generator-cli generate -i ${apiBaseUrl}/api-docs -g typescript-fetch -o src/generated-api --skip-validate-spec`;
 
-console.log(`Running: ${command}`);
 execSync(command, { stdio: 'inherit' });

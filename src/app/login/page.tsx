@@ -48,7 +48,7 @@ export default function LoginPage() {
         if (body.message?.includes('사용자를 찾을 수 없습니다')) {
           message = '등록되지 않은 사용자입니다. 관리자에게 문의하세요.';
         } else if (body.message?.includes('비밀번호가 일치하지 않습니다')) {
-          message = '비밀번호가 틀렸습니다. 다시 입력해 주세요.';
+          message = '비밀번호가 일치하지 않습니다. 다시 시도해 주세요.';
         }
       }
 
