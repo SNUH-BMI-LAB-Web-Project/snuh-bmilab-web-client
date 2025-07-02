@@ -68,7 +68,6 @@ export function AdminReportFeed({ filters = {} }: { filters?: ReportFilter }) {
   }, [filters]);
 
   const handleDelete = (id: string) => {
-    // TODO: Api 연결
     const updatedReports = reports.filter((report) => report.id !== id);
     setReports(updatedReports);
     setFilteredReports(

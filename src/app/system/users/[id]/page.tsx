@@ -1,50 +1,109 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { ArrowLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import ProfileEditForm from '@/components/mypage/profile-edit-form';
-import ComingSoon from '@/components/common/coming-soon';
+import { ArrowLeft, Edit } from 'lucide-react';
+import Link from 'next/link';
+import {
+  AdminUserApi,
+  Configuration,
+  ProjectApi,
+  UserDetail as UserDetailType,
+  UserProjectItem,
+} from '@/generated-api';
+import { useAuthStore } from '@/store/auth-store';
+import { toast } from 'sonner';
+import AdminUserDetail from '@/components/system/users/user-detail';
+import UserEditModal from '@/components/system/users/user-edit-modal';
 
-export default function MyPage() {
-  const router = useRouter();
-  const [tab, setTab] = useState('profile');
+export default function UserDetailPage() {
+  const params = useParams();
+  const userId = params.id as string;
+  const [user, setUser] = useState<UserDetailType>();
+  const [userProjects, setUserProjects] = useState<UserProjectItem[]>([]);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+
+  const adminUserApi = new AdminUserApi(
+    new Configuration({
+      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+      accessToken: async () => useAuthStore.getState().accessToken || '',
+    }),
+  );
+
+  const projectApi = new ProjectApi(
+    new Configuration({
+      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+      accessToken: async () => useAuthStore.getState().accessToken || '',
+    }),
+  );
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userData = await adminUserApi.getUserById({
+          userId: Number(userId),
+        });
+        setUser(userData);
+      } catch (err) {
+        toast.error('사용자 정보를 불러오는 데 실패했습니다.');
+        console.error(err);
+      }
+    };
+
+    const fetchProjects = async () => {
+      try {
+        const res = await projectApi.getUserProjects({
+          userId: Number(userId),
+        });
+        setUserProjects(res.projects ?? []);
+      } catch (error) {
+        console.error('유저 프로젝트 불러오기 실패:', error);
+      }
+    };
+
+    if (userId) {
+      fetchUser();
+      fetchProjects();
+    }
+  }, [userId]);
+
+  if (!user) return null;
 
   return (
-    <div className="flex flex-col px-30">
-      {/* 헤더 */}
-      <div className="mb-6 flex items-center">
+    <div className="flex flex-col space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/system/users">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              연명부로 돌아가기
+            </Link>
+          </Button>
+        </div>
+
+        {/* 정보 수정 버튼 */}
         <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.back()}
-          className="mr-2"
+          onClick={() => {
+            setUser(user);
+            setEditModalOpen(true);
+          }}
         >
-          <ArrowLeft className="h-5 w-5" />
+          <Edit className="mr-2 h-4 w-4" />
+          정보 수정
         </Button>
-        <h1 className="text-3xl font-bold">연명부 상세</h1>
       </div>
 
-      {/* 탭 */}
-      <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className="mb-6 w-full justify-around">
-          <TabsTrigger value="profile" className="flex-1">
-            내 정보
-          </TabsTrigger>
-          <TabsTrigger value="leave" className="flex-1">
-            휴가 내역
-          </TabsTrigger>
-        </TabsList>
+      <AdminUserDetail user={user} projects={userProjects} />
 
-        <TabsContent value="profile" className="py-6">
-          <ProfileEditForm />
-        </TabsContent>
-        <TabsContent value="leave">
-          <ComingSoon />
-        </TabsContent>
-      </Tabs>
+      <UserEditModal
+        user={user}
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        onUserUpdate={(updatedUser) => {
+          setUser(updatedUser); // 상세 정보 갱신
+        }}
+      />
     </div>
   );
 }

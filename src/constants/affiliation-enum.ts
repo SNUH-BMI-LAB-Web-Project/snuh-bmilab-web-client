@@ -1,7 +1,7 @@
-import { UpdateUserRequestAffiliationEnum } from '@/generated-api';
+import { RegisterUserRequestAffiliationEnum } from '@/generated-api';
 
 export const affiliationLabelMap: Record<
-  UpdateUserRequestAffiliationEnum,
+  RegisterUserRequestAffiliationEnum,
   string
 > = {
   PROFESSOR: '교수',

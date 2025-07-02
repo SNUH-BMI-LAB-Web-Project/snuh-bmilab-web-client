@@ -3,7 +3,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useState, useCallback, SetStateAction } from 'react';
 import { AdminReportFeed } from '@/components/system/reports/admin-report-feed';
-import { DateRangePicker } from '@/components/common/data-range-picker';
 import { FilterControls } from '@/components/system/reports/filter-controls';
 
 export default function AdminPage() {
@@ -18,10 +17,7 @@ export default function AdminPage() {
   return (
     <div className="flex flex-col space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">관리자 대시보드</h2>
-        <div className="flex items-center space-x-2">
-          <DateRangePicker />
-        </div>
+        <h2 className="text-3xl font-bold tracking-tight">일일 업무 보고</h2>
       </div>
       <Card className="bg-white">
         <CardHeader className="pb-2">

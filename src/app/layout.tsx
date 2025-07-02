@@ -15,12 +15,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className="h-full">
-      <body className="flex h-full flex-col">
+    <html lang="ko">
+      <body>
         <QueryProvider>
           <AppHeader />
-          <div className="flex flex-1 overflow-hidden">{children}</div>
-          <Toaster />
+          <div className="mt-[70px]">{children}</div>
+          <Toaster className="fixed z-[9999]" />
         </QueryProvider>
       </body>
     </html>

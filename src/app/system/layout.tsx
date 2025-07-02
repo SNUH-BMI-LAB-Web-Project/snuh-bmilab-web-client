@@ -22,9 +22,7 @@ export default function SidebarLayout({
             isDailyReport ? 'bg-muted' : ''
           }`}
         >
-          <div className="flex-1 overflow-y-auto px-20 py-10 pb-30">
-            {children}
-          </div>
+          <div className="flex-1 overflow-y-auto px-20 py-10">{children}</div>
         </SidebarInset>
       </div>
     </SidebarProvider>
