@@ -27,7 +27,7 @@ import {
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { ReportEditModal } from '@/components/portal/report/daily/report-edit-form';
-import { formatDateTimeVer2 } from '@/lib/utils';
+import { formatDateTimeVer2, setDateWithFixedHour } from '@/lib/utils';
 
 const reportApi = new ReportApi(
   new Configuration({
@@ -38,14 +38,20 @@ const reportApi = new ReportApi(
 interface ReportFeedProps {
   filters: {
     user?: string;
-    project?: string; // projectId (string으로 전달됨)
+    project?: string;
   };
   projectList: SearchProjectItem[];
+  startDate: Date;
+  endDate: Date;
 }
 
-export function ReportFeed({ filters, projectList }: ReportFeedProps) {
+export function ReportFeed({
+  filters,
+  projectList,
+  startDate,
+  endDate,
+}: ReportFeedProps) {
   const [reports, setReports] = useState<ReportSummary[]>([]);
-  const [page, setPage] = useState(0);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<ReportSummary | null>(
     null,
@@ -56,24 +62,18 @@ export function ReportFeed({ filters, projectList }: ReportFeedProps) {
       const response: ReportFindAllResponse =
         await reportApi.getReportsByCurrentUser({
           projectId: filters.project ? Number(filters.project) : undefined,
+          startDate: setDateWithFixedHour(startDate),
+          endDate: setDateWithFixedHour(endDate),
         });
-
       setReports(response.reports ?? []);
-    } catch (err) {
-      console.error('업무 보고 불러오기 실패', err);
+    } catch (error) {
+      console.error('업무 보고 불러오기 실패:', error);
     }
   };
 
-  // 필터 변경 시 초기화
-  useEffect(() => {
-    setReports([]);
-    setPage(0);
-  }, [filters]);
-
-  // 필터 or 페이지 변경 시 fetch
   useEffect(() => {
     fetchReports();
-  }, [filters, page]);
+  }, [filters.project, filters.user, startDate, endDate]);
 
   const handleEdit = (report: ReportSummary) => {
     console.log('수정할 보고서:', report); // 🔍 확인

@@ -202,7 +202,7 @@ export default function ProfileEditForm() {
       await Promise.all(
         currentEducations.map((edu) =>
           userApi.addEducationsRaw({
-            userEducationRequest: toRequest(edu) as any,
+            userEducationRequest: toRequest(edu),
           }),
         ),
       );

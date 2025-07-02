@@ -230,7 +230,7 @@ export function ProjectForm({
         .map((u) => u.userId)
         .filter((id): id is number => !!id),
       startDate: setDateWithFixedHour(startDate),
-      endDate: endDate ? setDateWithFixedHour(endDate) : null,
+      endDate: endDate ? setDateWithFixedHour(endDate) : undefined,
       piList,
       practicalProfessors,
       irbId: formData.irbId,
@@ -534,7 +534,7 @@ export function ProjectForm({
 
               {/* 입력 리스트 */}
               {piList.map((pi, index) => (
-                <div key={index} className="flex gap-2">
+                <div key={Date.now()} className="flex gap-2">
                   <Input
                     placeholder="PI 소속 기관"
                     value={pi.organization || ''}
@@ -601,7 +601,7 @@ export function ProjectForm({
               </div>
 
               {practicalProfessors.map((prof, index) => (
-                <div key={index} className="flex items-center gap-2">
+                <div key={Date.now()} className="flex items-center gap-2">
                   <Input
                     placeholder="실무교수 소속 기관"
                     value={prof.organization || ''}
