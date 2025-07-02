@@ -532,12 +532,12 @@ export default function HomePage() {
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
             {/* Recruitment Areas */}
             <Card className="animate-fade-in-left border border-slate-200 bg-gradient-to-br from-white to-slate-50 shadow-xl shadow-slate-500/10">
-              <CardContent className="p-8">
+              <CardContent className="h-full p-8">
                 <h3 className="mb-6 flex items-center gap-3 text-2xl font-bold text-slate-800">
                   <BookOpen className="animate-pulse-bright h-6 w-6 text-blue-600" />
                   Research Areas We&apos;re Looking For
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {recruitmentAreas.map((area, index) => (
                     <div
                       key={area}
