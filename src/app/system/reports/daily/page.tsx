@@ -6,10 +6,20 @@ import { AdminReportFeed } from '@/components/system/reports/admin-report-feed';
 import { FilterControls } from '@/components/system/reports/filter-controls';
 import { GetReportsByAllUserRequest } from '@/generated-api';
 
+interface RawReportFilter {
+  user: string;
+  project: string;
+  dateRange?: {
+    from?: Date;
+    to?: Date;
+  };
+  searchQuery: string;
+}
+
 export default function AdminPage() {
   const [filters, setFilters] = useState<GetReportsByAllUserRequest>({});
 
-  const handleFilter = useCallback((raw: any) => {
+  const handleFilter = useCallback((raw: RawReportFilter) => {
     const mapped: GetReportsByAllUserRequest = {
       userId: raw.user ? parseInt(raw.user, 10) : undefined,
       projectId: raw.project ? parseInt(raw.project, 10) : undefined,
