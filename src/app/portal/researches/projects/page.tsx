@@ -167,8 +167,6 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
   },
 ];
 
-// TODO: R) search param 점검
-
 export default function ProjectPage() {
   const { data: categoryData } = useProjectCategories();
 
