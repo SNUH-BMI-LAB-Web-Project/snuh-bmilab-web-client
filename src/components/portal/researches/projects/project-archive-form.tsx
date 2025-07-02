@@ -73,7 +73,7 @@ export default function ProjectArchiveForm({
           <TableHeader>
             <TableRow>
               <TableHead className="w-1/2 pl-4">파일 이름</TableHead>
-              <TableHead className="w-1/6 text-center">파일 크기</TableHead>
+              {/* <TableHead className="w-1/6 text-center">파일 크기</TableHead> */}
               <TableHead className="w-1/6 text-center">파일 타입</TableHead>
               <TableHead className="w-1/6 text-center">다운로드</TableHead>
             </TableRow>
@@ -87,9 +87,9 @@ export default function ProjectArchiveForm({
                     <p>{file.fileName}</p>
                   </div>
                 </TableCell>
-                <TableCell className="text-center">
-                  {formatFileSize(file.size)}
-                </TableCell>
+                {/* <TableCell className="text-center"> */}
+                {/*   {formatFileSize(file.size)} */}
+                {/* </TableCell> */}
                 <TableCell className="text-center">
                   <Badge variant="outline">
                     {FILE_TYPE_LABELS[
