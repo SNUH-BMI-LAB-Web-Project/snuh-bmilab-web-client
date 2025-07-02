@@ -28,11 +28,29 @@ import {
  */
 export interface SearchUserResponse {
     /**
-     * 
+     * 검색된 사용자 정보
      * @type {Array<UserSummary>}
      * @memberof SearchUserResponse
      */
     users?: Array<UserSummary>;
+    /**
+     * 검색 필터 필드
+     * @type {string}
+     * @memberof SearchUserResponse
+     */
+    filterBy?: string;
+    /**
+     * 검색 필터 값
+     * @type {string}
+     * @memberof SearchUserResponse
+     */
+    filterValue?: string;
+    /**
+     * 정렬 조건
+     * @type {string}
+     * @memberof SearchUserResponse
+     */
+    sort?: string;
 }
 
 /**
@@ -53,6 +71,9 @@ export function SearchUserResponseFromJSONTyped(json: any, ignoreDiscriminator: 
     return {
         
         'users': json['users'] == null ? undefined : ((json['users'] as Array<any>).map(UserSummaryFromJSON)),
+        'filterBy': json['filterBy'] == null ? undefined : json['filterBy'],
+        'filterValue': json['filterValue'] == null ? undefined : json['filterValue'],
+        'sort': json['sort'] == null ? undefined : json['sort'],
     };
 }
 
@@ -68,6 +89,9 @@ export function SearchUserResponseToJSONTyped(value?: SearchUserResponse | null,
     return {
         
         'users': value['users'] == null ? undefined : ((value['users'] as Array<any>).map(UserSummaryToJSON)),
+        'filterBy': value['filterBy'],
+        'filterValue': value['filterValue'],
+        'sort': value['sort'],
     };
 }
 

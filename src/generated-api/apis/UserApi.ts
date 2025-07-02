@@ -55,7 +55,9 @@ export interface GetAllUsersRequest {
 }
 
 export interface SearchUsersRequest {
-    keyword?: string;
+    filterBy?: string;
+    filterValue?: string;
+    sort?: string;
 }
 
 export interface UpdateCurrentUserRequest {
@@ -250,8 +252,16 @@ export class UserApi extends runtime.BaseAPI {
     async searchUsersRaw(requestParameters: SearchUsersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SearchUserResponse>> {
         const queryParameters: any = {};
 
-        if (requestParameters['keyword'] != null) {
-            queryParameters['keyword'] = requestParameters['keyword'];
+        if (requestParameters['filterBy'] != null) {
+            queryParameters['filterBy'] = requestParameters['filterBy'];
+        }
+
+        if (requestParameters['filterValue'] != null) {
+            queryParameters['filterValue'] = requestParameters['filterValue'];
+        }
+
+        if (requestParameters['sort'] != null) {
+            queryParameters['sort'] = requestParameters['sort'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

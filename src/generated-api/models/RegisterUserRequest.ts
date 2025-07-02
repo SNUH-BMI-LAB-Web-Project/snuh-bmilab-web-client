@@ -64,6 +64,12 @@ export interface RegisterUserRequest {
      */
     affiliation?: RegisterUserRequestAffiliationEnum;
     /**
+     * 권한
+     * @type {string}
+     * @memberof RegisterUserRequest
+     */
+    role?: RegisterUserRequestRoleEnum;
+    /**
      * 총 연차 개수
      * @type {number}
      * @memberof RegisterUserRequest
@@ -123,6 +129,15 @@ export const RegisterUserRequestAffiliationEnum = {
 } as const;
 export type RegisterUserRequestAffiliationEnum = typeof RegisterUserRequestAffiliationEnum[keyof typeof RegisterUserRequestAffiliationEnum];
 
+/**
+ * @export
+ */
+export const RegisterUserRequestRoleEnum = {
+    User: 'USER',
+    Admin: 'ADMIN'
+} as const;
+export type RegisterUserRequestRoleEnum = typeof RegisterUserRequestRoleEnum[keyof typeof RegisterUserRequestRoleEnum];
+
 
 /**
  * Check if a given object implements the RegisterUserRequest interface.
@@ -147,6 +162,7 @@ export function RegisterUserRequestFromJSONTyped(json: any, ignoreDiscriminator:
         'organization': json['organization'] == null ? undefined : json['organization'],
         'department': json['department'] == null ? undefined : json['department'],
         'affiliation': json['affiliation'] == null ? undefined : json['affiliation'],
+        'role': json['role'] == null ? undefined : json['role'],
         'annualLeaveCount': json['annualLeaveCount'] == null ? undefined : json['annualLeaveCount'],
         'usedLeaveCount': json['usedLeaveCount'] == null ? undefined : json['usedLeaveCount'],
         'categoryIds': json['categoryIds'] == null ? undefined : json['categoryIds'],
@@ -174,6 +190,7 @@ export function RegisterUserRequestToJSONTyped(value?: RegisterUserRequest | nul
         'organization': value['organization'],
         'department': value['department'],
         'affiliation': value['affiliation'],
+        'role': value['role'],
         'annualLeaveCount': value['annualLeaveCount'],
         'usedLeaveCount': value['usedLeaveCount'],
         'categoryIds': value['categoryIds'],

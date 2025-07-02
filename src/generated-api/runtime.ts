@@ -13,7 +13,7 @@
  */
 
 
-export const BASE_PATH = "http://ec2-13-209-69-39.ap-northeast-2.compute.amazonaws.com:8080".replace(/\/+$/, "");
+export const BASE_PATH = "https://api.snuh-bmilab.ai.kr".replace(/\/+$/, "");
 
 export interface ConfigurationParameters {
     basePath?: string; // override base path

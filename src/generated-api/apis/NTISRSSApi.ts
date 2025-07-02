@@ -28,7 +28,8 @@ import {
 export interface GetAllRssAssignmentsRequest {
     page?: number;
     size?: number;
-    search?: string;
+    searchType?: GetAllRssAssignmentsSearchTypeEnum;
+    keyword?: string;
     minBudget?: number;
     maxBudget?: number;
 }
@@ -53,8 +54,12 @@ export class NTISRSSApi extends runtime.BaseAPI {
             queryParameters['size'] = requestParameters['size'];
         }
 
-        if (requestParameters['search'] != null) {
-            queryParameters['search'] = requestParameters['search'];
+        if (requestParameters['searchType'] != null) {
+            queryParameters['searchType'] = requestParameters['searchType'];
+        }
+
+        if (requestParameters['keyword'] != null) {
+            queryParameters['keyword'] = requestParameters['keyword'];
         }
 
         if (requestParameters['minBudget'] != null) {
@@ -95,3 +100,13 @@ export class NTISRSSApi extends runtime.BaseAPI {
     }
 
 }
+
+/**
+ * @export
+ */
+export const GetAllRssAssignmentsSearchTypeEnum = {
+    Title: 'TITLE',
+    Organization: 'ORGANIZATION',
+    Department: 'DEPARTMENT'
+} as const;
+export type GetAllRssAssignmentsSearchTypeEnum = typeof GetAllRssAssignmentsSearchTypeEnum[keyof typeof GetAllRssAssignmentsSearchTypeEnum];
