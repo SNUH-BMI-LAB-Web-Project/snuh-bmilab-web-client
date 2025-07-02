@@ -38,6 +38,7 @@ import {
   ExternalProfessorItem,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
+import { toast } from 'sonner';
 
 export default function ExternalProfessorModal() {
   const [open, setOpen] = useState(false);
@@ -91,9 +92,12 @@ export default function ExternalProfessorModal() {
         },
       });
       resetForm();
+
+      toast.success('외부 인사가 성공적으로 추가되었습니다.');
+
       await fetchProfessors();
     } catch (e) {
-      alert('추가 실패');
+      toast.error('추가에 실패했습니다.');
     }
   };
 
@@ -110,9 +114,12 @@ export default function ExternalProfessorModal() {
       });
       resetForm();
       setEditingProfessor(null);
+
+      toast.success('외부 인사 정보가 성공적으로 수정되었습니다.');
+
       await fetchProfessors();
     } catch (e) {
-      alert('수정 실패');
+      toast.error('수정에 실패했습니다.');
     }
   };
 
@@ -123,9 +130,12 @@ export default function ExternalProfessorModal() {
         professorId: Number(deleteProfessor?.professorId),
       });
       setDeleteProfessor(null);
+
+      toast.success('외부 인사가 성공적으로 삭제되었습니다.');
+
       await fetchProfessors();
     } catch (e) {
-      alert('삭제 실패');
+      toast.error('삭제에 실패했습니다.');
     }
   };
 
