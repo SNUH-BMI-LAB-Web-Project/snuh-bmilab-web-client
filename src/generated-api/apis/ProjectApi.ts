@@ -89,6 +89,7 @@ export interface GetReportsByProjectRequest {
     userId?: number;
     startDate?: Date;
     endDate?: Date;
+    keyword?: string;
 }
 
 export interface GetUserProjectsRequest {
@@ -512,6 +513,10 @@ export class ProjectApi extends runtime.BaseAPI {
 
         if (requestParameters['endDate'] != null) {
             queryParameters['endDate'] = (requestParameters['endDate'] as any).toISOString().substring(0,10);
+        }
+
+        if (requestParameters['keyword'] != null) {
+            queryParameters['keyword'] = requestParameters['keyword'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

@@ -1,6 +1,7 @@
+apis/AdminExternalProfessorApi.ts
 apis/AdminLeaveApi.ts
 apis/AdminProjectCategoryApi.ts
-apis/AdminProjectControllerApi.ts
+apis/AdminReportApi.ts
 apis/AdminUserApi.ts
 apis/AuthApi.ts
 apis/FileApi.ts
