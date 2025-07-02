@@ -31,6 +31,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import ConfirmModal from '@/components/common/confirm-modal';
+import { downloadFileFromUrl } from '@/utils/download-file';
 
 const timelineApi = new TimelineApi(
   new Configuration({
@@ -334,20 +335,24 @@ export default function TimelineCard({
                         {timeline.files && timeline.files.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
                             {timeline.files.map((file) => (
-                              <a
+                              <Button
                                 key={file.fileId}
-                                href={file.uploadUrl}
-                                download={file.fileName}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                variant="ghost"
+                                className="p-0"
+                                onClick={() =>
+                                  downloadFileFromUrl(
+                                    file.fileName!,
+                                    file.uploadUrl!,
+                                  )
+                                }
                               >
                                 <Badge
                                   variant="outline"
-                                  className="bg-white px-2 py-1"
+                                  className="cursor-pointer bg-white px-2 py-1"
                                 >
                                   {file.fileName}
                                 </Badge>
-                              </a>
+                              </Button>
                             ))}
                           </div>
                         ) : (
