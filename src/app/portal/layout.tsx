@@ -15,18 +15,14 @@ export default function SidebarLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex flex-1 overflow-hidden">
-        <AppSidebar />
-        <SidebarInset
-          className={`flex flex-1 flex-col overflow-hidden ${
-            isDailyReport ? 'bg-muted' : ''
-          }`}
-        >
-          <div className="flex-1 overflow-y-auto px-20 py-10 pb-30">
-            {children}
-          </div>
-        </SidebarInset>
-      </div>
+      <AppSidebar />
+      <SidebarInset
+        className={`flex flex-1 flex-col overflow-hidden ${
+          isDailyReport ? 'bg-muted' : ''
+        }`}
+      >
+        <div className="flex-1 overflow-y-auto px-20 py-10">{children}</div>
+      </SidebarInset>
     </SidebarProvider>
   );
 }

@@ -72,22 +72,20 @@ export function AppSidebar() {
   }));
 
   return (
-    <div className="flex h-[calc(100vh-65px)] overflow-hidden">
-      <Sidebar className="flex h-full w-[16rem] flex-col border-r">
-        <SidebarContent className="flex-1 overflow-auto">
-          <NavMain items={navMain} />
-        </SidebarContent>
-        <SidebarFooter className="shrink-0 border-t bg-white px-4 py-4">
-          <NavUser
-            user={{
-              name: user.name || '이름 없음',
-              email: user.email || '이메일 없음',
-              profileImageUrl:
-                user.profileImageUrl ?? '/default-profile-image.svg',
-            }}
-          />
-        </SidebarFooter>
-      </Sidebar>
-    </div>
+    <Sidebar className="fixed top-[70px] left-0 flex h-[calc(100vh-70px)] w-[16rem] flex-col border-r">
+      <SidebarContent className="flex-1 overflow-auto">
+        <NavMain items={navMain} />
+      </SidebarContent>
+      <SidebarFooter className="shrink-0 border-t bg-white px-4 py-4">
+        <NavUser
+          user={{
+            name: user.name || '이름 없음',
+            email: user.email || '이메일 없음',
+            profileImageUrl:
+              user.profileImageUrl ?? '/default-profile-image.svg',
+          }}
+        />
+      </SidebarFooter>
+    </Sidebar>
   );
 }
