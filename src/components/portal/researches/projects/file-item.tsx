@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { FileText, X, Download } from 'lucide-react';
 import React from 'react';
-import { cn, formatFileSize } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 type Mode = 'remove' | 'download';
 
