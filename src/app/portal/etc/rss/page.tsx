@@ -3,7 +3,10 @@
 import { PaginatedTable } from '@/components/common/paginated-table';
 import { ExternalLink, Search, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { NTISRSSApi } from '@/generated-api/apis/NTISRSSApi';
+import {
+  GetAllRssAssignmentsSearchTypeEnum,
+  NTISRSSApi,
+} from '@/generated-api/apis/NTISRSSApi';
 import { RSSItem } from '@/generated-api/models/RSSItem';
 import { useAuthStore } from '@/store/auth-store';
 import { useEffect, useState } from 'react';
@@ -11,6 +14,14 @@ import { Configuration } from '@/generated-api/runtime';
 import { formatDateTimeVer3 } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { rssSearchTypeOptions } from '@/constants/rss-search-enum';
 
 const ntisrssApi = new NTISRSSApi(
   new Configuration({
@@ -72,8 +83,6 @@ const getProjectColumns = () => [
   },
 ];
 
-// TODO: RSS 검색 옵션 추가 (BE 구현 후)
-
 export default function RssPage() {
   const [rssItems, setRssItems] = useState<RSSItem[]>([]);
   const [totalPage, setTotalPage] = useState(0);
@@ -85,6 +94,10 @@ export default function RssPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [minBudget, setMinBudget] = useState<number | undefined>();
   const [maxBudget, setMaxBudget] = useState<number | undefined>();
+  const [searchType, setSearchType] =
+    useState<GetAllRssAssignmentsSearchTypeEnum>(
+      GetAllRssAssignmentsSearchTypeEnum.Title,
+    );
 
   useEffect(() => {
     const fetchRSS = async () => {
@@ -93,7 +106,8 @@ export default function RssPage() {
         const response = await ntisrssApi.getAllRssAssignments({
           page: currentPage - 1,
           size: itemsPerPage,
-          search: committedSearchTerm || undefined,
+          searchType,
+          keyword: committedSearchTerm || undefined,
           minBudget,
           maxBudget,
         });
@@ -118,6 +132,25 @@ export default function RssPage() {
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
+        {/* 검색 타입 */}
+        <Select
+          value={searchType}
+          onValueChange={(val) =>
+            setSearchType(val as GetAllRssAssignmentsSearchTypeEnum)
+          }
+        >
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="검색 항목" />
+          </SelectTrigger>
+          <SelectContent>
+            {rssSearchTypeOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         {/* 검색 input */}
         <div className="relative flex-1">
           <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
