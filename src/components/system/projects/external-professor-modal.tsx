@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { UserCheck, Plus, Edit, Trash2, Save, Building } from 'lucide-react';
 import {
-  AdminProjectControllerApi,
+  AdminExternalProfessorApi,
   Configuration,
   ExternalProfessorItem,
 } from '@/generated-api';
@@ -53,7 +53,7 @@ export default function ExternalProfessorModal() {
     department: '',
   });
 
-  const api = new AdminProjectControllerApi(
+  const api = new AdminExternalProfessorApi(
     new Configuration({
       accessToken: async () => useAuthStore.getState().accessToken ?? '',
     }),
