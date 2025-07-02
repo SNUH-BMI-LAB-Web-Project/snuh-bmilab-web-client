@@ -49,3 +49,9 @@ export const formatFileSize = (size?: number) => {
   const mb = size / (1024 * 1024);
   return `${mb.toFixed(2)} MB`;
 };
+
+export function setDateWithFixedHour(date: Date, hour: number = 9): Date {
+  const newDate = new Date(date);
+  newDate.setHours(hour, 0, 0, 0);
+  return newDate;
+}

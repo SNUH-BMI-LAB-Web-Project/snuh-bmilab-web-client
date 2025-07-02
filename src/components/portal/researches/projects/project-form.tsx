@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
+import { cn, setDateWithFixedHour } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { FileItem } from '@/components/portal/researches/projects/file-item';
 import { UserTagInput } from '@/components/portal/researches/projects/user-tag-input';
@@ -229,9 +229,8 @@ export function ProjectForm({
       participantIds: participants
         .map((u) => u.userId)
         .filter((id): id is number => !!id),
-      startDate,
-      endDate: endDate ?? undefined,
-      isWaiting,
+      startDate: setDateWithFixedHour(startDate),
+      endDate: endDate ? setDateWithFixedHour(endDate) : null,
       piList,
       practicalProfessors,
       irbId: formData.irbId,
@@ -239,6 +238,8 @@ export function ProjectForm({
       irbFileIds: irbFile ? [irbFile.fileId!] : [],
       drbFileIds: drbFile ? [drbFile.fileId!] : [],
       fileIds: newFiles.map((file) => file.fileId!),
+      isWaiting,
+      categoryId: formData.categoryId,
       isPrivate,
     };
 
@@ -248,9 +249,11 @@ export function ProjectForm({
         if (projectId !== undefined) {
           await onUpdate?.({ projectId, request }, newFiles, removedFiles);
           toast.success('프로젝트가 성공적으로 수정되었습니다.');
+          console.log(JSON.stringify(request, null, 2));
         } else {
           console.error('프로젝트 ID가 없습니다.');
           toast.error('수정에 실패했습니다. 프로젝트 ID가 없습니다.');
+          console.log(JSON.stringify(request, null, 2));
         }
       } else {
         await onCreate?.(
@@ -654,7 +657,7 @@ export function ProjectForm({
               <UserTagInput
                 selectedUsers={leaders}
                 onChange={(userIds) => setLeaders(userIds)}
-                placeholder="책임자 이름을 입력하세요 (@태그)"
+                placeholder="책임자 이름을 입력하세요"
               />
             </div>
 
@@ -667,7 +670,7 @@ export function ProjectForm({
               <UserTagInput
                 selectedUsers={participants}
                 onChange={(userIds) => setParticipants(userIds)}
-                placeholder="참여자 이름을 입력하세요 (@태그)"
+                placeholder="참여자 이름을 입력하세요"
               />
             </div>
           </div>

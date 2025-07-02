@@ -16,7 +16,7 @@ import { canDeleteProject, canEditProject } from '@/utils/project-utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProjectInfoForm from '@/components/portal/researches/projects/project-info-form';
 import ProjectArchiveForm from '@/components/portal/researches/projects/project-archive-form';
-import ProjectDeleteModal from '@/components/portal/researches/projects/project-delete-modal';
+import ConfirmModal from '@/components/common/confirm-modal';
 
 const projectApi = new ProjectApi(
   new Configuration({
@@ -168,9 +168,11 @@ export default function ProjectDetailPage({
         </TabsContent>
       </Tabs>
 
-      <ProjectDeleteModal
+      <ConfirmModal
         open={showDeleteAlert}
         onOpenChange={setShowDeleteAlert}
+        title="프로젝트 삭제"
+        description="해당 프로젝트를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
         onConfirm={handleDelete}
       />
     </div>

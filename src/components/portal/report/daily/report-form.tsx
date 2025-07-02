@@ -64,7 +64,6 @@ export function ReportForm({ projectList, onReportCreated }: ReportFormProps) {
     }
   };
 
-  // TODO: 파일 업로드 삭제 기능이 필요함(지금은 업로드와 동시에 업무 보고 생성) -> 추후에 플로우 수정 필요함
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 

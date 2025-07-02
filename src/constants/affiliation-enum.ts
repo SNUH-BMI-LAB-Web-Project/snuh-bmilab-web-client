@@ -13,3 +13,11 @@ export const affiliationLabelMap: Record<
   RESEARCHER_OR_INTERN: '연구원 및 인턴',
   ADMINISTRATIVE_STAFF: '행정',
 };
+
+export const affiliationOptions = [
+  { value: 'none', label: '선택 없음' },
+  ...Object.entries(affiliationLabelMap).map(([value, label]) => ({
+    value,
+    label,
+  })),
+];

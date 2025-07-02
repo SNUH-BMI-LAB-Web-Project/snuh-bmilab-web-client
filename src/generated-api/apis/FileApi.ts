@@ -28,6 +28,10 @@ import {
     UploadFileRequestToJSON,
 } from '../models/index';
 
+export interface DeleteFileRequest {
+    fileId: string;
+}
+
 export interface GeneratePresignedUrlRequest {
     domainType: GeneratePresignedUrlDomainTypeEnum;
     fileName: string;
@@ -42,6 +46,44 @@ export interface UploadFileOperationRequest {
  * 
  */
 export class FileApi extends runtime.BaseAPI {
+
+    /**
+     */
+    async deleteFileRaw(requestParameters: DeleteFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['fileId'] == null) {
+            throw new runtime.RequiredError(
+                'fileId',
+                'Required parameter "fileId" was null or undefined when calling deleteFile().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/files/{fileId}`.replace(`{${"fileId"}}`, encodeURIComponent(String(requestParameters['fileId']))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async deleteFile(requestParameters: DeleteFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteFileRaw(requestParameters, initOverrides);
+    }
 
     /**
      * AWS S3에 파일을 업로드하기 위한 Presigned URL을 발급받는 GET API

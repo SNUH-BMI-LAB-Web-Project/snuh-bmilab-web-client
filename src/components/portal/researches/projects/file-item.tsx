@@ -40,9 +40,9 @@ export function FileItem({
         </div>
         <div className="truncate">
           <div className="truncate text-sm font-medium">{file.name}</div>
-          <div className="text-muted-foreground text-xs">
-            {formatFileSize(file.size)}
-          </div>
+          {/* <div className="text-muted-foreground text-xs"> */}
+          {/*   {formatFileSize(file.size)} */}
+          {/* </div> */}
         </div>
       </div>
 
