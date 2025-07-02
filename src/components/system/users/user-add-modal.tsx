@@ -371,7 +371,6 @@ export default function UserAddModal({
             </div>
 
             {/* 시스템 권한 */}
-            {/* 시스템 권한 */}
             <div className="space-y-4 rounded-lg border p-4">
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-gray-600" />
