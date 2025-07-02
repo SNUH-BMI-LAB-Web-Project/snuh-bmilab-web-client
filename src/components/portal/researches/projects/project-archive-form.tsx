@@ -19,6 +19,7 @@ import {
 import { ProjectApi } from '@/generated-api/apis/ProjectApi';
 import { Configuration } from '@/generated-api/runtime';
 import { Download, Paperclip } from 'lucide-react';
+import { downloadFileFromUrl } from '@/utils/download-file';
 
 const projectApi = new ProjectApi(
   new Configuration({
@@ -57,13 +58,6 @@ export default function ProjectArchiveForm({
     fetchFiles();
   }, [projectId]);
 
-  const handleDownload = (fileName: string, uploadUrl: string) => {
-    const link = document.createElement('a');
-    link.href = uploadUrl;
-    link.download = fileName;
-    link.click();
-  };
-
   return (
     <div className="rounded-md border bg-white">
       {files.length > 0 ? (
@@ -100,7 +94,7 @@ export default function ProjectArchiveForm({
                     size="sm"
                     variant="ghost"
                     onClick={() =>
-                      handleDownload(file.fileName!, file.uploadUrl!)
+                      downloadFileFromUrl(file.fileName!, file.uploadUrl!)
                     }
                   >
                     <Download />
