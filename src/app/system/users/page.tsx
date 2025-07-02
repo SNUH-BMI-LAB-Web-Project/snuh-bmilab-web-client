@@ -248,8 +248,6 @@ export default function SystemProjectPage() {
     }
   };
 
-  console.log(useAuthStore.getState().accessToken);
-
   useEffect(() => {
     fetchUsers();
   }, [
