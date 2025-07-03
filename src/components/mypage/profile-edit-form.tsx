@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { LockKeyhole, UserCheck, UserPen, Camera } from 'lucide-react';
+import { LockKeyhole, UserCheck, UserPen, Camera, Check } from 'lucide-react';
 import { UserApi } from '@/generated-api/apis/UserApi';
 import { Configuration } from '@/generated-api/runtime';
 import {
@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { affiliationOptions } from '@/constants/affiliation-enum';
+import { cn } from '@/lib/utils';
 
 const userApi = new UserApi(
   new Configuration({
@@ -81,7 +82,7 @@ export default function ProfileEditForm() {
     email: '이메일',
     organization: '기관',
     department: '부서',
-    affiliation: '소속 (선택)',
+    affiliation: '소속',
     phoneNumber: '전화번호',
     seatNumber: '좌석번호',
   };
@@ -178,6 +179,13 @@ export default function ProfileEditForm() {
       return;
     }
 
+    let currentEducations: UserEducationSummary[] = [];
+    try {
+      currentEducations = educationGetterRef.current?.() ?? [];
+    } catch (err) {
+      return;
+    }
+
     type ExtendedUpdateUserRequest = Omit<UpdateUserRequest, 'affiliation'> & {
       affiliation: UpdateUserRequestAffiliationEnum | null;
     };
@@ -204,19 +212,15 @@ export default function ProfileEditForm() {
         profileImage: profileImageFile ?? undefined,
       });
 
-      const currentEducations = educationGetterRef.current?.() ?? [];
-
       await Promise.all(
         currentEducations
-          .filter((edu) => !edu.educationId) // educationId가 없는 경우만 추가
+          .filter((edu) => !edu.educationId)
           .map((edu) =>
             userApi.addEducations({
               userEducationRequest: toRequest(edu),
             }),
           ),
       );
-
-      console.log(currentEducations);
 
       useAuthStore.setState((prev) => ({
         user: {
@@ -306,12 +310,27 @@ export default function ProfileEditForm() {
                 >
                   <SelectValue placeholder="소속 선택" />
                 </SelectTrigger>
-                <SelectContent>
-                  {affiliationOptions.map(({ value, label }) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
+                <SelectContent side="bottom" sideOffset={4} className="!p-0">
+                  {affiliationOptions.map(({ value, label }) => {
+                    const isSelected = formData.affiliation === value;
+                    return (
+                      <SelectItem
+                        key={value}
+                        value={value}
+                        className={cn(
+                          'relative flex cursor-pointer items-center rounded-sm px-3 py-2 text-sm transition-colors select-none',
+                          isSelected
+                            ? 'bg-accent text-accent-foreground font-semibold'
+                            : 'hover:bg-muted',
+                        )}
+                      >
+                        {label}
+                        {isSelected && (
+                          <Check className="text-primary absolute right-2 h-4 w-4" />
+                        )}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             ) : (
@@ -352,49 +371,52 @@ export default function ProfileEditForm() {
 
         <div className="flex w-full flex-col gap-2">
           <Label className="font-semibold">연구 분야</Label>
-          <Select
-            disabled={!isEditable}
-            onValueChange={(val) => {
-              if (val === 'none') {
-                setSelectedCategoryIds([]);
-              } else {
-                const categoryId = Number(val);
-                toggleCategory(categoryId);
-              }
-            }}
-          >
+
+          {/* 셀렉트 트리거 영역 */}
+          <Select open={undefined}>
             <SelectTrigger
-              className={`w-full ${!isEditable ? 'bg-muted' : 'bg-white'}`}
+              disabled={!isEditable}
+              className={cn('w-full', !isEditable ? 'bg-muted' : 'bg-white')}
             >
-              <SelectValue
-                placeholder={
-                  selectedCategoryIds.length > 0
-                    ? categoryList
-                        .filter((c) =>
-                          selectedCategoryIds.includes(c.categoryId!),
-                        )
-                        .map((c) => c.name)
-                        .join(', ')
-                    : '연구 분야 선택'
-                }
-              />
+              <div className="truncate text-sm text-black">
+                {selectedCategoryIds.length > 0
+                  ? categoryList
+                      .filter((c) =>
+                        selectedCategoryIds.includes(c.categoryId!),
+                      )
+                      .map((c) => c.name)
+                      .join(', ')
+                  : '연구 분야 선택'}
+              </div>
             </SelectTrigger>
 
+            {/* 커스텀 다중 선택 컨텐츠 */}
             <SelectContent>
-              <SelectItem value="none">선택 없음</SelectItem>
-
               {categoryList.map((cat) => {
                 const isSelected = selectedCategoryIds.includes(
                   cat.categoryId!,
                 );
                 return (
-                  <SelectItem
+                  <div
+                    role="button"
+                    tabIndex={0}
                     key={cat.categoryId}
-                    value={String(cat.categoryId)}
-                    disabled={isSelected}
+                    className={cn(
+                      'relative flex cursor-pointer items-center rounded-md border border-white px-3 py-2 text-sm select-none',
+                      isSelected ? 'bg-accent font-medium' : 'hover:bg-accent',
+                    )}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        toggleCategory(cat.categoryId!);
+                      }
+                    }}
+                    onClick={() => toggleCategory(cat.categoryId!)}
                   >
-                    {cat.name}
-                  </SelectItem>
+                    <span>{cat.name}</span>
+                    {isSelected && (
+                      <Check className="text-primary absolute right-2 h-4 w-4" />
+                    )}
+                  </div>
                 );
               })}
             </SelectContent>
