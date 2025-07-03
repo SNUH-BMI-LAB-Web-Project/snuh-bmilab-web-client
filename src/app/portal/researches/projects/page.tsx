@@ -182,7 +182,7 @@ export default function ProjectPage() {
     useState('');
   const [allUsers, setAllUsers] = useState<UserSummary[]>([]);
 
-  const [sortOption, setSortOption] = useState('startDate-desc');
+  const [sortOption, setSortOption] = useState('endDate-desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showFilters, setShowFilters] = useState(false);
@@ -250,7 +250,7 @@ export default function ProjectPage() {
     setPiTerm('');
     setPracticalProfessorTerm('');
     setLeaderFilter('all');
-    setSortOption('startDate-desc');
+    setSortOption('endDate-desc');
   };
 
   return (
@@ -298,10 +298,10 @@ export default function ProjectPage() {
                 <SelectValue placeholder="정렬 방식" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="startDate-desc">시작일 내림차순</SelectItem>
-                <SelectItem value="startDate-asc">시작일 오름차순</SelectItem>
                 <SelectItem value="endDate-desc">종료일 내림차순</SelectItem>
                 <SelectItem value="endDate-asc">종료일 오름차순</SelectItem>
+                <SelectItem value="startDate-desc">시작일 내림차순</SelectItem>
+                <SelectItem value="startDate-asc">시작일 오름차순</SelectItem>
               </SelectContent>
             </Select>
           </div>
