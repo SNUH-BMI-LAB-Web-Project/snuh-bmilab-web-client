@@ -18,6 +18,7 @@ import {
 import { Minus, Plus } from 'lucide-react';
 import { statusLabelMap } from '@/constants/education-enum';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 interface Props {
   educations?: UserEducationSummary[];
@@ -52,20 +53,27 @@ export default function EducationEditor({
 
   useEffect(() => {
     if (onRefReady) {
-      const getter = () =>
-        titles.map(
+      const getter = () => {
+        for (let i = 0; i < titles.length; i += 1) {
+          if (titles[i].trim() === '') {
+            toast.error('학교명/과정명은 비워둘 수 없습니다.');
+            throw new Error('Validation error');
+          }
+        }
+
+        return titles.map(
           (_, idx): UserEducationSummary => ({
             educationId: ids[idx],
             status: statusList[idx] as UserEducationSummaryStatusEnum,
             startYearMonth: startDates[idx],
             endYearMonth: endDates[idx],
-            title: titles[idx],
+            title: titles[idx].trim(),
           }),
         );
+      };
       onRefReady(getter);
     }
   }, [titles, statusList, startDates, endDates, ids]);
-
   const yearMonthOptions = Array.from(
     { length: 10 },
     (_, y) => 2020 + y,
@@ -198,20 +206,26 @@ export default function EducationEditor({
             </Select>
 
             {/* 학교명 */}
-            <Input
-              disabled={!isEditable}
-              minLength={1}
-              className="w-full"
-              placeholder="학교명 / 과정명"
-              value={titles[idx]}
-              onChange={(e) =>
-                setTitles((prev) => {
-                  const copy = [...prev];
-                  copy[idx] = e.target.value;
-                  return copy;
-                })
-              }
-            />
+            <div className="relative w-full">
+              <Input
+                disabled={!isEditable}
+                minLength={1}
+                maxLength={30}
+                className="w-full pr-16"
+                placeholder="학교명 / 과정명"
+                value={titles[idx]}
+                onChange={(e) =>
+                  setTitles((prev) => {
+                    const copy = [...prev];
+                    copy[idx] = e.target.value;
+                    return copy;
+                  })
+                }
+              />
+              <span className="text-muted-foreground absolute top-1/2 right-2 -translate-y-1/2 text-xs">
+                {titles[idx].length}/20
+              </span>
+            </div>
 
             {/* 삭제 */}
             {editMode && (
