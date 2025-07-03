@@ -9,7 +9,7 @@ import { formatDateTime } from '@/lib/utils';
 import Image from 'next/image';
 import { ProjectApi } from '@/generated-api/apis/ProjectApi';
 import { ProjectDetail } from '@/generated-api/models/ProjectDetail';
-import { Configuration } from '@/generated-api/runtime';
+import { Configuration, ResponseError } from '@/generated-api/runtime';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { canDeleteProject, canEditProject } from '@/utils/project-utils';
@@ -42,7 +42,15 @@ export default function ProjectDetailPage({
       try {
         const data = await projectApi.getProjectById({ projectId: Number(id) });
         setProject(data);
-      } catch (err) {
+      } catch (err: unknown) {
+        if (err instanceof ResponseError && err.response.status === 403) {
+          const body = await err.response.json();
+          if (body?.code === 'PROJECT_ACCESS_DENIED') {
+            router.replace('/403');
+            return;
+          }
+        }
+
         toast.error(
           '프로젝트 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
         );
