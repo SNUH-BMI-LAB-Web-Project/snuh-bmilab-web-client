@@ -26,7 +26,7 @@ export default function AppHeader() {
 
   const handlePortalClick = () => {
     if (accessToken) {
-      router.push('/portal/researches/projects');
+      router.push('/portal/users');
     } else {
       router.push('/login');
     }
@@ -98,20 +98,29 @@ export default function AppHeader() {
         )}
 
         {/* System 버튼 (어드민만 보임) */}
-        {role === 'ADMIN' && (
-          <button
-            type="button"
-            onClick={() => router.push('/system/users')}
-            className={cn(
-              pathname.startsWith('/system')
-                ? 'text-black'
-                : 'text-muted-foreground font-light',
-              'w-[60px] cursor-pointer transition-transform duration-150 hover:scale-105',
-            )}
-          >
-            System
-          </button>
-        )}
+        {role === 'ADMIN' &&
+          (pathname.startsWith('/system') && accessToken ? (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-[60px] cursor-pointer text-black transition-transform duration-150 hover:scale-105"
+            >
+              Log Out
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => router.push('/system/users')}
+              className={cn(
+                pathname.startsWith('/system')
+                  ? 'text-black'
+                  : 'text-muted-foreground font-light',
+                'w-[60px] cursor-pointer transition-transform duration-150 hover:scale-105',
+              )}
+            >
+              System
+            </button>
+          ))}
       </nav>
     </header>
   );
