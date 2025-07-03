@@ -202,11 +202,13 @@ export default function ProfileEditForm() {
       const currentEducations = educationGetterRef.current?.() ?? [];
 
       await Promise.all(
-        currentEducations.map((edu) =>
-          userApi.addEducations({
-            userEducationRequest: toRequest(edu),
-          }),
-        ),
+        currentEducations
+          .filter((edu) => !edu.educationId) // educationId가 없는 경우만 추가
+          .map((edu) =>
+            userApi.addEducations({
+              userEducationRequest: toRequest(edu),
+            }),
+          ),
       );
 
       console.log(currentEducations);
