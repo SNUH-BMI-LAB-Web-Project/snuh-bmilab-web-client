@@ -43,9 +43,9 @@ export default function ForbiddenPage() {
               asChild
               className="w-full bg-blue-600 text-white hover:bg-blue-700"
             >
-              <Link href="/">
+              <Link href="/portal/researches/projects">
                 <Home className="mr-2 h-4 w-4" />
-                홈으로 돌아가기
+                연구&프로젝트로 돌아가기
               </Link>
             </Button>
 
