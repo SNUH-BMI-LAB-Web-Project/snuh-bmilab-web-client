@@ -172,7 +172,17 @@ export default function ExternalProfessorModal() {
 
   return (
     <>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(isOpen) => {
+          setOpen(isOpen);
+
+          if (!isOpen) {
+            resetForm();
+            setEditingProfessor(null);
+          }
+        }}
+      >
         <DialogTrigger asChild>
           <Button>
             <UserCheck className="mr-2 h-4 w-4" />
