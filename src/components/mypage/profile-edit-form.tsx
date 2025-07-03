@@ -173,6 +173,11 @@ export default function ProfileEditForm() {
   );
 
   const handleSubmit = async () => {
+    if (!formData.name.trim() || !formData.email.trim()) {
+      toast.error('이름과 이메일은 필수 항목입니다.');
+      return;
+    }
+
     type ExtendedUpdateUserRequest = Omit<UpdateUserRequest, 'affiliation'> & {
       affiliation: UpdateUserRequestAffiliationEnum | null;
     };
@@ -190,7 +195,7 @@ export default function ProfileEditForm() {
     }
     formDataToSend.append(
       'request',
-      new Blob([JSON.stringify(payload)], { type: 'application/json' }), // ✅ 정확한 전송 데이터
+      new Blob([JSON.stringify(payload)], { type: 'application/json' }),
     );
 
     try {
@@ -232,6 +237,16 @@ export default function ProfileEditForm() {
     }
   };
 
+  const maxLengthMap: Partial<Record<(typeof editableFields)[number], number>> =
+    {
+      name: 10,
+      email: 50,
+      organization: 30,
+      department: 20,
+      phoneNumber: 13,
+      seatNumber: 10,
+    };
+
   return (
     <div className="flex flex-row gap-10">
       {/* 프로필 사진 */}
@@ -267,8 +282,12 @@ export default function ProfileEditForm() {
       <div className="w-3/4 space-y-6">
         {editableFields.map((field) => (
           <div key={field} className="flex flex-col gap-2">
-            <Label className="font-semibold">{fieldLabels[field]}</Label>
-
+            <Label className="font-semibold">
+              {fieldLabels[field]}
+              {(field === 'name' || field === 'email') && (
+                <span className="text-destructive">*</span>
+              )}
+            </Label>
             {field === 'affiliation' ? (
               <Select
                 disabled={!isEditable}
@@ -296,12 +315,37 @@ export default function ProfileEditForm() {
                 </SelectContent>
               </Select>
             ) : (
-              <Input
-                value={formData[field]}
-                disabled={!isEditable}
-                className={!isEditable ? 'bg-muted' : 'bg-white'}
-                onChange={(e) => handleChange(field, e.target.value)}
-              />
+              <div className="relative">
+                <Input
+                  value={formData[field]}
+                  disabled={!isEditable}
+                  maxLength={maxLengthMap[field]}
+                  className={`w-full pr-16 ${!isEditable ? 'bg-muted' : 'bg-white'}`}
+                  onChange={(e) => {
+                    let { value } = e.target;
+
+                    // 전화번호는 숫자만 허용 + 하이픈 자동 삽입
+                    if (field === 'phoneNumber') {
+                      const digits = value.replace(/\D/g, '').slice(0, 11);
+                      if (digits.length <= 3) value = digits;
+                      else if (digits.length <= 7)
+                        value = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+                      else
+                        value = `${digits.slice(0, 3)}-${digits.slice(
+                          3,
+                          7,
+                        )}-${digits.slice(7)}`;
+                    }
+
+                    handleChange(field, value);
+                  }}
+                />
+                {isEditable && maxLengthMap[field] && (
+                  <span className="text-muted-foreground absolute right-2 bottom-2.5 text-xs">
+                    {formData[field]?.length ?? 0}/{maxLengthMap[field]}
+                  </span>
+                )}
+              </div>
             )}
           </div>
         ))}
