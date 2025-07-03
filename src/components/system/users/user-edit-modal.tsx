@@ -161,7 +161,7 @@ export default function UserEditModal({
     e.preventDefault();
 
     if (!formData.name) {
-      alert('이름은 필수 입력 항목입니다.');
+      toast.error('이름은 필수 입력 항목입니다.');
       return;
     }
 
@@ -196,8 +196,6 @@ export default function UserEditModal({
         deletedCategoryIds,
       };
 
-      console.log(requestBody);
-
       await adminUserApi.updateUserById({
         userId: user?.userId || -1,
         adminUpdateUserRequest: requestBody,
@@ -212,10 +210,11 @@ export default function UserEditModal({
       });
       onOpenChange(false);
 
-      toast.success('사용자 정보가 수정되었습니다.');
+      toast.success('사용자 정보가 성공적으로 수정되었습니다.');
     } catch (err) {
-      console.error('사용자 정보 수정 실패:', err);
-      toast.error('사용자 정보 수정에 실패했습니다.');
+      toast.error(
+        '사용자 정보 수정 중 오류가 발생했습니다. 다시 시도해 주세요.',
+      );
     }
   };
 

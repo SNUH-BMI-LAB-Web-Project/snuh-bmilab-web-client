@@ -1,5 +1,5 @@
 import { Label } from '@/components/ui/label';
-import { FileDown, Info, NotepadText, Paperclip, Plus } from 'lucide-react';
+import { FileDown, Info, NotepadText, Paperclip } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import TimelineCard from '@/components/portal/researches/projects/timeline/timeline-card';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +9,8 @@ import UserPopover from '@/components/common/user-popover';
 import { FileItem } from '@/components/portal/researches/projects/file-item';
 import React from 'react';
 import { ProjectDetail } from '@/generated-api';
-import { Button } from '@/components/ui/button';
+import { downloadFileFromUrl } from '@/utils/download-file';
+// import { Button } from '@/components/ui/button';
 
 interface ProjectInfoFormProps {
   id: string;
@@ -22,13 +23,6 @@ export default function ProjectInfoForm({
   project,
   canEdit,
 }: ProjectInfoFormProps) {
-  const downloadFile = (fileName: string, uploadUrl: string) => {
-    const link = document.createElement('a');
-    link.href = uploadUrl;
-    link.download = fileName;
-    link.click();
-  };
-
   return (
     <div className="grid grid-cols-3 gap-8">
       <div className="col-span-2 flex flex-col gap-8">
@@ -86,7 +80,15 @@ export default function ProjectInfoForm({
                   <div className="text-muted-foreground flex flex-row items-center text-sm font-normal">
                     {project.irbId}
                     {project.irbFiles && project.irbFiles.length > 0 && (
-                      <FileDown className="ml-2 size-4 cursor-pointer" /> // TODO: 다운로드 핸들러 연결
+                      <FileDown
+                        className="ml-2 size-4 cursor-pointer"
+                        onClick={() =>
+                          downloadFileFromUrl(
+                            project.irbFiles![0].fileName!,
+                            project.irbFiles![0].uploadUrl!,
+                          )
+                        }
+                      />
                     )}
                   </div>
                 </div>
@@ -95,7 +97,15 @@ export default function ProjectInfoForm({
                   <div className="text-muted-foreground flex flex-row items-center text-sm font-normal">
                     {project.drbId}
                     {project.drbFiles && project.drbFiles.length > 0 && (
-                      <FileDown className="ml-2 size-4 cursor-pointer" /> // TODO: 다운로드 핸들러 연결
+                      <FileDown
+                        className="ml-2 size-4 cursor-pointer"
+                        onClick={() =>
+                          downloadFileFromUrl(
+                            project.drbFiles![0].fileName!,
+                            project.drbFiles![0].uploadUrl!,
+                          )
+                        }
+                      />
                     )}
                   </div>
                 </div>
@@ -163,17 +173,17 @@ export default function ProjectInfoForm({
               <Paperclip className="h-4 w-4" />
               첨부파일
             </Label>
-            {canEdit && (
-              <Button
-                variant="outline"
-                type="button"
-                size="sm"
-                className="gap-1 px-2 py-1"
-              >
-                <Plus className="h-4 w-4" />
-                첨부파일 추가
-              </Button>
-            )}
+            {/* {canEdit && ( */}
+            {/*   <Button */}
+            {/*     variant="outline" */}
+            {/*     type="button" */}
+            {/*     size="sm" */}
+            {/*     className="gap-1 px-2 py-1" */}
+            {/*   > */}
+            {/*     <Plus className="h-4 w-4" /> */}
+            {/*     첨부파일 추가 */}
+            {/*   </Button> */}
+            {/* )} */}
           </div>
           <ul className="space-y-2 text-sm">
             {project.files && project.files.length > 0 ? (
@@ -184,7 +194,9 @@ export default function ProjectInfoForm({
                     name: file.fileName!,
                   }}
                   index={index}
-                  onAction={() => downloadFile(file.fileName!, file.uploadUrl!)}
+                  onAction={() =>
+                    downloadFileFromUrl(file.fileName!, file.uploadUrl!)
+                  }
                   mode="download"
                 />
               ))

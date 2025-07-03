@@ -27,8 +27,6 @@ const userApi = new UserApi(
   }),
 );
 
-// TODO: 해당 유저가 진행하고 있는 프로젝트 리스트 시각화
-
 export default function UsersPage() {
   const [users, setUsers] = useState<UserItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,7 +46,9 @@ export default function UsersPage() {
       setUsers(res.users ?? []);
       setTotalPages(res.totalPage ?? 1);
     } catch (error) {
-      toast.error('연명부 정보를 불러오는 중 오류가 발생했습니다.');
+      toast.error(
+        '연명부 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
+      );
     }
   };
 

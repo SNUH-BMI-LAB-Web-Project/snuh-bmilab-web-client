@@ -39,7 +39,9 @@ import { Separator } from '@/components/ui/separator';
 import { FileItem } from '@/components/portal/researches/projects/file-item';
 import { UserTagInput } from '@/components/portal/researches/projects/user-tag-input';
 import {
+  Configuration,
   ExternalProfessorSummary,
+  ProjectApi,
   ProjectDetail,
   ProjectFileSummary,
   ProjectRequest,
@@ -68,8 +70,11 @@ interface ProjectFormProps {
   isEditing?: boolean;
 }
 
-// TODO: 프로젝트 수정 시 pi, 실무교수 수정 막아야 함 (readOnly)
-
+const projectApi = new ProjectApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
 export function ProjectForm({
   initialData,
   onCreate,
@@ -194,8 +199,6 @@ export function ProjectForm({
         accessToken!,
         GeneratePresignedUrlDomainTypeEnum.Project,
       );
-      console.log('file:', file);
-      console.log('file.size:', file.size);
       toast.success(`${file.name} 업로드 완료`);
 
       if (type === 'IRB') setIrbFile(uploaded);
@@ -248,12 +251,17 @@ export function ProjectForm({
         const projectId = initialData?.projectId;
         if (projectId !== undefined) {
           await onUpdate?.({ projectId, request }, newFiles, removedFiles);
-          toast.success('프로젝트가 성공적으로 수정되었습니다.');
-          console.log(JSON.stringify(request, null, 2));
+
+          if (endDate) {
+            await projectApi.completeProject({
+              projectId,
+              projectCompleteRequest: {
+                endDate: setDateWithFixedHour(endDate),
+              },
+            });
+          }
         } else {
-          console.error('프로젝트 ID가 없습니다.');
-          toast.error('수정에 실패했습니다. 프로젝트 ID가 없습니다.');
-          console.log(JSON.stringify(request, null, 2));
+          console.error('프로젝트 ID가 없음');
         }
       } else {
         await onCreate?.(
@@ -262,14 +270,9 @@ export function ProjectForm({
           irbFile ?? undefined,
           drbFile ?? undefined,
         );
-        console.log(request.piList);
-        console.log(request.practicalProfessors);
-        console.log(JSON.stringify(request, null, 2));
-        toast.success('프로젝트가 성공적으로 등록되었습니다.');
       }
     } catch (err) {
-      console.error('프로젝트 등록 실패:', err);
-      toast.error('등록 중 오류가 발생했습니다.');
+      toast.error('프로젝트 등록 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 
@@ -536,6 +539,7 @@ export function ProjectForm({
               {piList.map((pi, index) => (
                 <div key={Date.now()} className="flex gap-2">
                   <Input
+                    disabled={isEditing}
                     placeholder="PI 소속 기관"
                     value={pi.organization || ''}
                     onChange={(e) => {
@@ -546,6 +550,7 @@ export function ProjectForm({
                     className="bg-white"
                   />
                   <Input
+                    disabled={isEditing}
                     placeholder="PI 소속 부서"
                     value={pi.department || ''}
                     onChange={(e) => {
@@ -556,6 +561,7 @@ export function ProjectForm({
                     className="bg-white"
                   />
                   <Input
+                    disabled={isEditing}
                     placeholder="PI 이름"
                     value={pi.name || ''}
                     onChange={(e) => {
@@ -603,6 +609,7 @@ export function ProjectForm({
               {practicalProfessors.map((prof, index) => (
                 <div key={Date.now()} className="flex items-center gap-2">
                   <Input
+                    disabled={isEditing}
                     placeholder="실무교수 소속 기관"
                     value={prof.organization || ''}
                     onChange={(e) => {
@@ -613,6 +620,7 @@ export function ProjectForm({
                     className="bg-white"
                   />
                   <Input
+                    disabled={isEditing}
                     placeholder="실무교수 소속 부서"
                     value={prof.department || ''}
                     onChange={(e) => {
@@ -623,6 +631,7 @@ export function ProjectForm({
                     className="bg-white"
                   />
                   <Input
+                    disabled={isEditing}
                     placeholder="실무교수 이름"
                     value={prof.name || ''}
                     onChange={(e) => {
@@ -725,27 +734,20 @@ export function ProjectForm({
             {existingFiles.length > 0 && (
               <div className="mt-4 space-y-3">
                 <h4 className="text-sm font-medium">기존 파일</h4>
-                {initialData &&
-                  'files' in initialData &&
-                  initialData.files &&
-                  initialData.files.length > 0 && (
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {initialData.files.map((file, index) => {
-                        return (
-                          <FileItem
-                            key={file.fileId}
-                            file={{
-                              name: file.fileName!,
-                              size: file.size,
-                            }}
-                            index={index}
-                            onAction={handleRemoveExistingFile}
-                            mode="remove"
-                          />
-                        );
-                      })}
-                    </div>
-                  )}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {existingFiles.map((file, index) => (
+                    <FileItem
+                      key={file.fileId}
+                      file={{
+                        name: file.fileName!,
+                        size: file.size,
+                      }}
+                      index={index}
+                      onAction={handleRemoveExistingFile}
+                      mode="remove"
+                    />
+                  ))}
+                </div>
               </div>
             )}
 

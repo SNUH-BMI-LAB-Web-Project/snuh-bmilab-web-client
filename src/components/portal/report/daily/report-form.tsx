@@ -104,8 +104,7 @@ export function ReportForm({ projectList, onReportCreated }: ReportFormProps) {
 
       onReportCreated?.();
     } catch (error) {
-      console.error('보고서 제출 실패:', error);
-      toast.error('보고서 제출 중 오류가 발생했습니다.');
+      toast.error('보고서 제출 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 

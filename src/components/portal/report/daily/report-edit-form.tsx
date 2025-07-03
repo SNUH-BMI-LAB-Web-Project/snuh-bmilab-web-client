@@ -155,7 +155,7 @@ export function ReportEditModal({
         },
       });
 
-      toast.success('보고서가 수정되었습니다.');
+      toast.success('보고서가 성공적으로 수정되었습니다.');
 
       // UI 업데이트
       onReportUpdate({
@@ -173,8 +173,7 @@ export function ReportEditModal({
 
       onOpenChange(false);
     } catch (err) {
-      console.error('보고서 수정 실패:', err);
-      toast.error('보고서 수정 중 오류가 발생했습니다.');
+      toast.error('보고서 수정 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 

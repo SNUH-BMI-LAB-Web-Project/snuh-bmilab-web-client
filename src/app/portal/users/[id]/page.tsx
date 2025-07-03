@@ -44,8 +44,9 @@ export default function UserDetailPage() {
         });
         setUser(userData);
       } catch (err) {
-        toast.error('사용자 정보를 불러오는 데 실패했습니다.');
-        console.error(err);
+        toast.error(
+          '사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
+        );
       }
     };
 
@@ -73,7 +74,7 @@ export default function UserDetailPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/system/users">
+            <Link href="/portal/users">
               <ArrowLeft className="mr-2 h-4 w-4" />
               연명부로 돌아가기
             </Link>

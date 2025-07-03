@@ -29,7 +29,6 @@ export default function AdminPage() {
     };
 
     setFilters(mapped);
-    console.log('필터 적용:', mapped);
   }, []);
 
   return (

@@ -118,7 +118,9 @@ export default function ProfileEditForm() {
           setEducations(data.educations || []);
         }
       } catch (err) {
-        toast.error('사용자 정보를 불러오는 중 오류가 발생했습니다.');
+        toast.error(
+          '사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
+        );
       }
     };
 
@@ -201,11 +203,13 @@ export default function ProfileEditForm() {
 
       await Promise.all(
         currentEducations.map((edu) =>
-          userApi.addEducationsRaw({
+          userApi.addEducations({
             userEducationRequest: toRequest(edu),
           }),
         ),
       );
+
+      console.log(currentEducations);
 
       useAuthStore.setState((prev) => ({
         user: {
@@ -220,7 +224,9 @@ export default function ProfileEditForm() {
       setIsEditable(false);
       toast.success('개인정보 및 학력이 성공적으로 저장되었습니다.');
     } catch (err) {
-      toast.error('저장 중 오류가 발생했습니다. 다시 시도해주세요.');
+      toast.error(
+        '개인정보 및 학력 저장 중 오류가 발생했습니다. 다시 시도해주세요.',
+      );
     }
   };
 

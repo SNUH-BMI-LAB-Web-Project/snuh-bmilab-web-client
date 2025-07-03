@@ -28,6 +28,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { ReportEditModal } from '@/components/portal/report/daily/report-edit-form';
 import { formatDateTimeVer2, setDateWithFixedHour } from '@/lib/utils';
+import { downloadFileFromUrl } from '@/utils/download-file';
 
 const reportApi = new ReportApi(
   new Configuration({
@@ -76,8 +77,6 @@ export function ReportFeed({
   }, [filters.project, filters.user, startDate, endDate]);
 
   const handleEdit = (report: ReportSummary) => {
-    console.log('수정할 보고서:', report); // 🔍 확인
-
     setSelectedReport(report);
     setEditModalOpen(true);
   };
@@ -96,8 +95,7 @@ export function ReportFeed({
       setReports(updatedReports);
       toast.success('업무 보고가 삭제되었습니다.');
     } catch (err) {
-      console.error('보고서 삭제 실패:', err);
-      toast.error('삭제에 실패했습니다.');
+      toast.error('업무 보고 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 
@@ -172,16 +170,12 @@ export function ReportFeed({
                       key={file.fileName}
                       variant="outline"
                       size="sm"
-                      asChild
+                      onClick={() =>
+                        downloadFileFromUrl(file.fileName!, file.uploadUrl!)
+                      }
                     >
-                      <a
-                        href={file.uploadUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Paperclip className="mr-2 h-4 w-4" />
-                        {file.fileName}
-                      </a>
+                      <Paperclip className="mr-2 h-4 w-4" />
+                      {file.fileName}
                     </Button>
                   ))}
                 </div>
