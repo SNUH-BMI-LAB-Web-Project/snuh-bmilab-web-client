@@ -22,18 +22,20 @@ export default function NewProject() {
   const handleCreate = async (
     data: ProjectRequest,
     newFiles: ProjectFileSummary[],
+    irbFile?: ProjectFileSummary,
+    drbFile?: ProjectFileSummary,
   ) => {
     try {
-      const fileIds = newFiles.map((file) => file.fileId!).filter(Boolean);
-
       await projectApi.createNewProject({
         projectRequest: {
           ...data,
-          fileIds,
+          fileIds: newFiles.map((file) => file.fileId!).filter(Boolean),
+          irbFileIds: irbFile ? [irbFile.fileId!] : [],
+          drbFileIds: drbFile ? [drbFile.fileId!] : [],
         },
       });
 
-      toast.success('프로젝트가 성공적으로 등록되었습니다.');
+      toast.success('프로젝트가 성공적으로 등록되었습니다!');
       router.push('/portal/researches/projects');
     } catch (error) {
       toast.error('프로젝트 등록 중 오류가 발생했습니다. 다시 시도해 주세요.');
