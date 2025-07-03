@@ -168,6 +168,12 @@ export interface ProjectDetail {
      * @memberof ProjectDetail
      */
     createdAt?: Date;
+    /**
+     * 연구 최종 수정 시각
+     * @type {Date}
+     * @memberof ProjectDetail
+     */
+    updatedAt?: Date;
 }
 
 
@@ -220,6 +226,7 @@ export function ProjectDetailFromJSONTyped(json: any, ignoreDiscriminator: boole
         'irbFiles': json['irbFiles'] == null ? undefined : ((json['irbFiles'] as Array<any>).map(ProjectFileSummaryFromJSON)),
         'drbFiles': json['drbFiles'] == null ? undefined : ((json['drbFiles'] as Array<any>).map(ProjectFileSummaryFromJSON)),
         'createdAt': json['createdAt'] == null ? undefined : (new Date(json['createdAt'])),
+        'updatedAt': json['updatedAt'] == null ? undefined : (new Date(json['updatedAt'])),
     };
 }
 
@@ -254,6 +261,7 @@ export function ProjectDetailToJSONTyped(value?: ProjectDetail | null, ignoreDis
         'irbFiles': value['irbFiles'] == null ? undefined : ((value['irbFiles'] as Array<any>).map(ProjectFileSummaryToJSON)),
         'drbFiles': value['drbFiles'] == null ? undefined : ((value['drbFiles'] as Array<any>).map(ProjectFileSummaryToJSON)),
         'createdAt': value['createdAt'] == null ? undefined : ((value['createdAt']).toISOString()),
+        'updatedAt': value['updatedAt'] == null ? undefined : ((value['updatedAt']).toISOString()),
     };
 }
 
