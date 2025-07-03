@@ -22,16 +22,16 @@ export default function NewProject() {
   const handleCreate = async (
     data: ProjectRequest,
     newFiles: ProjectFileSummary[],
-    irbFile?: ProjectFileSummary,
-    drbFile?: ProjectFileSummary,
+    irbFiles?: ProjectFileSummary[],
+    drbFiles?: ProjectFileSummary[],
   ) => {
     try {
       await projectApi.createNewProject({
         projectRequest: {
           ...data,
           fileIds: newFiles.map((file) => file.fileId!).filter(Boolean),
-          irbFileIds: irbFile ? [irbFile.fileId!] : [],
-          drbFileIds: drbFile ? [drbFile.fileId!] : [],
+          irbFileIds: (irbFiles ?? []).map((f) => f.fileId!).filter(Boolean),
+          drbFileIds: (drbFiles ?? []).map((f) => f.fileId!).filter(Boolean),
         },
       });
 
