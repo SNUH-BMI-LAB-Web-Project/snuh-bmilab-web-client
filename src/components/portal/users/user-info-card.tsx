@@ -15,16 +15,20 @@ export default function UserInfoCard({ user }: { user: UserItem }) {
   };
 
   return (
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events
     <div
+      role="button"
+      tabIndex={0}
       onClick={handleClick}
-      className="text-foreground hover:bg-muted/50 flex min-h-[180px] w-full max-w-2xl cursor-pointer items-start gap-6 rounded-lg border bg-white p-6 shadow-sm transition hover:shadow-md"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') handleClick();
+      }}
+      className="text-foreground hover:bg-muted/50 flex min-h-[180px] w-full max-w-3xl cursor-pointer items-start gap-6 rounded-lg border bg-white p-6 shadow-sm transition hover:shadow-md"
     >
-      {/* 좌측 프로필 이미지 */}
-      <div className="relative aspect-square h-16 w-16 shrink-0">
+      {/* 프로필 이미지 */}
+      <div className="relative aspect-square h-16 w-16 shrink-0 rounded-full border-1 shadow-sm">
         <Image
           src={
-            user.profileImageUrl && user.profileImageUrl.trim() !== ''
+            user.profileImageUrl?.trim()
               ? user.profileImageUrl
               : '/default-profile-image.svg'
           }
@@ -34,44 +38,63 @@ export default function UserInfoCard({ user }: { user: UserItem }) {
         />
       </div>
 
-      {/* 우측 정보 영역 */}
-      <div className="flex flex-1 flex-col gap-2">
-        {/* 이름 + 자리번호 */}
+      {/* 정보 영역 */}
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        {/* 이름 + 소속 + 자리번호 */}
         <div className="flex items-center justify-between gap-2">
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-black">
-            {user.name}
+          <h2 className="flex max-w-[75%] items-center gap-2 truncate text-lg font-semibold text-black">
+            <span className="block truncate">{user.name}</span>
             {user.affiliation && (
               <span className="text-muted-foreground text-sm font-normal">
                 {affiliationLabelMap[user.affiliation]}
               </span>
             )}
           </h2>
-          <Badge variant="outline" className="shrink-0">
-            {user.seatNumber}
-          </Badge>
+          {user.seatNumber && (
+            <Badge
+              variant="outline"
+              className="max-w-[70px] shrink-0 truncate text-left"
+            >
+              <span className="block truncate">{user.seatNumber}</span>
+            </Badge>
+          )}
         </div>
 
         {/* 이메일 */}
-        <p className="text-muted-foreground -mt-2 mb-2 text-sm break-all">
+        <p className="text-muted-foreground -mt-2 mb-2 max-w-full truncate text-sm break-all">
           {user.email}
         </p>
 
+        {/* 기관 · 부서 */}
         {(user.organization || user.department) && (
-          <div className="text-muted-foreground flex flex-wrap gap-x-1 gap-y-0.5 text-xs">
-            {user.organization && <p>{user.organization}</p>}
+          <div className="text-muted-foreground flex max-w-full flex-wrap gap-x-1 gap-y-0.5 text-xs">
+            {user.organization && (
+              <p className="max-w-[250px] truncate">{user.organization}</p>
+            )}
             {user.organization && user.department && <p>·</p>}
-            {user.department && <p>{user.department}</p>}
+            {user.department && (
+              <p className="max-w-[200px] truncate">{user.department}</p>
+            )}
           </div>
         )}
 
-        <p className="text-muted-foreground text-xs">{user.education}</p>
+        {/* 학력 */}
+        {user.education && (
+          <p className="text-muted-foreground max-w-full truncate text-xs">
+            {user.education}
+          </p>
+        )}
 
-        {/* 연구 분야 (카테고리) */}
+        {/* 연구 분야 */}
         {Array.isArray(user.categories) && user.categories.length > 0 && (
-          <div className="mt-2flex flex-wrap gap-2 text-xs">
+          <div className="mt-1 flex max-w-full flex-wrap items-center gap-2 text-xs">
             {user.categories.slice(0, 3).map((category) => (
-              <Badge key={category.categoryId} variant="secondary">
-                {category.name}
+              <Badge
+                key={category.categoryId}
+                variant="secondary"
+                className="max-w-[140px] truncate text-left"
+              >
+                <span className="block truncate">{category.name}</span>
               </Badge>
             ))}
             {user.categories.length > 3 && (
