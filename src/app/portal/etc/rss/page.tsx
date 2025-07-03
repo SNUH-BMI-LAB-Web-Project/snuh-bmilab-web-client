@@ -29,11 +29,12 @@ const ntisrssApi = new NTISRSSApi(
   }),
 );
 
-const getProjectColumns = () => [
+const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
   {
     label: 'No',
     className: 'text-center w-[50px]',
-    cell: (_row: RSSItem, index: number) => (index + 1).toString(),
+    cell: (_row: RSSItem, index: number) =>
+      ((currentPage - 1) * itemsPerPage + index + 1).toString(),
   },
   {
     label: '제목',
@@ -185,29 +186,68 @@ export default function RssPage() {
       {showFilters && (
         <div className="bg-muted/30 mb-6 flex flex-col gap-4 rounded-md border p-4">
           <div className="flex flex-row gap-4">
-            <Input
-              type="number"
-              placeholder="최소 금액"
-              value={minBudget ?? ''}
-              onChange={(e) =>
-                setMinBudget(
-                  e.target.value ? Number(e.target.value) : undefined,
-                )
-              }
-              className="w-full"
-            />
-            <Input
-              type="number"
-              placeholder="최대 금액"
-              value={maxBudget ?? ''}
-              onChange={(e) =>
-                setMaxBudget(
-                  e.target.value ? Number(e.target.value) : undefined,
-                )
-              }
-              className="w-full"
-            />
+            {/* 최소 금액 */}
+            <div className="relative w-full">
+              <Input
+                type="number"
+                step={1_000_000}
+                min={0}
+                max={maxBudget}
+                placeholder="최소 금액 (원 단위)"
+                value={minBudget ?? ''}
+                onChange={(e) => {
+                  const value = e.target.value
+                    ? Number(e.target.value)
+                    : undefined;
+                  if (
+                    value !== undefined &&
+                    maxBudget !== undefined &&
+                    value > maxBudget
+                  ) {
+                    toast.error('최소 금액은 최대 금액보다 클 수 없습니다.');
+                    return;
+                  }
+                  setMinBudget(value);
+                }}
+              />
+              {minBudget !== undefined && (
+                <span className="text-muted-foreground absolute top-1/2 right-10 -translate-y-1/2 text-sm">
+                  {minBudget.toLocaleString()} 원
+                </span>
+              )}
+            </div>
+
+            {/* 최대 금액 */}
+            <div className="relative w-full">
+              <Input
+                type="number"
+                step={1_000_000}
+                min={minBudget ?? 0}
+                placeholder="최대 금액 (원 단위)"
+                value={maxBudget ?? ''}
+                onChange={(e) => {
+                  const value = e.target.value
+                    ? Number(e.target.value)
+                    : undefined;
+                  if (
+                    value !== undefined &&
+                    minBudget !== undefined &&
+                    value < minBudget
+                  ) {
+                    toast.error('최대 금액은 최소 금액보다 작을 수 없습니다.');
+                    return;
+                  }
+                  setMaxBudget(value);
+                }}
+              />
+              {maxBudget !== undefined && (
+                <span className="text-muted-foreground absolute top-1/2 right-10 -translate-y-1/2 text-sm">
+                  {maxBudget.toLocaleString()} 원
+                </span>
+              )}
+            </div>
           </div>
+
           <div className="flex justify-end">
             <Button
               variant="ghost"
@@ -228,7 +268,7 @@ export default function RssPage() {
       <PaginatedTable
         data={rssItems}
         rowKey={(row) => (row.link ? row.link : '')}
-        columns={getProjectColumns()}
+        columns={getProjectColumns(currentPage, itemsPerPage)}
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
         itemsPerPage={itemsPerPage}
