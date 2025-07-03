@@ -59,8 +59,8 @@ interface ProjectFormProps {
   onCreate?: (
     data: ProjectRequest,
     newFiles: ProjectFileSummary[],
-    irbFile?: ProjectFileSummary,
-    drbFile?: ProjectFileSummary,
+    irbFiles?: ProjectFileSummary[],
+    drbFiles?: ProjectFileSummary[],
   ) => void;
   onUpdate?: (
     data: { projectId: number; request: ProjectRequest },
@@ -139,8 +139,8 @@ export function ProjectForm({
   const irbInputRef = useRef<HTMLInputElement>(null);
   const drbInputRef = useRef<HTMLInputElement>(null);
 
-  const [irbFile, setIrbFile] = useState<ProjectFileSummary | null>(null);
-  const [drbFile, setDrbFile] = useState<ProjectFileSummary | null>(null);
+  const [irbFiles, setIrbFiles] = useState<ProjectFileSummary[]>([]);
+  const [drbFiles, setDrbFiles] = useState<ProjectFileSummary[]>([]);
 
   const handleRemoveExistingFile = (index: number) => {
     const removed = existingFiles[index];
@@ -186,29 +186,37 @@ export function ProjectForm({
     }
   };
 
-  const handleSingleFileUpload = async (
+  const handleUploadMultipleFiles = async (
     e: React.ChangeEvent<HTMLInputElement>,
     type: 'IRB' | 'DRB',
   ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
 
-    try {
-      const uploaded = await uploadFileWithPresignedUrl(
-        file,
-        accessToken!,
-        GeneratePresignedUrlDomainTypeEnum.Project,
-      );
-      toast.success(`${file.name} 업로드 완료`);
+    const uploaded = await Promise.all(
+      files.map((file) =>
+        uploadFileWithPresignedUrl(
+          file,
+          accessToken!,
+          GeneratePresignedUrlDomainTypeEnum.Project,
+        ),
+      ),
+    );
 
-      if (type === 'IRB') setIrbFile(uploaded);
-      else setDrbFile(uploaded);
-    } catch {
-      toast.error(`${file.name} 업로드 실패`);
-    } finally {
-      e.target.value = '';
+    if (type === 'IRB') {
+      setIrbFiles((prev) => [...prev, ...uploaded]);
+    } else {
+      setDrbFiles((prev) => [...prev, ...uploaded]);
     }
+
+    e.target.value = '';
   };
+
+  const handleRemoveIRBFile = (index: number) =>
+    setIrbFiles((prev) => prev.filter((_, i) => i !== index));
+
+  const handleRemoveDRBFile = (index: number) =>
+    setDrbFiles((prev) => prev.filter((_, i) => i !== index));
 
   const handleFormSubmit = async (formData: ProjectRequest) => {
     const hasEmptyRequiredField =
@@ -238,8 +246,8 @@ export function ProjectForm({
       practicalProfessors,
       irbId: formData.irbId,
       drbId: formData.drbId,
-      irbFileIds: irbFile ? [irbFile.fileId!] : [],
-      drbFileIds: drbFile ? [drbFile.fileId!] : [],
+      irbFileIds: irbFiles.map((f) => f.fileId!),
+      drbFileIds: drbFiles.map((f) => f.fileId!),
       fileIds: newFiles.map((file) => file.fileId!),
       isWaiting,
       categoryId: formData.categoryId,
@@ -267,8 +275,8 @@ export function ProjectForm({
         await onCreate?.(
           request,
           newFiles,
-          irbFile ?? undefined,
-          drbFile ?? undefined,
+          irbFiles ?? undefined,
+          drbFiles ?? undefined,
         );
       }
     } catch (err) {
@@ -452,19 +460,19 @@ export function ProjectForm({
                   accept="*/*"
                   ref={irbInputRef}
                   className="hidden"
-                  onChange={(e) => handleSingleFileUpload(e, 'IRB')}
+                  onChange={(e) => handleUploadMultipleFiles(e, 'IRB')}
                 />
               </div>
               <Input {...register('irbId')} placeholder="IRB 번호 입력" />
-              {irbFile && (
+              {irbFiles.map((file, index) => (
                 <FileItem
-                  key={irbFile.fileId}
-                  file={{ name: irbFile.fileName!, size: irbFile.size }}
-                  index={0}
-                  onAction={() => setIrbFile(null)}
+                  key={file.fileId}
+                  file={{ name: file.fileName!, size: file.size }}
+                  index={index}
+                  onAction={() => handleRemoveIRBFile(index)}
                   mode="remove"
                 />
-              )}
+              ))}
             </div>
 
             {/* DRB */}
@@ -489,19 +497,19 @@ export function ProjectForm({
                   accept="*/*"
                   ref={drbInputRef}
                   className="hidden"
-                  onChange={(e) => handleSingleFileUpload(e, 'DRB')}
+                  onChange={(e) => handleUploadMultipleFiles(e, 'DRB')}
                 />
               </div>
               <Input {...register('drbId')} placeholder="DRB 번호 입력" />
-              {drbFile && (
+              {drbFiles.map((file, index) => (
                 <FileItem
-                  key={drbFile.fileId}
-                  file={{ name: drbFile.fileName!, size: drbFile.size }}
-                  index={0}
-                  onAction={() => setDrbFile(null)}
+                  key={file.fileId}
+                  file={{ name: file.fileName!, size: file.size }}
+                  index={index}
+                  onAction={() => handleRemoveDRBFile(index)}
                   mode="remove"
                 />
-              )}
+              ))}
             </div>
           </div>
 
