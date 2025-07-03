@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Lock, ArrowLeft } from 'lucide-react';
+import { X, ArrowLeft } from 'lucide-react';
 
 export default function NotFoundPage() {
   return (
@@ -15,7 +15,7 @@ export default function NotFoundPage() {
           {/* Lock Icon */}
           <div className="mb-6">
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-blue-100">
-              <Lock className="h-10 w-10 text-blue-600" />
+              <X className="h-10 w-10 text-blue-600" />
             </div>
           </div>
 
