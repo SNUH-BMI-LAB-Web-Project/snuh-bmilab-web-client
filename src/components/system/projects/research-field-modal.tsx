@@ -179,7 +179,18 @@ export default function ResearchFieldModal() {
 
   return (
     <>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(isOpen) => {
+          setOpen(isOpen);
+
+          if (!isOpen) {
+            setEditingField(null);
+            setEditFieldName('');
+            setNewFieldName('');
+          }
+        }}
+      >
         <DialogTrigger asChild>
           <Button>
             <Tag className="mr-2 h-4 w-4" />
