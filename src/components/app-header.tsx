@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth-store';
+import Cookies from 'js-cookie';
 
 interface NavItem {
   name: string;
@@ -34,6 +35,7 @@ export default function AppHeader() {
 
   const handleLogout = () => {
     logout();
+    Cookies.remove('accessToken');
     router.push('/');
   };
 
