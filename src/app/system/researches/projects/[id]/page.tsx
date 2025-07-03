@@ -55,7 +55,7 @@ export default function ProjectDetailPage({
     try {
       await projectApi.deleteProjectById({ projectId: Number(id) });
       toast.success('프로젝트가 삭제되었습니다');
-      router.push('/portal/researches/projects');
+      router.push('/system/researches/projects');
     } catch (e) {
       toast.error('프로젝트 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
@@ -106,7 +106,7 @@ export default function ProjectDetailPage({
         <div className="flex flex-col justify-end gap-3">
           <div className="flex flex-row justify-end gap-2">
             <Button asChild>
-              <Link href={`/portal/researches/projects/${id}/edit`}>
+              <Link href={`/system/researches/projects/${id}/edit`}>
                 <Edit /> 수정하기
               </Link>
             </Button>

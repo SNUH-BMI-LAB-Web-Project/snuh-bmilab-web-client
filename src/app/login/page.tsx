@@ -38,7 +38,7 @@ export default function LoginPage() {
       login(response);
 
       toast.success('로그인 성공! 환영합니다.');
-      router.push('/portal/researches/projects');
+      router.push('/portal/users');
     } catch (error) {
       let message = '로그인에 실패했습니다. 다시 시도해 주세요.';
 

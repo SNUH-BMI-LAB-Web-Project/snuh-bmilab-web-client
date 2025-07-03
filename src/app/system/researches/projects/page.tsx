@@ -63,7 +63,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
     cell: (row: ProjectSummary) => (
       <div className={cn('flex items-center gap-1')}>
         <Link
-          href={`/portal/researches/projects/${row.projectId}`}
+          href={`/system/researches/projects/${row.projectId}`}
           className="hover:underline"
         >
           {row.title}
