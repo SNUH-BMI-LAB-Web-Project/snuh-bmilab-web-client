@@ -12,11 +12,11 @@ import { ProjectDetail } from '@/generated-api/models/ProjectDetail';
 import { Configuration } from '@/generated-api/runtime';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
-import { canDeleteProject, canEditProject } from '@/utils/project-utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProjectInfoForm from '@/components/portal/researches/projects/project-info-form';
 import ProjectArchiveForm from '@/components/portal/researches/projects/project-archive-form';
 import ConfirmModal from '@/components/common/confirm-modal';
+import { affiliationLabelMap } from '@/constants/affiliation-enum';
 
 const projectApi = new ProjectApi(
   new Configuration({
@@ -42,29 +42,18 @@ export default function ProjectDetailPage({
         const data = await projectApi.getProjectById({ projectId: Number(id) });
         setProject(data);
       } catch (err) {
-        console.error('프로젝트 조회 실패:', err);
+        toast.error(
+          '프로젝트 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
+        );
       }
     };
 
     fetchProject();
   }, [id]);
 
-  const currentUserId = useAuthStore.getState().user?.userId;
-  const leaderIds = project?.leaders?.map((u) => String(u.userId)) ?? [];
-  const participantIds =
-    project?.participants?.map((u) => String(u.userId)) ?? []; // 참여자 리스트가 필요합니다
-  const authorId = String(project?.author?.userId ?? '');
-  const currentId = String(currentUserId);
-
-  const canEdit =
-    project && currentUserId
-      ? canEditProject(leaderIds, participantIds, authorId, currentId)
-      : false;
-
-  const canDelete =
-    project && currentUserId
-      ? canDeleteProject(leaderIds, authorId, currentId)
-      : false;
+  // 어드민은 전부 수정, 삭제 가능
+  const canEdit = true;
+  const canDelete = true;
 
   const handleDelete = async () => {
     try {
@@ -110,8 +99,10 @@ export default function ProjectDetailPage({
           <div className="flex flex-col">
             <div className="font-medium text-black">{project.author?.name}</div>
             <div className="text-xs">
-              {project.author?.organization} {project.author?.department}
-              {project.author?.affiliation} · {project.author?.email}
+              {project.author?.organization} {project.author?.department}{' '}
+              {project.author?.affiliation &&
+                affiliationLabelMap[project.author.affiliation]}{' '}
+              · {project.author?.email}
             </div>
           </div>
         </div>

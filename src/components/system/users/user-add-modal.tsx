@@ -378,7 +378,6 @@ export default function UserAddModal({
             {/* 시스템 권한 */}
             <div className="space-y-4 rounded-lg border p-4">
               <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-gray-600" />
                 <h3 className="text-sm font-semibold">시스템 권한 설정</h3>
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
