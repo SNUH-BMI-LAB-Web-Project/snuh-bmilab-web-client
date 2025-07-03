@@ -51,10 +51,6 @@ export default function ProjectDetailPage({
     fetchProject();
   }, [id]);
 
-  // 어드민은 전부 수정, 삭제 가능
-  const canEdit = true;
-  const canDelete = true;
-
   const handleDelete = async () => {
     try {
       await projectApi.deleteProjectById({ projectId: Number(id) });
@@ -108,25 +104,20 @@ export default function ProjectDetailPage({
         </div>
 
         <div className="flex flex-col justify-end gap-3">
-          {(canEdit || canDelete) && (
-            <div className="flex flex-row justify-end gap-2">
-              {canEdit && (
-                <Button asChild>
-                  <Link href={`/portal/researches/projects/${id}/edit`}>
-                    <Edit /> 수정하기
-                  </Link>
-                </Button>
-              )}
-              {canDelete && (
-                <Button
-                  variant="destructive"
-                  onClick={() => setShowDeleteAlert(true)}
-                >
-                  <Trash /> 삭제하기
-                </Button>
-              )}
-            </div>
-          )}
+          <div className="flex flex-row justify-end gap-2">
+            <Button asChild>
+              <Link href={`/portal/researches/projects/${id}/edit`}>
+                <Edit /> 수정하기
+              </Link>
+            </Button>
+
+            <Button
+              variant="destructive"
+              onClick={() => setShowDeleteAlert(true)}
+            >
+              <Trash /> 삭제하기
+            </Button>
+          </div>
           <div className="text-muted-foreground ml-auto text-xs">
             작성일{' '}
             {project.createdAt
@@ -150,7 +141,7 @@ export default function ProjectDetailPage({
           <ProjectInfoForm
             id={project.projectId?.toString() ?? ''}
             project={project}
-            canEdit={canEdit}
+            canEdit
           />
         </TabsContent>
 
