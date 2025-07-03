@@ -23,7 +23,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
+import { cn, setDateWithFixedHour } from '@/lib/utils';
 import {
   Configuration,
   GeneratePresignedUrlDomainTypeEnum,
@@ -74,6 +74,8 @@ export function ReportForm({ projectList, onReportCreated }: ReportFormProps) {
 
     const accessToken = useAuthStore.getState().accessToken!;
 
+    const fixedDate = setDateWithFixedHour(date);
+
     try {
       const uploadPromises = files.map((file) =>
         uploadFileWithPresignedUrl(
@@ -91,7 +93,7 @@ export function ReportForm({ projectList, onReportCreated }: ReportFormProps) {
         reportRequest: {
           content,
           projectId: Number(project),
-          date,
+          date: fixedDate,
           fileIds,
         },
       });
