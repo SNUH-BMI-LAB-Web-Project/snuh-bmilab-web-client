@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import '@toast-ui/editor/dist/toastui-editor.css';
 import AppHeader from '@/components/app-header';
 import { Toaster } from '@/components/ui/sonner';
 import QueryProvider from '@/providers/query-provider';
