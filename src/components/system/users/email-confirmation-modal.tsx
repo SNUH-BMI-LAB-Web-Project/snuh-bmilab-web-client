@@ -137,9 +137,7 @@ export default function EmailConfirmationModal({
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">임시 비밀번호:</span>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="font-mono text-xs">
-                      {userData.password}
-                    </Badge>
+                    <div className="font-mono text-sm">{userData.password}</div>
                     <Button
                       variant="ghost"
                       size="sm"
