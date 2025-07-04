@@ -76,7 +76,7 @@ export default function EditProjectPage({
       });
 
       toast.success('프로젝트가 성공적으로 수정되었습니다.');
-      router.push(`/portal/researches/projects/${data.projectId}`);
+      router.push(`/system/researches/projects/${data.projectId}`);
     } catch (error) {
       toast.error('프로젝트 수정 중 오류가 발생했습니다. 다시 시도해주세요.');
     }

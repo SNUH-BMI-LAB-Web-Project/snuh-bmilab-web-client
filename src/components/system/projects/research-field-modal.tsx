@@ -179,7 +179,18 @@ export default function ResearchFieldModal() {
 
   return (
     <>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(isOpen) => {
+          setOpen(isOpen);
+
+          if (!isOpen) {
+            setEditingField(null);
+            setEditFieldName('');
+            setNewFieldName('');
+          }
+        }}
+      >
         <DialogTrigger asChild>
           <Button>
             <Tag className="mr-2 h-4 w-4" />
@@ -214,8 +225,15 @@ export default function ResearchFieldModal() {
                       onChange={(e) => setNewFieldName(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleAddField()}
                       className="text-base"
+                      maxLength={30}
                     />
+                    {newFieldName.length >= 30 && (
+                      <p className="mt-1 ml-1 text-sm text-red-500">
+                        최대 30자까지 입력할 수 있습니다.
+                      </p>
+                    )}
                   </div>
+
                   <Button
                     onClick={handleAddField}
                     disabled={!newFieldName.trim()}
@@ -260,32 +278,40 @@ export default function ResearchFieldModal() {
                         <TableRow key={field.categoryId}>
                           <TableCell>
                             {editingField?.categoryId === field.categoryId ? (
-                              <div className="flex items-center gap-2">
-                                <Input
-                                  value={editFieldName}
-                                  onChange={(e) =>
-                                    setEditFieldName(e.target.value)
-                                  }
-                                  onKeyPress={(e) =>
-                                    e.key === 'Enter' && handleEditField()
-                                  }
-                                  className="flex-1"
-                                  autoFocus
-                                />
-                                <Button
-                                  size="sm"
-                                  onClick={handleEditField}
-                                  disabled={!editFieldName.trim()}
-                                >
-                                  <Save className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={cancelEdit}
-                                >
-                                  <X className="h-3 w-3" />
-                                </Button>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    value={editFieldName}
+                                    onChange={(e) =>
+                                      setEditFieldName(e.target.value)
+                                    }
+                                    onKeyPress={(e) =>
+                                      e.key === 'Enter' && handleEditField()
+                                    }
+                                    className="w-full"
+                                    autoFocus
+                                    maxLength={30}
+                                  />
+                                  <Button
+                                    size="sm"
+                                    onClick={handleEditField}
+                                    disabled={!editFieldName.trim()}
+                                  >
+                                    <Save className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={cancelEdit}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                                {editFieldName.length >= 30 && (
+                                  <p className="mt-1 ml-1 text-xs text-red-500">
+                                    최대 30자까지 입력할 수 있습니다.
+                                  </p>
+                                )}
                               </div>
                             ) : (
                               <div className="pl-4 font-medium">

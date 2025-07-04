@@ -131,6 +131,15 @@ export default function ExternalProfessorModal() {
       await api.deleteExternalProfessor({
         professorId: Number(deleteProfessor?.professorId),
       });
+
+      if (
+        editingProfessor &&
+        editingProfessor.professorId === deleteProfessor?.professorId
+      ) {
+        setEditingProfessor(null);
+        resetForm();
+      }
+
       setDeleteProfessor(null);
 
       toast.success('외부 인사가 성공적으로 삭제되었습니다.');
@@ -163,7 +172,17 @@ export default function ExternalProfessorModal() {
 
   return (
     <>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(isOpen) => {
+          setOpen(isOpen);
+
+          if (!isOpen) {
+            resetForm();
+            setEditingProfessor(null);
+          }
+        }}
+      >
         <DialogTrigger asChild>
           <Button>
             <UserCheck className="mr-2 h-4 w-4" />
@@ -205,8 +224,14 @@ export default function ExternalProfessorModal() {
                       onChange={(e) =>
                         handleInputChange('name', e.target.value)
                       }
+                      maxLength={10}
                       placeholder="홍길동"
                     />
+                    {formData.name.length >= 10 && (
+                      <p className="mt-1 text-sm text-red-500">
+                        이름은 최대 10자까지 입력 가능합니다.
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="organization">기관 *</Label>
@@ -216,8 +241,14 @@ export default function ExternalProfessorModal() {
                       onChange={(e) =>
                         handleInputChange('organization', e.target.value)
                       }
+                      maxLength={30}
                       placeholder="서울대학교"
                     />
+                    {formData.organization.length >= 30 && (
+                      <p className="mt-1 text-sm text-red-500">
+                        기관명은 최대 30자까지 입력 가능합니다.
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="department">부서</Label>
@@ -227,8 +258,14 @@ export default function ExternalProfessorModal() {
                       onChange={(e) =>
                         handleInputChange('department', e.target.value)
                       }
+                      maxLength={20}
                       placeholder="컴퓨터공학부"
                     />
+                    {formData.department.length >= 20 && (
+                      <p className="mt-1 text-sm text-red-500">
+                        부서명은 최대 20자까지 입력 가능합니다.
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="mt-6 flex justify-end gap-3">
@@ -262,7 +299,7 @@ export default function ExternalProfessorModal() {
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="overflow-x-auto p-0">
                 {professors.length === 0 ? (
                   <div className="py-8 text-center">
                     <UserCheck className="mx-auto mb-4 h-12 w-12 text-gray-300" />
@@ -271,7 +308,7 @@ export default function ExternalProfessorModal() {
                     </p>
                   </div>
                 ) : (
-                  <Table>
+                  <Table className="min-w-[768px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead className="pl-6">이름</TableHead>

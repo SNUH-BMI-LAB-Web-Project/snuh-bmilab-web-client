@@ -18,6 +18,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { AuthApi } from '@/generated-api/apis/AuthApi';
 import { LoginRequest } from '@/generated-api/models/LoginRequest';
 import { useAuthStore } from '@/store/auth-store';
+import Cookies from 'js-cookie';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,6 +37,11 @@ export default function LoginPage() {
       const loginRequest: LoginRequest = { email, password };
       const response = await api.login({ loginRequest });
       login(response);
+
+      Cookies.set('accessToken', response.accessToken ?? '', {
+        expires: 1,
+        sameSite: 'strict',
+      });
 
       toast.success('로그인 성공! 환영합니다.');
       router.push('/portal/users');
