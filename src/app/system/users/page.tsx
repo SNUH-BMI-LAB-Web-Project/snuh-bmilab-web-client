@@ -114,18 +114,28 @@ const getUserColumns = (
   {
     label: '연구 분야',
     className: 'text-center w-[150px]',
-    cell: (row: UserItem) =>
-      row.categories && row.categories.length > 0 ? (
-        <div className="flex flex-wrap justify-center gap-2">
-          {row.categories.map((category) => (
-            <Badge key={category.categoryId} variant="secondary">
-              {category.name}
-            </Badge>
-          ))}
+    cell: (row: UserItem) => {
+      const categories = row.categories ?? [];
+      if (categories.length === 0) return '-';
+
+      const first = categories[0];
+      const othersCount = categories.length - 1;
+
+      return (
+        <div className="flex max-w-[140px] justify-center gap-1 text-sm">
+          <Badge
+            variant="secondary"
+            className="max-w-[80px] truncate overflow-hidden text-ellipsis whitespace-nowrap"
+            title={first.name} // 전체 이름은 툴팁으로 보여줌
+          >
+            {first.name}
+          </Badge>
+          {othersCount > 0 && (
+            <span className="text-xs text-gray-500">외 {othersCount}개</span>
+          )}
         </div>
-      ) : (
-        '-'
-      ),
+      );
+    },
   },
   {
     label: '연락처',
