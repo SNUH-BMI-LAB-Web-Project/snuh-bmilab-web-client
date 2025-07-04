@@ -71,10 +71,11 @@ const getUserColumns = (
     className: 'text-center w-[60px]',
     cell: (row: UserItem) => (
       <Avatar className="h-10 w-10">
-        <AvatarImage src={row.profileImageUrl} alt={row.name} />
-        <AvatarFallback className="bg-blue-100 font-medium text-blue-700">
-          {row.name?.charAt(0)}
-        </AvatarFallback>
+        <AvatarImage
+          src={row.profileImageUrl || '/default-profile-image.svg'}
+          alt={row.name}
+          className="object-cover"
+        />
       </Avatar>
     ),
   },
