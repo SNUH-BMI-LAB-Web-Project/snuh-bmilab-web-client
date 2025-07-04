@@ -100,6 +100,10 @@ export default function TimelineFormModal({
     FileSummary[]
   >([]);
 
+  const [titleLength, setTitleLength] = useState(0);
+  const [meetingPlaceLength, setMeetingPlaceLength] = useState(0);
+  const [summaryLength, setSummaryLength] = useState(0);
+
   useEffect(() => {
     if (initialData && open) {
       const files = initialData.files ?? [];
@@ -115,6 +119,9 @@ export default function TimelineFormModal({
         existingFiles: initialData.files ?? [],
       });
       setInitialExistingFiles(files);
+      setTitleLength(initialData.title?.length ?? 0);
+      setMeetingPlaceLength(initialData.meetingPlace?.length ?? 0);
+      setSummaryLength(initialData.summary?.length ?? 0);
     } else if (open) {
       setFormData({
         title: '',
@@ -128,6 +135,9 @@ export default function TimelineFormModal({
         existingFiles: [],
       });
       setInitialExistingFiles([]);
+      setTitleLength(0);
+      setMeetingPlaceLength(0);
+      setSummaryLength(0);
     }
   }, [initialData, open]);
 
@@ -237,16 +247,22 @@ export default function TimelineFormModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          <div className="space-y-2">
-            <Label>
+          <div className="relative space-y-1.5">
+            <Label className="flex items-center justify-between">
               제목 <span className="text-destructive text-xs">*</span>
             </Label>
             <Input
+              maxLength={30}
               value={formData.title}
-              onChange={(e) =>
-                setFormData((p) => ({ ...p, title: e.target.value }))
-              }
+              onChange={(e) => {
+                const { value } = e.target;
+                setFormData((p) => ({ ...p, title: value }));
+                setTitleLength(value.length);
+              }}
             />
+            <span className="text-muted-foreground absolute right-2 bottom-2.5 text-xs">
+              {titleLength} / 30
+            </span>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -326,26 +342,42 @@ export default function TimelineFormModal({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>장소</Label>
+          <div className="relative space-y-1.5">
+            <Label className="flex items-center justify-between">장소</Label>
             <Input
+              maxLength={30}
               value={formData.meetingPlace}
-              onChange={(e) =>
-                setFormData((p) => ({ ...p, meetingPlace: e.target.value }))
-              }
+              onChange={(e) => {
+                const { value } = e.target;
+                setFormData((p) => ({ ...p, meetingPlace: value }));
+                setMeetingPlaceLength(value.length);
+              }}
             />
+
+            <span className="text-muted-foreground absolute right-2 bottom-2.5 text-xs">
+              {meetingPlaceLength} / 30
+            </span>
           </div>
 
-          <div className="space-y-2">
-            <Label>
+          <div className="relative space-y-1.5">
+            <Label className="flex items-center justify-between">
               요약 <span className="text-destructive text-xs">*</span>
             </Label>
+
             <Textarea
+              maxLength={200}
               value={formData.summary}
-              onChange={(e) =>
-                setFormData((p) => ({ ...p, summary: e.target.value }))
-              }
+              onChange={(e) => {
+                const { value } = e.target;
+                setFormData((p) => ({ ...p, summary: value }));
+                setSummaryLength(value.length);
+              }}
+              className="min-h-[140px]"
             />
+
+            <span className="text-muted-foreground absolute right-2 bottom-2.5 text-xs">
+              {summaryLength} / 200
+            </span>
           </div>
 
           <div className="space-y-2">

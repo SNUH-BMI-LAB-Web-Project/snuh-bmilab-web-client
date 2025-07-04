@@ -23,6 +23,12 @@ import {
 } from '@/components/ui/select';
 import { rssSearchTypeOptions } from '@/constants/rss-search-enum';
 
+function decodeEntities(html: string) {
+  const txt = document.createElement('textarea');
+  txt.innerHTML = html;
+  return txt.value;
+}
+
 const ntisrssApi = new NTISRSSApi(
   new Configuration({
     accessToken: async () => useAuthStore.getState().accessToken ?? '',
@@ -39,13 +45,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
   {
     label: '제목',
     className: 'text-left truncate overflow-hidden whitespace-nowrap w-[300px]',
-    cell: (row: RSSItem) => row.title,
-  },
-  {
-    label: '컨텐츠 배포일',
-    className: 'text-center w-[130px]',
-    cell: (row: RSSItem) =>
-      `${row.publishedAt ? formatDateTimeVer3(row.publishedAt) : ''}`,
+    cell: (row: RSSItem) => decodeEntities(row.title!),
   },
   {
     label: '작성기관',

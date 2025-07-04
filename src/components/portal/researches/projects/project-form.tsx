@@ -4,7 +4,6 @@ import React, { useRef, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -53,6 +52,14 @@ import { toast } from 'sonner';
 import { useAuthStore } from '@/store/auth-store';
 import { Switch } from '@/components/ui/switch';
 import { useProjectCategories } from '@/hooks/use-project-categories';
+import dynamic from 'next/dynamic';
+
+const MarkdownEditor = dynamic(
+  () => import('@/components/portal/researches/projects/markdown-editor'),
+  {
+    ssr: false, // 에러로 인해 SSR 방지하기 위해
+  },
+);
 
 interface ProjectFormProps {
   initialData?: ProjectDetail;
@@ -88,6 +95,8 @@ export function ProjectForm({
     handleSubmit,
     formState: { errors },
     control,
+    setValue,
+    watch,
   } = useForm<ProjectRequest>({
     mode: 'onSubmit',
     defaultValues: {
@@ -703,11 +712,9 @@ export function ProjectForm({
               <NotepadText className="h-4 w-4" />
               연구 내용 <span className="text-destructive text-xs">*</span>
             </Label>
-            <Textarea
-              id="content"
-              placeholder="연구 내용을 입력하세요"
-              rows={8}
-              {...register('content')}
+            <MarkdownEditor
+              content={watch('content') ?? ''}
+              setContent={(val) => setValue('content', val)}
             />
           </div>
 
