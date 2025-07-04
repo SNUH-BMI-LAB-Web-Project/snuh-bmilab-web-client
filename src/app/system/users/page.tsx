@@ -40,7 +40,7 @@ import {
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import UserEditModal from '@/components/system/users/user-edit-modal';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import UserDeleteModal from '@/components/system/users/user-delete-modal';
 import UserAddModal from '@/components/system/users/user-add-modal';
 import { affiliationLabelMap } from '@/constants/affiliation-enum';
