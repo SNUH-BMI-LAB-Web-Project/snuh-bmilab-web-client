@@ -16,6 +16,7 @@
 import * as runtime from '../runtime';
 import type {
   ErrorResponse,
+  ExternalProfessorFindAllResponse,
   ProjectCompleteRequest,
   ProjectDetail,
   ProjectFileFindAllResponse,
@@ -28,6 +29,8 @@ import type {
 import {
     ErrorResponseFromJSON,
     ErrorResponseToJSON,
+    ExternalProfessorFindAllResponseFromJSON,
+    ExternalProfessorFindAllResponseToJSON,
     ProjectCompleteRequestFromJSON,
     ProjectCompleteRequestToJSON,
     ProjectDetailFromJSON,
@@ -78,6 +81,10 @@ export interface GetAllProjectsRequest {
     page?: any;
     size?: any;
     sort?: Array<any>;
+}
+
+export interface GetExternalProfessorsRequest {
+    name?: string;
 }
 
 export interface GetProjectByIdRequest {
@@ -415,6 +422,48 @@ export class ProjectApi extends runtime.BaseAPI {
     }
 
     /**
+     * 사용자가 연구 생성/수정할 때 외부교수 목록을 조회하는 GET API
+     * 외부교수 목록 조회
+     */
+    async getExternalProfessorsRaw(requestParameters: GetExternalProfessorsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ExternalProfessorFindAllResponse>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['name'] != null) {
+            queryParameters['name'] = requestParameters['name'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/projects/external-professors`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ExternalProfessorFindAllResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * 사용자가 연구 생성/수정할 때 외부교수 목록을 조회하는 GET API
+     * 외부교수 목록 조회
+     */
+    async getExternalProfessors(requestParameters: GetExternalProfessorsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ExternalProfessorFindAllResponse> {
+        const response = await this.getExternalProfessorsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * 현재 로그인한 사용자가 참여하는 연구 목록을 조회하는 GET API
+     * 내 연구 조회
      */
     async getMyProjectsRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserProjectFindAllResponse>> {
         const queryParameters: any = {};
@@ -440,6 +489,8 @@ export class ProjectApi extends runtime.BaseAPI {
     }
 
     /**
+     * 현재 로그인한 사용자가 참여하는 연구 목록을 조회하는 GET API
+     * 내 연구 조회
      */
     async getMyProjects(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserProjectFindAllResponse> {
         const response = await this.getMyProjectsRaw(initOverrides);
@@ -549,7 +600,7 @@ export class ProjectApi extends runtime.BaseAPI {
     }
 
     /**
-     * 사용자가 참여하는 연구 목록을 조회하는 GET API
+     * 사용자 ID로 사용자가 참여하는 연구 목록을 조회하는 GET API
      * 사용자 연구 조회
      */
     async getUserProjectsRaw(requestParameters: GetUserProjectsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserProjectFindAllResponse>> {
@@ -583,7 +634,7 @@ export class ProjectApi extends runtime.BaseAPI {
     }
 
     /**
-     * 사용자가 참여하는 연구 목록을 조회하는 GET API
+     * 사용자 ID로 사용자가 참여하는 연구 목록을 조회하는 GET API
      * 사용자 연구 조회
      */
     async getUserProjects(requestParameters: GetUserProjectsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserProjectFindAllResponse> {

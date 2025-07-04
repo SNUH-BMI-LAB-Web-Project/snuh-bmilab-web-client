@@ -9,6 +9,7 @@ export * from './ExternalProfessorRequest';
 export * from './ExternalProfessorSummary';
 export * from './FilePresignedUrlResponse';
 export * from './FileSummary';
+export * from './FindPasswordEmailRequest';
 export * from './LeaveDetail';
 export * from './LeaveFindAllResponse';
 export * from './LoginRequest';
