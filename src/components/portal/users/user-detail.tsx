@@ -248,7 +248,7 @@ export default function UserDetail({ user, projects }: UserDetailProps) {
                               {project.category && (
                                 <Badge
                                   variant="outline"
-                                  className="border-gray-300 text-xs text-gray-600"
+                                  className="border-gray-300 bg-white text-xs text-gray-600"
                                 >
                                   {project.category?.name}
                                 </Badge>
