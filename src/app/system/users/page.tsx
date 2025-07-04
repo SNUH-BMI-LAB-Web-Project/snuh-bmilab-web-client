@@ -84,7 +84,7 @@ const getUserColumns = (
     cell: (row: UserItem) => (
       <Link href={`/system/users/${row.userId}`} className="hover:underline">
         <div className="font-medium">{row.name}</div>
-        <div className="w-[250px] truncate overflow-hidden text-sm whitespace-nowrap text-gray-500">
+        <div className="w-[220px] truncate overflow-hidden text-sm whitespace-nowrap text-gray-500">
           {row.email}
         </div>
       </Link>
@@ -122,14 +122,17 @@ const getUserColumns = (
       const othersCount = categories.length - 1;
 
       return (
-        <div className="flex max-w-[140px] justify-center gap-1 text-sm">
+        <div className="flex max-w-[150px] items-center gap-1 text-sm">
           <Badge
             variant="secondary"
-            className="max-w-[80px] truncate overflow-hidden text-ellipsis whitespace-nowrap"
-            title={first.name} // 전체 이름은 툴팁으로 보여줌
+            className="max-w-[80px]"
+            title={first.name}
           >
-            {first.name}
+            <div className="w-full truncate overflow-hidden text-ellipsis whitespace-nowrap">
+              {first.name}
+            </div>
           </Badge>
+
           {othersCount > 0 && (
             <span className="text-xs text-gray-500">외 {othersCount}개</span>
           )}
@@ -156,8 +159,14 @@ const getUserColumns = (
     className: 'text-center w-[130px]',
     cell: (row: UserItem) =>
       row.seatNumber?.trim() ? (
-        <Badge variant="outline" className="border-gray-300 font-mono">
-          {row.seatNumber}
+        <Badge
+          variant="outline"
+          title={row.seatNumber}
+          className="mx-auto flex max-w-[100px] items-center justify-center border-gray-300 font-mono"
+        >
+          <div className="max-w-full truncate overflow-hidden whitespace-nowrap">
+            {row.seatNumber}
+          </div>
         </Badge>
       ) : (
         '-'
