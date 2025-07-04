@@ -14,6 +14,7 @@ import {
   Eye,
   Phone,
   Plus,
+  Mail,
 } from 'lucide-react';
 import {
   Select,
@@ -43,6 +44,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import UserDeleteModal from '@/components/system/users/user-delete-modal';
 import UserAddModal from '@/components/system/users/user-add-modal';
 import { affiliationLabelMap } from '@/constants/affiliation-enum';
+import PasswordResetModal from '@/components/system/users/password-reset-modal';
 
 const userApi = new UserApi(
   new Configuration({
@@ -62,6 +64,7 @@ const getUserColumns = (
   router: ReturnType<typeof useRouter>,
   onDeleteClick: (id: number) => void,
   onEditClick: (userId: number) => void,
+  onPasswordResetClick: (userId: number) => void,
 ) => [
   {
     label: '',
@@ -162,7 +165,7 @@ const getUserColumns = (
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
+            <DropdownMenuItem asChild className="pr-4">
               <Link
                 href={`/system/users/${row.userId}`}
                 className="flex items-center"
@@ -171,11 +174,20 @@ const getUserColumns = (
                 상세보기
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onEditClick(row.userId!)}>
+            <DropdownMenuItem
+              onClick={() => onPasswordResetClick(row.userId!)}
+              className="pr-4"
+            >
+              <Mail className="mr-2 h-4 w-4" /> 비밀번호 재발급
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onEditClick(row.userId!)}
+              className="pr-4"
+            >
               <Pencil className="mr-2 h-4 w-4" /> 수정
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
+              className="text-destructive focus:text-destructive pr-4"
               onClick={() => {
                 onDeleteClick(row.userId!);
               }}
@@ -206,7 +218,8 @@ export default function SystemProjectPage() {
   const [loading, setLoading] = useState(false);
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [userIdToDelete, setUserIdToDelete] = useState<number | null>(null);
+  const [showPasswordResetDialog, setShowPasswordResetDialog] = useState(false);
+  const [targetUserId, setTargetUserId] = useState<number | null>(null);
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
@@ -291,17 +304,44 @@ export default function SystemProjectPage() {
   };
 
   const handleDelete = async () => {
-    if (userIdToDelete === null) return;
+    if (targetUserId === null) return;
 
     try {
-      await adminApi.deleteUserById({ userId: userIdToDelete });
-      setUsers((prev) => prev.filter((user) => user.userId !== userIdToDelete));
+      await adminApi.deleteUserById({ userId: targetUserId });
+      setUsers((prev) => prev.filter((user) => user.userId !== targetUserId));
       toast.success('사용자가 삭제되었습니다.');
     } catch (error) {
       toast.error('사용자 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
       setShowDeleteDialog(false);
-      setUserIdToDelete(null);
+      setTargetUserId(null);
+    }
+  };
+
+  const handleOpenPasswordResetDialog = async (userId: number) => {
+    const detail = await fetchUserDetail(userId);
+    if (detail) {
+      setSelectedUser(detail);
+      setTargetUserId(userId);
+      setShowPasswordResetDialog(true);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (selectedUser === null) return;
+
+    try {
+      await userApi.sendFindPasswordEmail({
+        findPasswordEmailRequest: { email: selectedUser.email },
+      });
+      toast.success('비밀번호가 재발급 되었습니다.');
+    } catch (error) {
+      toast.error(
+        '비밀번호 재발급 중 오류가 발생했습니다. 다시 시도해 주세요.',
+      );
+    } finally {
+      setShowPasswordResetDialog(false);
+      setTargetUserId(null);
     }
   };
 
@@ -392,10 +432,11 @@ export default function SystemProjectPage() {
             itemsPerPage,
             router,
             (id) => {
-              setUserIdToDelete(id);
+              setTargetUserId(id);
               setShowDeleteDialog(true);
             },
             handleUserEdit,
+            handleOpenPasswordResetDialog,
           )}
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
@@ -422,6 +463,12 @@ export default function SystemProjectPage() {
           open={showDeleteDialog}
           onOpenChange={setShowDeleteDialog}
           onConfirm={handleDelete}
+        />
+
+        <PasswordResetModal
+          open={showPasswordResetDialog}
+          onOpenChange={setShowPasswordResetDialog}
+          onConfirm={handlePasswordReset}
         />
       </div>
     </div>
