@@ -16,6 +16,7 @@
 import * as runtime from '../runtime';
 import type {
   ErrorResponse,
+  FindPasswordEmailRequest,
   SearchUserResponse,
   UpdateUserPasswordRequest,
   UpdateUserRequest,
@@ -26,6 +27,8 @@ import type {
 import {
     ErrorResponseFromJSON,
     ErrorResponseToJSON,
+    FindPasswordEmailRequestFromJSON,
+    FindPasswordEmailRequestToJSON,
     SearchUserResponseFromJSON,
     SearchUserResponseToJSON,
     UpdateUserPasswordRequestFromJSON,
@@ -58,6 +61,10 @@ export interface SearchUsersRequest {
     filterBy?: string;
     filterValue?: string;
     sort?: string;
+}
+
+export interface SendFindPasswordEmailRequest {
+    findPasswordEmailRequest: FindPasswordEmailRequest;
 }
 
 export interface UpdateCurrentUserRequest {
@@ -291,6 +298,47 @@ export class UserApi extends runtime.BaseAPI {
     async searchUsers(requestParameters: SearchUsersRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SearchUserResponse> {
         const response = await this.searchUsersRaw(requestParameters, initOverrides);
         return await response.value();
+    }
+
+    /**
+     */
+    async sendFindPasswordEmailRaw(requestParameters: SendFindPasswordEmailRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['findPasswordEmailRequest'] == null) {
+            throw new runtime.RequiredError(
+                'findPasswordEmailRequest',
+                'Required parameter "findPasswordEmailRequest" was null or undefined when calling sendFindPasswordEmail().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/users/password`,
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: FindPasswordEmailRequestToJSON(requestParameters['findPasswordEmailRequest']),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async sendFindPasswordEmail(requestParameters: SendFindPasswordEmailRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.sendFindPasswordEmailRaw(requestParameters, initOverrides);
     }
 
     /**

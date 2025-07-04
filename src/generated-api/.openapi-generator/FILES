@@ -23,6 +23,7 @@ models/ExternalProfessorRequest.ts
 models/ExternalProfessorSummary.ts
 models/FilePresignedUrlResponse.ts
 models/FileSummary.ts
+models/FindPasswordEmailRequest.ts
 models/LeaveDetail.ts
 models/LeaveFindAllResponse.ts
 models/LoginRequest.ts
