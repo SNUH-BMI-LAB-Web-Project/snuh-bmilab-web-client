@@ -325,9 +325,6 @@ export default function ProfileEditForm() {
                         )}
                       >
                         {label}
-                        {isSelected && (
-                          <Check className="text-primary absolute right-2 h-4 w-4" />
-                        )}
                       </SelectItem>
                     );
                   })}
