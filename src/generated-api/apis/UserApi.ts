@@ -301,6 +301,8 @@ export class UserApi extends runtime.BaseAPI {
     }
 
     /**
+     * 이메일로 사용자를 찾아 비밀번호 재설정 메일을 전송하는 PATCH API
+     * 이메일로 비밀번호 재설정
      */
     async sendFindPasswordEmailRaw(requestParameters: SendFindPasswordEmailRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters['findPasswordEmailRequest'] == null) {
@@ -336,6 +338,8 @@ export class UserApi extends runtime.BaseAPI {
     }
 
     /**
+     * 이메일로 사용자를 찾아 비밀번호 재설정 메일을 전송하는 PATCH API
+     * 이메일로 비밀번호 재설정
      */
     async sendFindPasswordEmail(requestParameters: SendFindPasswordEmailRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.sendFindPasswordEmailRaw(requestParameters, initOverrides);
