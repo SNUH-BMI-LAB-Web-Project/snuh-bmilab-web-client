@@ -46,6 +46,7 @@ import {
   RegisterUserRequest,
   RegisterUserRequestAffiliationEnum,
   RegisterUserRequestRoleEnum,
+  ResponseError,
   UserEducationRequest,
   UserEducationRequestStatusEnum,
   UserEducationSummaryStatusEnum,
@@ -74,15 +75,16 @@ export default function UserAddModal({
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [createdUserData, setCreatedUserData] =
     useState<RegisterUserRequest | null>(null);
+  const [newEducationError, setNewEducationError] = useState(''); // 학력 에러 문구를 표시하기 위함
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    organization: '',
+    organization: '서울대병원 융합의학연구실',
     department: '',
     affiliation: undefined,
-    annualLeaveCount: 15,
+    annualLeaveCount: 0,
     usedLeaveCount: 0,
     categoryIds: [] as number[],
     seatNumber: '',
@@ -137,6 +139,38 @@ export default function UserAddModal({
     fetchCategorys();
   }, []);
 
+  useEffect(() => {
+    if (!open) {
+      // 모달이 닫힐 때 form 초기화
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        organization: '서울대병원 융합의학연구실',
+        department: '',
+        affiliation: undefined,
+        annualLeaveCount: 0,
+        usedLeaveCount: 0,
+        categoryIds: [],
+        seatNumber: '',
+        phoneNumber: '',
+        educations: [],
+        joinedAt: new Date(),
+        role: RegisterUserRequestRoleEnum.User,
+      });
+
+      setNewEducation({
+        title: '',
+        status: undefined,
+        startYearMonth: '',
+        endYearMonth: '',
+      });
+
+      setNewEducationError('');
+      setCreatedUserData(null);
+    }
+  }, [open]);
+
   // 임의 비밀번호 생성
   const generatePassword = () => {
     const chars =
@@ -159,6 +193,22 @@ export default function UserAddModal({
     }
   };
 
+  // 전화번호 000-0000-0000의 형식으로 입력되도록하는 함수
+  const formatPhoneNumber = (value: string) => {
+    const numbersOnly = value.replace(/\D/g, '');
+
+    if (numbersOnly.length <= 3) {
+      return numbersOnly;
+    }
+    if (numbersOnly.length <= 7) {
+      return `${numbersOnly.slice(0, 3)}-${numbersOnly.slice(3)}`;
+    }
+    if (numbersOnly.length <= 11) {
+      return `${numbersOnly.slice(0, 3)}-${numbersOnly.slice(3, 7)}-${numbersOnly.slice(7)}`;
+    }
+    return `${numbersOnly.slice(0, 3)}-${numbersOnly.slice(3, 7)}-${numbersOnly.slice(7, 11)}`;
+  };
+
   const handleCategoryChange = (categoryId: number, checked: boolean) => {
     setFormData((prev) => ({
       ...prev,
@@ -169,22 +219,38 @@ export default function UserAddModal({
   };
 
   const addEducation = () => {
+    setNewEducationError('');
+
     if (
-      newEducation.title &&
-      newEducation.status &&
-      newEducation.startYearMonth
+      !newEducation.title ||
+      !newEducation.status ||
+      !newEducation.startYearMonth
     ) {
-      setFormData((prev) => ({
-        ...prev,
-        educations: [...prev.educations, { ...newEducation }],
-      }));
-      setNewEducation({
-        title: '',
-        status: undefined,
-        startYearMonth: '',
-        endYearMonth: '',
-      });
+      setNewEducationError('모든 필수 정보를 입력해주세요.');
+      return;
     }
+
+    if (
+      newEducation.startYearMonth &&
+      newEducation.endYearMonth &&
+      new Date(newEducation.startYearMonth) >
+        new Date(newEducation.endYearMonth)
+    ) {
+      setNewEducationError('종료 년월은 시작 년월보다 빠를 수 없습니다.');
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      educations: [...prev.educations, { ...newEducation }],
+    }));
+
+    setNewEducation({
+      title: '',
+      status: undefined,
+      startYearMonth: '',
+      endYearMonth: '',
+    });
   };
 
   const removeEducation = (index: number) => {
@@ -238,10 +304,10 @@ export default function UserAddModal({
         name: '',
         email: '',
         password: '',
-        organization: '',
+        organization: '서울대병원 융합의학연구실',
         department: '',
         affiliation: undefined,
-        annualLeaveCount: 15,
+        annualLeaveCount: 0,
         usedLeaveCount: 0,
         categoryIds: [],
         seatNumber: '',
@@ -259,7 +325,12 @@ export default function UserAddModal({
 
       toast.success('사용자가 성공적으로 추가되었습니다');
     } catch (error: unknown) {
-      toast.error('사용자 등록 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      if (error instanceof ResponseError && error?.response?.status === 409) {
+        const body = await error.response.json();
+        toast.error(body?.message ?? '중복된 요청입니다.');
+      } else {
+        toast.error('사용자 등록 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      }
     }
   };
 
@@ -267,7 +338,25 @@ export default function UserAddModal({
     field: keyof typeof formData,
     value: string | number | boolean | Date | null,
   ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      if (field === 'annualLeaveCount' && typeof value === 'number') {
+        const sanitized = Math.max(0, Number(String(value).slice(0, 5))); // 5자리 제한
+        const adjustedUsed = Math.min(prev.usedLeaveCount, sanitized);
+        return {
+          ...prev,
+          annualLeaveCount: sanitized,
+          usedLeaveCount: adjustedUsed,
+        };
+      }
+
+      if (field === 'usedLeaveCount' && typeof value === 'number') {
+        const max = prev.annualLeaveCount;
+        const sanitized = Math.max(0, Number(String(value).slice(0, 5))); // 5자리 제한
+        return { ...prev, usedLeaveCount: Math.min(sanitized, max) };
+      }
+
+      return { ...prev, [field]: value };
+    });
   };
 
   return (
@@ -290,6 +379,7 @@ export default function UserAddModal({
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     placeholder="홍길동"
                     required
+                    maxLength={10}
                   />
                 </div>
                 <div className="space-y-2">
@@ -299,8 +389,9 @@ export default function UserAddModal({
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="hong.gildong@example.com"
+                    placeholder="bmi.lab@example.com"
                     required
+                    maxLength={50}
                   />
                 </div>
               </div>
@@ -422,7 +513,7 @@ export default function UserAddModal({
               </div>
 
               {String(formData.role) === RegisterUserRequestRoleEnum.Admin && (
-                <div className="mt-4 rounded-lg border border-gray-300 bg-gray-50 p-3">
+                <div className="mt-4 rounded-lg border border-red-300 bg-red-50 p-3">
                   <div className="flex items-center gap-2 text-gray-700">
                     <Shield className="h-4 w-4" />
                     <span className="text-sm font-medium">
@@ -450,6 +541,7 @@ export default function UserAddModal({
                       handleInputChange('organization', e.target.value)
                     }
                     placeholder="서울대병원 융합의학연구실"
+                    maxLength={30}
                   />
                 </div>
                 <div className="space-y-2">
@@ -461,6 +553,7 @@ export default function UserAddModal({
                       handleInputChange('department', e.target.value)
                     }
                     placeholder="개발팀"
+                    maxLength={20}
                   />
                 </div>
                 <div className="space-y-2">
@@ -503,6 +596,8 @@ export default function UserAddModal({
                   <Input
                     id="annualLeaveCount"
                     type="number"
+                    inputMode="numeric"
+                    pattern="\d*"
                     value={formData.annualLeaveCount}
                     onChange={(e) =>
                       handleInputChange(
@@ -518,6 +613,8 @@ export default function UserAddModal({
                   <Input
                     id="usedLeaveCount"
                     type="number"
+                    inputMode="numeric"
+                    pattern="\d*"
                     step="0.5"
                     value={formData.usedLeaveCount}
                     onChange={(e) =>
@@ -573,11 +670,18 @@ export default function UserAddModal({
                   <Label htmlFor="phoneNumber">전화번호</Label>
                   <Input
                     id="phoneNumber"
+                    type="tel"
                     value={formData.phoneNumber}
                     onChange={(e) =>
-                      handleInputChange('phoneNumber', e.target.value)
+                      handleInputChange(
+                        'phoneNumber',
+                        formatPhoneNumber(e.target.value),
+                      )
                     }
                     placeholder="010-1234-5678"
+                    maxLength={13}
+                    inputMode="numeric"
+                    pattern="^\d{3}-\d{3,4}-\d{4}$"
                   />
                 </div>
                 <div className="space-y-2">
@@ -589,6 +693,7 @@ export default function UserAddModal({
                       handleInputChange('seatNumber', e.target.value)
                     }
                     placeholder="12-30"
+                    maxLength={10}
                   />
                 </div>
               </div>
@@ -647,6 +752,7 @@ export default function UserAddModal({
                         }))
                       }
                       placeholder="국민대학교 소프트웨어학부"
+                      maxLength={30}
                     />
                   </div>
                   <div className="space-y-2">
@@ -741,6 +847,9 @@ export default function UserAddModal({
                   <Plus className="mr-2 h-4 w-4" />
                   학력 추가
                 </Button>
+                {newEducationError && (
+                  <p className="text-sm text-red-500">{newEducationError}</p>
+                )}
               </div>
             </div>
 
