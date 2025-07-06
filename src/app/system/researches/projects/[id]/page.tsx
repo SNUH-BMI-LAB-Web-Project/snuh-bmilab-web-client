@@ -118,17 +118,19 @@ export default function ProjectDetailPage({
               <Trash /> 삭제하기
             </Button>
           </div>
-          <div className="text-muted-foreground ml-auto text-xs">
-            최초 작성일 :{' '}
-            {project.createdAt
-              ? formatDateTime(project.createdAt.toString())
-              : null}
-          </div>
-          <div className="text-muted-foreground ml-auto text-xs">
-            최종 수정일 :{' '}
-            {project.updatedAt
-              ? formatDateTime(project.updatedAt.toString())
-              : null}
+          <div className="flex flex-col justify-end gap-1">
+            <div className="text-muted-foreground ml-auto text-xs">
+              최초 작성일 :{' '}
+              {project.createdAt
+                ? formatDateTime(project.createdAt.toString())
+                : null}
+            </div>
+            <div className="text-muted-foreground ml-auto text-xs">
+              최종 수정일 :{' '}
+              {project.updatedAt
+                ? formatDateTime(project.updatedAt.toString())
+                : null}
+            </div>
           </div>
         </div>
       </div>
