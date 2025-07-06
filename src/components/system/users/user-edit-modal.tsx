@@ -165,8 +165,13 @@ export default function UserEditModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name) {
+    if (!formData.name || !formData.email) {
       toast.error('이름은 필수 입력 항목입니다.');
+      return;
+    }
+
+    if (formData.annualLeaveCount < formData.usedLeaveCount) {
+      toast.error('연간 연차 일수는 사용한 연차보다 작을 수 없습니다.');
       return;
     }
 
@@ -474,6 +479,8 @@ export default function UserEditModal({
                     )
                   }
                   placeholder="15"
+                  min={formData.usedLeaveCount}
+                  max={99999}
                 />
               </div>
               <div className="space-y-2">
