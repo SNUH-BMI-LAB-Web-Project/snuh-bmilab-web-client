@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -65,12 +65,13 @@ export function AdminReportFeed({
                 <div className="flex items-center space-x-4">
                   <Avatar>
                     <AvatarImage
-                      src={report.user?.profileImageUrl || '/placeholder.svg'}
+                      src={
+                        report.user?.profileImageUrl ||
+                        '/default-profile-image.svg'
+                      }
                       alt={report.user?.name}
+                      className="object-cover"
                     />
-                    <AvatarFallback>
-                      {report.user?.name?.charAt(0)}
-                    </AvatarFallback>
                   </Avatar>
                   <div className="flex items-center">
                     <p className="mr-2 text-sm font-medium">
