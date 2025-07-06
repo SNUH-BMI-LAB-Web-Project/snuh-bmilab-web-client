@@ -50,6 +50,12 @@ export interface AdminUpdateUserRequest {
      */
     affiliation?: AdminUpdateUserRequestAffiliationEnum;
     /**
+     * 권한
+     * @type {string}
+     * @memberof AdminUpdateUserRequest
+     */
+    role?: AdminUpdateUserRequestRoleEnum;
+    /**
      * 추가된 연구 분야 ID 목록
      * @type {Array<number>}
      * @memberof AdminUpdateUserRequest
@@ -103,6 +109,15 @@ export const AdminUpdateUserRequestAffiliationEnum = {
 } as const;
 export type AdminUpdateUserRequestAffiliationEnum = typeof AdminUpdateUserRequestAffiliationEnum[keyof typeof AdminUpdateUserRequestAffiliationEnum];
 
+/**
+ * @export
+ */
+export const AdminUpdateUserRequestRoleEnum = {
+    User: 'USER',
+    Admin: 'ADMIN'
+} as const;
+export type AdminUpdateUserRequestRoleEnum = typeof AdminUpdateUserRequestRoleEnum[keyof typeof AdminUpdateUserRequestRoleEnum];
+
 
 /**
  * Check if a given object implements the AdminUpdateUserRequest interface.
@@ -126,6 +141,7 @@ export function AdminUpdateUserRequestFromJSONTyped(json: any, ignoreDiscriminat
         'organization': json['organization'] == null ? undefined : json['organization'],
         'department': json['department'] == null ? undefined : json['department'],
         'affiliation': json['affiliation'] == null ? undefined : json['affiliation'],
+        'role': json['role'] == null ? undefined : json['role'],
         'newCategoryIds': json['newCategoryIds'] == null ? undefined : json['newCategoryIds'],
         'deletedCategoryIds': json['deletedCategoryIds'] == null ? undefined : json['deletedCategoryIds'],
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
@@ -151,6 +167,7 @@ export function AdminUpdateUserRequestToJSONTyped(value?: AdminUpdateUserRequest
         'organization': value['organization'],
         'department': value['department'],
         'affiliation': value['affiliation'],
+        'role': value['role'],
         'newCategoryIds': value['newCategoryIds'],
         'deletedCategoryIds': value['deletedCategoryIds'],
         'phoneNumber': value['phoneNumber'],

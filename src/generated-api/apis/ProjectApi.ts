@@ -67,6 +67,14 @@ export interface DeleteProjectFileRequest {
     fileId: string;
 }
 
+export interface DownloadDrbFilesByZipRequest {
+    projectId: number;
+}
+
+export interface DownloadIrbFilesByZipRequest {
+    projectId: number;
+}
+
 export interface GetAllProjectFilesRequest {
     projectId: number;
 }
@@ -304,6 +312,84 @@ export class ProjectApi extends runtime.BaseAPI {
      */
     async deleteProjectFile(requestParameters: DeleteProjectFileRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.deleteProjectFileRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     */
+    async downloadDrbFilesByZipRaw(requestParameters: DownloadDrbFilesByZipRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<object>> {
+        if (requestParameters['projectId'] == null) {
+            throw new runtime.RequiredError(
+                'projectId',
+                'Required parameter "projectId" was null or undefined when calling downloadDrbFilesByZip().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/projects/{projectId}/files/drb`.replace(`{${"projectId"}}`, encodeURIComponent(String(requestParameters['projectId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     */
+    async downloadDrbFilesByZip(requestParameters: DownloadDrbFilesByZipRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object> {
+        const response = await this.downloadDrbFilesByZipRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async downloadIrbFilesByZipRaw(requestParameters: DownloadIrbFilesByZipRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<object>> {
+        if (requestParameters['projectId'] == null) {
+            throw new runtime.RequiredError(
+                'projectId',
+                'Required parameter "projectId" was null or undefined when calling downloadIrbFilesByZip().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/projects/{projectId}/files/irb`.replace(`{${"projectId"}}`, encodeURIComponent(String(requestParameters['projectId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse<any>(response);
+    }
+
+    /**
+     */
+    async downloadIrbFilesByZip(requestParameters: DownloadIrbFilesByZipRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<object> {
+        const response = await this.downloadIrbFilesByZipRaw(requestParameters, initOverrides);
+        return await response.value();
     }
 
     /**
