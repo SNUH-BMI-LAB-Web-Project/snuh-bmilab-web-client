@@ -383,6 +383,9 @@ export default function UserAddModal({
                     maxLength={10}
                     className="bg-white"
                   />
+                  <p className="text-muted-foreground text-right text-xs">
+                    {formData.name.length}/10자
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">이메일 *</Label>
@@ -396,6 +399,9 @@ export default function UserAddModal({
                     maxLength={50}
                     className="bg-white"
                   />
+                  <p className="text-muted-foreground text-right text-xs">
+                    {formData.email.length}/50자
+                  </p>
                 </div>
               </div>
 
@@ -546,6 +552,9 @@ export default function UserAddModal({
                     placeholder="서울대병원 융합의학연구실"
                     maxLength={30}
                   />
+                  <p className="text-muted-foreground text-right text-xs">
+                    {formData.organization.length}/30자
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="department">부서</Label>
@@ -558,6 +567,9 @@ export default function UserAddModal({
                     placeholder="개발팀"
                     maxLength={20}
                   />
+                  <p className="text-muted-foreground text-right text-xs">
+                    {formData.department.length}/20자
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="affiliation">소속</Label>
@@ -698,6 +710,9 @@ export default function UserAddModal({
                     placeholder="12-30"
                     maxLength={10}
                   />
+                  <p className="text-muted-foreground text-right text-xs">
+                    {formData.seatNumber.length}/10자
+                  </p>
                 </div>
               </div>
             </div>
