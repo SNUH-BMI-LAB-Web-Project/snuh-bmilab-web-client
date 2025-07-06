@@ -243,6 +243,22 @@ export default function UserEditModal({
 
   if (!user) return null;
 
+  // 전화번호 000-0000-0000의 형식으로 입력되도록하는 함수
+  const formatPhoneNumber = (value: string) => {
+    const numbersOnly = value.replace(/\D/g, '');
+
+    if (numbersOnly.length <= 3) {
+      return numbersOnly;
+    }
+    if (numbersOnly.length <= 7) {
+      return `${numbersOnly.slice(0, 3)}-${numbersOnly.slice(3)}`;
+    }
+    if (numbersOnly.length <= 11) {
+      return `${numbersOnly.slice(0, 3)}-${numbersOnly.slice(3, 7)}-${numbersOnly.slice(7)}`;
+    }
+    return `${numbersOnly.slice(0, 3)}-${numbersOnly.slice(3, 7)}-${numbersOnly.slice(7, 11)}`;
+  };
+
   return (
     <Dialog
       open={open}
@@ -275,8 +291,12 @@ export default function UserEditModal({
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="홍길동"
                   required
+                  maxLength={10}
                   className="bg-white"
                 />
+                <p className="text-muted-foreground text-right text-xs">
+                  {formData.name.length}/10자
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">이메일 *</Label>
@@ -286,8 +306,12 @@ export default function UserEditModal({
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   placeholder="hong.gildong@example.com"
                   required
+                  maxLength={50}
                   className="bg-white"
                 />
+                <p className="text-muted-foreground text-right text-xs">
+                  {formData.email.length}/50자
+                </p>
               </div>
             </div>
 
@@ -381,7 +405,11 @@ export default function UserEditModal({
                     handleInputChange('organization', e.target.value)
                   }
                   placeholder="융합의학연구실"
+                  maxLength={30}
                 />
+                <p className="text-muted-foreground text-right text-xs">
+                  {formData.organization.length}/30자
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="department">부서</Label>
@@ -392,7 +420,11 @@ export default function UserEditModal({
                     handleInputChange('department', e.target.value)
                   }
                   placeholder="개발팀"
+                  maxLength={20}
                 />
+                <p className="text-muted-foreground text-right text-xs">
+                  {formData.department.length}/20자
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="affiliation">소속</Label>
@@ -522,12 +554,22 @@ export default function UserEditModal({
                 <Label htmlFor="phoneNumber">전화번호</Label>
                 <Input
                   id="phoneNumber"
+                  type="tel"
                   value={formData.phoneNumber}
                   onChange={(e) =>
-                    handleInputChange('phoneNumber', e.target.value)
+                    handleInputChange(
+                      'phoneNumber',
+                      formatPhoneNumber(e.target.value),
+                    )
                   }
                   placeholder="010-1234-5678"
+                  maxLength={13}
+                  inputMode="numeric"
+                  pattern="^\d{3}-\d{3,4}-\d{4}$"
                 />
+                <p className="text-muted-foreground text-right text-xs">
+                  {formData.phoneNumber.length}/13자
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="seatNumber">좌석번호</Label>
@@ -538,7 +580,11 @@ export default function UserEditModal({
                     handleInputChange('seatNumber', e.target.value)
                   }
                   placeholder="12-30"
+                  maxLength={10}
                 />
+                <p className="text-muted-foreground text-right text-xs">
+                  {formData.seatNumber.length}/10자
+                </p>
               </div>
             </div>
           </div>
@@ -591,7 +637,7 @@ export default function UserEditModal({
               <div className="flex items-center justify-between">
                 <p className="text-xs text-gray-500">최대 300자</p>
                 <p className="text-right text-xs text-gray-500">
-                  {formData.comment.length}/300
+                  {formData.comment.length}/300자
                 </p>
               </div>
             </div>

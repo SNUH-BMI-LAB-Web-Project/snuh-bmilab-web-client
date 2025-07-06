@@ -698,6 +698,9 @@ export default function UserAddModal({
                     inputMode="numeric"
                     pattern="^\d{3}-\d{3,4}-\d{4}$"
                   />
+                  <p className="text-muted-foreground text-right text-xs">
+                    {formData.phoneNumber.length}/13자
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="seatNumber">좌석번호</Label>
