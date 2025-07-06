@@ -275,6 +275,7 @@ export default function UserEditModal({
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="홍길동"
                   required
+                  className="bg-white"
                 />
               </div>
               <div className="space-y-2">
@@ -285,6 +286,7 @@ export default function UserEditModal({
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   placeholder="hong.gildong@example.com"
                   required
+                  className="bg-white"
                 />
               </div>
             </div>
