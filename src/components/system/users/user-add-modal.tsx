@@ -139,37 +139,37 @@ export default function UserAddModal({
     fetchCategorys();
   }, []);
 
-  useEffect(() => {
-    if (!open) {
-      // 모달이 닫힐 때 form 초기화
-      setFormData({
-        name: '',
-        email: '',
-        password: '',
-        organization: '서울대병원 융합의학연구실',
-        department: '',
-        affiliation: undefined,
-        annualLeaveCount: 0,
-        usedLeaveCount: 0,
-        categoryIds: [],
-        seatNumber: '',
-        phoneNumber: '',
-        educations: [],
-        joinedAt: new Date(),
-        role: RegisterUserRequestRoleEnum.User,
-      });
-
-      setNewEducation({
-        title: '',
-        status: undefined,
-        startYearMonth: '',
-        endYearMonth: '',
-      });
-
-      setNewEducationError('');
-      setCreatedUserData(null);
-    }
-  }, [open]);
+  // useEffect(() => {
+  //   if (!open) {
+  //     // 모달이 닫힐 때 form 초기화
+  //     setFormData({
+  //       name: '',
+  //       email: '',
+  //       password: '',
+  //       organization: '서울대병원 융합의학연구실',
+  //       department: '',
+  //       affiliation: undefined,
+  //       annualLeaveCount: 0,
+  //       usedLeaveCount: 0,
+  //       categoryIds: [],
+  //       seatNumber: '',
+  //       phoneNumber: '',
+  //       educations: [],
+  //       joinedAt: new Date(),
+  //       role: RegisterUserRequestRoleEnum.User,
+  //     });
+  //
+  //     setNewEducation({
+  //       title: '',
+  //       status: undefined,
+  //       startYearMonth: '',
+  //       endYearMonth: '',
+  //     });
+  //
+  //     setNewEducationError('');
+  //     setCreatedUserData(null);
+  //   }
+  // }, [open]);
 
   // 임의 비밀번호 생성
   const generatePassword = () => {
@@ -298,7 +298,8 @@ export default function UserAddModal({
       setCreatedUserData(userData);
       setEmailModalOpen(true);
 
-      setOpen(false);
+      setTimeout(() => setOpen(false), 0);
+
       // 초기화
       setFormData({
         name: '',
@@ -380,6 +381,7 @@ export default function UserAddModal({
                     placeholder="홍길동"
                     required
                     maxLength={10}
+                    className="bg-white"
                   />
                 </div>
                 <div className="space-y-2">
@@ -392,6 +394,7 @@ export default function UserAddModal({
                     placeholder="bmi.lab@example.com"
                     required
                     maxLength={50}
+                    className="bg-white"
                   />
                 </div>
               </div>
@@ -408,7 +411,7 @@ export default function UserAddModal({
                       handleInputChange('password', e.target.value)
                     }
                     placeholder="비밀번호 생성 필요"
-                    className="flex-1"
+                    className="flex-1 bg-white"
                     required
                   />
                   <Button
@@ -514,13 +517,13 @@ export default function UserAddModal({
 
               {String(formData.role) === RegisterUserRequestRoleEnum.Admin && (
                 <div className="mt-4 rounded-lg border border-red-300 bg-red-50 p-3">
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <Shield className="h-4 w-4" />
-                    <span className="text-sm font-medium">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-red-600" />
+                    <span className="text-sm font-medium text-red-900">
                       관리자 권한 주의사항
                     </span>
                   </div>
-                  <p className="mt-1 text-xs text-gray-600">
+                  <p className="mt-1 text-xs text-red-700">
                     관리자는 모든 사용자 데이터에 접근하고 시스템 설정을 변경할
                     수 있습니다. 신중하게 부여해주세요.
                   </p>
@@ -753,6 +756,7 @@ export default function UserAddModal({
                       }
                       placeholder="국민대학교 소프트웨어학부"
                       maxLength={30}
+                      className="bg-white"
                     />
                   </div>
                   <div className="space-y-2">
@@ -766,7 +770,7 @@ export default function UserAddModal({
                         }))
                       }
                     >
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger className="w-full bg-white">
                         <SelectValue placeholder="상태 선택" />
                       </SelectTrigger>
                       <SelectContent>

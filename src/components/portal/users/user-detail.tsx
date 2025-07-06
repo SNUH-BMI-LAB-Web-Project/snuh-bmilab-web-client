@@ -1,6 +1,6 @@
 'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -78,12 +78,12 @@ export default function UserDetail({ user, projects }: UserDetailProps) {
                   <div>
                     <Avatar className="mx-auto mb-4 h-40 w-40 border-4 border-gray-100 shadow-lg">
                       <AvatarImage
-                        src={user.profileImageUrl || '/placeholder.svg'}
+                        src={
+                          user.profileImageUrl || '/default-profile-image.svg'
+                        }
                         alt={user.name}
+                        className="object-cover"
                       />
-                      <AvatarFallback className="bg-gray-100 text-4xl font-medium text-gray-700">
-                        {user.name?.charAt(0)}
-                      </AvatarFallback>
                     </Avatar>
                     <h1 className="mb-2 text-2xl font-bold text-gray-900">
                       {user.name}
@@ -248,7 +248,7 @@ export default function UserDetail({ user, projects }: UserDetailProps) {
                               {project.category && (
                                 <Badge
                                   variant="outline"
-                                  className="border-gray-300 text-xs text-gray-600"
+                                  className="border-gray-300 bg-white text-xs text-gray-600"
                                 >
                                   {project.category?.name}
                                 </Badge>
