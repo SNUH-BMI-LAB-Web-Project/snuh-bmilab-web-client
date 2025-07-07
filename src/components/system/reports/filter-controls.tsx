@@ -168,14 +168,20 @@ export function FilterControls({
             value={project || 'all'}
             onValueChange={(value) => setProject(value === 'all' ? '' : value)}
           >
-            <SelectTrigger id="project" className="w-full">
+            <SelectTrigger id="project" className="w-full cursor-pointer">
               <SelectValue placeholder="모든 프로젝트" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">모든 프로젝트</SelectItem>
               {projects.map((proj) => (
-                <SelectItem key={proj.projectId} value={String(proj.projectId)}>
-                  {proj.title}
+                <SelectItem
+                  key={proj.projectId}
+                  value={String(proj.projectId)}
+                  title={proj.title}
+                >
+                  <span className="w-[250px] truncate overflow-hidden whitespace-nowrap">
+                    {proj.title}
+                  </span>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -190,7 +196,7 @@ export function FilterControls({
               value={user || 'all'}
               onValueChange={(value) => setUser(value === 'all' ? '' : value)}
             >
-              <SelectTrigger id="user" className="w-full">
+              <SelectTrigger id="user" className="w-full cursor-pointer">
                 <SelectValue placeholder="모든 사용자" />
               </SelectTrigger>
               <SelectContent>
