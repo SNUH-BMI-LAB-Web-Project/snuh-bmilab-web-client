@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Edit, CalendarIcon } from 'lucide-react';
+import { Edit, CalendarIcon, Crown, User, Shield } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -24,6 +24,7 @@ import {
   ProjectCategoryApi,
   ProjectCategorySummary,
   RegisterUserRequestAffiliationEnum,
+  RegisterUserRequestRoleEnum,
   UserDetail,
   UserEducationSummary,
   UserEducationSummaryStatusEnum,
@@ -40,6 +41,7 @@ import {
 import { affiliationOptions } from '@/constants/affiliation-enum';
 import { statusLabelMap } from '@/constants/education-enum';
 import { toast } from 'sonner';
+import { roleOptions } from '@/constants/role-enum';
 
 interface UserEditModalProps {
   user: UserDetail | null;
@@ -68,6 +70,7 @@ export default function UserEditModal({
     educations: UserEducationSummary[];
     joinedAt: Date;
     comment: string;
+    role: RegisterUserRequestRoleEnum;
   }>({
     name: '',
     email: '',
@@ -82,6 +85,7 @@ export default function UserEditModal({
     educations: [],
     joinedAt: new Date(),
     comment: '',
+    role: RegisterUserRequestRoleEnum.User,
   });
 
   const categoryApi = new ProjectCategoryApi(
@@ -144,6 +148,7 @@ export default function UserEditModal({
         educations: user.educations || [],
         joinedAt: user.joinedAt ? new Date(user.joinedAt) : new Date(),
         comment: user.comment || '',
+        role: user.role ?? RegisterUserRequestRoleEnum.User,
       });
     }
   }, [user, open, categoryOptions]);
@@ -160,8 +165,13 @@ export default function UserEditModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name) {
+    if (!formData.name || !formData.email) {
       toast.error('이름은 필수 입력 항목입니다.');
+      return;
+    }
+
+    if (formData.annualLeaveCount < formData.usedLeaveCount) {
+      toast.error('연간 연차 일수는 사용한 연차보다 작을 수 없습니다.');
       return;
     }
 
@@ -194,6 +204,7 @@ export default function UserEditModal({
         comment: formData.comment,
         newCategoryIds,
         deletedCategoryIds,
+        role: formData.role,
       };
 
       await adminUserApi.updateUserById({
@@ -237,6 +248,22 @@ export default function UserEditModal({
 
   if (!user) return null;
 
+  // 전화번호 000-0000-0000의 형식으로 입력되도록하는 함수
+  const formatPhoneNumber = (value: string) => {
+    const numbersOnly = value.replace(/\D/g, '');
+
+    if (numbersOnly.length <= 3) {
+      return numbersOnly;
+    }
+    if (numbersOnly.length <= 7) {
+      return `${numbersOnly.slice(0, 3)}-${numbersOnly.slice(3)}`;
+    }
+    if (numbersOnly.length <= 11) {
+      return `${numbersOnly.slice(0, 3)}-${numbersOnly.slice(3, 7)}-${numbersOnly.slice(7)}`;
+    }
+    return `${numbersOnly.slice(0, 3)}-${numbersOnly.slice(3, 7)}-${numbersOnly.slice(7, 11)}`;
+  };
+
   return (
     <Dialog
       open={open}
@@ -269,7 +296,12 @@ export default function UserEditModal({
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="홍길동"
                   required
+                  maxLength={10}
+                  className="bg-white"
                 />
+                <p className="text-muted-foreground text-right text-xs">
+                  {formData.name.length}/10자
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">이메일 *</Label>
@@ -279,7 +311,12 @@ export default function UserEditModal({
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   placeholder="hong.gildong@example.com"
                   required
+                  maxLength={50}
+                  className="bg-white"
                 />
+                <p className="text-muted-foreground text-right text-xs">
+                  {formData.email.length}/50자
+                </p>
               </div>
             </div>
 
@@ -300,6 +337,66 @@ export default function UserEditModal({
             </div>
           </div>
 
+          {/* 시스템 권한 */}
+          <div className="space-y-4 rounded-lg border p-4">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold">시스템 권한 설정</h3>
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {roleOptions.map(({ value, label }) => {
+                const Icon =
+                  value === RegisterUserRequestRoleEnum.Admin ? Crown : User;
+                const isSelected = formData.role === value;
+
+                return (
+                  // eslint-disable-next-line jsx-a11y/click-events-have-key-events
+                  <div
+                    key={value}
+                    className={`cursor-pointer rounded-lg border-2 p-4 transition-all duration-200 ${
+                      isSelected
+                        ? 'border-gray-700 bg-gray-50 shadow-md'
+                        : 'border-gray-200 bg-white hover:border-gray-400 hover:bg-gray-50'
+                    }`}
+                    onClick={() => handleInputChange('role', value)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                          isSelected ? 'bg-gray-800' : 'bg-gray-400'
+                        }`}
+                      >
+                        <Icon className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-700">{label}</h4>
+                        <p className="text-sm text-gray-600">
+                          {value === RegisterUserRequestRoleEnum.Admin
+                            ? '모든 권한 보유'
+                            : '기본 기능 사용'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {String(formData.role) === RegisterUserRequestRoleEnum.Admin && (
+              <div className="mt-4 rounded-lg border border-red-300 bg-red-50 p-3">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-red-600" />
+                  <span className="text-sm font-medium text-red-900">
+                    관리자 권한 주의사항
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-red-700">
+                  관리자는 모든 사용자 데이터에 접근하고 시스템 설정을 변경할 수
+                  있습니다. 신중하게 부여해주세요.
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* 소속 정보 */}
           <div className="space-y-4 rounded-lg border p-4">
             <h3 className="text-sm font-semibold">소속 정보</h3>
@@ -313,7 +410,11 @@ export default function UserEditModal({
                     handleInputChange('organization', e.target.value)
                   }
                   placeholder="융합의학연구실"
+                  maxLength={30}
                 />
+                <p className="text-muted-foreground text-right text-xs">
+                  {formData.organization.length}/30자
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="department">부서</Label>
@@ -324,7 +425,11 @@ export default function UserEditModal({
                     handleInputChange('department', e.target.value)
                   }
                   placeholder="개발팀"
+                  maxLength={20}
                 />
+                <p className="text-muted-foreground text-right text-xs">
+                  {formData.department.length}/20자
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="affiliation">소속</Label>
@@ -374,6 +479,8 @@ export default function UserEditModal({
                     )
                   }
                   placeholder="15"
+                  min={formData.usedLeaveCount}
+                  max={99999}
                 />
               </div>
               <div className="space-y-2">
@@ -405,7 +512,7 @@ export default function UserEditModal({
                 </span>
               </div>
               {formData.annualLeaveCount - formData.usedLeaveCount < 0 && (
-                <p className="mt-1 text-xs text-red-600">
+                <p className="mt-1 text-xs text-red-500">
                   ⚠️ 연차가 초과되었습니다!
                 </p>
               )}
@@ -454,12 +561,22 @@ export default function UserEditModal({
                 <Label htmlFor="phoneNumber">전화번호</Label>
                 <Input
                   id="phoneNumber"
+                  type="tel"
                   value={formData.phoneNumber}
                   onChange={(e) =>
-                    handleInputChange('phoneNumber', e.target.value)
+                    handleInputChange(
+                      'phoneNumber',
+                      formatPhoneNumber(e.target.value),
+                    )
                   }
                   placeholder="010-1234-5678"
+                  maxLength={13}
+                  inputMode="numeric"
+                  pattern="^\d{3}-\d{3,4}-\d{4}$"
                 />
+                <p className="text-muted-foreground text-right text-xs">
+                  {formData.phoneNumber.length}/13자
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="seatNumber">좌석번호</Label>
@@ -470,7 +587,11 @@ export default function UserEditModal({
                     handleInputChange('seatNumber', e.target.value)
                   }
                   placeholder="12-30"
+                  maxLength={10}
                 />
+                <p className="text-muted-foreground text-right text-xs">
+                  {formData.seatNumber.length}/10자
+                </p>
               </div>
             </div>
           </div>
@@ -512,19 +633,18 @@ export default function UserEditModal({
           <div className="space-y-4 rounded-lg border p-4">
             <h3 className="text-sm font-semibold">코멘트</h3>
             <div className="space-y-2">
-              {/* <Label htmlFor="comment">코멘트</Label> */}
               <Textarea
                 id="comment"
                 value={formData.comment}
                 onChange={(e) => handleInputChange('comment', e.target.value)}
                 placeholder="특이사항, 메모, 추가 정보를 입력하세요..."
                 className="min-h-[100px] resize-none"
-                maxLength={500}
+                maxLength={300}
               />
               <div className="flex items-center justify-between">
-                <p className="text-xs text-gray-500">최대 500자</p>
+                <p className="text-xs text-gray-500">최대 300자</p>
                 <p className="text-right text-xs text-gray-500">
-                  {formData.comment.length}/500
+                  {formData.comment.length}/300자
                 </p>
               </div>
             </div>
