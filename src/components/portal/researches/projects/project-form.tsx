@@ -53,6 +53,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { Switch } from '@/components/ui/switch';
 import { useProjectCategories } from '@/hooks/use-project-categories';
 import dynamic from 'next/dynamic';
+import ExternalProfessorSelectModal from '@/components/portal/researches/projects/external-professor-select-modal';
 
 const MarkdownEditor = dynamic(
   () => import('@/components/portal/researches/projects/markdown-editor'),
@@ -150,6 +151,18 @@ export function ProjectForm({
 
   const [irbFiles, setIrbFiles] = useState<ProjectFileSummary[]>([]);
   const [drbFiles, setDrbFiles] = useState<ProjectFileSummary[]>([]);
+
+  const [showPIModal, setShowPIModal] = useState(false);
+  const [showProfessorModal, setShowProfessorModal] = useState(false);
+
+  const getProfessorKey = (p: {
+    name?: string;
+    organization?: string;
+    department?: string;
+  }) => `${p.name}-${p.organization}-${p.department}`;
+
+  const selectedPiKeys = piList.map(getProfessorKey);
+  const selectedPracticalKeys = practicalProfessors.map(getProfessorKey);
 
   const handleRemoveExistingFile = (index: number) => {
     const removed = existingFiles[index];
@@ -541,12 +554,13 @@ export function ProjectForm({
                   type="button"
                   variant="outline"
                   size="icon"
-                  onClick={() =>
-                    setPiList([
-                      ...piList,
-                      { organization: '', department: '', name: '' },
-                    ])
-                  }
+                  // onClick={() =>
+                  //   setPiList([
+                  //     ...piList,
+                  //     { organization: '', department: '', name: '' },
+                  //   ])
+                  // }
+                  onClick={() => setShowPIModal(true)}
                 >
                   <Plus />
                 </Button>
@@ -554,10 +568,24 @@ export function ProjectForm({
 
               {/* 입력 리스트 */}
               {piList.map((pi, index) => (
-                <div key={Date.now()} className="flex gap-2">
+                <div
+                  key={`${pi.name}-${pi.organization}-${pi.department}`}
+                  className="flex gap-2"
+                >
                   <Input
                     disabled={isEditing}
-                    placeholder="PI 소속 기관"
+                    placeholder="PI 이름"
+                    value={pi.name || ''}
+                    onChange={(e) => {
+                      const updated = [...piList];
+                      updated[index].name = e.target.value;
+                      setPiList(updated);
+                    }}
+                    className="bg-white"
+                  />
+                  <Input
+                    disabled={isEditing}
+                    placeholder="PI 기관"
                     value={pi.organization || ''}
                     onChange={(e) => {
                       const updated = [...piList];
@@ -568,22 +596,11 @@ export function ProjectForm({
                   />
                   <Input
                     disabled={isEditing}
-                    placeholder="PI 소속 부서"
+                    placeholder="PI 부서"
                     value={pi.department || ''}
                     onChange={(e) => {
                       const updated = [...piList];
                       updated[index].department = e.target.value;
-                      setPiList(updated);
-                    }}
-                    className="bg-white"
-                  />
-                  <Input
-                    disabled={isEditing}
-                    placeholder="PI 이름"
-                    value={pi.name || ''}
-                    onChange={(e) => {
-                      const updated = [...piList];
-                      updated[index].name = e.target.value;
                       setPiList(updated);
                     }}
                     className="bg-white"
@@ -612,22 +629,37 @@ export function ProjectForm({
                   type="button"
                   variant="outline"
                   size="icon"
-                  onClick={() =>
-                    setPracticalProfessors([
-                      ...practicalProfessors,
-                      { organization: '', department: '', name: '' },
-                    ])
-                  }
+                  // onClick={() =>
+                  //   setPracticalProfessors([
+                  //     ...practicalProfessors,
+                  //     { organization: '', department: '', name: '' },
+                  //   ])
+                  // }
+                  onClick={() => setShowProfessorModal(true)}
                 >
                   <Plus />
                 </Button>
               </div>
 
               {practicalProfessors.map((prof, index) => (
-                <div key={Date.now()} className="flex items-center gap-2">
+                <div
+                  key={`${prof.name}-${prof.organization}-${prof.department}`}
+                  className="flex items-center gap-2"
+                >
                   <Input
                     disabled={isEditing}
-                    placeholder="실무교수 소속 기관"
+                    placeholder="실무교수 이름"
+                    value={prof.name || ''}
+                    onChange={(e) => {
+                      const updated = [...practicalProfessors];
+                      updated[index].name = e.target.value;
+                      setPracticalProfessors(updated);
+                    }}
+                    className="bg-white"
+                  />
+                  <Input
+                    disabled={isEditing}
+                    placeholder="실무교수 기관"
                     value={prof.organization || ''}
                     onChange={(e) => {
                       const updated = [...practicalProfessors];
@@ -638,22 +670,11 @@ export function ProjectForm({
                   />
                   <Input
                     disabled={isEditing}
-                    placeholder="실무교수 소속 부서"
+                    placeholder="실무교수 부서"
                     value={prof.department || ''}
                     onChange={(e) => {
                       const updated = [...practicalProfessors];
                       updated[index].department = e.target.value;
-                      setPracticalProfessors(updated);
-                    }}
-                    className="bg-white"
-                  />
-                  <Input
-                    disabled={isEditing}
-                    placeholder="실무교수 이름"
-                    value={prof.name || ''}
-                    onChange={(e) => {
-                      const updated = [...practicalProfessors];
-                      updated[index].name = e.target.value;
                       setPracticalProfessors(updated);
                     }}
                     className="bg-white"
@@ -794,6 +815,28 @@ export function ProjectForm({
           {isEditing ? '저장' : '등록'}
         </Button>
       </div>
+
+      {/* PI 선택 모달 */}
+      <ExternalProfessorSelectModal
+        open={showPIModal}
+        onClose={() => setShowPIModal(false)}
+        onSelect={(prof) => {
+          setPiList([...piList, prof]);
+          setShowPIModal(false);
+        }}
+        selectedProfessorKeys={selectedPiKeys}
+      />
+
+      {/* 실무 교수 선택 모달 */}
+      <ExternalProfessorSelectModal
+        open={showProfessorModal}
+        onClose={() => setShowProfessorModal(false)}
+        onSelect={(prof) => {
+          setPracticalProfessors([...practicalProfessors, prof]);
+          setShowProfessorModal(false);
+        }}
+        selectedProfessorKeys={selectedPracticalKeys}
+      />
     </form>
   );
 }
