@@ -187,33 +187,17 @@ export default function UserDetail({ user, projects }: UserDetailProps) {
                       </h2>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                      <div className="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm">
-                          <Mail className="h-5 w-5 text-gray-600" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="mb-1 text-xs font-medium tracking-wide text-gray-500 uppercase">
-                            이메일
-                          </p>
-                          <p className="font-medium break-all text-gray-900">
-                            {user.email}
-                          </p>
-                        </div>
+                    <div className="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm">
+                        <Mail className="h-5 w-5 text-gray-600" />
                       </div>
-
-                      <div className="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm">
-                          <Phone className="h-5 w-5 text-gray-600" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="mb-1 text-xs font-medium tracking-wide text-gray-500 uppercase">
-                            전화번호
-                          </p>
-                          <p className="font-medium text-gray-900">
-                            {user.phoneNumber}
-                          </p>
-                        </div>
+                      <div className="flex-1">
+                        <p className="mb-1 text-xs font-medium tracking-wide text-gray-500 uppercase">
+                          이메일
+                        </p>
+                        <p className="font-medium break-all text-gray-900">
+                          {user.email}
+                        </p>
                       </div>
                     </div>
                   </CardContent>
