@@ -43,14 +43,6 @@ export default function ProjectDetailPage({
         const data = await projectApi.getProjectById({ projectId: Number(id) });
         setProject(data);
       } catch (err: unknown) {
-        if (err instanceof ResponseError && err.response.status === 403) {
-          const body = await err.response.json();
-          if (body?.code === 'PROJECT_ACCESS_DENIED') {
-            router.replace('/403');
-            return;
-          }
-        }
-
         toast.error(
           '프로젝트 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
         );

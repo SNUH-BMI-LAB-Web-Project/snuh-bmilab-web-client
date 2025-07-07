@@ -68,7 +68,11 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
           <>
             <Lock className="h-3 w-3" />
             <Link
-              href={`/portal/researches/projects/${row.projectId}`}
+              href={
+                row.isAccessible
+                  ? `/portal/researches/projects/${row.projectId}`
+                  : '/403'
+              }
               className="hover:underline"
             >
               {row.title}
