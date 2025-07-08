@@ -76,7 +76,7 @@ export default function UserDetailPage() {
           <Button variant="ghost" size="sm" asChild>
             <Link href="/portal/users">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              연명부로 돌아가기
+              목록으로
             </Link>
           </Button>
         </div>
