@@ -1,3 +1,4 @@
+import dynamic from 'next/dynamic';
 import { Label } from '@/components/ui/label';
 import { FileDown, Info, NotepadText, Paperclip } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,13 +11,17 @@ import { FileItem } from '@/components/portal/researches/projects/file-item';
 import React from 'react';
 import { ProjectDetail } from '@/generated-api';
 import { downloadFileFromUrl } from '@/utils/download-file';
-// import { Button } from '@/components/ui/button';
 
 interface ProjectInfoFormProps {
   id: string;
   project: ProjectDetail;
   canEdit: boolean;
 }
+
+const MarkdownViewer = dynamic(
+  () => import('@/components/portal/researches/projects/markdown-viewer'),
+  { ssr: false },
+);
 
 export default function ProjectInfoForm({
   id,
@@ -34,7 +39,7 @@ export default function ProjectInfoForm({
 
           <Card>
             <CardContent className="flex h-full flex-col justify-start gap-2">
-              <div className="whitespace-pre-line">{project.content}</div>
+              <MarkdownViewer content={project.content || ''} />
             </CardContent>
           </Card>
         </div>
@@ -125,7 +130,7 @@ export default function ProjectInfoForm({
                 </div>
 
                 <div className="flex flex-col">
-                  <span className="mb-1 font-semibold">실무 교수</span>
+                  <span className="mb-1 font-semibold">참여 교수</span>
                   <div className="text-muted-foreground flex flex-wrap gap-1 text-sm font-normal">
                     {(project.practicalProfessors ?? [])
                       .map((prof) => prof.name)
@@ -135,7 +140,7 @@ export default function ProjectInfoForm({
                 </div>
 
                 <div className="flex flex-col">
-                  <span className="mb-1 font-semibold">연구 책임자</span>
+                  <span className="mb-1 font-semibold">실무 책임자</span>
                   <div className="text-muted-foreground flex flex-wrap gap-1 text-sm font-normal">
                     {(project.leaders ?? []).map((user, index) => (
                       <span key={user.userId} className="flex items-center">
@@ -146,7 +151,7 @@ export default function ProjectInfoForm({
                   </div>
                 </div>
                 <div className="flex flex-col">
-                  <span className="mb-1 font-semibold">연구 참여자</span>
+                  <span className="mb-1 font-semibold">실무 연구자</span>
                   <div className="text-muted-foreground flex flex-wrap gap-1 text-sm font-normal">
                     {project.participants ? (
                       project.participants.map((user, index) => (
@@ -158,7 +163,7 @@ export default function ProjectInfoForm({
                       ))
                     ) : (
                       <div className="text-muted-foreground text-xs">
-                        참여자가 없습니다
+                        참여 중인 실무 연구자가 없습니다
                       </div>
                     )}
                   </div>
