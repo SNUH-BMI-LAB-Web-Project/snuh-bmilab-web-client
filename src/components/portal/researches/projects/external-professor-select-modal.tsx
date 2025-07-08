@@ -152,12 +152,12 @@ export default function ExternalProfessorSelectModal({
                   onChange={(e) =>
                     handleInputChange('organization', e.target.value)
                   }
-                  maxLength={30}
+                  maxLength={50}
                   placeholder="서울대학교"
                 />
-                {formData.organization.length >= 30 && (
+                {formData.organization.length >= 50 && (
                   <p className="mt-1 text-sm text-red-500">
-                    기관명은 최대 30자까지 입력 가능합니다.
+                    기관명은 최대 50자까지 입력 가능합니다.
                   </p>
                 )}
               </div>

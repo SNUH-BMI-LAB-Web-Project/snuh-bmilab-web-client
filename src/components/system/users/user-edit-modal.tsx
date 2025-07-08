@@ -410,10 +410,10 @@ export default function UserEditModal({
                     handleInputChange('organization', e.target.value)
                   }
                   placeholder="융합의학연구실"
-                  maxLength={30}
+                  maxLength={50}
                 />
                 <p className="text-muted-foreground text-right text-xs">
-                  {formData.organization.length}/30자
+                  {formData.organization.length}/50자
                 </p>
               </div>
               <div className="space-y-2">
