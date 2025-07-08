@@ -47,7 +47,7 @@ export default function UsersPage() {
       setTotalPages(res.totalPage ?? 1);
     } catch (error) {
       toast.error(
-        '연명부 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
+        '구성원 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
       );
     }
   };
@@ -64,7 +64,7 @@ export default function UsersPage() {
 
   return (
     <div className="mb-8 flex flex-col gap-8">
-      <h1 className="text-3xl font-bold">연명부</h1>
+      <h1 className="text-3xl font-bold">구성원</h1>
 
       <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
         {users.map((user) => (

@@ -82,7 +82,7 @@ export default function ProfileEditForm() {
     email: '이메일',
     organization: '기관',
     department: '부서',
-    affiliation: '소속',
+    affiliation: '구분',
     phoneNumber: '전화번호',
     seatNumber: '좌석번호',
   };
@@ -245,7 +245,7 @@ export default function ProfileEditForm() {
     {
       name: 10,
       email: 50,
-      organization: 30,
+      organization: 50,
       department: 20,
       phoneNumber: 13,
       seatNumber: 10,
@@ -259,7 +259,7 @@ export default function ProfileEditForm() {
           src={profileImagePreview}
           alt={`${formData.name} 프로필`}
           fill
-          className="cursor-pointer rounded-full object-cover"
+          className="cursor-pointer rounded-full border-2 object-cover shadow-lg"
           onClick={handleImageClick}
         />
         <input
@@ -308,7 +308,7 @@ export default function ProfileEditForm() {
                 <SelectTrigger
                   className={`w-full ${!isEditable ? 'bg-muted' : 'bg-white'}`}
                 >
-                  <SelectValue placeholder="소속 선택" />
+                  <SelectValue placeholder="구분 선택" />
                 </SelectTrigger>
                 <SelectContent side="bottom" sideOffset={4} className="!p-0">
                   {affiliationOptions.map(({ value, label }) => {

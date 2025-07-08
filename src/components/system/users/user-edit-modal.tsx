@@ -399,7 +399,7 @@ export default function UserEditModal({
 
           {/* 소속 정보 */}
           <div className="space-y-4 rounded-lg border p-4">
-            <h3 className="text-sm font-semibold">소속 정보</h3>
+            <h3 className="text-sm font-semibold">BMI LAB 소속 정보</h3>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="organization">기관</Label>
@@ -445,7 +445,7 @@ export default function UserEditModal({
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="소속 선택" />
+                    <SelectValue placeholder="구분 선택" />
                   </SelectTrigger>
                   <SelectContent>
                     {affiliationOptions.map((affiliation) => (
