@@ -19,7 +19,7 @@ const baseNav = [
     url: '/portal/users',
     icon: Users,
     items: [
-      { title: '연명부', url: '/portal/users' },
+      { title: '구성원', url: '/portal/users' },
       // { title: '휴가 신청', url: '/portal/users/leaves' },
       // { title: '자리배치도', url: '/portal/users/seats' },
     ],
@@ -53,6 +53,7 @@ export function AppSidebar() {
 
   if (
     pathname.startsWith('/portal/researches/projects/') ||
+    pathname.startsWith('/portal/users/') ||
     pathname.startsWith('/portal/mypage')
   ) {
     return null;
@@ -72,7 +73,10 @@ export function AppSidebar() {
   }));
 
   return (
-    <Sidebar className="fixed top-[70px] left-0 flex h-[calc(100vh-70px)] w-[16rem] flex-col border-r">
+    <Sidebar
+      collapsible="icon"
+      className="fixed top-[70px] left-0 z-20 flex h-[calc(100vh-70px)] w-[16rem] flex-col border-r"
+    >
       <SidebarContent className="flex-1 overflow-auto">
         <NavMain items={navMain} />
       </SidebarContent>
