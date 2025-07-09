@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import ProfileEditForm from '@/components/mypage/profile-edit-form';
+import ProfileEditForm from '@/components/portal/mypage/profile-edit-form';
 import ComingSoon from '@/components/common/coming-soon';
 
 export default function MyPage() {
