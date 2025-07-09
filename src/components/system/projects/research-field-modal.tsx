@@ -209,7 +209,7 @@ export default function ResearchFieldModal() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <Plus className="h-5 w-5 text-green-600" />새 연구 분야 추가
+                  <Plus className="h-5 w-5" />새 연구 분야 추가
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -228,7 +228,7 @@ export default function ResearchFieldModal() {
                       maxLength={30}
                     />
                     {newFieldName.length >= 30 && (
-                      <p className="mt-1 ml-1 text-sm text-red-500">
+                      <p className="text-destructive mt-1 ml-1 text-sm">
                         최대 30자까지 입력할 수 있습니다.
                       </p>
                     )}
@@ -308,7 +308,7 @@ export default function ResearchFieldModal() {
                                   </Button>
                                 </div>
                                 {editFieldName.length >= 30 && (
-                                  <p className="mt-1 ml-1 text-xs text-red-500">
+                                  <p className="text-destructive mt-1 ml-1 text-xs">
                                     최대 30자까지 입력할 수 있습니다.
                                   </p>
                                 )}
@@ -334,7 +334,6 @@ export default function ResearchFieldModal() {
                                   size="sm"
                                   variant="ghost"
                                   onClick={() => setDeleteField(field)}
-                                  className="text-red-600 hover:bg-red-50 hover:text-red-700"
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </Button>
@@ -360,7 +359,7 @@ export default function ResearchFieldModal() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <Trash2 className="h-5 w-5 text-red-600" />
+              <Trash2 className="h-5 w-5" />
               연구 분야 삭제 확인
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
@@ -373,7 +372,7 @@ export default function ResearchFieldModal() {
             <AlertDialogCancel>취소</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteField}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              className="bg-destructive hover:bg-destructive/90 text-white shadow-xs"
             >
               삭제
             </AlertDialogAction>

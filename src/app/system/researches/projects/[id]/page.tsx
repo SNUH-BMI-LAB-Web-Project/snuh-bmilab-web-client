@@ -54,7 +54,7 @@ export default function ProjectDetailPage({
   const handleDelete = async () => {
     try {
       await projectApi.deleteProjectById({ projectId: Number(id) });
-      toast.success('프로젝트가 삭제되었습니다');
+      toast.success('프로젝트가 삭제되었습니다.');
       router.push('/system/researches/projects');
     } catch (e) {
       toast.error('프로젝트 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
