@@ -9,7 +9,7 @@ import { formatDateTime } from '@/lib/utils';
 import Image from 'next/image';
 import { ProjectApi } from '@/generated-api/apis/ProjectApi';
 import { ProjectDetail } from '@/generated-api/models/ProjectDetail';
-import { Configuration, ResponseError } from '@/generated-api/runtime';
+import { Configuration } from '@/generated-api/runtime';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { canDeleteProject, canEditProject } from '@/utils/project-utils';
