@@ -38,7 +38,7 @@ export default function UsersPage() {
   const fetchUsers = async (page: number, size: number) => {
     try {
       const res: UserFindAllResponse = await userApi.getAllUsers({
-        page: page - 1,
+        pageNo: page - 1,
         size,
         criteria: 'createdAt',
       });
