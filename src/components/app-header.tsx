@@ -50,7 +50,7 @@ export default function AppHeader() {
         <Image
           src="/snuh-bmi-lab-logo.svg"
           alt="BMI Lab Logo"
-          width={165}
+          width={115}
           height={30}
           className="bg-transparent"
         />
