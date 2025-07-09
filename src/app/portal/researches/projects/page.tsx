@@ -325,7 +325,7 @@ export default function ProjectPage() {
                   setCurrentPage(1); // 페이지 초기화
                 }}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full bg-white">
                   <SelectValue placeholder="연구 분야" />
                 </SelectTrigger>
                 <SelectContent>
@@ -343,7 +343,7 @@ export default function ProjectPage() {
 
               {/* 연구 상태 필터 */}
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full bg-white">
                   <SelectValue placeholder="연구 상태" />
                 </SelectTrigger>
                 <SelectContent>
@@ -368,7 +368,7 @@ export default function ProjectPage() {
                     setCurrentPage(1);
                   }
                 }}
-                className="w-full"
+                className="w-full bg-white"
               />
 
               <Input
@@ -381,12 +381,12 @@ export default function ProjectPage() {
                     setCurrentPage(1);
                   }
                 }}
-                className="w-full"
+                className="w-full bg-white"
               />
 
               {/* 실무 책임자 Select */}
               <Select value={leaderFilter} onValueChange={setLeaderFilter}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full bg-white">
                   <SelectValue placeholder="실무 책임자 선택" />
                 </SelectTrigger>
                 <SelectContent>

@@ -189,6 +189,7 @@ export default function RssPage() {
             {/* 최소 금액 */}
             <div className="relative w-full">
               <Input
+                className="bg-white"
                 type="number"
                 step={1_000_000}
                 min={0}
@@ -220,6 +221,7 @@ export default function RssPage() {
             {/* 최대 금액 */}
             <div className="relative w-full">
               <Input
+                className="bg-white"
                 type="number"
                 step={1_000_000}
                 min={minBudget ?? 0}
