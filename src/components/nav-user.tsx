@@ -52,7 +52,7 @@ export default function NavUser({ user }: NavUserProps) {
           </Avatar>
 
           {!isCollapsed && (
-            <div className="flex flex-col text-sm leading-tight">
+            <div className="flex max-w-[130px] flex-col text-sm leading-tight">
               <span className="truncate font-medium">{user.name}</span>
               <span className="text-muted-foreground truncate text-xs">
                 {user.email}
