@@ -34,7 +34,25 @@ export interface UserFindAllResponse {
      */
     users?: Array<UserItem>;
     /**
-     * 
+     * 검색 필터 필드
+     * @type {string}
+     * @memberof UserFindAllResponse
+     */
+    filterBy?: string;
+    /**
+     * 검색 필터 값
+     * @type {string}
+     * @memberof UserFindAllResponse
+     */
+    filterValue?: string;
+    /**
+     * 필터 내 정렬 기준
+     * @type {string}
+     * @memberof UserFindAllResponse
+     */
+    sort?: string;
+    /**
+     * 전체 페이지 수
      * @type {number}
      * @memberof UserFindAllResponse
      */
@@ -59,6 +77,9 @@ export function UserFindAllResponseFromJSONTyped(json: any, ignoreDiscriminator:
     return {
         
         'users': json['users'] == null ? undefined : ((json['users'] as Array<any>).map(UserItemFromJSON)),
+        'filterBy': json['filterBy'] == null ? undefined : json['filterBy'],
+        'filterValue': json['filterValue'] == null ? undefined : json['filterValue'],
+        'sort': json['sort'] == null ? undefined : json['sort'],
         'totalPage': json['totalPage'] == null ? undefined : json['totalPage'],
     };
 }
@@ -75,6 +96,9 @@ export function UserFindAllResponseToJSONTyped(value?: UserFindAllResponse | nul
     return {
         
         'users': value['users'] == null ? undefined : ((value['users'] as Array<any>).map(UserItemToJSON)),
+        'filterBy': value['filterBy'],
+        'filterValue': value['filterValue'],
+        'sort': value['sort'],
         'totalPage': value['totalPage'],
     };
 }
