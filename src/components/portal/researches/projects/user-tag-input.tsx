@@ -43,8 +43,7 @@ export function UserTagInput({
 
     try {
       const result = await userApi.searchUsers({
-        filterBy: 'name',
-        filterValue: keyword || undefined,
+        keyword: keyword || undefined,
       });
       setSearchResults(result.users || []);
       setHighlightedIndex(-1);
