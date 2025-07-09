@@ -104,7 +104,7 @@ export function ReportFeed({
       {reports.length === 0 ? (
         <Card className="bg-white">
           <CardContent className="flex flex-col items-center justify-center p-6">
-            <p className="text-muted-foreground text-center">
+            <p className="text-muted-foreground text-center text-sm">
               조건에 맞는 보고서가 없습니다.
             </p>
           </CardContent>
@@ -115,10 +115,14 @@ export function ReportFeed({
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <Avatar>
+                  <Avatar className="border-1">
                     <AvatarImage
-                      src={report.user?.profileImageUrl || '/placeholder.svg'}
+                      src={
+                        report.user?.profileImageUrl ||
+                        '/default-profile-image.svg'
+                      }
                       alt={report.user?.name}
+                      className="object-cover"
                     />
                     <AvatarFallback>
                       {report.user?.name?.charAt(0)}
