@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, ChangeEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -13,8 +14,8 @@ import {
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
-import { ChangePasswordModal } from '@/components/mypage/change-password-modal';
-import EducationEditor from '@/components/mypage/education-editor';
+import { ChangePasswordModal } from '@/components/portal/mypage/change-password-modal';
+import EducationEditor from '@/components/portal/mypage/education-editor';
 import { useProjectCategories } from '@/hooks/use-project-categories';
 import {
   Select,
@@ -33,6 +34,8 @@ const userApi = new UserApi(
 );
 
 export default function ProfileEditForm() {
+  const router = useRouter();
+
   const [formData, setFormData] = useState<{
     name: string;
     email: string;
@@ -221,6 +224,16 @@ export default function ProfileEditForm() {
             }),
           ),
       );
+
+      const prevEmail = useAuthStore.getState().user?.email;
+      const isEmailChanged = prevEmail && formData.email !== prevEmail;
+
+      if (isEmailChanged) {
+        useAuthStore.getState().logout();
+        sessionStorage.setItem('emailChanged', 'true');
+        router.push('/login');
+        return;
+      }
 
       useAuthStore.setState((prev) => ({
         user: {
