@@ -58,6 +58,7 @@ import { statusLabelMap } from '@/constants/education-enum';
 import { toast } from 'sonner';
 import { affiliationOptions } from '@/constants/affiliation-enum';
 import { roleOptions } from '@/constants/role-enum';
+// import WorkSchedulePicker from '@/components/system/users/work-schedule-picker';
 
 interface UserAddModalProps {
   open: boolean;
@@ -138,38 +139,6 @@ export default function UserAddModal({
 
     fetchCategorys();
   }, []);
-
-  // useEffect(() => {
-  //   if (!open) {
-  //     // 모달이 닫힐 때 form 초기화
-  //     setFormData({
-  //       name: '',
-  //       email: '',
-  //       password: '',
-  //       organization: '서울대병원 융합의학연구실',
-  //       department: '',
-  //       affiliation: undefined,
-  //       annualLeaveCount: 0,
-  //       usedLeaveCount: 0,
-  //       categoryIds: [],
-  //       seatNumber: '',
-  //       phoneNumber: '',
-  //       educations: [],
-  //       joinedAt: new Date(),
-  //       role: RegisterUserRequestRoleEnum.User,
-  //     });
-  //
-  //     setNewEducation({
-  //       title: '',
-  //       status: undefined,
-  //       startYearMonth: '',
-  //       endYearMonth: '',
-  //     });
-  //
-  //     setNewEducationError('');
-  //     setCreatedUserData(null);
-  //   }
-  // }, [open]);
 
   // 임의 비밀번호 생성
   const generatePassword = () => {
@@ -874,6 +843,18 @@ export default function UserAddModal({
                 )}
               </div>
             </div>
+
+            {/* TODO: 근무스케줄 컴포넌트 연결 */}
+            {/* 근무 스케줄 */}
+            {/* <div className="space-y-4 rounded-lg border p-4"> */}
+            {/*   <h3 className="text-sm font-semibold">근무 스케줄</h3> */}
+            {/*   <WorkSchedulePicker */}
+            {/*     value={formData.workSchedule} */}
+            {/*     onChange={(schedule) => */}
+            {/*       handleInputChange('workSchedule', schedule) */}
+            {/*     } */}
+            {/*   /> */}
+            {/* </div> */}
 
             <div className="flex justify-end gap-2 pt-4">
               <Button
