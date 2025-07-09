@@ -255,7 +255,6 @@ export default function ProjectPage() {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">연구 & 프로젝트</h1>
         <div className="flex gap-2">
-          <ExternalProfessorModal />
           <ResearchFieldModal />
         </div>
       </div>
