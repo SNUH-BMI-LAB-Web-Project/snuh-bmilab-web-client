@@ -5,7 +5,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Mail,
-  Phone,
   MapPin,
   Building,
   GraduationCap,
@@ -97,7 +96,7 @@ export default function UserDetail({ user, projects }: UserDetailProps) {
                       <div className="border-b border-gray-200 bg-gray-100 px-4 py-2">
                         <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                           <User className="h-4 w-4" />
-                          소속 정보
+                          BMI LAB 소속 정보
                         </h3>
                       </div>
                       <div className="divide-y divide-gray-200">
@@ -122,7 +121,7 @@ export default function UserDetail({ user, projects }: UserDetailProps) {
                         <div className="flex items-center px-4 py-3">
                           <div className="flex w-20 items-center gap-2 text-xs font-medium text-gray-600">
                             <User className="h-3 w-3" />
-                            소속
+                            구분
                           </div>
                           <div className="flex-1 text-sm font-semibold text-gray-900">
                             {user.affiliation
@@ -187,7 +186,7 @@ export default function UserDetail({ user, projects }: UserDetailProps) {
                       </h2>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-6">
                       <div className="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm">
                           <Mail className="h-5 w-5 text-gray-600" />
@@ -198,20 +197,6 @@ export default function UserDetail({ user, projects }: UserDetailProps) {
                           </p>
                           <p className="font-medium break-all text-gray-900">
                             {user.email}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm">
-                          <Phone className="h-5 w-5 text-gray-600" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="mb-1 text-xs font-medium tracking-wide text-gray-500 uppercase">
-                            전화번호
-                          </p>
-                          <p className="font-medium text-gray-900">
-                            {user.phoneNumber}
                           </p>
                         </div>
                       </div>

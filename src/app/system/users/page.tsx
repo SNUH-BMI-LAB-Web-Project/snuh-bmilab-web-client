@@ -104,7 +104,7 @@ const getUserColumns = (
     cell: (row: UserItem) => row.department || '-',
   },
   {
-    label: '소속',
+    label: '구분',
     className:
       'text-center truncate overflow-hidden whitespace-nowrap w-[150px]',
     cell: (row: UserItem) =>
@@ -377,7 +377,7 @@ export default function SystemProjectPage() {
     <div>
       {/* 헤더 */}
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">연명부</h1>
+        <h1 className="text-3xl font-bold">구성원</h1>
         <Button onClick={() => setAddModalOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           사용자 추가
@@ -396,7 +396,7 @@ export default function SystemProjectPage() {
               <SelectItem value="email">이메일</SelectItem>
               <SelectItem value="organization">기관</SelectItem>
               <SelectItem value="department">부서</SelectItem>
-              <SelectItem value="affiliation">소속</SelectItem>
+              <SelectItem value="affiliation">구분</SelectItem>
               <SelectItem value="categories">연구 분야</SelectItem>
               <SelectItem value="phoneNumber">연락처</SelectItem>
               <SelectItem value="seatNumber">좌석</SelectItem>

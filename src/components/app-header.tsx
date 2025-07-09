@@ -120,7 +120,7 @@ export default function AppHeader() {
                 'w-[60px] cursor-pointer transition-transform duration-150 hover:scale-105',
               )}
             >
-              System
+              Admin
             </button>
           ))}
       </nav>

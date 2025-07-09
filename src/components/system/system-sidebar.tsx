@@ -14,7 +14,7 @@ const baseNav = [
     url: '/system/users',
     icon: Users,
     items: [
-      { title: '연명부', url: '/system/users' },
+      { title: '구성원', url: '/system/users' },
       // { title: '휴가 신청', url: '/system/users/leaves' },
       // { title: '자리배치도', url: '/system/users/seats' },
     ],
@@ -42,7 +42,7 @@ export function SystemSidebar() {
 
   if (
     pathname.startsWith('/system/researches/projects/') ||
-    pathname.startsWith('/portal/mypage')
+    pathname.startsWith('/system/users/')
   ) {
     return null;
   }
@@ -61,7 +61,10 @@ export function SystemSidebar() {
   }));
 
   return (
-    <Sidebar className="fixed top-[70px] left-0 flex h-[calc(100vh-70px)] w-[16rem] flex-col border-r">
+    <Sidebar
+      collapsible="icon"
+      className="fixed top-[70px] left-0 z-20 flex h-[calc(100vh-70px)] w-[16rem] flex-col border-r"
+    >
       <SidebarContent className="flex-1 overflow-auto">
         <NavMain items={navMain} />
       </SidebarContent>

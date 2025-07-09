@@ -540,7 +540,8 @@ export function ProjectForm({
           {/* 구성원 */}
           <div className="space-y-6">
             <h3 className="flex items-center text-base font-medium">
-              <Users className="mr-2 h-4 w-4" />팀 구성원
+              <Users className="mr-2 h-4 w-4" />
+              연구 구성원
             </h3>
 
             <div className="bg-muted/50 space-y-3 rounded-xl p-4">
@@ -623,7 +624,7 @@ export function ProjectForm({
               <div className="flex items-center justify-between">
                 <Label className="flex items-center text-sm font-semibold">
                   <User className="h-4 w-4" />
-                  실무 교수
+                  참여 교수
                 </Label>
                 <Button
                   type="button"
@@ -648,7 +649,7 @@ export function ProjectForm({
                 >
                   <Input
                     disabled={isEditing}
-                    placeholder="실무교수 이름"
+                    placeholder="참여교수 이름"
                     value={prof.name || ''}
                     onChange={(e) => {
                       const updated = [...practicalProfessors];
@@ -659,7 +660,7 @@ export function ProjectForm({
                   />
                   <Input
                     disabled={isEditing}
-                    placeholder="실무교수 기관"
+                    placeholder="참여교수 기관"
                     value={prof.organization || ''}
                     onChange={(e) => {
                       const updated = [...practicalProfessors];
@@ -670,7 +671,7 @@ export function ProjectForm({
                   />
                   <Input
                     disabled={isEditing}
-                    placeholder="실무교수 부서"
+                    placeholder="참여교수 부서"
                     value={prof.department || ''}
                     onChange={(e) => {
                       const updated = [...practicalProfessors];
@@ -698,26 +699,26 @@ export function ProjectForm({
             <div className="bg-muted/50 space-y-3 rounded-xl p-4">
               <Label className="flex items-center text-sm font-semibold">
                 <Users className="h-4 w-4" />
-                책임자 <span className="text-destructive text-xs">*</span>
+                실무 책임자 <span className="text-destructive text-xs">*</span>
               </Label>
 
               <UserTagInput
                 selectedUsers={leaders}
                 onChange={(userIds) => setLeaders(userIds)}
-                placeholder="책임자 이름을 입력하세요"
+                placeholder="실무 책임자 이름을 입력하세요"
               />
             </div>
 
             <div className="bg-muted/50 space-y-3 rounded-xl p-4">
               <Label className="flex items-center text-sm font-semibold">
                 <Users className="h-4 w-4" />
-                참여자
+                실무 연구자
               </Label>
 
               <UserTagInput
                 selectedUsers={participants}
                 onChange={(userIds) => setParticipants(userIds)}
-                placeholder="참여자 이름을 입력하세요"
+                placeholder="실무 연구자 이름을 입력하세요"
               />
             </div>
           </div>
@@ -827,7 +828,7 @@ export function ProjectForm({
         selectedProfessorKeys={selectedPiKeys}
       />
 
-      {/* 실무 교수 선택 모달 */}
+      {/* 참여 교수 선택 모달 */}
       <ExternalProfessorSelectModal
         open={showProfessorModal}
         onClose={() => setShowProfessorModal(false)}

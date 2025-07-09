@@ -539,7 +539,7 @@ export default function UserAddModal({
 
             {/* 소속 정보 */}
             <div className="space-y-4 rounded-lg border p-4">
-              <h3 className="text-sm font-semibold">소속 정보</h3>
+              <h3 className="text-sm font-semibold">BMI LAB 소속 정보</h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="organization">기관</Label>
@@ -550,10 +550,10 @@ export default function UserAddModal({
                       handleInputChange('organization', e.target.value)
                     }
                     placeholder="서울대병원 융합의학연구실"
-                    maxLength={30}
+                    maxLength={50}
                   />
                   <p className="text-muted-foreground text-right text-xs">
-                    {formData.organization.length}/30자
+                    {formData.organization.length}/50자
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -572,7 +572,7 @@ export default function UserAddModal({
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="affiliation">소속</Label>
+                  <Label htmlFor="affiliation">구분</Label>
                   <Select
                     value={formData.affiliation ?? ''}
                     onValueChange={(value) =>
@@ -585,7 +585,7 @@ export default function UserAddModal({
                     }
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="소속 선택" />
+                      <SelectValue placeholder="구분 선택" />
                     </SelectTrigger>
                     <SelectContent>
                       {affiliationOptions.map((affiliation) => (

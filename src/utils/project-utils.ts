@@ -20,8 +20,8 @@ export const getStatusClassName = (
 };
 
 export function canEditProject(
-  leaderIds: string[], // 책임자 id 배열
-  participantIds: string[], // 참여자 id 배열
+  leaderIds: string[], // 실무 책임자 id 배열
+  participantIds: string[], // 실무 연구자 id 배열
   authorId: string, // 작성자 id
   currentUserId: string, // 현재 사용자 id
 ): boolean {
