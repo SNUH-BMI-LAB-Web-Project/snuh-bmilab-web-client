@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { rssSearchTypeOptions } from '@/constants/rss-search-enum';
+import RssLoading from '@/components/portal/etc/rss/rss-loading';
 
 function decodeEntities(html: string) {
   const txt = document.createElement('textarea');
@@ -87,7 +88,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
 export default function RssPage() {
   const [rssItems, setRssItems] = useState<RSSItem[]>([]);
   const [totalPage, setTotalPage] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
@@ -102,7 +103,9 @@ export default function RssPage() {
 
   useEffect(() => {
     const fetchRSS = async () => {
+      const start = Date.now();
       setLoading(true);
+
       try {
         const response = await ntisrssApi.getAllRssAssignments({
           page: currentPage - 1,
@@ -120,12 +123,23 @@ export default function RssPage() {
           'RSS 데이터를 가져오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
         );
       } finally {
-        setLoading(false);
+        const elapsed = Date.now() - start;
+        const minimum = 500;
+
+        if (elapsed < minimum) {
+          setTimeout(() => setLoading(false), minimum - elapsed);
+        } else {
+          setLoading(false);
+        }
       }
     };
 
     fetchRSS();
   }, [currentPage, itemsPerPage, committedSearchTerm, minBudget, maxBudget]);
+
+  if (loading && rssItems.length === 0) {
+    return <RssLoading />;
+  }
 
   return (
     <div>
