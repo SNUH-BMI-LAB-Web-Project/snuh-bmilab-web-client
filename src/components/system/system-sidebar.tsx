@@ -43,7 +43,9 @@ export function SystemSidebar() {
 
   if (
     pathname.startsWith('/system/researches/projects/') ||
-    pathname.startsWith('/system/users/')
+    (pathname.startsWith('/system/users/') &&
+      pathname !== '/system/users' &&
+      pathname !== '/system/users/external')
   ) {
     return null;
   }
