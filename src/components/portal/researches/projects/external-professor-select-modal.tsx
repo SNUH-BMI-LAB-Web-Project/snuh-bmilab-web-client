@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -128,13 +128,15 @@ export default function ExternalProfessorSelectModal({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Plus className="h-5 w-5 text-green-600" />새 외부 인사 추가
+              <Plus className="h-5 w-5" />새 외부 인사 추가
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               <div className="space-y-2">
-                <Label htmlFor="name">이름 *</Label>
+                <Label htmlFor="name">
+                  이름 <span className="text-destructive text-xs">*</span>
+                </Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -143,13 +145,15 @@ export default function ExternalProfessorSelectModal({
                   placeholder="홍길동"
                 />
                 {formData.name.length >= 10 && (
-                  <p className="mt-1 text-sm text-red-500">
+                  <p className="text-destructive mt-1 text-sm">
                     이름은 최대 10자까지 입력 가능합니다.
                   </p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="organization">기관 *</Label>
+                <Label htmlFor="organization">
+                  기관 <span className="text-destructive text-xs">*</span>
+                </Label>
                 <Input
                   id="organization"
                   value={formData.organization}
@@ -160,7 +164,7 @@ export default function ExternalProfessorSelectModal({
                   placeholder="서울대학교"
                 />
                 {formData.organization.length >= 50 && (
-                  <p className="mt-1 text-sm text-red-500">
+                  <p className="text-destructive mt-1 text-sm">
                     기관명은 최대 50자까지 입력 가능합니다.
                   </p>
                 )}
@@ -177,7 +181,7 @@ export default function ExternalProfessorSelectModal({
                   placeholder="컴퓨터공학부"
                 />
                 {formData.department.length >= 20 && (
-                  <p className="mt-1 text-sm text-red-500">
+                  <p className="text-destructive mt-1 text-sm">
                     부서명은 최대 20자까지 입력 가능합니다.
                   </p>
                 )}
@@ -194,7 +198,7 @@ export default function ExternalProfessorSelectModal({
                   placeholder="직책 예시"
                 />
                 {formData.department.length >= 20 && (
-                  <p className="mt-1 text-sm text-red-500">
+                  <p className="text-destructive mt-1 text-sm">
                     직책명은 최대 20자까지 입력 가능합니다.
                   </p>
                 )}
