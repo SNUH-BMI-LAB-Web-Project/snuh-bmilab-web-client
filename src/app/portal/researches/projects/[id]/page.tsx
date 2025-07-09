@@ -88,7 +88,7 @@ export default function ProjectDetailPage({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.back()}
+            onClick={() => router.push('/portal/researches/projects')}
             className="mr-3"
           >
             <ArrowLeft className="h-5 w-5" />
