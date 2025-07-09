@@ -43,6 +43,7 @@ export default function ExternalProfessorPage() {
     name: '',
     organization: '',
     department: '',
+    position: '',
   });
 
   const api = new AdminExternalProfessorApi(
@@ -70,6 +71,7 @@ export default function ExternalProfessorPage() {
       name: '',
       organization: '',
       department: '',
+      position: '',
     });
   };
 
@@ -81,6 +83,7 @@ export default function ExternalProfessorPage() {
           name: formData.name,
           organization: formData.organization,
           department: formData.department,
+          // TODO: 직책 추가 (position: formData.position)
         },
       });
       resetForm();
@@ -102,6 +105,7 @@ export default function ExternalProfessorPage() {
           name: formData.name,
           organization: formData.organization,
           department: formData.department,
+          // TODO: 직책 추가 (position: formData.position)
         },
       });
       resetForm();
@@ -149,6 +153,8 @@ export default function ExternalProfessorPage() {
       name: professor.name || '',
       organization: professor.organization || '',
       department: professor.department || '',
+      // TODO: 직책 추가 (professor.postion || ''로 변경)
+      position: '',
     });
   };
 
@@ -183,7 +189,7 @@ export default function ExternalProfessorPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
             <div className="space-y-2">
               <Label htmlFor="name">이름 *</Label>
               <Input
@@ -233,6 +239,21 @@ export default function ExternalProfessorPage() {
                 </p>
               )}
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="position">직책</Label>
+              <Input
+                id="position"
+                value={formData.position}
+                onChange={(e) => handleInputChange('position', e.target.value)}
+                maxLength={20}
+                placeholder="직책 예시"
+              />
+              {formData.department.length >= 20 && (
+                <p className="mt-1 text-sm text-red-500">
+                  직책명은 최대 20자까지 입력 가능합니다.
+                </p>
+              )}
+            </div>
           </div>
           <div className="mt-6 flex justify-end gap-3">
             <Button variant="outline" onClick={cancelForm}>
@@ -275,8 +296,9 @@ export default function ExternalProfessorPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="pl-6">이름</TableHead>
-                      <TableHead>소속 기관</TableHead>
-                      <TableHead>학과/부서</TableHead>
+                      <TableHead>기관</TableHead>
+                      <TableHead>부서</TableHead>
+                      <TableHead>직책</TableHead>
                       <TableHead className="w-[100px] text-center">
                         액션
                       </TableHead>
@@ -300,6 +322,12 @@ export default function ExternalProfessorPage() {
                         </TableCell>
                         <TableCell>
                           <span className="text-gray-700">
+                            {professor.department}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-gray-700">
+                            {/* TODO: 직책으로 변경 ({professor.position}) */}
                             {professor.department}
                           </span>
                         </TableCell>
