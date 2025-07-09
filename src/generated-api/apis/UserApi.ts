@@ -52,15 +52,16 @@ export interface DeleteEducationsRequest {
 }
 
 export interface GetAllUsersRequest {
-    page?: number;
+    filterBy?: string;
+    filterValue?: string;
+    direction?: string;
+    pageNo?: number;
     size?: number;
     criteria?: string;
 }
 
 export interface SearchUsersRequest {
-    filterBy?: string;
-    filterValue?: string;
-    sort?: string;
+    keyword?: string;
 }
 
 export interface SendFindPasswordEmailRequest {
@@ -175,8 +176,20 @@ export class UserApi extends runtime.BaseAPI {
     async getAllUsersRaw(requestParameters: GetAllUsersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserFindAllResponse>> {
         const queryParameters: any = {};
 
-        if (requestParameters['page'] != null) {
-            queryParameters['page'] = requestParameters['page'];
+        if (requestParameters['filterBy'] != null) {
+            queryParameters['filterBy'] = requestParameters['filterBy'];
+        }
+
+        if (requestParameters['filterValue'] != null) {
+            queryParameters['filterValue'] = requestParameters['filterValue'];
+        }
+
+        if (requestParameters['direction'] != null) {
+            queryParameters['direction'] = requestParameters['direction'];
+        }
+
+        if (requestParameters['pageNo'] != null) {
+            queryParameters['pageNo'] = requestParameters['pageNo'];
         }
 
         if (requestParameters['size'] != null) {
@@ -259,16 +272,8 @@ export class UserApi extends runtime.BaseAPI {
     async searchUsersRaw(requestParameters: SearchUsersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<SearchUserResponse>> {
         const queryParameters: any = {};
 
-        if (requestParameters['filterBy'] != null) {
-            queryParameters['filterBy'] = requestParameters['filterBy'];
-        }
-
-        if (requestParameters['filterValue'] != null) {
-            queryParameters['filterValue'] = requestParameters['filterValue'];
-        }
-
-        if (requestParameters['sort'] != null) {
-            queryParameters['sort'] = requestParameters['sort'];
+        if (requestParameters['keyword'] != null) {
+            queryParameters['keyword'] = requestParameters['keyword'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

@@ -225,10 +225,12 @@ const getUserColumns = (
 export default function SystemProjectPage() {
   const router = useRouter();
 
+  // 실시간 입력값
   const [searchTerm, setSearchTerm] = useState('');
+  // api 전송을 위한 값
   const [committedSearchTerm, setCommittedSearchTerm] = useState('');
 
-  const [stringSortOption, setStringSortOption] = useState('name');
+  const [stringSortOption, setStringSortOption] = useState('all');
   const [sortOption, setSortOption] = useState('asc');
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -255,7 +257,9 @@ export default function SystemProjectPage() {
     try {
       if (committedSearchTerm.trim() === '') {
         const res = await userApi.getAllUsers({
-          page: currentPage - 1, // 0-based index
+          filterBy: stringSortOption,
+          filterValue: committedSearchTerm,
+          pageNo: currentPage - 1, // 0-based index
           size: itemsPerPage,
           criteria: sortOption,
         });
@@ -263,9 +267,7 @@ export default function SystemProjectPage() {
         setTotalPage(res.totalPage ?? 1);
       } else {
         const res = await userApi.searchUsers({
-          filterBy: stringSortOption,
-          filterValue: committedSearchTerm,
-          sort: sortOption,
+          keyword: committedSearchTerm,
         });
         setUsers(res.users ?? []);
         setTotalPage(1); // 검색 결과는 페이지네이션 없음 또는 단일 페이지
@@ -370,7 +372,7 @@ export default function SystemProjectPage() {
     setSearchTerm('');
     setCommittedSearchTerm('');
     setSortOption('asc');
-    setStringSortOption('name');
+    setStringSortOption('all');
     setCurrentPage(1);
   };
 
@@ -396,6 +398,7 @@ export default function SystemProjectPage() {
               <SelectValue placeholder="정렬 방식" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">전체</SelectItem>
               <SelectItem value="name">이름</SelectItem>
               <SelectItem value="email">이메일</SelectItem>
               <SelectItem value="organization">기관</SelectItem>
@@ -425,15 +428,15 @@ export default function SystemProjectPage() {
           </div>
 
           {/* 이름으로 정렬 */}
-          {/* <Select value={sortOption} onValueChange={setSortOption}> */}
-          {/*   <SelectTrigger className="w-[200px]"> */}
-          {/*     <SelectValue placeholder="정렬 방식" /> */}
-          {/*   </SelectTrigger> */}
-          {/*   <SelectContent> */}
-          {/*     <SelectItem value="asc">이름 오름차순</SelectItem> */}
-          {/*     <SelectItem value="desc">이름 내림차순</SelectItem> */}
-          {/*   </SelectContent> */}
-          {/* </Select> */}
+          <Select value={sortOption} onValueChange={setSortOption}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="정렬 방식" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="asc">이름 오름차순</SelectItem>
+              <SelectItem value="desc">이름 내림차순</SelectItem>
+            </SelectContent>
+          </Select>
 
           {/* 필터링 초기화 버튼 */}
           {committedSearchTerm && (
