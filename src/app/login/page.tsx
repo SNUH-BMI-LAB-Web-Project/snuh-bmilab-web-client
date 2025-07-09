@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
@@ -27,6 +27,16 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const login = useAuthStore((state) => state.login);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const flag = sessionStorage.getItem('emailChanged');
+    if (flag === 'true') {
+      toast.info('이메일이 변경되어 다시 로그인해 주세요.');
+      sessionStorage.removeItem('emailChanged');
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
