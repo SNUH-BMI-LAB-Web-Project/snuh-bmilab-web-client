@@ -29,7 +29,6 @@ import { useAuthStore } from '@/store/auth-store';
 import { cn } from '@/lib/utils';
 import { getStatusClassName, getStatusLabel } from '@/utils/project-utils';
 import { useProjectCategories } from '@/hooks/use-project-categories';
-import ExternalProfessorModal from '@/components/system/projects/external-professor-modal';
 import ResearchFieldModal from '@/components/system/projects/research-field-modal';
 
 const projectApi = new ProjectApi(
