@@ -289,7 +289,9 @@ export default function UserEditModal({
             <h3 className="text-sm font-semibold">기본 정보</h3>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="name">이름 *</Label>
+                <Label htmlFor="name">
+                  이름 <span className="text-destructive text-xs">*</span>
+                </Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -384,12 +386,12 @@ export default function UserEditModal({
             {String(formData.role) === RegisterUserRequestRoleEnum.Admin && (
               <div className="mt-4 rounded-lg border border-red-300 bg-red-50 p-3">
                 <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-red-600" />
-                  <span className="text-sm font-medium text-red-900">
+                  <Shield className="text-destructive h-4 w-4" />
+                  <span className="text-destructive text-sm font-semibold">
                     관리자 권한 주의사항
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-red-700">
+                <p className="text-destructive mt-1 text-xs">
                   관리자는 모든 사용자 데이터에 접근하고 시스템 설정을 변경할 수
                   있습니다. 신중하게 부여해주세요.
                 </p>
@@ -512,7 +514,7 @@ export default function UserEditModal({
                 </span>
               </div>
               {formData.annualLeaveCount - formData.usedLeaveCount < 0 && (
-                <p className="mt-1 text-xs text-red-500">
+                <p className="text-destructive mt-1 text-xs">
                   ⚠️ 연차가 초과되었습니다!
                 </p>
               )}

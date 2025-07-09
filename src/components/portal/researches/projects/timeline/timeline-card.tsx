@@ -298,7 +298,7 @@ export default function TimelineCard({
                                 </Button>
                                 <Button
                                   variant="ghost"
-                                  className="text-destructive w-full justify-start gap-2 px-2 py-1 text-sm"
+                                  className="text-destructive hover:text-destructive focus:text-destructive w-full justify-start gap-2 px-2 py-1 text-sm"
                                   onClick={() => setDeleteTarget(timeline)}
                                 >
                                   <Trash className="h-4 w-4" />

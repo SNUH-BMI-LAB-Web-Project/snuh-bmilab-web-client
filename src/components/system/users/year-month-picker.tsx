@@ -103,7 +103,7 @@ export default function YearMonthPicker({
           {formatValue(value)}
           {allowClear && value && (
             <X
-              className="ml-auto h-4 w-4 hover:text-red-500"
+              className="ml-auto h-4 w-4"
               onClick={(e) => {
                 e.stopPropagation();
                 onChange(null);
@@ -171,12 +171,7 @@ export default function YearMonthPicker({
           <div className="flex justify-between gap-2 border-t pt-2">
             <div className="flex gap-2">
               {allowClear && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClear}
-                  className="bg-transparent text-red-600 hover:text-red-700"
-                >
+                <Button variant="outline" size="sm" onClick={handleClear}>
                   <X className="mr-1 h-3 w-3" />
                   지우기
                 </Button>

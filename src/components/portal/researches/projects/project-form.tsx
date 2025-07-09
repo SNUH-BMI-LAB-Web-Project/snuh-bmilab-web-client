@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -240,6 +240,41 @@ export function ProjectForm({
   const handleRemoveDRBFile = (index: number) =>
     setDrbFiles((prev) => prev.filter((_, i) => i !== index));
 
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const handleDrop = useCallback(
+    async (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setIsDragOver(false);
+
+      const files = Array.from(e.dataTransfer.files);
+      if (!files.length) return;
+
+      const uploadPromises = files.map((file) =>
+        uploadFileWithPresignedUrl(
+          file,
+          accessToken!,
+          GeneratePresignedUrlDomainTypeEnum.Project,
+        )
+          .then((fileRecord) => {
+            toast.success(`${file.name} 업로드 완료`);
+            return fileRecord;
+          })
+          .catch(() => {
+            toast.error(`${file.name} 업로드 실패`);
+            return null;
+          }),
+      );
+
+      const uploaded = await Promise.all(uploadPromises);
+      const validFiles = uploaded.filter(
+        (record): record is ProjectFileSummary => record !== null,
+      );
+      setNewFiles((prev) => [...prev, ...validFiles]);
+    },
+    [accessToken],
+  );
+
   const handleFormSubmit = async (formData: ProjectRequest) => {
     const hasEmptyRequiredField =
       !formData.title?.trim() ||
@@ -336,7 +371,7 @@ export function ProjectForm({
             className="focus-visible:none rounded-none border-0 border-b px-0 !text-xl font-medium shadow-none transition-colors focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           {errors.title && (
-            <p className="mt-2 text-sm text-red-500">
+            <p className="text-destructive mt-2 text-sm">
               {errors.title.message as string}
             </p>
           )}
@@ -747,7 +782,20 @@ export function ProjectForm({
               첨부파일
             </Label>
 
-            <div className="hover:border-primary/50 rounded-md border border-2 border-dashed p-6 text-center transition-colors">
+            <div
+              className={cn(
+                'rounded-md border border-2 border-dashed p-6 text-center transition-colors',
+                isDragOver
+                  ? 'border-primary bg-primary/5'
+                  : 'hover:border-primary/50',
+              )}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDragOver(true);
+              }}
+              onDragLeave={() => setIsDragOver(false)}
+              onDrop={handleDrop}
+            >
               {/* eslint-disable jsx-a11y/label-has-associated-control */}
               <label className="flex cursor-pointer flex-col items-center justify-center gap-2">
                 <input
