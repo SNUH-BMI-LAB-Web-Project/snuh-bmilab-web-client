@@ -8,5 +8,5 @@ interface MarkdownViewerProps {
 }
 
 export default function MarkdownViewer({ content }: MarkdownViewerProps) {
-  return <Viewer initialValue={content} />;
+  return <Viewer key={content} initialValue={content} />;
 }
