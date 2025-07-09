@@ -126,7 +126,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
     ),
   },
   {
-    label: '실무교수',
+    label: '참여 교수',
     className: 'text-center w-[130px]',
     cell: (row: ProjectSummary) => (
       <div className={cn(row.isPrivate && 'opacity-50')}>
@@ -141,7 +141,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
     ),
   },
   {
-    label: '책임자',
+    label: '실무 책임자',
     className: 'text-center w-[130px]',
     cell: (row: ProjectSummary) => (
       <div className={cn(row.isPrivate && 'opacity-50')}>
@@ -150,7 +150,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
     ),
   },
   {
-    label: '참여자',
+    label: '실무 연구자',
     className: 'text-center w-[130px]',
     cell: (row: ProjectSummary) => (
       <div className={cn(row.isPrivate && 'opacity-50')}>
@@ -273,7 +273,7 @@ export default function ProjectPage() {
           <div className="relative flex-1">
             <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
             <Input
-              placeholder="프로젝트 제목 또는 책임자 검색"
+              placeholder="프로젝트 제목 또는 실무 책임자 검색"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => {
@@ -372,7 +372,7 @@ export default function ProjectPage() {
               />
 
               <Input
-                placeholder="실무교수 이름 입력"
+                placeholder="참여 교수 이름 입력"
                 value={practicalProfessorTerm}
                 onChange={(e) => setPracticalProfessorTerm(e.target.value)}
                 onKeyDown={(e) => {
@@ -384,13 +384,13 @@ export default function ProjectPage() {
                 className="w-full"
               />
 
-              {/* 책임자 Select */}
+              {/* 실무 책임자 Select */}
               <Select value={leaderFilter} onValueChange={setLeaderFilter}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="책임자 선택" />
+                  <SelectValue placeholder="실무 책임자 선택" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">모든 책임자</SelectItem>
+                  <SelectItem value="all">모든 실무 책임자</SelectItem>
                   {allUsers.map((user) => (
                     <SelectItem key={user.userId} value={String(user.userId)}>
                       {user.name}{' '}

@@ -120,7 +120,7 @@ export function PaginatedTable<T>({
       </div>
 
       {showPagination && (
-        <div className="mt-4 flex items-center justify-end">
+        <div className="mt-4 flex items-center justify-center">
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"

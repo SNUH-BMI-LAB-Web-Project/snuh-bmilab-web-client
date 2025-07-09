@@ -55,7 +55,7 @@ export default function ProjectDetailPage({
   const currentUserId = useAuthStore.getState().user?.userId;
   const leaderIds = project?.leaders?.map((u) => String(u.userId)) ?? [];
   const participantIds =
-    project?.participants?.map((u) => String(u.userId)) ?? []; // 참여자 리스트가 필요합니다
+    project?.participants?.map((u) => String(u.userId)) ?? [];
   const authorId = String(project?.author?.userId ?? '');
   const currentId = String(currentUserId);
 

@@ -110,7 +110,7 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                       <div className="border-b border-gray-200 bg-gray-100 px-4 py-2">
                         <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                           <User className="h-4 w-4" />
-                          소속 정보
+                          BMI LAB 소속 정보
                         </h3>
                       </div>
                       <div className="divide-y divide-gray-200">
@@ -135,7 +135,7 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                         <div className="flex items-center px-4 py-3">
                           <div className="flex w-20 items-center gap-2 text-xs font-medium text-gray-600">
                             <User className="h-3 w-3" />
-                            소속
+                            구분
                           </div>
                           <div className="flex-1 text-sm font-semibold text-gray-900">
                             {user.affiliation
