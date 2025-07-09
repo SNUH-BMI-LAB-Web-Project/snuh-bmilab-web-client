@@ -29,7 +29,6 @@ import { useAuthStore } from '@/store/auth-store';
 import { cn } from '@/lib/utils';
 import { getStatusClassName, getStatusLabel } from '@/utils/project-utils';
 import { useProjectCategories } from '@/hooks/use-project-categories';
-import ExternalProfessorModal from '@/components/system/projects/external-professor-modal';
 import ResearchFieldModal from '@/components/system/projects/research-field-modal';
 
 const projectApi = new ProjectApi(
@@ -255,7 +254,6 @@ export default function ProjectPage() {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">연구 & 프로젝트</h1>
         <div className="flex gap-2">
-          <ExternalProfessorModal />
           <ResearchFieldModal />
         </div>
       </div>

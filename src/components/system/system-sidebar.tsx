@@ -15,6 +15,7 @@ const baseNav = [
     icon: Users,
     items: [
       { title: '구성원', url: '/system/users' },
+      { title: '외부 인사', url: '/system/users/external' },
       // { title: '휴가 신청', url: '/system/users/leaves' },
       // { title: '자리배치도', url: '/system/users/seats' },
     ],
@@ -42,7 +43,9 @@ export function SystemSidebar() {
 
   if (
     pathname.startsWith('/system/researches/projects/') ||
-    pathname.startsWith('/system/users/')
+    (pathname.startsWith('/system/users/') &&
+      pathname !== '/system/users' &&
+      pathname !== '/system/users/external')
   ) {
     return null;
   }

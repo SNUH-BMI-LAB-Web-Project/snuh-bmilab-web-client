@@ -134,14 +134,17 @@ export default function UserDetail({ user, projects }: UserDetailProps) {
                             <BookOpen className="h-3 w-3" />
                             연구분야
                           </div>
-                          <div className="flex flex-1 items-center gap-1 text-sm font-semibold text-gray-900">
+                          <div className="flex flex-1 flex-wrap items-center gap-1 text-sm font-semibold text-gray-900">
                             {user.categories?.map((field) => (
                               <Badge
                                 key={field.categoryId}
                                 variant="outline"
-                                className="bg-white"
+                                className="max-w-[120px] bg-white"
+                                title={field.name}
                               >
-                                {field.name}
+                                <div className="w-full truncate overflow-hidden text-ellipsis whitespace-nowrap">
+                                  {field.name}
+                                </div>
                               </Badge>
                             ))}
                           </div>
