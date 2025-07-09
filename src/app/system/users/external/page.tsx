@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -183,7 +183,7 @@ export default function ExternalProfessorPage() {
               </>
             ) : (
               <>
-                <Plus className="h-5 w-5 text-green-600" />새 외부 인사 추가
+                <Plus className="h-5 w-5" />새 외부 인사 추가
               </>
             )}
           </CardTitle>
@@ -191,7 +191,9 @@ export default function ExternalProfessorPage() {
         <CardContent>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
             <div className="space-y-2">
-              <Label htmlFor="name">이름 *</Label>
+              <Label htmlFor="name">
+                이름 <span className="text-destructive text-xs">*</span>
+              </Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -200,13 +202,15 @@ export default function ExternalProfessorPage() {
                 placeholder="홍길동"
               />
               {formData.name.length >= 10 && (
-                <p className="mt-1 text-sm text-red-500">
+                <p className="text-destructive mt-1 text-sm">
                   이름은 최대 10자까지 입력 가능합니다.
                 </p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="organization">기관 *</Label>
+              <Label htmlFor="organization">
+                기관 <span className="text-destructive text-xs">*</span>
+              </Label>
               <Input
                 id="organization"
                 value={formData.organization}
@@ -217,7 +221,7 @@ export default function ExternalProfessorPage() {
                 placeholder="서울대학교"
               />
               {formData.organization.length >= 50 && (
-                <p className="mt-1 text-sm text-red-500">
+                <p className="text-destructive mt-1 text-sm">
                   기관명은 최대 50자까지 입력 가능합니다.
                 </p>
               )}
@@ -234,7 +238,7 @@ export default function ExternalProfessorPage() {
                 placeholder="컴퓨터공학부"
               />
               {formData.department.length >= 20 && (
-                <p className="mt-1 text-sm text-red-500">
+                <p className="text-destructive mt-1 text-sm">
                   부서명은 최대 20자까지 입력 가능합니다.
                 </p>
               )}
@@ -249,7 +253,7 @@ export default function ExternalProfessorPage() {
                 placeholder="직책 예시"
               />
               {formData.department.length >= 20 && (
-                <p className="mt-1 text-sm text-red-500">
+                <p className="text-destructive mt-1 text-sm">
                   직책명은 최대 20자까지 입력 가능합니다.
                 </p>
               )}
@@ -344,7 +348,6 @@ export default function ExternalProfessorPage() {
                               size="sm"
                               variant="ghost"
                               onClick={() => setDeleteProfessor(professor)}
-                              className="text-red-600 hover:bg-red-50 hover:text-red-700"
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
@@ -368,7 +371,6 @@ export default function ExternalProfessorPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <Trash2 className="h-5 w-5 text-red-600" />
               외부 인사 삭제 확인
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
@@ -381,7 +383,7 @@ export default function ExternalProfessorPage() {
             <AlertDialogCancel>취소</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteProfessor}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              className="bg-destructive hover:bg-destructive/90 text-white shadow-xs"
             >
               삭제
             </AlertDialogAction>
