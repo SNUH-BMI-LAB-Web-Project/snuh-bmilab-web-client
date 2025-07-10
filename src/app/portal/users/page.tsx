@@ -21,12 +21,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-const userApi = new UserApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
-
 export default function UsersPage() {
   const [users, setUsers] = useState<UserItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,7 +31,16 @@ export default function UsersPage() {
 
   const fetchUsers = async (page: number, size: number) => {
     try {
-      const res: UserFindAllResponse = await userApi.getAllUsers({
+      const token = useAuthStore.getState().accessToken;
+      if (!token) return;
+
+      const api = new UserApi(
+        new Configuration({
+          accessToken: async () => token,
+        }),
+      );
+
+      const res: UserFindAllResponse = await api.getAllUsers({
         pageNo: page - 1,
         size,
         criteria: 'createdAt',
@@ -58,9 +61,12 @@ export default function UsersPage() {
     }
   };
 
+  const accessToken = useAuthStore((state) => state.accessToken);
+
   useEffect(() => {
+    if (!accessToken) return;
     fetchUsers(currentPage, itemsPerPage);
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, accessToken]);
 
   return (
     <div className="mb-8 flex flex-col gap-8">
