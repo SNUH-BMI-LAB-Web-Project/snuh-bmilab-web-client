@@ -19,12 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import Link from 'next/link';
-import {
-  Configuration,
-  ExternalProfessorSummary,
-  UserApi,
-  UserSummary,
-} from '@/generated-api';
+import { Configuration, UserApi, UserSummary } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import { cn } from '@/lib/utils';
 import { getStatusClassName, getStatusLabel } from '@/utils/project-utils';
@@ -63,7 +58,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
       <div className={cn('flex items-center gap-1')}>
         <Link
           href={`/system/researches/projects/${row.projectId}`}
-          className="hover:underline"
+          className="w-full truncate hover:underline"
         >
           {row.title}
         </Link>
@@ -99,36 +94,52 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
   {
     label: 'PI',
     className: 'text-center w-[130px]',
-    cell: (row: ProjectSummary) => (
-      <div>
-        {row.piList
-          ?.map((pi: ExternalProfessorSummary) => pi.name)
-          .filter(Boolean)
-          .join(', ') || ''}
-      </div>
-    ),
+    cell: (row: ProjectSummary) => {
+      const names = row.piList?.map((pi) => pi.name).filter(Boolean) ?? [];
+      const display =
+        names.length > 1
+          ? `${names.slice(0, 1).join(', ')} 외 ${names.length - 1}명`
+          : names.join(', ');
+      return (
+        <div className="truncate overflow-hidden whitespace-nowrap">
+          {display}
+        </div>
+      );
+    },
   },
   {
     label: '참여 교수',
     className: 'text-center w-[130px]',
-    cell: (row: ProjectSummary) => (
-      <div>
-        {row.practicalProfessors
-          ?.map(
-            (practicalProfessor: ExternalProfessorSummary) =>
-              practicalProfessor.name,
-          )
-          .filter(Boolean)
-          .join(', ') || ''}
-      </div>
-    ),
+    cell: (row: ProjectSummary) => {
+      const names =
+        row.practicalProfessors?.map((prof) => prof.name).filter(Boolean) ?? [];
+      const display =
+        names.length > 1
+          ? `${names.slice(0, 1).join(', ')} 외 ${names.length - 1}명`
+          : names.join(', ');
+      return (
+        <div className="truncate overflow-hidden whitespace-nowrap">
+          {display}
+        </div>
+      );
+    },
   },
   {
     label: '실무 책임자',
     className: 'text-center w-[130px]',
-    cell: (row: ProjectSummary) => (
-      <div>{row.leaders?.map((leader) => leader.name).join(', ') ?? '-'}</div>
-    ),
+    cell: (row: ProjectSummary) => {
+      const names =
+        row.leaders?.map((leader) => leader.name).filter(Boolean) ?? [];
+      const display =
+        names.length > 1
+          ? `${names.slice(0, 1).join(', ')} 외 ${names.length - 1}명`
+          : names.join(', ');
+      return (
+        <div className="truncate overflow-hidden whitespace-nowrap">
+          {display || '-'}
+        </div>
+      );
+    },
   },
   {
     label: '실무 연구자',
@@ -141,7 +152,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
     label: '연구 기간',
     className: 'text-center w-[200px]',
     cell: (row: ProjectSummary) => (
-      <div>
+      <div className="truncate overflow-hidden whitespace-nowrap">
         {`${row.startDate?.toISOString().substring(0, 10)} ~ ${
           row.endDate ? row.endDate.toISOString().substring(0, 10) : ''
         }`}
