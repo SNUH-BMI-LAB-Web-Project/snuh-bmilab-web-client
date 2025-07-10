@@ -19,12 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import Link from 'next/link';
-import {
-  Configuration,
-  ExternalProfessorSummary,
-  UserApi,
-  UserSummary,
-} from '@/generated-api';
+import { Configuration, UserApi, UserSummary } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import { cn } from '@/lib/utils';
 import { getStatusClassName, getStatusLabel } from '@/utils/project-utils';
@@ -52,7 +47,12 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
     label: 'No',
     className: 'text-center w-[50px]',
     cell: (row: ProjectSummary, i: number) => (
-      <div className={cn(row.isPrivate && 'opacity-50')}>
+      <div
+        className={cn(
+          'truncate overflow-hidden whitespace-nowrap',
+          row.isPrivate && 'opacity-50',
+        )}
+      >
         {((currentPage - 1) * itemsPerPage + i + 1).toString()}
       </div>
     ),
@@ -62,18 +62,21 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
     className: 'text-left truncate overflow-hidden whitespace-nowrap w-[300px]',
     cell: (row: ProjectSummary) => (
       <div
-        className={cn('flex items-center gap-1', row.isPrivate && 'opacity-50')}
+        className={cn(
+          'flex items-center gap-1 truncate overflow-hidden whitespace-nowrap',
+          row.isPrivate && 'opacity-50',
+        )}
       >
         {row.isPrivate ? (
           <>
-            <Lock className="h-3 w-3" />
+            <Lock className="h-3 w-3 shrink-0" />
             <Link
               href={
                 row.isAccessible
                   ? `/portal/researches/projects/${row.projectId}`
                   : '/403'
               }
-              className="hover:underline"
+              className="w-full truncate hover:underline"
             >
               {row.title}
             </Link>
@@ -81,7 +84,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
         ) : (
           <Link
             href={`/portal/researches/projects/${row.projectId}`}
-            className="hover:underline"
+            className="w-full truncate hover:underline"
           >
             {row.title}
           </Link>
@@ -93,7 +96,12 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
     label: '연구 분야',
     className: 'text-center w-[150px]',
     cell: (row: ProjectSummary) => (
-      <div className={cn(row.isPrivate && 'opacity-50')}>
+      <div
+        className={cn(
+          'truncate overflow-hidden whitespace-nowrap',
+          row.isPrivate && 'opacity-50',
+        )}
+      >
         <Badge variant="outline" className="whitespace-nowrap">
           {row.category?.name ?? ''}
         </Badge>
@@ -104,7 +112,12 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
     label: '연구 상태',
     className: 'text-center w-[150px]',
     cell: (row: ProjectSummary) => (
-      <div className={cn(row.isPrivate && 'opacity-50')}>
+      <div
+        className={cn(
+          'truncate overflow-hidden whitespace-nowrap',
+          row.isPrivate && 'opacity-50',
+        )}
+      >
         <Badge
           className={cn('whitespace-nowrap', getStatusClassName(row.status))}
         >
@@ -116,44 +129,78 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
   {
     label: 'PI',
     className: 'text-center w-[130px]',
-    cell: (row: ProjectSummary) => (
-      <div className={cn(row.isPrivate && 'opacity-50')}>
-        {row.piList
-          ?.map((pi: ExternalProfessorSummary) => pi.name)
-          .filter(Boolean)
-          .join(', ') || ''}
-      </div>
-    ),
+    cell: (row: ProjectSummary) => {
+      const names = row.piList?.map((pi) => pi.name).filter(Boolean) ?? [];
+      const display =
+        names.length > 1
+          ? `${names.slice(0, 1).join(', ')} 외 ${names.length - 1}명`
+          : names.join(', ');
+      return (
+        <div
+          className={cn(
+            'truncate overflow-hidden whitespace-nowrap',
+            row.isPrivate && 'opacity-50',
+          )}
+        >
+          {display}
+        </div>
+      );
+    },
   },
   {
     label: '참여 교수',
     className: 'text-center w-[130px]',
-    cell: (row: ProjectSummary) => (
-      <div className={cn(row.isPrivate && 'opacity-50')}>
-        {row.practicalProfessors
-          ?.map(
-            (practicalProfessor: ExternalProfessorSummary) =>
-              practicalProfessor.name,
-          )
-          .filter(Boolean)
-          .join(', ') || ''}
-      </div>
-    ),
+    cell: (row: ProjectSummary) => {
+      const names =
+        row.practicalProfessors?.map((prof) => prof.name).filter(Boolean) ?? [];
+      const display =
+        names.length > 1
+          ? `${names.slice(0, 1).join(', ')} 외 ${names.length - 1}명`
+          : names.join(', ');
+      return (
+        <div
+          className={cn(
+            'truncate overflow-hidden whitespace-nowrap',
+            row.isPrivate && 'opacity-50',
+          )}
+        >
+          {display}
+        </div>
+      );
+    },
   },
   {
     label: '실무 책임자',
     className: 'text-center w-[130px]',
-    cell: (row: ProjectSummary) => (
-      <div className={cn(row.isPrivate && 'opacity-50')}>
-        {row.leaders?.map((leader) => leader.name).join(', ') ?? '-'}
-      </div>
-    ),
+    cell: (row: ProjectSummary) => {
+      const names =
+        row.leaders?.map((leader) => leader.name).filter(Boolean) ?? [];
+      const display =
+        names.length > 1
+          ? `${names.slice(0, 1).join(', ')} 외 ${names.length - 1}명`
+          : names.join(', ');
+      return (
+        <div
+          className={cn(
+            'truncate overflow-hidden whitespace-nowrap',
+            row.isPrivate && 'opacity-50',
+          )}
+        >
+          {display || '-'}
+        </div>
+      );
+    },
   },
   {
     label: '실무 연구자',
     className: 'text-center w-[130px]',
     cell: (row: ProjectSummary) => (
-      <div className={cn(row.isPrivate && 'opacity-50')}>
+      <div
+        className={cn(
+          'truncate overflow-hidden whitespace-nowrap',
+          row.isPrivate && 'opacity-50',
+        )}
+      >
         {`${row.participantCount ?? 0}명`}
       </div>
     ),
@@ -162,7 +209,12 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
     label: '연구 기간',
     className: 'text-center w-[200px]',
     cell: (row: ProjectSummary) => (
-      <div className={cn(row.isPrivate && 'opacity-50')}>
+      <div
+        className={cn(
+          'truncate overflow-hidden whitespace-nowrap',
+          row.isPrivate && 'opacity-50',
+        )}
+      >
         {`${row.startDate?.toISOString().substring(0, 10)} ~ ${
           row.endDate ? row.endDate.toISOString().substring(0, 10) : ''
         }`}

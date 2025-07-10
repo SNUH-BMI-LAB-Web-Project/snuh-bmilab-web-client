@@ -381,8 +381,9 @@ export default function TimelineCard({
             if (!v) setEditTarget(null);
           }}
           initialData={editTarget}
-          onSubmit={(data) => {
-            handleUpdate(data);
+          onSubmit={async (data) => {
+            await handleUpdate(data);
+            await fetchTimelines();
           }}
         />
       )}
