@@ -82,10 +82,10 @@ export default function AffiliationModal() {
     fetchCategorys();
   }, []);
 
-  // 새 소속 추가
+  // 새 구분 추가
   const handleAddField = async () => {
     if (!newFieldName.trim()) {
-      toast.error('소속명을 입력해주세요.');
+      toast.error('구분명을 입력해주세요.');
       return;
     }
 
@@ -94,7 +94,7 @@ export default function AffiliationModal() {
         (field) => field?.name?.toLowerCase() === newFieldName.toLowerCase(),
       )
     ) {
-      toast.error('이미 존재하는 소속입니다.');
+      toast.error('이미 존재하는 구분입니다.');
       return;
     }
 
@@ -103,20 +103,20 @@ export default function AffiliationModal() {
         projectCategoryRequest: { name: newFieldName.trim() },
       });
 
-      toast.success('소속이 성공적으로 추가되었습니다.');
+      toast.success('구분이 성공적으로 추가되었습니다.');
 
       const res = await categoryApi.getAllProjectCategories(); // 최신 목록 반영
       setAffiliations(res.categories ?? []);
       setNewFieldName('');
     } catch (error) {
-      toast.error('소속 추가 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      toast.error('구분 추가 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 
-  // 소속 수정
+  // 구분 수정
   const handleEditField = async () => {
     if (!editFieldName.trim()) {
-      toast.error('소속 이름을 입력해주세요.');
+      toast.error('구분 이름을 입력해주세요.');
       return;
     }
 
@@ -127,7 +127,7 @@ export default function AffiliationModal() {
           field?.name?.toLowerCase() === editFieldName.toLowerCase(),
       )
     ) {
-      toast.error('이미 존재하는 소속입니다.');
+      toast.error('이미 존재하는 구분입니다.');
       return;
     }
 
@@ -137,31 +137,31 @@ export default function AffiliationModal() {
         projectCategoryRequest: { name: editFieldName.trim() },
       });
 
-      toast.success('소속이 성공적으로 수정되었습니다.');
+      toast.success('구분이 성공적으로 수정되었습니다.');
 
       const res = await categoryApi.getAllProjectCategories();
       setAffiliations(res.categories ?? []);
       setEditingField(null);
       setEditFieldName('');
     } catch (error) {
-      toast.error('소속 수정 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      toast.error('구분 수정 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 
-  // 소속 삭제
+  // 구분 삭제
   const handleDeleteField = async () => {
     try {
       await adminCategoryApi.deleteById({
         categoryId: deleteField?.categoryId || -1,
       });
 
-      toast.success('소속이 성공적으로 삭제되었습니다.');
+      toast.success('구분이 성공적으로 삭제되었습니다.');
 
       const res = await categoryApi.getAllProjectCategories();
       setAffiliations(res.categories ?? []);
       setDeleteField(null);
     } catch (error) {
-      toast.error('소속 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      toast.error('구분 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
   };
 
@@ -194,33 +194,33 @@ export default function AffiliationModal() {
         <DialogTrigger asChild>
           <Button variant="outline">
             <Building2 className="mr-2 h-4 w-4" />
-            소속 관리
+            구분 관리
           </Button>
         </DialogTrigger>
         <DialogContent className="max-h-[90vh] !max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              소속 관리
+              구분 관리
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-6">
-            {/* 새 소속 추가 */}
+            {/* 새 구분 추가 */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <Plus className="h-5 w-5" />새 소속 추가
+                  <Plus className="h-5 w-5" />새 구분 추가
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex gap-3">
                   <div className="flex-1">
                     <Label htmlFor="newField" className="sr-only">
-                      소속명
+                      구분명
                     </Label>
                     <Input
                       id="newField"
-                      placeholder="소속명을 입력하세요 (예: 연구원 및 인턴)"
+                      placeholder="구분명을 입력하세요 (예: 연구원 및 인턴)"
                       value={newFieldName}
                       onChange={(e) => setNewFieldName(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleAddField()}
@@ -245,11 +245,11 @@ export default function AffiliationModal() {
               </CardContent>
             </Card>
 
-            {/* 소속 목록 */}
+            {/* 구분 목록 */}
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">소속 목록</CardTitle>
+                  <CardTitle className="text-lg">구분 목록</CardTitle>
                   <Badge variant="secondary" className="text-sm">
                     총 {affiliations.length}개
                   </Badge>
@@ -259,13 +259,13 @@ export default function AffiliationModal() {
                 {affiliations.length === 0 ? (
                   <div className="py-8 text-center">
                     <BookOpen className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-                    <p className="text-gray-500">등록된 소속이 없습니다.</p>
+                    <p className="text-gray-500">등록된 구분이 없습니다.</p>
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="pl-6">소속명</TableHead>
+                        <TableHead className="pl-6">구분명</TableHead>
                         <TableHead className="w-[100px] text-center">
                           액션
                         </TableHead>
@@ -358,10 +358,10 @@ export default function AffiliationModal() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <Trash2 className="h-5 w-5" />
-              소속 삭제 확인
+              구분 삭제 확인
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
-              <strong>{deleteField?.name}</strong> 소속을 정말 삭제하시겠습니까?
+              <strong>{deleteField?.name}</strong> 구분을 정말 삭제하시겠습니까?
               <br />이 작업은 되돌릴 수 없습니다.
             </AlertDialogDescription>
           </AlertDialogHeader>
