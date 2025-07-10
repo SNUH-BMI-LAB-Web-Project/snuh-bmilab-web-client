@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Home, Building, RotateCcw, Calendar } from 'lucide-react';
 import {
@@ -17,7 +17,7 @@ interface WorkSchedulePickerProps {
   disabled?: boolean;
 }
 
-interface WorkSchedule {
+export interface WorkSchedule {
   monday: { morning: string; afternoon: string };
   tuesday: { morning: string; afternoon: string };
   wednesday: { morning: string; afternoon: string };
@@ -46,38 +46,33 @@ export default function WorkSchedulePicker({
   onChange,
   disabled = false,
 }: WorkSchedulePickerProps) {
-  const [schedule, setSchedule] = useState<WorkSchedule>(value);
-
   const handleTimeSlotChange = (
     day: keyof WorkSchedule,
     timeSlot: 'morning' | 'afternoon',
     workType: string,
   ) => {
     const newSchedule = {
-      ...schedule,
+      ...value,
       [day]: {
-        ...schedule[day],
+        ...value[day],
         [timeSlot]: workType,
       },
     };
-    setSchedule(newSchedule);
     onChange(newSchedule);
   };
 
   const handleDayChange = (day: string, workType: string) => {
     const newSchedule = {
-      ...schedule,
+      ...value,
       [day]: {
         morning: workType,
         afternoon: workType,
       },
     };
-    setSchedule(newSchedule);
     onChange(newSchedule);
   };
 
   const resetToDefault = () => {
-    setSchedule(DEFAULT_SCHEDULE);
     onChange(DEFAULT_SCHEDULE);
   };
 
@@ -92,7 +87,7 @@ export default function WorkSchedulePicker({
     const summary = { office: 0, remote: 0, off: 0 };
     DAYS.forEach((day) => {
       const dayKey = day.key as keyof WorkSchedule;
-      const daySchedule = schedule[dayKey];
+      const daySchedule = value[dayKey];
 
       if (daySchedule.morning === 'office') {
         summary.office += 0.5;
@@ -152,7 +147,7 @@ export default function WorkSchedulePicker({
         <div className="divide-y divide-gray-100">
           {DAYS.map((day) => {
             const dayKey = day.key as keyof WorkSchedule;
-            const daySchedule = schedule[dayKey];
+            const daySchedule = value[dayKey];
             const morningOption = getWorkOptionInfo(daySchedule.morning);
             const afternoonOption = getWorkOptionInfo(daySchedule.afternoon);
 

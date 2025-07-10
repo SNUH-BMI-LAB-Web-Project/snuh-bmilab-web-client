@@ -57,7 +57,7 @@ export default function EmailConfirmationModal({
 
     try {
       // email로 해당 유저 검색 -> id를 가져오기 위함
-      const searchResult = await userApi.searchUsers({
+      const searchResult = await userApi.getAllUsers({
         filterBy: 'email',
         filterValue: userData.email,
       });
