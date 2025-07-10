@@ -153,18 +153,15 @@ export default function ProjectInfoForm({
                 <div className="flex flex-col">
                   <span className="mb-1 font-semibold">실무 연구자</span>
                   <div className="text-muted-foreground flex flex-wrap gap-1 text-sm font-normal">
-                    {project.participants ? (
+                    {project.participants && project.participants.length > 0 ? (
                       project.participants.map((user, index) => (
                         <span key={user.userId} className="flex items-center">
                           <UserPopover user={user} />
-                          {index < (project.participants?.length ?? 0) - 1 &&
-                            ','}
+                          {index < project.participants!.length - 1 && ','}
                         </span>
                       ))
                     ) : (
-                      <div className="text-muted-foreground text-xs">
-                        참여 중인 실무 연구자가 없습니다
-                      </div>
+                      <div className="text-muted-foreground text-sm">없음</div>
                     )}
                   </div>
                 </div>
