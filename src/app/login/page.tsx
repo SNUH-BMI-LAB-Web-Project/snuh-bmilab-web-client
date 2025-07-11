@@ -19,6 +19,7 @@ import { AuthApi } from '@/generated-api/apis/AuthApi';
 import { LoginRequest } from '@/generated-api/models/LoginRequest';
 import { useAuthStore } from '@/store/auth-store';
 import Cookies from 'js-cookie';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -75,7 +76,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="-mt-18 flex h-screen w-full items-center justify-center">
+    <div className="bg-muted -mt-18 flex h-screen w-full items-center justify-center">
       <div className="w-full max-w-sm">
         <div className={cn('flex flex-col gap-6')}>
           <Card>
@@ -101,12 +102,12 @@ export default function LoginPage() {
                 <div className="grid gap-3">
                   <div className="flex items-center">
                     <Label htmlFor="password">비밀번호</Label>
-                    <a
-                      href="#"
+                    <Link
+                      href="/reset-password"
                       className="text-muted-foreground ml-auto inline-block text-xs underline-offset-4 hover:underline"
                     >
                       비밀번호를 잊어버리셨나요?
-                    </a>
+                    </Link>
                   </div>
                   <div className="relative">
                     <Input
