@@ -77,7 +77,7 @@ export function AppSidebar() {
       collapsible="icon"
       className="fixed top-[70px] left-0 z-20 flex h-[calc(100vh-70px)] w-[16rem] flex-col border-r"
     >
-      <SidebarContent className="flex-1 overflow-auto">
+      <SidebarContent className="flex-1 overflow-auto pt-4">
         <NavMain items={navMain} />
       </SidebarContent>
       <SidebarFooter className="shrink-0 border-t bg-white px-4 py-4">
