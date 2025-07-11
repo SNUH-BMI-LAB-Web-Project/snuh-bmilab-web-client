@@ -37,6 +37,12 @@ export interface ExternalProfessorRequest {
      * @memberof ExternalProfessorRequest
      */
     department?: string;
+    /**
+     * 직책
+     * @type {string}
+     * @memberof ExternalProfessorRequest
+     */
+    position?: string;
 }
 
 /**
@@ -61,6 +67,7 @@ export function ExternalProfessorRequestFromJSONTyped(json: any, ignoreDiscrimin
         'name': json['name'],
         'organization': json['organization'],
         'department': json['department'] == null ? undefined : json['department'],
+        'position': json['position'] == null ? undefined : json['position'],
     };
 }
 
@@ -78,6 +85,7 @@ export function ExternalProfessorRequestToJSONTyped(value?: ExternalProfessorReq
         'name': value['name'],
         'organization': value['organization'],
         'department': value['department'],
+        'position': value['position'],
     };
 }
 

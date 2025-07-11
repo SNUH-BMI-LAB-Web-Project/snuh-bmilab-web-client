@@ -50,9 +50,8 @@ export default function ExternalProfessorSelectModal({
     position: '',
   });
 
-  // TODO: 추후 직 관련 키 추가
   const getProfessorKey = (p: ExternalProfessorItem) =>
-    `${p.name}-${p.organization}-${p.department}`;
+    `${p.name}-${p.organization}-${p.department}-${p.position}`;
 
   const api = new AdminExternalProfessorApi(
     new Configuration({
@@ -93,7 +92,7 @@ export default function ExternalProfessorSelectModal({
           name: formData.name,
           organization: formData.organization,
           department: formData.department,
-          // TODO: 직책 추가 (position: formData.position)
+          position: formData.position,
         },
       });
       resetForm();
@@ -197,7 +196,7 @@ export default function ExternalProfessorSelectModal({
                   maxLength={20}
                   placeholder="직책 예시"
                 />
-                {formData.department.length >= 20 && (
+                {formData.position.length >= 20 && (
                   <p className="text-destructive mt-1 text-sm">
                     직책명은 최대 20자까지 입력 가능합니다.
                   </p>
@@ -271,16 +270,11 @@ export default function ExternalProfessorSelectModal({
                                 <span>{professor.organization}</span>
                               </div>
                             </TableCell>
-                            <TableCell>
-                              <span className="text-gray-700">
-                                {professor.department}
-                              </span>
+                            <TableCell className="min-w-[120px]">
+                              <span>{professor.department}</span>
                             </TableCell>
-                            <TableCell>
-                              <span className="text-gray-700">
-                                {/* TODO: 직책으로 변경 ({professor.position}) */}
-                                {professor.department}
-                              </span>
+                            <TableCell className="min-w-[120px]">
+                              <span>{professor.position}</span>
                             </TableCell>
                             <TableCell className="flex items-center justify-center gap-2">
                               <Button
