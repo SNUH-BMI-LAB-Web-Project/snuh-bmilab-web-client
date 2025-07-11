@@ -4,12 +4,21 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { LockKeyhole, UserCheck, UserPen, Camera, Check } from 'lucide-react';
+import {
+  LockKeyhole,
+  UserCheck,
+  UserPen,
+  Camera,
+  Check,
+  Plus,
+} from 'lucide-react';
 import { UserApi } from '@/generated-api/apis/UserApi';
 import { Configuration } from '@/generated-api/runtime';
 import {
   UpdateUserRequest,
   UpdateUserRequestAffiliationEnum,
+  UserEducationRequestStatusEnum,
+  UserEducationRequestTypeEnum,
   UserEducationSummary,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
@@ -63,32 +72,15 @@ export default function ProfileEditForm() {
     null,
   );
 
+  const [seatFloor, setSeatFloor] = useState(''); // 층
+  const [seatNumberOnly, setSeatNumberOnly] = useState(''); // 번호
+
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string>(
     '/default-profile-image.svg',
   );
   const [isEditable, setIsEditable] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const editableFields = [
-    'name',
-    'email',
-    'organization',
-    'department',
-    'affiliation',
-    'phoneNumber',
-    'seatNumber',
-  ] as const;
-
-  const fieldLabels: Record<(typeof editableFields)[number], string> = {
-    name: '이름',
-    email: '이메일',
-    organization: '기관',
-    department: '부서',
-    affiliation: '구분',
-    phoneNumber: '전화번호',
-    seatNumber: '좌석번호',
-  };
 
   const accessToken = useAuthStore((s) => s.accessToken);
 
@@ -105,6 +97,10 @@ export default function ProfileEditForm() {
         setSelectedCategoryIds(existingCategoryIds);
 
         if (data) {
+          const seatParts = data.seatNumber?.split('-') ?? [];
+          const floor = seatParts[1] ?? '';
+          const number = seatParts[2] ?? '';
+
           setFormData({
             name: data.name || '',
             email: data.email || '',
@@ -116,6 +112,10 @@ export default function ProfileEditForm() {
             phoneNumber: data.phoneNumber || '',
             seatNumber: data.seatNumber || '',
           });
+
+          setSeatFloor(floor);
+          setSeatNumberOnly(number);
+
           setProfileImagePreview(
             data.profileImageUrl || '/default-profile-image.svg',
           );
@@ -163,10 +163,11 @@ export default function ProfileEditForm() {
   };
 
   const toRequest = (edu: UserEducationSummary) => ({
-    title: edu.title,
-    status: edu.status,
-    startYearMonth: edu.startYearMonth ? edu.startYearMonth : undefined,
+    title: edu.title!,
+    status: edu.status! as UserEducationRequestStatusEnum,
+    startYearMonth: edu.startYearMonth!,
     endYearMonth: edu.endYearMonth ? edu.endYearMonth : undefined,
+    type: edu.type ?? UserEducationRequestTypeEnum.Bachelor,
   });
 
   const newCategoryIds = selectedCategoryIds.filter(
@@ -195,6 +196,7 @@ export default function ProfileEditForm() {
 
     const payload: ExtendedUpdateUserRequest = {
       ...formData,
+      seatNumber: `융합의학기술원-${seatFloor}-${seatNumberOnly}`,
       affiliation: formData.affiliation ?? null,
       newCategoryIds,
       deletedCategoryIds,
@@ -254,16 +256,6 @@ export default function ProfileEditForm() {
     }
   };
 
-  const maxLengthMap: Partial<Record<(typeof editableFields)[number], number>> =
-    {
-      name: 10,
-      email: 50,
-      organization: 50,
-      department: 20,
-      phoneNumber: 13,
-      seatNumber: 10,
-    };
-
   return (
     <div className="flex flex-row gap-10">
       {/* 프로필 사진 */}
@@ -297,15 +289,125 @@ export default function ProfileEditForm() {
 
       {/* 개인정보 수정 */}
       <div className="w-3/4 space-y-6">
-        {editableFields.map((field) => (
-          <div key={field} className="flex flex-col gap-2">
-            <Label className="font-semibold">
-              {fieldLabels[field]}
-              {(field === 'name' || field === 'email') && (
-                <span className="text-destructive">*</span>
+        {/* 이름 */}
+        <div className="flex flex-col gap-2">
+          <Label className="font-semibold">
+            이름<span className="text-destructive">*</span>
+          </Label>
+          <div className="relative">
+            <Input
+              placeholder="홍길동"
+              value={formData.name}
+              disabled={!isEditable}
+              maxLength={10}
+              className={`w-full pr-16 ${!isEditable ? 'bg-muted' : 'bg-white'}`}
+              onChange={(e) => handleChange('name', e.target.value)}
+            />
+            {isEditable && (
+              <span className="text-muted-foreground absolute right-2 bottom-2.5 text-xs">
+                {formData.name.length}/10
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* 이메일 */}
+        <div className="flex flex-col gap-2">
+          <Label className="font-semibold">
+            이메일<span className="text-destructive">*</span>
+          </Label>
+          <div className="relative">
+            <Input
+              placeholder="bmi-lab@example.com"
+              value={formData.email}
+              disabled={!isEditable}
+              maxLength={50}
+              className={`w-full pr-16 ${!isEditable ? 'bg-muted' : 'bg-white'}`}
+              onChange={(e) => handleChange('email', e.target.value)}
+            />
+            {isEditable && (
+              <span className="text-muted-foreground absolute right-2 bottom-2.5 text-xs">
+                {formData.email.length}/50
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* 전화번호 */}
+        <div className="flex flex-col gap-2">
+          <Label className="font-semibold">전화번호</Label>
+          <div className="relative">
+            <Input
+              placeholder="010-1234-5678"
+              value={formData.phoneNumber}
+              disabled={!isEditable}
+              maxLength={13}
+              className={`w-full pr-16 ${!isEditable ? 'bg-muted' : 'bg-white'}`}
+              onChange={(e) => {
+                const { value: rawValue } = e.target;
+                let value = rawValue;
+                // 여기서 field === 'phoneNumber' → 이미 해당 인풋은 phoneNumber니까 그냥 처리
+                const digits = value.replace(/\D/g, '').slice(0, 11);
+                if (digits.length <= 3) value = digits;
+                else if (digits.length <= 7)
+                  value = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+                else
+                  value = `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+
+                handleChange('phoneNumber', value);
+              }}
+            />
+
+            {isEditable && (
+              <span className="text-muted-foreground absolute right-2 bottom-2.5 text-xs">
+                {formData.phoneNumber.length}/13
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* 주 소속 정보 */}
+        <div className="flex flex-col gap-2">
+          <Label className="font-semibold">BMI LAB 소속 정보</Label>
+          <div className="grid grid-cols-3 gap-2 rounded-md border p-3">
+            <div className="flex flex-col gap-2">
+              <Label>
+                기관<span className="text-destructive">*</span>
+              </Label>
+              <Input
+                placeholder="서울대학교병원 의생명정보학연구실"
+                value={formData.organization}
+                disabled={!isEditable}
+                maxLength={50}
+                className="w-full bg-white pr-16"
+                onChange={(e) => handleChange('organization', e.target.value)}
+              />
+              {isEditable && (
+                <span className="text-muted-foreground absolute right-2 bottom-2.5 text-xs">
+                  {formData.organization.length}/50
+                </span>
               )}
-            </Label>
-            {field === 'affiliation' ? (
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label>부서</Label>
+              <Input
+                placeholder="AI팀"
+                value={formData.department}
+                disabled={!isEditable}
+                maxLength={20}
+                className="w-full bg-white pr-16"
+                onChange={(e) => handleChange('department', e.target.value)}
+              />
+              {isEditable && (
+                <span className="text-muted-foreground absolute right-2 bottom-2.5 text-xs">
+                  {formData.department.length}/20
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label>구분</Label>
               <Select
                 disabled={!isEditable}
                 value={formData.affiliation ?? 'none'}
@@ -318,71 +420,48 @@ export default function ProfileEditForm() {
                   )
                 }
               >
-                <SelectTrigger
-                  className={`w-full ${!isEditable ? 'bg-muted' : 'bg-white'}`}
-                >
+                <SelectTrigger className="w-full bg-white">
                   <SelectValue placeholder="구분 선택" />
                 </SelectTrigger>
                 <SelectContent side="bottom" sideOffset={4} className="!p-0">
-                  {affiliationOptions.map(({ value, label }) => {
-                    const isSelected = formData.affiliation === value;
-                    return (
-                      <SelectItem
-                        key={value}
-                        value={value}
-                        className={cn(
-                          'relative flex cursor-pointer items-center rounded-sm px-3 py-2 text-sm transition-colors select-none',
-                          isSelected
-                            ? 'bg-accent text-accent-foreground font-semibold'
-                            : 'hover:bg-muted',
-                        )}
-                      >
-                        {label}
-                      </SelectItem>
-                    );
-                  })}
+                  {affiliationOptions.map(({ value, label }) => (
+                    <SelectItem
+                      key={value}
+                      value={value}
+                      className={cn(
+                        'relative flex cursor-pointer items-center rounded-sm px-3 py-2 text-sm transition-colors select-none',
+                        formData.affiliation === value
+                          ? 'bg-accent text-accent-foreground font-semibold'
+                          : 'hover:bg-muted',
+                      )}
+                    >
+                      {label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-            ) : (
-              <div className="relative">
-                <Input
-                  value={formData[field]}
-                  disabled={!isEditable}
-                  maxLength={maxLengthMap[field]}
-                  className={`w-full pr-16 ${!isEditable ? 'bg-muted' : 'bg-white'}`}
-                  onChange={(e) => {
-                    let { value } = e.target;
-
-                    // 전화번호는 숫자만 허용 + 하이픈 자동 삽입
-                    if (field === 'phoneNumber') {
-                      const digits = value.replace(/\D/g, '').slice(0, 11);
-                      if (digits.length <= 3) value = digits;
-                      else if (digits.length <= 7)
-                        value = `${digits.slice(0, 3)}-${digits.slice(3)}`;
-                      else
-                        value = `${digits.slice(0, 3)}-${digits.slice(
-                          3,
-                          7,
-                        )}-${digits.slice(7)}`;
-                    }
-
-                    handleChange(field, value);
-                  }}
-                />
-                {isEditable && maxLengthMap[field] && (
-                  <span className="text-muted-foreground absolute right-2 bottom-2.5 text-xs">
-                    {formData[field]?.length ?? 0}/{maxLengthMap[field]}
-                  </span>
-                )}
-              </div>
-            )}
+            </div>
           </div>
-        ))}
+        </div>
 
         <div className="flex w-full flex-col gap-2">
-          <Label className="font-semibold">연구 분야</Label>
+          <div className="flex items-center justify-between">
+            <Label className="font-semibold">기타 소속 정보</Label>
+            {isEditable && (
+              <Button variant="outline">
+                <Plus />
+                기타 소속 추가
+              </Button>
+            )}
+          </div>
+          <div className="justfy-center text-muted-foreground flex flex-col items-center gap-2 rounded-md border px-2 py-6 text-sm">
+            기재된 기타 소속 정보가 없습니다.
+          </div>
+        </div>
 
-          {/* 셀렉트 트리거 영역 */}
+        {/* 연구 분야 */}
+        <div className="flex w-full flex-col gap-2">
+          <Label className="font-semibold">연구 분야</Label>
           <Select open={undefined}>
             <SelectTrigger
               disabled={!isEditable}
@@ -396,12 +475,35 @@ export default function ProfileEditForm() {
                       )
                       .map((c) => c.name)
                       .join(', ')
-                  : '연구 분야 선택'}
+                  : '선택 없음'}
               </div>
             </SelectTrigger>
 
-            {/* 커스텀 다중 선택 컨텐츠 */}
             <SelectContent>
+              {/* 선택 안 함 항목 */}
+              <div
+                role="button"
+                tabIndex={0}
+                className={cn(
+                  'relative flex cursor-pointer items-center rounded-md border border-white px-3 py-2 text-sm select-none',
+                  selectedCategoryIds.length === 0
+                    ? 'bg-accent font-medium'
+                    : 'hover:bg-accent',
+                )}
+                onClick={() => setSelectedCategoryIds([])}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    setSelectedCategoryIds([]);
+                  }
+                }}
+              >
+                <span>선택 없음</span>
+                {selectedCategoryIds.length === 0 && (
+                  <Check className="text-primary absolute right-2 h-4 w-4" />
+                )}
+              </div>
+
+              {/* 실제 카테고리 목록 */}
               {categoryList.map((cat) => {
                 const isSelected = selectedCategoryIds.includes(
                   cat.categoryId!,
@@ -415,12 +517,12 @@ export default function ProfileEditForm() {
                       'relative flex cursor-pointer items-center rounded-md border border-white px-3 py-2 text-sm select-none',
                       isSelected ? 'bg-accent font-medium' : 'hover:bg-accent',
                     )}
+                    onClick={() => toggleCategory(cat.categoryId!)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         toggleCategory(cat.categoryId!);
                       }
                     }}
-                    onClick={() => toggleCategory(cat.categoryId!)}
                   >
                     <span>{cat.name}</span>
                     {isSelected && (
@@ -433,6 +535,48 @@ export default function ProfileEditForm() {
           </Select>
         </div>
 
+        <div className="flex flex-col gap-2">
+          <Label className="font-semibold">좌석 정보</Label>
+          <div className="grid grid-cols-3 gap-2 rounded-md border p-3">
+            {/* 건물 */}
+            <div className="flex flex-col gap-2">
+              <Label>건물</Label>
+              <Input
+                disabled
+                value="융합의학기술원"
+                className="w-full bg-white pr-16"
+              />
+            </div>
+
+            {/* 층 */}
+            <div className="flex flex-col gap-2">
+              <Label>층</Label>
+              <Input
+                placeholder="MM"
+                value={seatFloor}
+                disabled={!isEditable}
+                maxLength={10}
+                className="w-full bg-white pr-16"
+                onChange={(e) => setSeatFloor(e.target.value)}
+              />
+            </div>
+
+            {/* 번호 */}
+            <div className="flex flex-col gap-2">
+              <Label>번호</Label>
+              <Input
+                placeholder="NN"
+                value={seatNumberOnly}
+                disabled={!isEditable}
+                maxLength={10}
+                className="w-full bg-white pr-16"
+                onChange={(e) => setSeatNumberOnly(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 학력 */}
         <EducationEditor
           educations={educations}
           editMode={isEditable}
