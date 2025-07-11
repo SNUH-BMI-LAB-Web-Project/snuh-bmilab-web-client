@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { UserItem } from '@/generated-api';
 import { Badge } from '@/components/ui/badge';
 import { affiliationLabelMap } from '@/constants/affiliation-enum';
+import { formatSeatNumber } from '@/utils/user-utils';
 
 export default function UserInfoCard({ user }: { user: UserItem }) {
   const router = useRouter();
@@ -55,7 +56,9 @@ export default function UserInfoCard({ user }: { user: UserItem }) {
               variant="outline"
               className="max-w-[70px] shrink-0 truncate text-left"
             >
-              <span className="block truncate">{user.seatNumber}</span>
+              <span className="block truncate">
+                {formatSeatNumber(user.seatNumber)}
+              </span>
             </Badge>
           )}
         </div>
