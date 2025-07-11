@@ -26,7 +26,11 @@ import {
   UserEducationSummaryStatusEnum,
   UserProjectItem,
 } from '@/generated-api';
-import { statusColorMap, statusLabelMap } from '@/constants/education-enum';
+import {
+  statusColorMap,
+  statusLabelMap,
+  typeLabelMap,
+} from '@/constants/education-enum';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   PROJECT_STATUS_CLASSES_USER_DETAIL,
@@ -35,6 +39,7 @@ import {
 import { format } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
 import { affiliationLabelMap } from '@/constants/affiliation-enum';
+import { formatSeatNumber } from '@/utils/user-utils';
 
 interface UserDetailProps {
   user: UserDetailType;
@@ -177,7 +182,9 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                         좌석 번호
                       </p>
                       <p className="text-sm font-semibold text-gray-700">
-                        {user.seatNumber}
+                        {user.seatNumber
+                          ? formatSeatNumber(user.seatNumber)
+                          : '좌석 정보 없음'}
                       </p>
                     </div>
                   </div>
@@ -366,7 +373,8 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                                 <div className="rounded-lg border border-gray-200 bg-gray-50 p-5 transition-colors hover:bg-gray-100/50">
                                   {/* 학력 제목 */}
                                   <h3 className="mb-2 text-sm font-semibold text-gray-900">
-                                    {education.title}
+                                    {education.title}{' '}
+                                    {typeLabelMap[education.type!]}
                                   </h3>
 
                                   {/* 기간 및 상태 */}

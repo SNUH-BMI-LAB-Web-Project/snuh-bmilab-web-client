@@ -764,6 +764,7 @@ export function ProjectForm({
                 selectedUsers={leaders}
                 onChange={(userIds) => setLeaders(userIds)}
                 placeholder="실무 책임자 이름을 입력하세요"
+                excludeUsers={participants}
               />
             </div>
 
@@ -777,6 +778,7 @@ export function ProjectForm({
                 selectedUsers={participants}
                 onChange={(userIds) => setParticipants(userIds)}
                 placeholder="실무 연구자 이름을 입력하세요"
+                excludeUsers={leaders}
               />
             </div>
           </div>
