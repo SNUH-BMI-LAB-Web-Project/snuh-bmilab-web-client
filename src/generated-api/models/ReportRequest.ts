@@ -20,25 +20,25 @@ import { mapValues } from '../runtime';
  */
 export interface ReportRequest {
     /**
-     * 
+     * 프로젝트 아이디
      * @type {number}
      * @memberof ReportRequest
      */
-    projectId?: number;
+    projectId: number;
     /**
-     * 
+     * 생성 일자
      * @type {Date}
      * @memberof ReportRequest
      */
-    date?: Date;
+    date: Date;
     /**
-     * 
+     * 업무 내용
      * @type {string}
      * @memberof ReportRequest
      */
-    content?: string;
+    content: string;
     /**
-     * 
+     * 일반 첨부파일 ID 리스트
      * @type {Array<string>}
      * @memberof ReportRequest
      */
@@ -49,6 +49,9 @@ export interface ReportRequest {
  * Check if a given object implements the ReportRequest interface.
  */
 export function instanceOfReportRequest(value: object): value is ReportRequest {
+    if (!('projectId' in value) || value['projectId'] === undefined) return false;
+    if (!('date' in value) || value['date'] === undefined) return false;
+    if (!('content' in value) || value['content'] === undefined) return false;
     return true;
 }
 
@@ -62,9 +65,9 @@ export function ReportRequestFromJSONTyped(json: any, ignoreDiscriminator: boole
     }
     return {
         
-        'projectId': json['projectId'] == null ? undefined : json['projectId'],
-        'date': json['date'] == null ? undefined : (new Date(json['date'])),
-        'content': json['content'] == null ? undefined : json['content'],
+        'projectId': json['projectId'],
+        'date': (new Date(json['date'])),
+        'content': json['content'],
         'fileIds': json['fileIds'] == null ? undefined : json['fileIds'],
     };
 }
@@ -81,7 +84,7 @@ export function ReportRequestToJSONTyped(value?: ReportRequest | null, ignoreDis
     return {
         
         'projectId': value['projectId'],
-        'date': value['date'] == null ? undefined : ((value['date']).toISOString().substring(0,10)),
+        'date': ((value['date']).toISOString().substring(0,10)),
         'content': value['content'],
         'fileIds': value['fileIds'],
     };

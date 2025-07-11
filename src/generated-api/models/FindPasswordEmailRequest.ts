@@ -20,17 +20,18 @@ import { mapValues } from '../runtime';
  */
 export interface FindPasswordEmailRequest {
     /**
-     * 
+     * 이메일 주소
      * @type {string}
      * @memberof FindPasswordEmailRequest
      */
-    email?: string;
+    email: string;
 }
 
 /**
  * Check if a given object implements the FindPasswordEmailRequest interface.
  */
 export function instanceOfFindPasswordEmailRequest(value: object): value is FindPasswordEmailRequest {
+    if (!('email' in value) || value['email'] === undefined) return false;
     return true;
 }
 
@@ -44,7 +45,7 @@ export function FindPasswordEmailRequestFromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
-        'email': json['email'] == null ? undefined : json['email'],
+        'email': json['email'],
     };
 }
 

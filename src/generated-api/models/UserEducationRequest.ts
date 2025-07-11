@@ -24,19 +24,25 @@ export interface UserEducationRequest {
      * @type {string}
      * @memberof UserEducationRequest
      */
-    title?: string;
+    title: string;
     /**
      * 학적 상태 (재학, 휴학, 졸업)
      * @type {string}
      * @memberof UserEducationRequest
      */
-    status?: UserEducationRequestStatusEnum;
+    status: UserEducationRequestStatusEnum;
+    /**
+     * 학력 구분 (고등학교, 학사, 석사, 박사, 석박통합)
+     * @type {string}
+     * @memberof UserEducationRequest
+     */
+    type: UserEducationRequestTypeEnum;
     /**
      * 시작 연월
      * @type {string}
      * @memberof UserEducationRequest
      */
-    startYearMonth?: string;
+    startYearMonth: string;
     /**
      * 종료 연월
      * @type {string}
@@ -56,11 +62,27 @@ export const UserEducationRequestStatusEnum = {
 } as const;
 export type UserEducationRequestStatusEnum = typeof UserEducationRequestStatusEnum[keyof typeof UserEducationRequestStatusEnum];
 
+/**
+ * @export
+ */
+export const UserEducationRequestTypeEnum = {
+    HighSchool: 'HIGH_SCHOOL',
+    Bachelor: 'BACHELOR',
+    Master: 'MASTER',
+    Doctorate: 'DOCTORATE',
+    MasterDoctorate: 'MASTER_DOCTORATE'
+} as const;
+export type UserEducationRequestTypeEnum = typeof UserEducationRequestTypeEnum[keyof typeof UserEducationRequestTypeEnum];
+
 
 /**
  * Check if a given object implements the UserEducationRequest interface.
  */
 export function instanceOfUserEducationRequest(value: object): value is UserEducationRequest {
+    if (!('title' in value) || value['title'] === undefined) return false;
+    if (!('status' in value) || value['status'] === undefined) return false;
+    if (!('type' in value) || value['type'] === undefined) return false;
+    if (!('startYearMonth' in value) || value['startYearMonth'] === undefined) return false;
     return true;
 }
 
@@ -74,9 +96,10 @@ export function UserEducationRequestFromJSONTyped(json: any, ignoreDiscriminator
     }
     return {
         
-        'title': json['title'] == null ? undefined : json['title'],
-        'status': json['status'] == null ? undefined : json['status'],
-        'startYearMonth': json['startYearMonth'] == null ? undefined : json['startYearMonth'],
+        'title': json['title'],
+        'status': json['status'],
+        'type': json['type'],
+        'startYearMonth': json['startYearMonth'],
         'endYearMonth': json['endYearMonth'] == null ? undefined : json['endYearMonth'],
     };
 }
@@ -94,6 +117,7 @@ export function UserEducationRequestToJSONTyped(value?: UserEducationRequest | n
         
         'title': value['title'],
         'status': value['status'],
+        'type': value['type'],
         'startYearMonth': value['startYearMonth'],
         'endYearMonth': value['endYearMonth'],
     };

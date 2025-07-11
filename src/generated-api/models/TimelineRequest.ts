@@ -24,13 +24,13 @@ export interface TimelineRequest {
      * @type {string}
      * @memberof TimelineRequest
      */
-    title?: string;
+    title: string;
     /**
      * 타임라인 날짜
      * @type {Date}
      * @memberof TimelineRequest
      */
-    date?: Date;
+    date: Date;
     /**
      * 
      * @type {string}
@@ -54,13 +54,13 @@ export interface TimelineRequest {
      * @type {string}
      * @memberof TimelineRequest
      */
-    type?: TimelineRequestTypeEnum;
+    type: TimelineRequestTypeEnum;
     /**
      * 타임라인 내용
      * @type {string}
      * @memberof TimelineRequest
      */
-    summary?: string;
+    summary: string;
     /**
      * 타임라인 첨부파일 ID 목록
      * @type {Array<string>}
@@ -87,6 +87,10 @@ export type TimelineRequestTypeEnum = typeof TimelineRequestTypeEnum[keyof typeo
  * Check if a given object implements the TimelineRequest interface.
  */
 export function instanceOfTimelineRequest(value: object): value is TimelineRequest {
+    if (!('title' in value) || value['title'] === undefined) return false;
+    if (!('date' in value) || value['date'] === undefined) return false;
+    if (!('type' in value) || value['type'] === undefined) return false;
+    if (!('summary' in value) || value['summary'] === undefined) return false;
     return true;
 }
 
@@ -100,13 +104,13 @@ export function TimelineRequestFromJSONTyped(json: any, ignoreDiscriminator: boo
     }
     return {
         
-        'title': json['title'] == null ? undefined : json['title'],
-        'date': json['date'] == null ? undefined : (new Date(json['date'])),
+        'title': json['title'],
+        'date': (new Date(json['date'])),
         'startTime': json['startTime'] == null ? undefined : json['startTime'],
         'endTime': json['endTime'] == null ? undefined : json['endTime'],
         'meetingPlace': json['meetingPlace'] == null ? undefined : json['meetingPlace'],
-        'type': json['type'] == null ? undefined : json['type'],
-        'summary': json['summary'] == null ? undefined : json['summary'],
+        'type': json['type'],
+        'summary': json['summary'],
         'fileIds': json['fileIds'] == null ? undefined : json['fileIds'],
     };
 }
@@ -123,7 +127,7 @@ export function TimelineRequestToJSONTyped(value?: TimelineRequest | null, ignor
     return {
         
         'title': value['title'],
-        'date': value['date'] == null ? undefined : ((value['date']).toISOString().substring(0,10)),
+        'date': ((value['date']).toISOString().substring(0,10)),
         'startTime': value['startTime'],
         'endTime': value['endTime'],
         'meetingPlace': value['meetingPlace'],

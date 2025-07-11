@@ -24,13 +24,14 @@ export interface ProjectCompleteRequest {
      * @type {Date}
      * @memberof ProjectCompleteRequest
      */
-    endDate?: Date;
+    endDate: Date;
 }
 
 /**
  * Check if a given object implements the ProjectCompleteRequest interface.
  */
 export function instanceOfProjectCompleteRequest(value: object): value is ProjectCompleteRequest {
+    if (!('endDate' in value) || value['endDate'] === undefined) return false;
     return true;
 }
 
@@ -44,7 +45,7 @@ export function ProjectCompleteRequestFromJSONTyped(json: any, ignoreDiscriminat
     }
     return {
         
-        'endDate': json['endDate'] == null ? undefined : (new Date(json['endDate'])),
+        'endDate': (new Date(json['endDate'])),
     };
 }
 
@@ -59,7 +60,7 @@ export function ProjectCompleteRequestToJSONTyped(value?: ProjectCompleteRequest
 
     return {
         
-        'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString().substring(0,10)),
+        'endDate': ((value['endDate']).toISOString().substring(0,10)),
     };
 }
 

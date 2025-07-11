@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import {
+  UserEducationRequestTypeEnum,
   UserEducationSummary,
   UserEducationSummaryStatusEnum,
 } from '@/generated-api';
@@ -16,7 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Minus, Plus } from 'lucide-react';
-import { statusLabelMap } from '@/constants/education-enum';
+import { statusLabelMap, typeLabelMap } from '@/constants/education-enum';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
@@ -38,6 +39,7 @@ export default function EducationEditor({
   const [endDates, setEndDates] = useState<(string | undefined)[]>([]);
   const [titles, setTitles] = useState<string[]>([]);
   const [ids, setIds] = useState<(number | undefined)[]>([]);
+  const [types, setTypes] = useState<UserEducationRequestTypeEnum[]>([]);
 
   useEffect(() => {
     setStatusList(
@@ -49,6 +51,9 @@ export default function EducationEditor({
     setEndDates(educations.map((e) => e.endYearMonth));
     setTitles(educations.map((e) => e.title ?? ''));
     setIds(educations.map((e) => e.educationId));
+    setTypes(
+      educations.map((e) => e.type ?? UserEducationRequestTypeEnum.Bachelor),
+    );
   }, [educations]);
 
   useEffect(() => {
@@ -68,6 +73,7 @@ export default function EducationEditor({
             startYearMonth: startDates[idx],
             endYearMonth: endDates[idx],
             title: titles[idx].trim(),
+            type: types[idx],
           }),
         );
       };
@@ -111,135 +117,163 @@ export default function EducationEditor({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex w-full flex-col gap-2">
       <div className="flex items-center justify-between">
         <Label className="font-semibold">학력</Label>
         {editMode && (
-          <Button
-            onClick={handleAdd}
-            variant="outline"
-            size="icon"
-            className="mr-2"
-          >
-            <Plus />
+          <Button onClick={handleAdd} variant="outline">
+            <Plus /> 학력 정보 추가
           </Button>
         )}
       </div>
 
-      {titles.map((_, idx) => {
-        const isEditable = editMode && ids[idx] === undefined;
-        return (
-          <div
-            key={ids[idx] ?? `new-${idx}`}
-            className="flex items-center gap-2 rounded-md border p-2"
-          >
-            {/* 상태 */}
-            <Select
-              disabled={!isEditable}
-              value={statusList[idx]}
-              onValueChange={(val) =>
-                setStatusList((prev) => {
-                  const copy = [...prev];
-                  copy[idx] = val;
-                  return copy;
-                })
-              }
-            >
-              <SelectTrigger className="min-w-[100px]">
-                <SelectValue placeholder="상태" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(statusLabelMap).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      {titles.length === 0 ? (
+        <div className="justfy-center text-muted-foreground flex flex-col items-center gap-2 rounded-md border px-2 py-6 text-sm">
+          기재된 학력 정보가 없습니다.
+        </div>
+      ) : (
+        titles.map((_, idx) => {
+          const isEditable = editMode && ids[idx] === undefined;
 
-            {/* 시작 */}
-            <Select
-              disabled={!isEditable}
-              value={startDates[idx]}
-              onValueChange={(val) =>
-                setStartDates((prev) => {
-                  const copy = [...prev];
-                  copy[idx] = val;
-                  return copy;
-                })
-              }
+          return (
+            <div
+              key={ids[idx] ?? `new-${idx}`}
+              className="flex items-center gap-2 rounded-md border p-3"
             >
-              <SelectTrigger className="min-w-[130px]">
-                <SelectValue placeholder="시작 연월" />
-              </SelectTrigger>
-              <SelectContent>
-                {yearMonthOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {/* 학교명 */}
+              <div className="relative w-full">
+                <Input
+                  disabled={!isEditable}
+                  minLength={1}
+                  maxLength={30}
+                  className="w-full pr-16"
+                  placeholder="학교 및 학과"
+                  value={titles[idx]}
+                  onChange={(e) =>
+                    setTitles((prev) => {
+                      const copy = [...prev];
+                      copy[idx] = e.target.value;
+                      return copy;
+                    })
+                  }
+                />
+                {isEditable && (
+                  <span className="text-muted-foreground absolute top-1/2 right-2 -translate-y-1/2 text-xs">
+                    {titles[idx].length}/20
+                  </span>
+                )}
+              </div>
 
-            {/* 종료 */}
-            <Select
-              disabled={!isEditable}
-              value={endDates[idx] ?? ''}
-              onValueChange={(val) =>
-                setEndDates((prev) => {
-                  const copy = [...prev];
-                  copy[idx] = val === '' ? undefined : val;
-                  return copy;
-                })
-              }
-            >
-              <SelectTrigger className="min-w-[130px]">
-                <SelectValue placeholder="종료 연월" />
-              </SelectTrigger>
-              <SelectContent>
-                {yearMonthOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* 학교명 */}
-            <div className="relative w-full">
-              <Input
+              {/* 학위 구분 */}
+              <Select
                 disabled={!isEditable}
-                minLength={1}
-                maxLength={30}
-                className="w-full pr-16"
-                placeholder="학교명 / 과정명"
-                value={titles[idx]}
-                onChange={(e) =>
-                  setTitles((prev) => {
+                value={types[idx] ?? UserEducationRequestTypeEnum.Bachelor} // 기본값 'BACHELOR'
+                onValueChange={(val) =>
+                  setTypes((prev) => {
                     const copy = [...prev];
-                    copy[idx] = e.target.value;
+                    copy[idx] = val as UserEducationRequestTypeEnum;
                     return copy;
                   })
                 }
-              />
-              <span className="text-muted-foreground absolute top-1/2 right-2 -translate-y-1/2 text-xs">
-                {titles[idx].length}/20
-              </span>
-            </div>
-
-            {/* 삭제 */}
-            {editMode && (
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => handleDelete(idx)}
               >
-                <Minus className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-        );
-      })}
+                <SelectTrigger className="min-w-[110px]">
+                  <SelectValue placeholder="구분" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(typeLabelMap).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* 상태 */}
+              <Select
+                disabled={!isEditable}
+                value={statusList[idx]}
+                onValueChange={(val) =>
+                  setStatusList((prev) => {
+                    const copy = [...prev];
+                    copy[idx] = val;
+                    return copy;
+                  })
+                }
+              >
+                <SelectTrigger className="min-w-[100px]">
+                  <SelectValue placeholder="상태" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(statusLabelMap).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* 시작 */}
+              <Select
+                disabled={!isEditable}
+                value={startDates[idx]}
+                onValueChange={(val) =>
+                  setStartDates((prev) => {
+                    const copy = [...prev];
+                    copy[idx] = val;
+                    return copy;
+                  })
+                }
+              >
+                <SelectTrigger className="min-w-[130px]">
+                  <SelectValue placeholder="시작 연월" />
+                </SelectTrigger>
+                <SelectContent>
+                  {yearMonthOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* 종료 */}
+              <Select
+                disabled={!isEditable}
+                value={endDates[idx] ?? ''}
+                onValueChange={(val) =>
+                  setEndDates((prev) => {
+                    const copy = [...prev];
+                    copy[idx] = val === '' ? undefined : val;
+                    return copy;
+                  })
+                }
+              >
+                <SelectTrigger className="min-w-[130px]">
+                  <SelectValue placeholder="종료 연월" />
+                </SelectTrigger>
+                <SelectContent>
+                  {yearMonthOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* 삭제 */}
+              {editMode && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleDelete(idx)}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          );
+        })
+      )}
     </div>
   );
 }

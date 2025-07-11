@@ -19,12 +19,14 @@ interface UserTagInputProps {
   selectedUsers: UserSummary[];
   onChange: (users: UserSummary[]) => void;
   placeholder: string;
+  excludeUsers?: UserSummary[]; // 추가
 }
 
 export function UserTagInput({
   selectedUsers,
   onChange,
   placeholder,
+  excludeUsers,
 }: UserTagInputProps) {
   const [input, setInput] = useState('');
   const [searchResults, setSearchResults] = useState<UserSummary[]>([]);
@@ -171,50 +173,58 @@ export function UserTagInput({
             className="bg-background absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border shadow-md"
           >
             {searchResults.length > 0 ? (
-              searchResults.map((user, index) => {
-                const isSelected = selectedUsers.some(
-                  (u) => u.userId === user.userId,
-                );
-                const isHighlighted = index === highlightedIndex;
+              searchResults
+                .filter(
+                  (user) =>
+                    !selectedUsers.some((u) => u.userId === user.userId) &&
+                    !excludeUsers?.some((u) => u.userId === user.userId),
+                )
+                .map((user, index) => {
+                  const isSelected = selectedUsers.some(
+                    (u) => u.userId === user.userId,
+                  );
+                  const isHighlighted = index === highlightedIndex;
 
-                let buttonClass =
-                  'flex w-full flex-col items-start px-3 py-1.5 text-left text-sm transition ';
+                  let buttonClass =
+                    'flex w-full flex-col items-start px-3 py-1.5 text-left text-sm transition ';
 
-                if (isHighlighted) {
-                  buttonClass += 'bg-muted';
-                } else if (isSelected) {
-                  buttonClass += 'bg-muted/50 cursor-not-allowed';
-                } else {
-                  buttonClass += 'hover:bg-muted';
-                }
+                  if (isHighlighted) {
+                    buttonClass += 'bg-muted';
+                  } else if (isSelected) {
+                    buttonClass += 'bg-muted/50 cursor-not-allowed';
+                  } else {
+                    buttonClass += 'hover:bg-muted';
+                  }
 
-                return (
-                  <button
-                    key={user.userId}
-                    ref={(el) => {
-                      dropdownItemRefs.current[index] = el;
-                    }}
-                    type="button"
-                    disabled={isSelected}
-                    onClick={() => {
-                      if (!isSelected && user.userId !== undefined) {
-                        addUser(user);
-                      }
-                    }}
-                    className={buttonClass}
-                  >
-                    <div className="flex w-full flex-row items-center justify-between py-2">
-                      <div className="flex flex-row items-center gap-2">
-                        <span className="font-medium">{user.name}</span>
-                        <span className="text-muted-foreground text-xs">
-                          {user.department} · {user.email}
-                        </span>
+                  return (
+                    <button
+                      key={user.userId}
+                      ref={(el) => {
+                        dropdownItemRefs.current[index] = el;
+                      }}
+                      type="button"
+                      disabled={isSelected}
+                      onClick={() => {
+                        if (!isSelected && user.userId !== undefined) {
+                          addUser(user);
+                        }
+                      }}
+                      className={buttonClass}
+                    >
+                      <div className="flex w-full flex-row items-center justify-between py-2">
+                        <div className="flex flex-row items-center gap-2">
+                          <span className="font-medium">{user.name}</span>
+                          <span className="text-muted-foreground text-xs">
+                            {user.department} · {user.email}
+                          </span>
+                        </div>
+                        {isSelected && (
+                          <Check className="text-primary h-4 w-4" />
+                        )}
                       </div>
-                      {isSelected && <Check className="text-primary h-4 w-4" />}
-                    </div>
-                  </button>
-                );
-              })
+                    </button>
+                  );
+                })
             ) : (
               <div className="text-muted-foreground px-4 py-3 text-sm">
                 일치하는 사용자가 없습니다
