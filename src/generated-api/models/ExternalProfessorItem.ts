@@ -43,6 +43,12 @@ export interface ExternalProfessorItem {
      * @memberof ExternalProfessorItem
      */
     department?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ExternalProfessorItem
+     */
+    position?: string;
 }
 
 /**
@@ -66,6 +72,7 @@ export function ExternalProfessorItemFromJSONTyped(json: any, ignoreDiscriminato
         'name': json['name'] == null ? undefined : json['name'],
         'organization': json['organization'] == null ? undefined : json['organization'],
         'department': json['department'] == null ? undefined : json['department'],
+        'position': json['position'] == null ? undefined : json['position'],
     };
 }
 
@@ -84,6 +91,7 @@ export function ExternalProfessorItemToJSONTyped(value?: ExternalProfessorItem |
         'name': value['name'],
         'organization': value['organization'],
         'department': value['department'],
+        'position': value['position'],
     };
 }
 

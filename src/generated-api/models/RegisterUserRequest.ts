@@ -28,35 +28,35 @@ import {
  */
 export interface RegisterUserRequest {
     /**
-     * 사용자 이름
+     * 사용자명
      * @type {string}
      * @memberof RegisterUserRequest
      */
-    name?: string;
+    name: string;
     /**
      * 이메일 주소
      * @type {string}
      * @memberof RegisterUserRequest
      */
-    email?: string;
+    email: string;
     /**
      * 비밀번호
      * @type {string}
      * @memberof RegisterUserRequest
      */
-    password?: string;
+    password: string;
     /**
      * 기관
      * @type {string}
      * @memberof RegisterUserRequest
      */
-    organization?: string;
+    organization: string;
     /**
      * 부서
      * @type {string}
      * @memberof RegisterUserRequest
      */
-    department?: string;
+    department: string;
     /**
      * 소속 (있으면)
      * @type {string}
@@ -68,7 +68,7 @@ export interface RegisterUserRequest {
      * @type {string}
      * @memberof RegisterUserRequest
      */
-    role?: RegisterUserRequestRoleEnum;
+    role: RegisterUserRequestRoleEnum;
     /**
      * 총 연차 개수
      * @type {number}
@@ -110,7 +110,7 @@ export interface RegisterUserRequest {
      * @type {Date}
      * @memberof RegisterUserRequest
      */
-    joinedAt?: Date;
+    joinedAt: Date;
 }
 
 
@@ -143,6 +143,13 @@ export type RegisterUserRequestRoleEnum = typeof RegisterUserRequestRoleEnum[key
  * Check if a given object implements the RegisterUserRequest interface.
  */
 export function instanceOfRegisterUserRequest(value: object): value is RegisterUserRequest {
+    if (!('name' in value) || value['name'] === undefined) return false;
+    if (!('email' in value) || value['email'] === undefined) return false;
+    if (!('password' in value) || value['password'] === undefined) return false;
+    if (!('organization' in value) || value['organization'] === undefined) return false;
+    if (!('department' in value) || value['department'] === undefined) return false;
+    if (!('role' in value) || value['role'] === undefined) return false;
+    if (!('joinedAt' in value) || value['joinedAt'] === undefined) return false;
     return true;
 }
 
@@ -156,20 +163,20 @@ export function RegisterUserRequestFromJSONTyped(json: any, ignoreDiscriminator:
     }
     return {
         
-        'name': json['name'] == null ? undefined : json['name'],
-        'email': json['email'] == null ? undefined : json['email'],
-        'password': json['password'] == null ? undefined : json['password'],
-        'organization': json['organization'] == null ? undefined : json['organization'],
-        'department': json['department'] == null ? undefined : json['department'],
+        'name': json['name'],
+        'email': json['email'],
+        'password': json['password'],
+        'organization': json['organization'],
+        'department': json['department'],
         'affiliation': json['affiliation'] == null ? undefined : json['affiliation'],
-        'role': json['role'] == null ? undefined : json['role'],
+        'role': json['role'],
         'annualLeaveCount': json['annualLeaveCount'] == null ? undefined : json['annualLeaveCount'],
         'usedLeaveCount': json['usedLeaveCount'] == null ? undefined : json['usedLeaveCount'],
         'categoryIds': json['categoryIds'] == null ? undefined : json['categoryIds'],
         'seatNumber': json['seatNumber'] == null ? undefined : json['seatNumber'],
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
         'educations': json['educations'] == null ? undefined : ((json['educations'] as Array<any>).map(UserEducationRequestFromJSON)),
-        'joinedAt': json['joinedAt'] == null ? undefined : (new Date(json['joinedAt'])),
+        'joinedAt': (new Date(json['joinedAt'])),
     };
 }
 
@@ -197,7 +204,7 @@ export function RegisterUserRequestToJSONTyped(value?: RegisterUserRequest | nul
         'seatNumber': value['seatNumber'],
         'phoneNumber': value['phoneNumber'],
         'educations': value['educations'] == null ? undefined : ((value['educations'] as Array<any>).map(UserEducationRequestToJSON)),
-        'joinedAt': value['joinedAt'] == null ? undefined : ((value['joinedAt']).toISOString().substring(0,10)),
+        'joinedAt': ((value['joinedAt']).toISOString().substring(0,10)),
     };
 }
 

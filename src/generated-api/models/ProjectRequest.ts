@@ -32,19 +32,19 @@ export interface ProjectRequest {
      * @type {string}
      * @memberof ProjectRequest
      */
-    title?: string;
+    title: string;
     /**
      * 연구 설명
      * @type {string}
      * @memberof ProjectRequest
      */
-    content?: string;
+    content: string;
     /**
      * 연구 책임자의 사용자 ID 리스트
      * @type {Array<number>}
      * @memberof ProjectRequest
      */
-    leaderIds?: Array<number>;
+    leaderIds: Array<number>;
     /**
      * 연구 참여자의 사용자 ID 리스트
      * @type {Array<number>}
@@ -56,7 +56,7 @@ export interface ProjectRequest {
      * @type {Date}
      * @memberof ProjectRequest
      */
-    startDate?: Date;
+    startDate: Date;
     /**
      * 연구 종료일 (있으면)
      * @type {Date}
@@ -110,25 +110,32 @@ export interface ProjectRequest {
      * @type {boolean}
      * @memberof ProjectRequest
      */
-    isWaiting?: boolean;
+    isWaiting: boolean;
     /**
      * 연구 분야 아이디
      * @type {number}
      * @memberof ProjectRequest
      */
-    categoryId?: number;
+    categoryId: number;
     /**
      * 연구 비공개 여부
      * @type {boolean}
      * @memberof ProjectRequest
      */
-    isPrivate?: boolean;
+    isPrivate: boolean;
 }
 
 /**
  * Check if a given object implements the ProjectRequest interface.
  */
 export function instanceOfProjectRequest(value: object): value is ProjectRequest {
+    if (!('title' in value) || value['title'] === undefined) return false;
+    if (!('content' in value) || value['content'] === undefined) return false;
+    if (!('leaderIds' in value) || value['leaderIds'] === undefined) return false;
+    if (!('startDate' in value) || value['startDate'] === undefined) return false;
+    if (!('isWaiting' in value) || value['isWaiting'] === undefined) return false;
+    if (!('categoryId' in value) || value['categoryId'] === undefined) return false;
+    if (!('isPrivate' in value) || value['isPrivate'] === undefined) return false;
     return true;
 }
 
@@ -142,11 +149,11 @@ export function ProjectRequestFromJSONTyped(json: any, ignoreDiscriminator: bool
     }
     return {
         
-        'title': json['title'] == null ? undefined : json['title'],
-        'content': json['content'] == null ? undefined : json['content'],
-        'leaderIds': json['leaderIds'] == null ? undefined : json['leaderIds'],
+        'title': json['title'],
+        'content': json['content'],
+        'leaderIds': json['leaderIds'],
         'participantIds': json['participantIds'] == null ? undefined : json['participantIds'],
-        'startDate': json['startDate'] == null ? undefined : (new Date(json['startDate'])),
+        'startDate': (new Date(json['startDate'])),
         'endDate': json['endDate'] == null ? undefined : (new Date(json['endDate'])),
         'piList': json['piList'] == null ? undefined : ((json['piList'] as Array<any>).map(ExternalProfessorSummaryFromJSON)),
         'practicalProfessors': json['practicalProfessors'] == null ? undefined : ((json['practicalProfessors'] as Array<any>).map(ExternalProfessorSummaryFromJSON)),
@@ -155,9 +162,9 @@ export function ProjectRequestFromJSONTyped(json: any, ignoreDiscriminator: bool
         'irbFileIds': json['irbFileIds'] == null ? undefined : json['irbFileIds'],
         'drbFileIds': json['drbFileIds'] == null ? undefined : json['drbFileIds'],
         'fileIds': json['fileIds'] == null ? undefined : json['fileIds'],
-        'isWaiting': json['isWaiting'] == null ? undefined : json['isWaiting'],
-        'categoryId': json['categoryId'] == null ? undefined : json['categoryId'],
-        'isPrivate': json['isPrivate'] == null ? undefined : json['isPrivate'],
+        'isWaiting': json['isWaiting'],
+        'categoryId': json['categoryId'],
+        'isPrivate': json['isPrivate'],
     };
 }
 
@@ -176,7 +183,7 @@ export function ProjectRequestToJSONTyped(value?: ProjectRequest | null, ignoreD
         'content': value['content'],
         'leaderIds': value['leaderIds'],
         'participantIds': value['participantIds'],
-        'startDate': value['startDate'] == null ? undefined : ((value['startDate']).toISOString().substring(0,10)),
+        'startDate': ((value['startDate']).toISOString().substring(0,10)),
         'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString().substring(0,10)),
         'piList': value['piList'] == null ? undefined : ((value['piList'] as Array<any>).map(ExternalProfessorSummaryToJSON)),
         'practicalProfessors': value['practicalProfessors'] == null ? undefined : ((value['practicalProfessors'] as Array<any>).map(ExternalProfessorSummaryToJSON)),

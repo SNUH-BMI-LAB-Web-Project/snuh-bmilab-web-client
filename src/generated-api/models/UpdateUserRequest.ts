@@ -20,23 +20,23 @@ import { mapValues } from '../runtime';
  */
 export interface UpdateUserRequest {
     /**
-     * 사용자 이름
+     * 사용자명
      * @type {string}
      * @memberof UpdateUserRequest
      */
-    name?: string;
+    name: string;
     /**
      * 이메일 주소
      * @type {string}
      * @memberof UpdateUserRequest
      */
-    email?: string;
+    email: string;
     /**
      * 기관
      * @type {string}
      * @memberof UpdateUserRequest
      */
-    organization?: string;
+    organization: string;
     /**
      * 부서
      * @type {string}
@@ -96,6 +96,9 @@ export type UpdateUserRequestAffiliationEnum = typeof UpdateUserRequestAffiliati
  * Check if a given object implements the UpdateUserRequest interface.
  */
 export function instanceOfUpdateUserRequest(value: object): value is UpdateUserRequest {
+    if (!('name' in value) || value['name'] === undefined) return false;
+    if (!('email' in value) || value['email'] === undefined) return false;
+    if (!('organization' in value) || value['organization'] === undefined) return false;
     return true;
 }
 
@@ -109,9 +112,9 @@ export function UpdateUserRequestFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
-        'name': json['name'] == null ? undefined : json['name'],
-        'email': json['email'] == null ? undefined : json['email'],
-        'organization': json['organization'] == null ? undefined : json['organization'],
+        'name': json['name'],
+        'email': json['email'],
+        'organization': json['organization'],
         'department': json['department'] == null ? undefined : json['department'],
         'affiliation': json['affiliation'] == null ? undefined : json['affiliation'],
         'newCategoryIds': json['newCategoryIds'] == null ? undefined : json['newCategoryIds'],

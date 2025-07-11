@@ -20,35 +20,35 @@ import { mapValues } from '../runtime';
  */
 export interface UploadFileRequest {
     /**
-     * 
+     * UUID
      * @type {string}
      * @memberof UploadFileRequest
      */
-    uuid?: string;
+    uuid: string;
     /**
-     * 
+     * 파일 이름
      * @type {string}
      * @memberof UploadFileRequest
      */
-    fileName?: string;
+    fileName: string;
     /**
-     * 
+     * 파일 확장자
      * @type {string}
      * @memberof UploadFileRequest
      */
-    extension?: string;
+    extension: string;
     /**
-     * 
+     * 파일 크기 (바이트 단위)
      * @type {number}
      * @memberof UploadFileRequest
      */
     size?: number;
     /**
-     * 
+     * 파일 도메인 타입
      * @type {string}
      * @memberof UploadFileRequest
      */
-    domainType?: UploadFileRequestDomainTypeEnum;
+    domainType: UploadFileRequestDomainTypeEnum;
 }
 
 
@@ -67,6 +67,10 @@ export type UploadFileRequestDomainTypeEnum = typeof UploadFileRequestDomainType
  * Check if a given object implements the UploadFileRequest interface.
  */
 export function instanceOfUploadFileRequest(value: object): value is UploadFileRequest {
+    if (!('uuid' in value) || value['uuid'] === undefined) return false;
+    if (!('fileName' in value) || value['fileName'] === undefined) return false;
+    if (!('extension' in value) || value['extension'] === undefined) return false;
+    if (!('domainType' in value) || value['domainType'] === undefined) return false;
     return true;
 }
 
@@ -80,11 +84,11 @@ export function UploadFileRequestFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
-        'uuid': json['uuid'] == null ? undefined : json['uuid'],
-        'fileName': json['fileName'] == null ? undefined : json['fileName'],
-        'extension': json['extension'] == null ? undefined : json['extension'],
+        'uuid': json['uuid'],
+        'fileName': json['fileName'],
+        'extension': json['extension'],
         'size': json['size'] == null ? undefined : json['size'],
-        'domainType': json['domainType'] == null ? undefined : json['domainType'],
+        'domainType': json['domainType'],
     };
 }
 

@@ -20,29 +20,29 @@ import { mapValues } from '../runtime';
  */
 export interface AdminUpdateUserRequest {
     /**
-     * 사용자 이름
+     * 사용자명
      * @type {string}
      * @memberof AdminUpdateUserRequest
      */
-    name?: string;
+    name: string;
     /**
      * 이메일 주소
      * @type {string}
      * @memberof AdminUpdateUserRequest
      */
-    email?: string;
+    email: string;
     /**
      * 기관
      * @type {string}
      * @memberof AdminUpdateUserRequest
      */
-    organization?: string;
+    organization: string;
     /**
      * 부서
      * @type {string}
      * @memberof AdminUpdateUserRequest
      */
-    department?: string;
+    department: string;
     /**
      * 소속 (있으면)
      * @type {string}
@@ -54,7 +54,7 @@ export interface AdminUpdateUserRequest {
      * @type {string}
      * @memberof AdminUpdateUserRequest
      */
-    role?: AdminUpdateUserRequestRoleEnum;
+    role: AdminUpdateUserRequestRoleEnum;
     /**
      * 추가된 연구 분야 ID 목록
      * @type {Array<number>}
@@ -123,6 +123,11 @@ export type AdminUpdateUserRequestRoleEnum = typeof AdminUpdateUserRequestRoleEn
  * Check if a given object implements the AdminUpdateUserRequest interface.
  */
 export function instanceOfAdminUpdateUserRequest(value: object): value is AdminUpdateUserRequest {
+    if (!('name' in value) || value['name'] === undefined) return false;
+    if (!('email' in value) || value['email'] === undefined) return false;
+    if (!('organization' in value) || value['organization'] === undefined) return false;
+    if (!('department' in value) || value['department'] === undefined) return false;
+    if (!('role' in value) || value['role'] === undefined) return false;
     return true;
 }
 
@@ -136,12 +141,12 @@ export function AdminUpdateUserRequestFromJSONTyped(json: any, ignoreDiscriminat
     }
     return {
         
-        'name': json['name'] == null ? undefined : json['name'],
-        'email': json['email'] == null ? undefined : json['email'],
-        'organization': json['organization'] == null ? undefined : json['organization'],
-        'department': json['department'] == null ? undefined : json['department'],
+        'name': json['name'],
+        'email': json['email'],
+        'organization': json['organization'],
+        'department': json['department'],
         'affiliation': json['affiliation'] == null ? undefined : json['affiliation'],
-        'role': json['role'] == null ? undefined : json['role'],
+        'role': json['role'],
         'newCategoryIds': json['newCategoryIds'] == null ? undefined : json['newCategoryIds'],
         'deletedCategoryIds': json['deletedCategoryIds'] == null ? undefined : json['deletedCategoryIds'],
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],

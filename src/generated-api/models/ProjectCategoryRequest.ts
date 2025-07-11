@@ -20,17 +20,18 @@ import { mapValues } from '../runtime';
  */
 export interface ProjectCategoryRequest {
     /**
-     * 
+     * 연구 분야 이름
      * @type {string}
      * @memberof ProjectCategoryRequest
      */
-    name?: string;
+    name: string;
 }
 
 /**
  * Check if a given object implements the ProjectCategoryRequest interface.
  */
 export function instanceOfProjectCategoryRequest(value: object): value is ProjectCategoryRequest {
+    if (!('name' in value) || value['name'] === undefined) return false;
     return true;
 }
 
@@ -44,7 +45,7 @@ export function ProjectCategoryRequestFromJSONTyped(json: any, ignoreDiscriminat
     }
     return {
         
-        'name': json['name'] == null ? undefined : json['name'],
+        'name': json['name'],
     };
 }
 

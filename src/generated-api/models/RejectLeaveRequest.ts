@@ -24,13 +24,14 @@ export interface RejectLeaveRequest {
      * @type {string}
      * @memberof RejectLeaveRequest
      */
-    rejectReason?: string;
+    rejectReason: string;
 }
 
 /**
  * Check if a given object implements the RejectLeaveRequest interface.
  */
 export function instanceOfRejectLeaveRequest(value: object): value is RejectLeaveRequest {
+    if (!('rejectReason' in value) || value['rejectReason'] === undefined) return false;
     return true;
 }
 
@@ -44,7 +45,7 @@ export function RejectLeaveRequestFromJSONTyped(json: any, ignoreDiscriminator: 
     }
     return {
         
-        'rejectReason': json['rejectReason'] == null ? undefined : json['rejectReason'],
+        'rejectReason': json['rejectReason'],
     };
 }
 

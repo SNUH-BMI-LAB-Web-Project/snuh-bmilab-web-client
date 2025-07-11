@@ -24,19 +24,21 @@ export interface UpdateUserPasswordRequest {
      * @type {string}
      * @memberof UpdateUserPasswordRequest
      */
-    currentPassword?: string;
+    currentPassword: string;
     /**
      * 새 비밀번호
      * @type {string}
      * @memberof UpdateUserPasswordRequest
      */
-    newPassword?: string;
+    newPassword: string;
 }
 
 /**
  * Check if a given object implements the UpdateUserPasswordRequest interface.
  */
 export function instanceOfUpdateUserPasswordRequest(value: object): value is UpdateUserPasswordRequest {
+    if (!('currentPassword' in value) || value['currentPassword'] === undefined) return false;
+    if (!('newPassword' in value) || value['newPassword'] === undefined) return false;
     return true;
 }
 
@@ -50,8 +52,8 @@ export function UpdateUserPasswordRequestFromJSONTyped(json: any, ignoreDiscrimi
     }
     return {
         
-        'currentPassword': json['currentPassword'] == null ? undefined : json['currentPassword'],
-        'newPassword': json['newPassword'] == null ? undefined : json['newPassword'],
+        'currentPassword': json['currentPassword'],
+        'newPassword': json['newPassword'],
     };
 }
 
