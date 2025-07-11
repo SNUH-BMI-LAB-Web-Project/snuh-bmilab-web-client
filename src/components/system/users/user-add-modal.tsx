@@ -49,12 +49,13 @@ import {
   ResponseError,
   UserEducationRequest,
   UserEducationRequestStatusEnum,
+  UserEducationRequestTypeEnum,
   UserEducationSummaryStatusEnum,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import EmailConfirmationModal from '@/components/system/users/email-confirmation-modal';
 import YearMonthPicker from '@/components/system/users/year-month-picker';
-import { statusLabelMap } from '@/constants/education-enum';
+import { statusLabelMap, typeLabelMap } from '@/constants/education-enum';
 import { toast } from 'sonner';
 import { affiliationOptions } from '@/constants/affiliation-enum';
 import { roleOptions } from '@/constants/role-enum';
@@ -82,13 +83,16 @@ export default function UserAddModal({
     name: '',
     email: '',
     password: '',
-    organization: '서울대병원 융합의학연구실',
+    organization: '서울대학교병원 의생명정보학연구실',
     department: '',
     affiliation: undefined,
     annualLeaveCount: 0,
     usedLeaveCount: 0,
     categoryIds: [] as number[],
     seatNumber: '',
+    seatBuilding: '융합기술연구원',
+    seatFloor: '',
+    seatCode: '',
     phoneNumber: '',
     educations: [] as UserEducationRequest[],
     joinedAt: new Date(),
@@ -96,7 +100,8 @@ export default function UserAddModal({
   });
   const [newEducation, setNewEducation] = useState<UserEducationRequest>({
     title: '',
-    status: undefined,
+    status: '' as UserEducationRequestStatusEnum,
+    type: '' as UserEducationRequestTypeEnum,
     startYearMonth: '',
     endYearMonth: '',
   });
@@ -110,6 +115,14 @@ export default function UserAddModal({
   const educationStatusOptions = Object.entries(statusLabelMap).map(
     ([value, label]) => ({
       value: value as UserEducationSummaryStatusEnum,
+      label,
+    }),
+  );
+
+  // 학력 상태 옵션들
+  const educationTypeOptions = Object.entries(typeLabelMap).map(
+    ([value, label]) => ({
+      value: value as UserEducationRequestTypeEnum,
       label,
     }),
   );
@@ -142,12 +155,35 @@ export default function UserAddModal({
 
   // 임의 비밀번호 생성
   const generatePassword = () => {
-    const chars =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-    let password = '';
-    for (let i = 0; i < 12; i += 1) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const digits = '0123456789';
+    const special = '!@#$%^&*';
+    const all = uppercase + lowercase + digits + special;
+
+    // 영문자(대소문자) 1개 + 숫자 1개는 무조건 포함
+    const requiredChars = [
+      uppercase.charAt(Math.floor(Math.random() * uppercase.length)),
+      lowercase.charAt(Math.floor(Math.random() * lowercase.length)),
+      digits.charAt(Math.floor(Math.random() * digits.length)),
+    ];
+
+    // 나머지 글자는 전부 섞어서 랜덤하게 추가
+    const remainingLength = 12 - requiredChars.length;
+    for (let i = 0; i < remainingLength; i += 1) {
+      requiredChars.push(all.charAt(Math.floor(Math.random() * all.length)));
     }
+
+    // 문자 배열 섞기
+    for (let i = requiredChars.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [requiredChars[i], requiredChars[j]] = [
+        requiredChars[j],
+        requiredChars[i],
+      ];
+    }
+
+    const password = requiredChars.join('');
     setFormData((prev) => ({ ...prev, password }));
   };
 
@@ -216,7 +252,8 @@ export default function UserAddModal({
 
     setNewEducation({
       title: '',
-      status: undefined,
+      status: '' as UserEducationRequestStatusEnum,
+      type: '' as UserEducationRequestTypeEnum,
       startYearMonth: '',
       endYearMonth: '',
     });
@@ -241,8 +278,8 @@ export default function UserAddModal({
       ...formData,
       educations: formData.educations.map((edu) => ({
         ...edu,
-        startYearMonth: edu.startYearMonth || undefined,
-        endYearMonth: edu.endYearMonth || undefined,
+        startYearMonth: edu.startYearMonth ?? '',
+        endYearMonth: edu.endYearMonth ?? '',
       })),
       joinedAt: (() => {
         const date = new Date(formData.joinedAt);
@@ -281,6 +318,9 @@ export default function UserAddModal({
         usedLeaveCount: 0,
         categoryIds: [],
         seatNumber: '',
+        seatBuilding: '융합기술연구원',
+        seatFloor: '',
+        seatCode: '',
         phoneNumber: '',
         educations: [],
         joinedAt: new Date(),
@@ -288,7 +328,8 @@ export default function UserAddModal({
       });
       setNewEducation({
         title: '',
-        status: undefined,
+        status: '' as UserEducationRequestStatusEnum,
+        type: '' as UserEducationRequestTypeEnum,
         startYearMonth: '',
         endYearMonth: '',
       });
@@ -325,7 +366,28 @@ export default function UserAddModal({
         return { ...prev, usedLeaveCount: Math.min(sanitized, max) };
       }
 
-      return { ...prev, [field]: value };
+      const updated = { ...prev, [field]: value };
+
+      // 좌석 정보 조합 처리
+      if (
+        field === 'seatBuilding' ||
+        field === 'seatFloor' ||
+        field === 'seatCode'
+      ) {
+        const floor = String(
+          field === 'seatFloor' ? value : updated.seatFloor,
+        ).padStart(2, '0');
+        const code = String(
+          field === 'seatCode' ? value : updated.seatCode,
+        ).padStart(2, '0');
+        const building = String(
+          field === 'seatBuilding' ? value : updated.seatBuilding,
+        );
+
+        updated.seatNumber = `${building}-${floor}-${code}`;
+      }
+
+      return updated;
     });
   };
 
@@ -378,43 +440,67 @@ export default function UserAddModal({
                 </div>
               </div>
 
-              {/* 비밀번호 */}
-              <div className="space-y-2">
-                <Label htmlFor="password">
-                  비밀번호{' '}
-                  <span className="text-destructive text-xs">
-                    * 8자 이상의 영문자 및 숫자 조합으로 작성
-                  </span>
-                </Label>
-                <div className="flex gap-2">
+              {/* 연락처 및 비밀번호 */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNumber">전화번호</Label>
                   <Input
-                    id="password"
-                    type="text"
-                    value={formData.password}
+                    id="phoneNumber"
+                    type="tel"
+                    value={formData.phoneNumber}
                     onChange={(e) =>
-                      handleInputChange('password', e.target.value)
+                      handleInputChange(
+                        'phoneNumber',
+                        formatPhoneNumber(e.target.value),
+                      )
                     }
-                    placeholder="비밀번호 생성"
-                    className="flex-1 bg-white"
-                    required
+                    placeholder="010-1234-5678"
+                    maxLength={13}
+                    inputMode="numeric"
+                    pattern="^\d{3}-\d{3,4}-\d{4}$"
+                    className="bg-white"
                   />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={generatePassword}
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={handleCopyPassword}
-                    disabled={!formData.password}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
+                  <p className="text-muted-foreground text-right text-xs">
+                    {formData.phoneNumber.length}/13자
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">
+                    비밀번호{' '}
+                    <span className="text-destructive text-xs">
+                      * 8자 이상의 영문자 및 숫자 조합으로 작성
+                    </span>
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="password"
+                      type="text"
+                      value={formData.password}
+                      onChange={(e) =>
+                        handleInputChange('password', e.target.value)
+                      }
+                      placeholder="비밀번호 생성"
+                      className="flex-1 bg-white"
+                      required
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={generatePassword}
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={handleCopyPassword}
+                      disabled={!formData.password}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -520,14 +606,16 @@ export default function UserAddModal({
               <h3 className="text-sm font-semibold">BMI LAB 소속 정보</h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="space-y-2">
-                  <Label htmlFor="organization">기관</Label>
+                  <Label htmlFor="organization">
+                    기관 <span className="text-destructive text-xs">*</span>
+                  </Label>
                   <Input
                     id="organization"
                     value={formData.organization}
                     onChange={(e) =>
                       handleInputChange('organization', e.target.value)
                     }
-                    placeholder="서울대병원 융합의학연구실"
+                    placeholder="서울대학교병원 의생명정보학연구실"
                     maxLength={50}
                   />
                   <p className="text-muted-foreground text-right text-xs">
@@ -655,44 +743,51 @@ export default function UserAddModal({
               </div>
             </div>
 
-            {/* 연락처 및 위치 정보 */}
+            {/* 위치 정보 */}
             <div className="space-y-4 rounded-lg border p-4">
-              <h3 className="text-sm font-semibold">연락처 및 위치</h3>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <h3 className="text-sm font-semibold">좌석 정보</h3>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="space-y-2">
-                  <Label htmlFor="phoneNumber">전화번호</Label>
+                  <Label htmlFor="seatBuilding">건물</Label>
                   <Input
-                    id="phoneNumber"
-                    type="tel"
-                    value={formData.phoneNumber}
+                    id="seatBuilding"
+                    value={formData.seatBuilding}
                     onChange={(e) =>
-                      handleInputChange(
-                        'phoneNumber',
-                        formatPhoneNumber(e.target.value),
-                      )
+                      handleInputChange('seatBuilding', e.target.value)
                     }
-                    placeholder="010-1234-5678"
-                    maxLength={13}
-                    inputMode="numeric"
-                    pattern="^\d{3}-\d{3,4}-\d{4}$"
+                    placeholder="융합의학기술원"
+                    maxLength={10}
+                    disabled
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="seatFloor">층</Label>
+                  <Input
+                    id="seatFloor"
+                    value={formData.seatFloor}
+                    onChange={(e) =>
+                      handleInputChange('seatFloor', e.target.value.slice(0, 2))
+                    }
+                    placeholder="MM"
+                    maxLength={2}
                   />
                   <p className="text-muted-foreground text-right text-xs">
-                    {formData.phoneNumber.length}/13자
+                    {formData.seatFloor.length}/2자
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="seatNumber">좌석번호</Label>
+                  <Label htmlFor="seatCode">번호</Label>
                   <Input
-                    id="seatNumber"
-                    value={formData.seatNumber}
+                    id="seatCode"
+                    value={formData.seatCode}
                     onChange={(e) =>
-                      handleInputChange('seatNumber', e.target.value)
+                      handleInputChange('seatCode', e.target.value.slice(0, 2))
                     }
-                    placeholder="12-30"
-                    maxLength={10}
+                    placeholder="NN"
+                    maxLength={2}
                   />
                   <p className="text-muted-foreground text-right text-xs">
-                    {formData.seatNumber.length}/10자
+                    {formData.seatCode.length}/2자
                   </p>
                 </div>
               </div>
@@ -712,7 +807,14 @@ export default function UserAddModal({
                       className="flex items-center gap-2 rounded-lg bg-gray-50 p-3"
                     >
                       <div className="flex-1">
-                        <p className="font-medium">{edu.title}</p>
+                        <p className="font-medium">
+                          {edu.title} |{' '}
+                          {
+                            educationTypeOptions.find(
+                              (s) => s.value === edu.type,
+                            )?.label
+                          }
+                        </p>
                         <p className="text-sm text-gray-600">
                           {edu.startYearMonth} ~ {edu.endYearMonth || '현재'} |{' '}
                           {
@@ -738,7 +840,7 @@ export default function UserAddModal({
               {/* 새 학력 추가 */}
               <div className="space-y-4 rounded-lg bg-gray-50 p-4">
                 <Label className="text-sm font-medium">새 학력 추가</Label>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="space-y-2">
                     <Label htmlFor="eduTitle">학교 및 학과</Label>
                     <Input
@@ -754,6 +856,29 @@ export default function UserAddModal({
                       maxLength={30}
                       className="bg-white"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="eduType">구분</Label>
+                    <Select
+                      value={newEducation.type}
+                      onValueChange={(value) =>
+                        setNewEducation((prev) => ({
+                          ...prev,
+                          type: value as UserEducationRequestTypeEnum,
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="w-full bg-white">
+                        <SelectValue placeholder="구분 선택" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {educationTypeOptions.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="eduStatus">상태</Label>
@@ -778,6 +903,8 @@ export default function UserAddModal({
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="eduStart">시작 년월</Label>
                     <YearMonthPicker
