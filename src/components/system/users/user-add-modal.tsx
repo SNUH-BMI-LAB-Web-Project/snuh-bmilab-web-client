@@ -359,7 +359,9 @@ export default function UserAddModal({
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">이메일 *</Label>
+                  <Label htmlFor="email">
+                    이메일 <span className="text-destructive text-xs">*</span>
+                  </Label>
                   <Input
                     id="email"
                     type="email"
@@ -378,7 +380,12 @@ export default function UserAddModal({
 
               {/* 비밀번호 */}
               <div className="space-y-2">
-                <Label htmlFor="password">비밀번호 *</Label>
+                <Label htmlFor="password">
+                  비밀번호{' '}
+                  <span className="text-destructive text-xs">
+                    * 8자 이상의 영문자 및 숫자 조합으로 작성
+                  </span>
+                </Label>
                 <div className="flex gap-2">
                   <Input
                     id="password"
@@ -387,7 +394,7 @@ export default function UserAddModal({
                     onChange={(e) =>
                       handleInputChange('password', e.target.value)
                     }
-                    placeholder="비밀번호 생성 필요"
+                    placeholder="비밀번호 생성"
                     className="flex-1 bg-white"
                     required
                   />
