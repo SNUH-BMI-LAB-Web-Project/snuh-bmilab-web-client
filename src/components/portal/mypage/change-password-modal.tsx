@@ -37,8 +37,17 @@ export function ChangePasswordModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
+    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/;
+
     if (newPassword !== confirmPassword) {
       toast.error('새 비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    if (!passwordRegex.test(newPassword)) {
+      toast.error(
+        '비밀번호는 8자 이상의 영문자 및 숫자 조합으로 작성해주세요.',
+      );
       return;
     }
 
@@ -83,26 +92,39 @@ export function ChangePasswordModal({
             <Input
               id="current-password"
               type="password"
+              placeholder="현재 비밀번호를 입력하세요."
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
             />
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="new-password">새 비밀번호</Label>
+            <Label htmlFor="new-password">
+              새 비밀번호
+              <span className="text-destructive text-xs">
+                * 8자 이상의 영문자 및 숫자 조합
+              </span>
+            </Label>
             <Input
               id="new-password"
               type="password"
+              placeholder="새 비밀번호를 입력하세요."
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
             />
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="confirm-password">새 비밀번호 확인</Label>
+            <Label htmlFor="confirm-password">
+              새 비밀번호 확인
+              <span className="text-destructive text-xs">
+                * 8자 이상의 영문자 및 숫자 조합
+              </span>
+            </Label>
             <Input
               id="confirm-password"
               type="password"
+              placeholder="새 비밀번호를 한 번 더 입력하세요."
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
