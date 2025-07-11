@@ -668,48 +668,6 @@ export default function UserAddModal({
               </div>
             </div>
 
-            {/* 연차 정보 */}
-            <div className="space-y-4 rounded-lg border p-4">
-              <h3 className="text-sm font-semibold">연차 정보</h3>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="annualLeaveCount">연간 연차 일수</Label>
-                  <Input
-                    id="annualLeaveCount"
-                    type="number"
-                    inputMode="numeric"
-                    pattern="\d*"
-                    value={formData.annualLeaveCount}
-                    onChange={(e) =>
-                      handleInputChange(
-                        'annualLeaveCount',
-                        Number(e.target.value),
-                      )
-                    }
-                    placeholder="15"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="usedLeaveCount">사용한 연차 일수</Label>
-                  <Input
-                    id="usedLeaveCount"
-                    type="number"
-                    inputMode="numeric"
-                    pattern="\d*"
-                    step="0.5"
-                    value={formData.usedLeaveCount}
-                    onChange={(e) =>
-                      handleInputChange(
-                        'usedLeaveCount',
-                        Number(e.target.value),
-                      )
-                    }
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-            </div>
-
             {/* 카테고리 */}
             <div className="space-y-4 rounded-lg border p-4">
               <h3 className="text-sm font-semibold">연구 분야</h3>
@@ -789,6 +747,48 @@ export default function UserAddModal({
                   <p className="text-muted-foreground text-right text-xs">
                     {formData.seatCode.length}/2자
                   </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 연차 정보 */}
+            <div className="space-y-4 rounded-lg border p-4">
+              <h3 className="text-sm font-semibold">연차 정보</h3>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="annualLeaveCount">연간 연차 일수</Label>
+                  <Input
+                    id="annualLeaveCount"
+                    type="number"
+                    inputMode="numeric"
+                    pattern="\d*"
+                    value={formData.annualLeaveCount}
+                    onChange={(e) =>
+                      handleInputChange(
+                        'annualLeaveCount',
+                        Number(e.target.value),
+                      )
+                    }
+                    placeholder="15"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="usedLeaveCount">사용한 연차 일수</Label>
+                  <Input
+                    id="usedLeaveCount"
+                    type="number"
+                    inputMode="numeric"
+                    pattern="\d*"
+                    step="0.5"
+                    value={formData.usedLeaveCount}
+                    onChange={(e) =>
+                      handleInputChange(
+                        'usedLeaveCount',
+                        Number(e.target.value),
+                      )
+                    }
+                    placeholder="0"
+                  />
                 </div>
               </div>
             </div>
