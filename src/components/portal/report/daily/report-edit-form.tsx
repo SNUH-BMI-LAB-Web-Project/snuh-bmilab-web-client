@@ -37,6 +37,7 @@ import {
   SearchProjectItem,
   ProjectFileSummary,
   ReportSummary,
+  FileApi,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
@@ -44,6 +45,12 @@ import { uploadFileWithPresignedUrl } from '@/lib/upload';
 import { FileItem } from '@/components/portal/researches/projects/file-item';
 
 const reportApi = new ReportApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
+
+const fileApi = new FileApi(
   new Configuration({
     accessToken: async () => useAuthStore.getState().accessToken ?? '',
   }),
@@ -71,6 +78,10 @@ export function ReportEditModal({
     files: [] as File[],
     existingFiles: [] as ProjectFileSummary[],
   });
+
+  const [filesMarkedForDeletion, setFilesMarkedForDeletion] = useState<
+    ProjectFileSummary[]
+  >([]);
 
   // 보고서 데이터로 폼 초기화
   useEffect(() => {
@@ -111,10 +122,15 @@ export function ReportEditModal({
   };
 
   const removeExistingFile = (index: number) => {
+    const fileToRemove = formData.existingFiles[index];
+    if (!fileToRemove?.fileId) return;
+
     setFormData((prev) => ({
       ...prev,
       existingFiles: prev.existingFiles.filter((_, i) => i !== index),
     }));
+
+    setFilesMarkedForDeletion((prev) => [...prev, fileToRemove]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -128,7 +144,14 @@ export function ReportEditModal({
     const accessToken = useAuthStore.getState().accessToken!;
 
     try {
-      // presigned URL로 새 파일 업로드
+      // 1. 파일 삭제 먼저 수행
+      await Promise.all(
+        filesMarkedForDeletion.map((file) =>
+          fileApi.deleteFile({ fileId: file.fileId! }),
+        ),
+      );
+
+      // 2. 새 파일 업로드
       const uploadPromises = formData.files.map((file) =>
         uploadFileWithPresignedUrl(
           file,
@@ -139,12 +162,11 @@ export function ReportEditModal({
       const uploadedFiles = await Promise.all(uploadPromises);
       const newFileIds = uploadedFiles.map((f) => f.fileId!);
 
-      // 기존 파일 ID (fileId가 있어야 함)
+      // 3. 남은 기존 파일 + 새 파일을 합쳐서 전송
       const existingFileIds = formData.existingFiles.map((f) => f.fileId);
-
       const allFileIds = [...existingFileIds, ...newFileIds];
 
-      // 수정 요청
+      // 4. 보고서 수정
       await reportApi.updateReport({
         reportId: report.reportId!,
         reportRequest: {
@@ -157,7 +179,7 @@ export function ReportEditModal({
 
       toast.success('보고서가 성공적으로 수정되었습니다.');
 
-      // UI 업데이트
+      // 5. UI 갱신
       onReportUpdate({
         ...report,
         content: formData.content,
@@ -171,6 +193,7 @@ export function ReportEditModal({
         files: [...formData.existingFiles],
       });
 
+      // 모달 닫기
       onOpenChange(false);
     } catch (err) {
       toast.error('보고서 수정 중 오류가 발생했습니다. 다시 시도해 주세요.');
