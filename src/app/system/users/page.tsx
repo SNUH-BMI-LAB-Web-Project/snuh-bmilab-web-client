@@ -258,9 +258,10 @@ export default function SystemProjectPage() {
         const res = await userApi.getAllUsers({
           filterBy: stringSortOption,
           filterValue: committedSearchTerm,
+          direction: sortOption,
           pageNo: currentPage - 1, // 0-based index
           size: itemsPerPage,
-          criteria: sortOption,
+          criteria: 'createdAt',
         });
         setUsers(res.users ?? []);
         setTotalPage(res.totalPage ?? 1);
