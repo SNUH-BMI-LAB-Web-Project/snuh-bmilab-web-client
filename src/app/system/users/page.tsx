@@ -45,7 +45,6 @@ import UserDeleteModal from '@/components/system/users/user-delete-modal';
 import UserAddModal from '@/components/system/users/user-add-modal';
 import { affiliationLabelMap } from '@/constants/affiliation-enum';
 import PasswordResetModal from '@/components/system/users/password-reset-modal';
-import AffiliationModal from '@/components/system/users/affiliation-modal';
 
 const userApi = new UserApi(
   new Configuration({
@@ -255,23 +254,16 @@ export default function SystemProjectPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      if (committedSearchTerm.trim() === '') {
-        const res = await userApi.getAllUsers({
-          filterBy: stringSortOption,
-          filterValue: committedSearchTerm,
-          pageNo: currentPage - 1, // 0-based index
-          size: itemsPerPage,
-          criteria: sortOption,
-        });
-        setUsers(res.users ?? []);
-        setTotalPage(res.totalPage ?? 1);
-      } else {
-        const res = await userApi.searchUsers({
-          keyword: committedSearchTerm,
-        });
-        setUsers(res.users ?? []);
-        setTotalPage(1); // 검색 결과는 페이지네이션 없음 또는 단일 페이지
-      }
+      const res = await userApi.getAllUsers({
+        filterBy: stringSortOption,
+        filterValue: committedSearchTerm,
+        direction: sortOption,
+        pageNo: currentPage - 1, // 0-based index
+        size: itemsPerPage,
+        criteria: 'createdAt',
+      });
+      setUsers(res.users ?? []);
+      setTotalPage(res.totalPage ?? 1);
     } catch (error) {
       toast.error(
         '사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
@@ -286,6 +278,7 @@ export default function SystemProjectPage() {
   }, [
     currentPage,
     itemsPerPage,
+    stringSortOption,
     sortOption,
     committedSearchTerm,
     shouldRefetch,
@@ -353,6 +346,11 @@ export default function SystemProjectPage() {
   const handlePasswordReset = async () => {
     if (selectedUser === null) return;
 
+    if (!selectedUser?.email) {
+      toast.error('해당 유저의 이메일이 존재하지 않습니다.');
+      return;
+    }
+
     try {
       await userApi.sendFindPasswordEmail({
         findPasswordEmailRequest: { email: selectedUser.email },
@@ -382,7 +380,6 @@ export default function SystemProjectPage() {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">구성원</h1>
         <div className="flex gap-2">
-          <AffiliationModal />
           <Button onClick={() => setAddModalOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             사용자 추가

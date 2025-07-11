@@ -22,6 +22,45 @@ import {
   Waves,
 } from 'lucide-react';
 
+const researchAreas = [
+  {
+    icon: Database,
+    title: 'AI-driven Healthcare Research',
+    subtitle: 'using EHR-based Knowledge Graphs',
+    description: '전자의무기록 기반 지식그래프를 활용한 AI 헬스케어 연구',
+    delay: 'delay-100',
+  },
+  {
+    icon: Dna,
+    title: 'AI-based Bioinformatics',
+    subtitle: 'for Multi-omics Data Analysis',
+    description: '다중오믹스 데이터 분석을 위한 AI 기반 생명정보학 연구',
+    delay: 'delay-200',
+  },
+  {
+    icon: Microscope,
+    title: 'AI for Digital and Computational Pathology',
+    subtitle: 'Advanced Pathology Analysis',
+    description: '디지털 및 컴퓨터 병리학을 위한 AI 연구',
+    delay: 'delay-300',
+  },
+  {
+    icon: Activity,
+    title: 'AI-powered Multi-modal Biosignal Research',
+    subtitle: 'Comprehensive Signal Analysis',
+    description: 'AI 기반 다중모달 생체신호 연구 및 분석',
+    delay: 'delay-400',
+  },
+];
+
+const recruitmentAreas = [
+  '디지털 병리 이미지를 인공지능으로 분석하는 computer vision 관련 연구',
+  '심전도, 청진음, 생체신호 등 time-series 데이터를 활용한 Multimodal AI 모델 개발',
+  'Single-cell 및 spatial transcriptomics 기반 multiomics AI 모델 개발',
+  '의료 free text 분석을 위한 LLM/LMM 연구',
+  'OMOP CDM 및 EMR 활용 지식그래프 구축 연구',
+];
+
 export default function HomePage() {
   const [isVisible, setIsVisible] = useState(false);
   const [typedText, setTypedText] = useState('');
@@ -120,45 +159,6 @@ export default function HomePage() {
     setParticles(particleElements);
   }, []);
 
-  const researchAreas = [
-    {
-      icon: Database,
-      title: 'AI-driven Healthcare Research',
-      subtitle: 'using EHR-based Knowledge Graphs',
-      description: '전자의무기록 기반 지식그래프를 활용한 AI 헬스케어 연구',
-      delay: 'delay-100',
-    },
-    {
-      icon: Dna,
-      title: 'AI-based Bioinformatics',
-      subtitle: 'for Multi-omics Data Analysis',
-      description: '다중오믹스 데이터 분석을 위한 AI 기반 생명정보학 연구',
-      delay: 'delay-200',
-    },
-    {
-      icon: Microscope,
-      title: 'AI for Digital and Computational Pathology',
-      subtitle: 'Advanced Pathology Analysis',
-      description: '디지털 및 컴퓨터 병리학을 위한 AI 연구',
-      delay: 'delay-300',
-    },
-    {
-      icon: Activity,
-      title: 'AI-powered Multi-modal Biosignal Research',
-      subtitle: 'Comprehensive Signal Analysis',
-      description: 'AI 기반 다중모달 생체신호 연구 및 분석',
-      delay: 'delay-400',
-    },
-  ];
-
-  const recruitmentAreas = [
-    '디지털 병리 이미지를 인공지능으로 분석하는 computer vision 관련 연구',
-    '심전도, 청진음, 생체신호 등 time-series 데이터를 활용한 Multimodal AI 모델 개발',
-    'Single-cell 및 spatial transcriptomics 기반 multiomics AI 모델 개발',
-    '의료 free text 분석을 위한 LLM/LMM 연구',
-    'OMOP CDM 및 EMR 활용 지식그래프 구축 연구',
-  ];
-
   return (
     <div
       style={{ minHeight: 'calc(100vh - 70px)' }}
@@ -209,7 +209,7 @@ export default function HomePage() {
           >
             {/* Logo/Icon with subtle glow */}
             <div className="mb-8">
-              <div className="animate-pulse-glow mx-auto mb-6 flex h-28 w-28 transform items-center justify-center rounded-full bg-gradient-to-br from-blue-500/90 to-slate-600/90 shadow-xl shadow-blue-500/25 backdrop-blur-sm transition-all duration-500 hover:scale-110">
+              <div className="animate-pulse-glow mx-auto mb-6 flex h-28 w-28 transform items-center justify-center rounded-full bg-gradient-to-br from-blue-500/90 to-slate-600/90 shadow-xl shadow-blue-500/25 backdrop-blur-sm transition-all duration-500">
                 <Brain className="animate-pulse-bright h-14 w-14 text-white" />
               </div>
               <div
@@ -431,18 +431,18 @@ export default function HomePage() {
               </p>
 
               <div className="mb-8 grid grid-cols-2 gap-6">
-                <div className="group rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 text-center shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-slate-500/10">
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-600 to-blue-500 shadow-lg transition-all duration-300 group-hover:scale-110">
-                    <Cpu className="animate-pulse-bright h-8 w-8 text-white transition-transform duration-300 group-hover:scale-125" />
+                <div className="group rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 text-center shadow-lg transition-all duration-300">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-600 to-blue-500 shadow-lg transition-all duration-300">
+                    <Cpu className="animate-pulse-bright h-8 w-8 text-white transition-transform duration-300" />
                   </div>
                   <h4 className="mb-1 font-semibold text-slate-800">
                     Healthcare
                   </h4>
                   <p className="text-sm text-slate-600">최첨단 AI 기술</p>
                 </div>
-                <div className="group rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 text-center shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-slate-500/10">
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-600 to-blue-500 shadow-lg transition-all duration-300 group-hover:scale-110">
-                    <Heart className="animate-pulse-bright h-8 w-8 text-white transition-transform duration-300 group-hover:scale-125" />
+                <div className="group rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 text-center shadow-lg transition-all duration-300">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-600 to-blue-500 shadow-lg transition-all duration-300">
+                    <Heart className="animate-pulse-bright h-8 w-8 text-white transition-transform duration-300" />
                   </div>
                   <h4 className="mb-1 font-semibold text-slate-800">
                     Healthcare
@@ -576,13 +576,13 @@ export default function HomePage() {
                       근무 조건
                     </h4>
                     <div className="space-y-3">
-                      <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-slate-50 p-3 transition-transform duration-300 hover:translate-x-1">
+                      <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-slate-50 p-3 transition-transform duration-300">
                         <div className="animate-pulse-bright h-3 w-3 rounded-full bg-blue-500/60" />
                         <span className="text-slate-700">
                           Full-time: 최소 6개월 이상 근무 (월~금, 9am~6pm 기준)
                         </span>
                       </div>
-                      <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-slate-50 p-3 transition-transform duration-300 hover:translate-x-1">
+                      <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-slate-50 p-3 transition-transform duration-300">
                         <div className="animate-pulse-bright h-3 w-3 rounded-full bg-blue-500/60" />
                         <span className="text-slate-700">
                           Part-Time: 최소 9개월 이상 & 주당 24시간 이상 근무
@@ -663,7 +663,7 @@ export default function HomePage() {
               className="animate-fade-in-up mb-12 flex flex-col items-center justify-center gap-6 sm:flex-row"
               style={{ animationDelay: '0.4s' }}
             >
-              <div className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-white backdrop-blur-sm transition-transform duration-300 hover:scale-105">
+              <div className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-white backdrop-blur-sm transition-transform duration-300">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-slate-600 shadow-lg transition-transform duration-300">
                   <Mail className="animate-pulse-bright h-8 w-8" />
                 </div>

@@ -159,7 +159,8 @@ export function ProjectForm({
     name?: string;
     organization?: string;
     department?: string;
-  }) => `${p.name}-${p.organization}-${p.department}`;
+    position?: string;
+  }) => `${p.name}-${p.organization}-${p.department}-${p.position}`;
 
   const selectedPiKeys = piList.map(getProfessorKey);
   const selectedPracticalKeys = practicalProfessors.map(getProfessorKey);
@@ -605,7 +606,7 @@ export function ProjectForm({
               {/* 입력 리스트 */}
               {piList.map((pi, index) => (
                 <div
-                  key={`${pi.name}-${pi.organization}-${pi.department}`}
+                  key={`${pi.name}-${pi.organization}-${pi.department}-${pi.position}`}
                   className="flex gap-2"
                 >
                   <Input
@@ -637,6 +638,17 @@ export function ProjectForm({
                     onChange={(e) => {
                       const updated = [...piList];
                       updated[index].department = e.target.value;
+                      setPiList(updated);
+                    }}
+                    className="bg-white"
+                  />
+                  <Input
+                    disabled={isEditing}
+                    placeholder="PI 직책"
+                    value={pi.position || ''}
+                    onChange={(e) => {
+                      const updated = [...piList];
+                      updated[index].position = e.target.value;
                       setPiList(updated);
                     }}
                     className="bg-white"
@@ -679,7 +691,7 @@ export function ProjectForm({
 
               {practicalProfessors.map((prof, index) => (
                 <div
-                  key={`${prof.name}-${prof.organization}-${prof.department}`}
+                  key={`${prof.name}-${prof.organization}-${prof.department}-${prof.position}`}
                   className="flex items-center gap-2"
                 >
                   <Input
@@ -711,6 +723,17 @@ export function ProjectForm({
                     onChange={(e) => {
                       const updated = [...practicalProfessors];
                       updated[index].department = e.target.value;
+                      setPracticalProfessors(updated);
+                    }}
+                    className="bg-white"
+                  />
+                  <Input
+                    disabled={isEditing}
+                    placeholder="참여교수 직책"
+                    value={prof.position || ''}
+                    onChange={(e) => {
+                      const updated = [...practicalProfessors];
+                      updated[index].position = e.target.value;
                       setPracticalProfessors(updated);
                     }}
                     className="bg-white"
