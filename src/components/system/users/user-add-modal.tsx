@@ -58,9 +58,7 @@ import { statusLabelMap } from '@/constants/education-enum';
 import { toast } from 'sonner';
 import { affiliationOptions } from '@/constants/affiliation-enum';
 import { roleOptions } from '@/constants/role-enum';
-import WorkSchedulePicker, {
-  WorkSchedule,
-} from '@/components/system/users/work-schedule-picker';
+import { WorkSchedule } from '@/components/system/users/work-schedule-picker';
 
 interface UserAddModalProps {
   open: boolean;
@@ -95,13 +93,6 @@ export default function UserAddModal({
     educations: [] as UserEducationRequest[],
     joinedAt: new Date(),
     role: RegisterUserRequestRoleEnum.User,
-    workSchedule: {
-      monday: { morning: 'off', afternoon: 'off' },
-      tuesday: { morning: 'off', afternoon: 'off' },
-      wednesday: { morning: 'off', afternoon: 'off' },
-      thursday: { morning: 'off', afternoon: 'off' },
-      friday: { morning: 'off', afternoon: 'off' },
-    },
   });
   const [newEducation, setNewEducation] = useState<UserEducationRequest>({
     title: '',
@@ -294,13 +285,6 @@ export default function UserAddModal({
         educations: [],
         joinedAt: new Date(),
         role: RegisterUserRequestRoleEnum.User,
-        workSchedule: {
-          monday: { morning: 'off', afternoon: 'off' },
-          tuesday: { morning: 'off', afternoon: 'off' },
-          wednesday: { morning: 'off', afternoon: 'off' },
-          thursday: { morning: 'off', afternoon: 'off' },
-          friday: { morning: 'off', afternoon: 'off' },
-        },
       });
       setNewEducation({
         title: '',
@@ -864,17 +848,16 @@ export default function UserAddModal({
               </div>
             </div>
 
-            {/* TODO: 근무스케줄 컴포넌트 연결 */}
             {/* 근무 스케줄 */}
-            <div className="space-y-4 rounded-lg border p-4">
-              <h3 className="text-sm font-semibold">근무 스케줄</h3>
-              <WorkSchedulePicker
-                value={formData.workSchedule}
-                onChange={(schedule) =>
-                  handleInputChange('workSchedule', schedule)
-                }
-              />
-            </div>
+            {/* <div className="space-y-4 rounded-lg border p-4"> */}
+            {/*   <h3 className="text-sm font-semibold">근무 스케줄</h3> */}
+            {/*   <WorkSchedulePicker */}
+            {/*     value={formData.workSchedule} */}
+            {/*     onChange={(schedule) => */}
+            {/*       handleInputChange('workSchedule', schedule) */}
+            {/*     } */}
+            {/*   /> */}
+            {/* </div> */}
 
             <div className="flex justify-end gap-2 pt-4">
               <Button

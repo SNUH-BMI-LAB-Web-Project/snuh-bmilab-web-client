@@ -45,7 +45,6 @@ import UserDeleteModal from '@/components/system/users/user-delete-modal';
 import UserAddModal from '@/components/system/users/user-add-modal';
 import { affiliationLabelMap } from '@/constants/affiliation-enum';
 import PasswordResetModal from '@/components/system/users/password-reset-modal';
-import AffiliationModal from '@/components/system/users/affiliation-modal';
 
 const userApi = new UserApi(
   new Configuration({
@@ -382,7 +381,6 @@ export default function SystemProjectPage() {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">구성원</h1>
         <div className="flex gap-2">
-          <AffiliationModal />
           <Button onClick={() => setAddModalOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             사용자 추가
