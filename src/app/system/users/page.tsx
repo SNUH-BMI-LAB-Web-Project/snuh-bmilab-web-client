@@ -254,24 +254,16 @@ export default function SystemProjectPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      if (committedSearchTerm.trim() === '') {
-        const res = await userApi.getAllUsers({
-          filterBy: stringSortOption,
-          filterValue: committedSearchTerm,
-          direction: sortOption,
-          pageNo: currentPage - 1, // 0-based index
-          size: itemsPerPage,
-          criteria: 'createdAt',
-        });
-        setUsers(res.users ?? []);
-        setTotalPage(res.totalPage ?? 1);
-      } else {
-        const res = await userApi.searchUsers({
-          keyword: committedSearchTerm,
-        });
-        setUsers(res.users ?? []);
-        setTotalPage(1); // 검색 결과는 페이지네이션 없음 또는 단일 페이지
-      }
+      const res = await userApi.getAllUsers({
+        filterBy: stringSortOption,
+        filterValue: committedSearchTerm,
+        direction: sortOption,
+        pageNo: currentPage - 1, // 0-based index
+        size: itemsPerPage,
+        criteria: 'createdAt',
+      });
+      setUsers(res.users ?? []);
+      setTotalPage(res.totalPage ?? 1);
     } catch (error) {
       toast.error(
         '사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
@@ -286,6 +278,7 @@ export default function SystemProjectPage() {
   }, [
     currentPage,
     itemsPerPage,
+    stringSortOption,
     sortOption,
     committedSearchTerm,
     shouldRefetch,
@@ -352,6 +345,11 @@ export default function SystemProjectPage() {
 
   const handlePasswordReset = async () => {
     if (selectedUser === null) return;
+
+    if (!selectedUser?.email) {
+      toast.error('해당 유저의 이메일이 존재하지 않습니다.');
+      return;
+    }
 
     try {
       await userApi.sendFindPasswordEmail({
