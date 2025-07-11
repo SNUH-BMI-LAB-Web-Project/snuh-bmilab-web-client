@@ -24,19 +24,21 @@ export interface LoginRequest {
      * @type {string}
      * @memberof LoginRequest
      */
-    email?: string;
+    email: string;
     /**
      * 사용자 비밀번호
      * @type {string}
      * @memberof LoginRequest
      */
-    password?: string;
+    password: string;
 }
 
 /**
  * Check if a given object implements the LoginRequest interface.
  */
 export function instanceOfLoginRequest(value: object): value is LoginRequest {
+    if (!('email' in value) || value['email'] === undefined) return false;
+    if (!('password' in value) || value['password'] === undefined) return false;
     return true;
 }
 
@@ -50,8 +52,8 @@ export function LoginRequestFromJSONTyped(json: any, ignoreDiscriminator: boolea
     }
     return {
         
-        'email': json['email'] == null ? undefined : json['email'],
-        'password': json['password'] == null ? undefined : json['password'],
+        'email': json['email'],
+        'password': json['password'],
     };
 }
 

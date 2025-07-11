@@ -24,19 +24,19 @@ export interface ApplyLeaveRequest {
      * @type {Date}
      * @memberof ApplyLeaveRequest
      */
-    startDate?: Date;
+    startDate: Date;
     /**
      * 휴가 종료 일시
      * @type {Date}
      * @memberof ApplyLeaveRequest
      */
-    endDate?: Date;
+    endDate: Date;
     /**
      * 휴가 종류 (예: ANNUAL, SICK, HALF)
      * @type {string}
      * @memberof ApplyLeaveRequest
      */
-    type?: ApplyLeaveRequestTypeEnum;
+    type: ApplyLeaveRequestTypeEnum;
     /**
      * 휴가 사유
      * @type {string}
@@ -62,6 +62,9 @@ export type ApplyLeaveRequestTypeEnum = typeof ApplyLeaveRequestTypeEnum[keyof t
  * Check if a given object implements the ApplyLeaveRequest interface.
  */
 export function instanceOfApplyLeaveRequest(value: object): value is ApplyLeaveRequest {
+    if (!('startDate' in value) || value['startDate'] === undefined) return false;
+    if (!('endDate' in value) || value['endDate'] === undefined) return false;
+    if (!('type' in value) || value['type'] === undefined) return false;
     return true;
 }
 
@@ -75,9 +78,9 @@ export function ApplyLeaveRequestFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
-        'startDate': json['startDate'] == null ? undefined : (new Date(json['startDate'])),
-        'endDate': json['endDate'] == null ? undefined : (new Date(json['endDate'])),
-        'type': json['type'] == null ? undefined : json['type'],
+        'startDate': (new Date(json['startDate'])),
+        'endDate': (new Date(json['endDate'])),
+        'type': json['type'],
         'reason': json['reason'] == null ? undefined : json['reason'],
     };
 }
@@ -93,8 +96,8 @@ export function ApplyLeaveRequestToJSONTyped(value?: ApplyLeaveRequest | null, i
 
     return {
         
-        'startDate': value['startDate'] == null ? undefined : ((value['startDate']).toISOString()),
-        'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString()),
+        'startDate': ((value['startDate']).toISOString()),
+        'endDate': ((value['endDate']).toISOString()),
         'type': value['type'],
         'reason': value['reason'],
     };

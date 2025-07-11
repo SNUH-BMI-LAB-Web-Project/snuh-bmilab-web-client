@@ -38,6 +38,12 @@ export interface UserEducationSummary {
      */
     status?: UserEducationSummaryStatusEnum;
     /**
+     * 학력 구분
+     * @type {string}
+     * @memberof UserEducationSummary
+     */
+    type?: UserEducationSummaryTypeEnum;
+    /**
      * 시작 연월
      * @type {string}
      * @memberof UserEducationSummary
@@ -62,6 +68,18 @@ export const UserEducationSummaryStatusEnum = {
 } as const;
 export type UserEducationSummaryStatusEnum = typeof UserEducationSummaryStatusEnum[keyof typeof UserEducationSummaryStatusEnum];
 
+/**
+ * @export
+ */
+export const UserEducationSummaryTypeEnum = {
+    HighSchool: 'HIGH_SCHOOL',
+    Bachelor: 'BACHELOR',
+    Master: 'MASTER',
+    Doctorate: 'DOCTORATE',
+    MasterDoctorate: 'MASTER_DOCTORATE'
+} as const;
+export type UserEducationSummaryTypeEnum = typeof UserEducationSummaryTypeEnum[keyof typeof UserEducationSummaryTypeEnum];
+
 
 /**
  * Check if a given object implements the UserEducationSummary interface.
@@ -83,6 +101,7 @@ export function UserEducationSummaryFromJSONTyped(json: any, ignoreDiscriminator
         'educationId': json['educationId'] == null ? undefined : json['educationId'],
         'title': json['title'] == null ? undefined : json['title'],
         'status': json['status'] == null ? undefined : json['status'],
+        'type': json['type'] == null ? undefined : json['type'],
         'startYearMonth': json['startYearMonth'] == null ? undefined : json['startYearMonth'],
         'endYearMonth': json['endYearMonth'] == null ? undefined : json['endYearMonth'],
     };
@@ -102,6 +121,7 @@ export function UserEducationSummaryToJSONTyped(value?: UserEducationSummary | n
         'educationId': value['educationId'],
         'title': value['title'],
         'status': value['status'],
+        'type': value['type'],
         'startYearMonth': value['startYearMonth'],
         'endYearMonth': value['endYearMonth'],
     };

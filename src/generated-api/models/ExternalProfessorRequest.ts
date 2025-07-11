@@ -20,19 +20,19 @@ import { mapValues } from '../runtime';
  */
 export interface ExternalProfessorRequest {
     /**
-     * 
+     * 외부 교수 이름
      * @type {string}
      * @memberof ExternalProfessorRequest
      */
-    name?: string;
+    name: string;
     /**
-     * 
+     * 기관
      * @type {string}
      * @memberof ExternalProfessorRequest
      */
-    organization?: string;
+    organization: string;
     /**
-     * 
+     * 부서
      * @type {string}
      * @memberof ExternalProfessorRequest
      */
@@ -43,6 +43,8 @@ export interface ExternalProfessorRequest {
  * Check if a given object implements the ExternalProfessorRequest interface.
  */
 export function instanceOfExternalProfessorRequest(value: object): value is ExternalProfessorRequest {
+    if (!('name' in value) || value['name'] === undefined) return false;
+    if (!('organization' in value) || value['organization'] === undefined) return false;
     return true;
 }
 
@@ -56,8 +58,8 @@ export function ExternalProfessorRequestFromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
-        'name': json['name'] == null ? undefined : json['name'],
-        'organization': json['organization'] == null ? undefined : json['organization'],
+        'name': json['name'],
+        'organization': json['organization'],
         'department': json['department'] == null ? undefined : json['department'],
     };
 }
