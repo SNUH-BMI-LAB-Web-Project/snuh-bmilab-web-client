@@ -48,7 +48,7 @@ export interface UserEducationRequest {
      * @type {string}
      * @memberof UserEducationRequest
      */
-    endYearMonth: string;
+    endYearMonth?: string;
 }
 
 
@@ -83,7 +83,6 @@ export function instanceOfUserEducationRequest(value: object): value is UserEduc
     if (!('status' in value) || value['status'] === undefined) return false;
     if (!('type' in value) || value['type'] === undefined) return false;
     if (!('startYearMonth' in value) || value['startYearMonth'] === undefined) return false;
-    if (!('endYearMonth' in value) || value['endYearMonth'] === undefined) return false;
     return true;
 }
 
@@ -101,7 +100,7 @@ export function UserEducationRequestFromJSONTyped(json: any, ignoreDiscriminator
         'status': json['status'],
         'type': json['type'],
         'startYearMonth': json['startYearMonth'],
-        'endYearMonth': json['endYearMonth'],
+        'endYearMonth': json['endYearMonth'] == null ? undefined : json['endYearMonth'],
     };
 }
 
