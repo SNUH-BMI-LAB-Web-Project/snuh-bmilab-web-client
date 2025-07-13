@@ -44,7 +44,7 @@ import {
   ProjectCategoryApi,
   ProjectCategorySummary,
   RegisterUserRequest,
-  RegisterUserRequestAffiliationEnum,
+  RegisterUserRequestPositionEnum,
   RegisterUserRequestRoleEnum,
   ResponseError,
   UserEducationRequest,
@@ -57,7 +57,7 @@ import EmailConfirmationModal from '@/components/system/users/email-confirmation
 import YearMonthPicker from '@/components/system/users/year-month-picker';
 import { statusLabelMap, typeLabelMap } from '@/constants/education-enum';
 import { toast } from 'sonner';
-import { affiliationOptions } from '@/constants/affiliation-enum';
+import { positionOptions } from '@/constants/position-enum';
 import { roleOptions } from '@/constants/role-enum';
 import { WorkSchedule } from '@/components/system/users/work-schedule-picker';
 
@@ -85,7 +85,7 @@ export default function UserAddModal({
     password: '',
     organization: '서울대학교병원 의생명정보학연구실',
     department: '',
-    affiliation: undefined,
+    position: undefined,
     annualLeaveCount: 0,
     usedLeaveCount: 0,
     categoryIds: [] as number[],
@@ -313,7 +313,7 @@ export default function UserAddModal({
         password: '',
         organization: '서울대병원 융합의학연구실',
         department: '',
-        affiliation: undefined,
+        position: undefined,
         annualLeaveCount: 0,
         usedLeaveCount: 0,
         categoryIds: [],
@@ -638,15 +638,15 @@ export default function UserAddModal({
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="affiliation">구분</Label>
+                  <Label htmlFor="position">구분</Label>
                   <Select
-                    value={formData.affiliation ?? ''}
+                    value={formData.position ?? ''}
                     onValueChange={(value) =>
                       handleInputChange(
-                        'affiliation',
+                        'position',
                         value === 'none'
                           ? null
-                          : (value as RegisterUserRequestAffiliationEnum),
+                          : (value as RegisterUserRequestPositionEnum),
                       )
                     }
                   >
@@ -654,12 +654,9 @@ export default function UserAddModal({
                       <SelectValue placeholder="구분 선택" />
                     </SelectTrigger>
                     <SelectContent>
-                      {affiliationOptions.map((affiliation) => (
-                        <SelectItem
-                          key={affiliation.value}
-                          value={affiliation.value}
-                        >
-                          {affiliation.label}
+                      {positionOptions.map((position) => (
+                        <SelectItem key={position.value} value={position.value}>
+                          {position.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -701,7 +698,7 @@ export default function UserAddModal({
               </div>
             </div>
 
-            {/* 위치 정보 */}
+            {/* 좌석 정보 */}
             <div className="space-y-4 rounded-lg border p-4">
               <h3 className="text-sm font-semibold">좌석 정보</h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
