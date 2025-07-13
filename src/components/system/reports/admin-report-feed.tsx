@@ -53,7 +53,7 @@ export function AdminReportFeed({
         <Card className="bg-white">
           <CardContent className="flex flex-col items-center justify-center p-6">
             <p className="text-muted-foreground text-center text-sm">
-              조건에 맞는 보고서가 없습니다.
+              일일 업무 보고가 없습니다.
             </p>
           </CardContent>
         </Card>
