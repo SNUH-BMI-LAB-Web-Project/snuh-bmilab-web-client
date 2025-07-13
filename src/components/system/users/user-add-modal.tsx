@@ -269,7 +269,13 @@ export default function UserAddModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.email || !formData.password) {
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.password ||
+      !formData.phoneNumber ||
+      !formData.organization
+    ) {
       toast.error('이름, 이메일, 비밀번호는 필수 입력 사항입니다.');
       return;
     }
@@ -443,7 +449,9 @@ export default function UserAddModal({
               {/* 연락처 및 비밀번호 */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="phoneNumber">전화번호</Label>
+                  <Label htmlFor="phoneNumber">
+                    전화번호 <span className="text-destructive text-xs">*</span>
+                  </Label>
                   <Input
                     id="phoneNumber"
                     type="tel"
