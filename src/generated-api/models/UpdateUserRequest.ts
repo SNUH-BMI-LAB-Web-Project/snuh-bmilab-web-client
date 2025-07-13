@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { UserSubAffiliationRequest } from './UserSubAffiliationRequest';
+import {
+    UserSubAffiliationRequestFromJSON,
+    UserSubAffiliationRequestFromJSONTyped,
+    UserSubAffiliationRequestToJSON,
+    UserSubAffiliationRequestToJSONTyped,
+} from './UserSubAffiliationRequest';
+
 /**
  * 
  * @export
@@ -44,11 +52,17 @@ export interface UpdateUserRequest {
      */
     department?: string;
     /**
-     * 소속 (있으면)
+     * 구분 (있으면)
      * @type {string}
      * @memberof UpdateUserRequest
      */
-    affiliation?: UpdateUserRequestAffiliationEnum;
+    position?: UpdateUserRequestPositionEnum;
+    /**
+     * 서브 소속 (있으면)
+     * @type {Array<UserSubAffiliationRequest>}
+     * @memberof UpdateUserRequest
+     */
+    subAffiliations?: Array<UserSubAffiliationRequest>;
     /**
      * 추가된 연구 분야 ID 목록
      * @type {Array<number>}
@@ -79,7 +93,7 @@ export interface UpdateUserRequest {
 /**
  * @export
  */
-export const UpdateUserRequestAffiliationEnum = {
+export const UpdateUserRequestPositionEnum = {
     Professor: 'PROFESSOR',
     CoPrincipalInvestigator: 'CO_PRINCIPAL_INVESTIGATOR',
     PostdoctoralResearcher: 'POSTDOCTORAL_RESEARCHER',
@@ -89,7 +103,7 @@ export const UpdateUserRequestAffiliationEnum = {
     ResearcherOrIntern: 'RESEARCHER_OR_INTERN',
     AdministrativeStaff: 'ADMINISTRATIVE_STAFF'
 } as const;
-export type UpdateUserRequestAffiliationEnum = typeof UpdateUserRequestAffiliationEnum[keyof typeof UpdateUserRequestAffiliationEnum];
+export type UpdateUserRequestPositionEnum = typeof UpdateUserRequestPositionEnum[keyof typeof UpdateUserRequestPositionEnum];
 
 
 /**
@@ -116,7 +130,8 @@ export function UpdateUserRequestFromJSONTyped(json: any, ignoreDiscriminator: b
         'email': json['email'],
         'organization': json['organization'],
         'department': json['department'] == null ? undefined : json['department'],
-        'affiliation': json['affiliation'] == null ? undefined : json['affiliation'],
+        'position': json['position'] == null ? undefined : json['position'],
+        'subAffiliations': json['subAffiliations'] == null ? undefined : ((json['subAffiliations'] as Array<any>).map(UserSubAffiliationRequestFromJSON)),
         'newCategoryIds': json['newCategoryIds'] == null ? undefined : json['newCategoryIds'],
         'deletedCategoryIds': json['deletedCategoryIds'] == null ? undefined : json['deletedCategoryIds'],
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
@@ -139,7 +154,8 @@ export function UpdateUserRequestToJSONTyped(value?: UpdateUserRequest | null, i
         'email': value['email'],
         'organization': value['organization'],
         'department': value['department'],
-        'affiliation': value['affiliation'],
+        'position': value['position'],
+        'subAffiliations': value['subAffiliations'] == null ? undefined : ((value['subAffiliations'] as Array<any>).map(UserSubAffiliationRequestToJSON)),
         'newCategoryIds': value['newCategoryIds'],
         'deletedCategoryIds': value['deletedCategoryIds'],
         'phoneNumber': value['phoneNumber'],

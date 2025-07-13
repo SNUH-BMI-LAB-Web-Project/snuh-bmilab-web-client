@@ -24,14 +24,14 @@ export interface UserAccountEmailRequest {
      * @type {string}
      * @memberof UserAccountEmailRequest
      */
-    password: string;
+    : string;
 }
 
 /**
  * Check if a given object implements the UserAccountEmailRequest interface.
  */
 export function instanceOfUserAccountEmailRequest(value: object): value is UserAccountEmailRequest {
-    if (!('password' in value) || value['password'] === undefined) return false;
+    if (!('' in value) || value[''] === undefined) return false;
     return true;
 }
 
@@ -45,7 +45,7 @@ export function UserAccountEmailRequestFromJSONTyped(json: any, ignoreDiscrimina
     }
     return {
         
-        'password': json['password'],
+        '': json['비밀번호'],
     };
 }
 
@@ -60,7 +60,7 @@ export function UserAccountEmailRequestToJSONTyped(value?: UserAccountEmailReque
 
     return {
         
-        'password': value['password'],
+        '비밀번호': value[''],
     };
 }
 

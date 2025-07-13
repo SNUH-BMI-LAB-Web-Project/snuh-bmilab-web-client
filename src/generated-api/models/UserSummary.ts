@@ -50,11 +50,11 @@ export interface UserSummary {
      */
     department?: string;
     /**
-     * 소속 (있으면)
+     * 직책 (있으면)
      * @type {string}
      * @memberof UserSummary
      */
-    affiliation?: UserSummaryAffiliationEnum;
+    position?: UserSummaryPositionEnum;
     /**
      * 프로필 이미지 URL
      * @type {string}
@@ -67,7 +67,7 @@ export interface UserSummary {
 /**
  * @export
  */
-export const UserSummaryAffiliationEnum = {
+export const UserSummaryPositionEnum = {
     Professor: 'PROFESSOR',
     CoPrincipalInvestigator: 'CO_PRINCIPAL_INVESTIGATOR',
     PostdoctoralResearcher: 'POSTDOCTORAL_RESEARCHER',
@@ -77,7 +77,7 @@ export const UserSummaryAffiliationEnum = {
     ResearcherOrIntern: 'RESEARCHER_OR_INTERN',
     AdministrativeStaff: 'ADMINISTRATIVE_STAFF'
 } as const;
-export type UserSummaryAffiliationEnum = typeof UserSummaryAffiliationEnum[keyof typeof UserSummaryAffiliationEnum];
+export type UserSummaryPositionEnum = typeof UserSummaryPositionEnum[keyof typeof UserSummaryPositionEnum];
 
 
 /**
@@ -102,7 +102,7 @@ export function UserSummaryFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'name': json['name'] == null ? undefined : json['name'],
         'organization': json['organization'] == null ? undefined : json['organization'],
         'department': json['department'] == null ? undefined : json['department'],
-        'affiliation': json['affiliation'] == null ? undefined : json['affiliation'],
+        'position': json['position'] == null ? undefined : json['position'],
         'profileImageUrl': json['profileImageUrl'] == null ? undefined : json['profileImageUrl'],
     };
 }
@@ -123,7 +123,7 @@ export function UserSummaryToJSONTyped(value?: UserSummary | null, ignoreDiscrim
         'name': value['name'],
         'organization': value['organization'],
         'department': value['department'],
-        'affiliation': value['affiliation'],
+        'position': value['position'],
         'profileImageUrl': value['profileImageUrl'],
     };
 }

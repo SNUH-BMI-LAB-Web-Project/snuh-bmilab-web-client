@@ -63,6 +63,8 @@ models/UserFindAllResponse.ts
 models/UserItem.ts
 models/UserProjectFindAllResponse.ts
 models/UserProjectItem.ts
+models/UserSubAffiliationRequest.ts
+models/UserSubAffiliationSummary.ts
 models/UserSummary.ts
 models/index.ts
 runtime.ts
