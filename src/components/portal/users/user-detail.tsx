@@ -32,7 +32,7 @@ import {
   PROJECT_STATUS_LABELS,
 } from '@/constants/project-enum';
 import { format } from 'date-fns';
-import { affiliationLabelMap } from '@/constants/affiliation-enum';
+import { positionLabelMap } from '@/constants/position-enum';
 import { formatSeatNumber } from '@/utils/user-utils';
 
 interface UserDetailProps {
@@ -129,8 +129,8 @@ export default function UserDetail({ user, projects }: UserDetailProps) {
                             구분
                           </div>
                           <div className="flex-1 text-sm font-semibold text-gray-900">
-                            {user.affiliation
-                              ? affiliationLabelMap[user.affiliation]
+                            {user.position
+                              ? positionLabelMap[user.position]
                               : ''}
                           </div>
                         </div>

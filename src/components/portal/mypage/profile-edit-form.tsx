@@ -16,7 +16,7 @@ import { UserApi } from '@/generated-api/apis/UserApi';
 import { Configuration } from '@/generated-api/runtime';
 import {
   UpdateUserRequest,
-  UpdateUserRequestAffiliationEnum,
+  UpdateUserRequestPositionEnum,
   UserEducationRequestStatusEnum,
   UserEducationRequestTypeEnum,
   UserEducationSummary,
@@ -33,8 +33,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { affiliationOptions } from '@/constants/affiliation-enum';
 import { cn } from '@/lib/utils';
+import { positionOptions } from '@/constants/position-enum';
 
 const userApi = new UserApi(
   new Configuration({
@@ -50,7 +50,7 @@ export default function ProfileEditForm() {
     email: string;
     organization: string;
     department: string;
-    affiliation: undefined | UpdateUserRequestAffiliationEnum;
+    position: undefined | UpdateUserRequestPositionEnum;
     phoneNumber: string;
     seatNumber: string;
   }>({
@@ -58,7 +58,7 @@ export default function ProfileEditForm() {
     email: '',
     organization: '',
     department: '',
-    affiliation: undefined,
+    position: undefined,
     phoneNumber: '',
     seatNumber: '',
   });
@@ -106,9 +106,9 @@ export default function ProfileEditForm() {
             email: data.email || '',
             organization: data.organization || '',
             department: data.department || '',
-            affiliation:
-              (data.affiliation as UpdateUserRequestAffiliationEnum) ??
-              UpdateUserRequestAffiliationEnum.ResearcherOrIntern,
+            position:
+              (data.position as UpdateUserRequestPositionEnum) ??
+              UpdateUserRequestPositionEnum.ResearcherOrIntern,
             phoneNumber: data.phoneNumber || '',
             seatNumber: data.seatNumber || '',
           });
@@ -190,14 +190,14 @@ export default function ProfileEditForm() {
       return;
     }
 
-    type ExtendedUpdateUserRequest = Omit<UpdateUserRequest, 'affiliation'> & {
-      affiliation: UpdateUserRequestAffiliationEnum | null;
+    type ExtendedUpdateUserRequest = Omit<UpdateUserRequest, 'position'> & {
+      position: UpdateUserRequestPositionEnum | null;
     };
 
     const payload: ExtendedUpdateUserRequest = {
       ...formData,
       seatNumber: `융합의학기술원-${seatFloor}-${seatNumberOnly}`,
-      affiliation: formData.affiliation ?? null,
+      position: formData.position ?? null,
       newCategoryIds,
       deletedCategoryIds,
     };
@@ -410,13 +410,13 @@ export default function ProfileEditForm() {
               <Label>구분</Label>
               <Select
                 disabled={!isEditable}
-                value={formData.affiliation ?? 'none'}
+                value={formData.position ?? 'none'}
                 onValueChange={(value) =>
                   handleChange(
-                    'affiliation',
+                    'position',
                     value === 'none'
                       ? undefined
-                      : (value as UpdateUserRequestAffiliationEnum),
+                      : (value as UpdateUserRequestPositionEnum),
                   )
                 }
               >
@@ -424,13 +424,13 @@ export default function ProfileEditForm() {
                   <SelectValue placeholder="구분 선택" />
                 </SelectTrigger>
                 <SelectContent side="bottom" sideOffset={4} className="!p-0">
-                  {affiliationOptions.map(({ value, label }) => (
+                  {positionOptions.map(({ value, label }) => (
                     <SelectItem
                       key={value}
                       value={value}
                       className={cn(
                         'relative flex cursor-pointer items-center rounded-sm px-3 py-2 text-sm transition-colors select-none',
-                        formData.affiliation === value
+                        formData.position === value
                           ? 'bg-accent text-accent-foreground font-semibold'
                           : 'hover:bg-muted',
                       )}

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { UserItem } from '@/generated-api';
 import { Badge } from '@/components/ui/badge';
-import { affiliationLabelMap } from '@/constants/affiliation-enum';
+import { positionLabelMap } from '@/constants/position-enum';
 import { formatSeatNumber } from '@/utils/user-utils';
 
 export default function UserInfoCard({ user }: { user: UserItem }) {
@@ -45,9 +45,9 @@ export default function UserInfoCard({ user }: { user: UserItem }) {
         <div className="flex items-center justify-between gap-2">
           <h2 className="flex max-w-[75%] items-center gap-2 truncate text-lg font-semibold text-black">
             <span className="block truncate">{user.name}</span>
-            {user.affiliation && (
+            {user.position && (
               <span className="text-muted-foreground text-sm font-normal">
-                {affiliationLabelMap[user.affiliation]}
+                {positionLabelMap[user.position]}
               </span>
             )}
           </h2>

@@ -43,7 +43,7 @@ import UserEditModal from '@/components/system/users/user-edit-modal';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import UserDeleteModal from '@/components/system/users/user-delete-modal';
 import UserAddModal from '@/components/system/users/user-add-modal';
-import { affiliationLabelMap } from '@/constants/affiliation-enum';
+import { positionLabelMap } from '@/constants/position-enum';
 import PasswordResetModal from '@/components/system/users/password-reset-modal';
 
 const userApi = new UserApi(
@@ -108,9 +108,7 @@ const getUserColumns = (
     className:
       'text-center truncate overflow-hidden whitespace-nowrap w-[150px]',
     cell: (row: UserItem) =>
-      row.affiliation
-        ? (affiliationLabelMap[row.affiliation] ?? row.affiliation)
-        : '-',
+      row.position ? (positionLabelMap[row.position] ?? row.position) : '-',
   },
   {
     label: '연구 분야',
@@ -400,7 +398,7 @@ export default function SystemProjectPage() {
               <SelectItem value="email">이메일</SelectItem>
               <SelectItem value="organization">기관</SelectItem>
               <SelectItem value="department">부서</SelectItem>
-              <SelectItem value="affiliation">구분</SelectItem>
+              <SelectItem value="position">구분</SelectItem>
               <SelectItem value="categories">연구 분야</SelectItem>
               <SelectItem value="phoneNumber">연락처</SelectItem>
               <SelectItem value="seatNumber">좌석</SelectItem>
