@@ -200,10 +200,33 @@ export default function TimelineCard({
     }
   };
 
+  const getTimelineBgHoverColor = (type: string) => {
+    switch (type) {
+      case 'INTERNAL_MEETING':
+        return 'hover:bg-yellow-100';
+      case 'EXTERNAL_MEETING':
+        return 'hover:bg-orange-100';
+      case 'SUBMISSION_DEADLINE':
+        return 'hover:bg-red-100';
+      case 'MATERIAL_SHARE':
+        return 'hover:bg-blue-100';
+      default:
+        return 'hover:bg-gray-100';
+    }
+  };
+
   const getTimeText = (start?: string, end?: string) => {
     if (start && end) return `${start} - ${end}`;
     if (start) return `${start}`;
     return '시간 미지정';
+  };
+
+  const shortenFileName = (name: string, maxLength = 24) => {
+    if (name.length <= maxLength) return name;
+
+    const prefix = name.slice(0, 15);
+    const suffix = name.slice(-8);
+    return `${prefix}...${suffix}`;
   };
 
   return (
@@ -278,7 +301,12 @@ export default function TimelineCard({
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  className="size-5 p-3"
+                                  className={cn(
+                                    'size-5 p-3',
+                                    getTimelineBgHoverColor(
+                                      timeline.timelineType!,
+                                    ),
+                                  )}
                                 >
                                   <EllipsisVertical />
                                 </Button>
@@ -338,7 +366,7 @@ export default function TimelineCard({
                               <Button
                                 key={file.fileId}
                                 variant="ghost"
-                                className="p-0"
+                                className="p-0 hover:bg-transparent"
                                 onClick={() =>
                                   downloadFileFromUrl(
                                     file.fileName!,
@@ -348,9 +376,10 @@ export default function TimelineCard({
                               >
                                 <Badge
                                   variant="outline"
-                                  className="cursor-pointer bg-white px-2 py-1"
+                                  className="max-w-[500px] cursor-pointer overflow-hidden bg-white px-2 py-1 whitespace-nowrap"
+                                  title={file.fileName}
                                 >
-                                  {file.fileName}
+                                  {shortenFileName(file.fileName!)}
                                 </Badge>
                               </Button>
                             ))}

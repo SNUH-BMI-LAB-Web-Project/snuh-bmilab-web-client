@@ -82,9 +82,9 @@ export default function ProjectDetailPage({
   };
 
   return (
-    <div className="flex flex-col gap-8 px-20">
-      <div className="flex items-center justify-between">
-        <div className="flex flex-row">
+    <div className="flex flex-col gap-8 px-4 md:px-10 lg:px-20">
+      <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+        <div className="flex flex-row items-center">
           <Button
             variant="ghost"
             size="icon"
@@ -93,11 +93,14 @@ export default function ProjectDetailPage({
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-3xl font-bold">{project.title}</h1>
+          <h1 className="text-2xl font-bold break-words md:text-3xl">
+            {project.title}
+          </h1>
         </div>
       </div>
-      <div className="flex flex-row items-center justify-between">
-        <div className="text-muted-foreground flex items-center gap-3 text-sm">
+
+      <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+        <div className="flex items-center gap-3">
           <Image
             src={
               project.author?.profileImageUrl &&
@@ -110,9 +113,9 @@ export default function ProjectDetailPage({
             height={40}
             className="h-10 w-10 rounded-full object-cover"
           />
-          <div className="flex flex-col">
+          <div className="flex flex-col text-sm break-words">
             <div className="font-medium text-black">{project.author?.name}</div>
-            <div className="text-xs">
+            <div className="text-muted-foreground text-xs">
               {project.author?.organization} {project.author?.department}{' '}
               {project.author?.position &&
                 positionLabelMap[project.author.position]}{' '}
@@ -121,7 +124,7 @@ export default function ProjectDetailPage({
           </div>
         </div>
 
-        <div className="flex flex-col justify-end gap-3">
+        <div className="flex w-full flex-col items-end gap-2">
           {(canEdit || canDelete) && (
             <div className="flex flex-row justify-end gap-2">
               {canEdit && (
@@ -141,34 +144,40 @@ export default function ProjectDetailPage({
               )}
             </div>
           )}
-          <div className="flex flex-col gap-1">
-            <div className="text-muted-foreground ml-auto text-xs">
-              최초 작성일 :{' '}
+          <div className="text-muted-foreground w-full text-right text-xs">
+            <div>
+              최초 작성일:{' '}
               {project.createdAt
                 ? formatDateTime(project.createdAt.toString())
-                : null}
+                : '-'}
             </div>
-            <div className="text-muted-foreground ml-auto text-xs">
-              최종 수정일 :{' '}
+            <div>
+              최종 수정일:{' '}
               {project.updatedAt
                 ? formatDateTime(project.updatedAt.toString())
-                : null}
+                : '-'}
             </div>
           </div>
         </div>
       </div>
 
       <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className="mb-6 w-full justify-around">
-          <TabsTrigger value="info" className="flex-1">
+        <TabsList className="mb-4 flex w-full flex-wrap justify-between gap-2">
+          <TabsTrigger
+            value="info"
+            className="min-w-[120px] flex-1 py-2 text-sm"
+          >
             프로젝트 정보
           </TabsTrigger>
-          <TabsTrigger value="archive" className="flex-1">
+          <TabsTrigger
+            value="archive"
+            className="min-w-[120px] flex-1 py-2 text-sm"
+          >
             자료실
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="info" className="mt-6">
+        <TabsContent value="info" className="mt-4 sm:mt-6">
           <ProjectInfoForm
             id={project.projectId?.toString() ?? ''}
             project={project}
@@ -176,7 +185,7 @@ export default function ProjectDetailPage({
           />
         </TabsContent>
 
-        <TabsContent value="archive" className="mt-6">
+        <TabsContent value="archive" className="mt-4 sm:mt-6">
           <ProjectArchiveForm projectId={project.projectId!} />
         </TabsContent>
       </Tabs>
