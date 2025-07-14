@@ -72,9 +72,9 @@ export default function UserDetail({ user, projects }: UserDetailProps) {
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl">
         {/* 메인 레이아웃 */}
-        <div className="grid grid-cols-12 gap-8">
+        <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-12">
           {/* 왼쪽 - 프로필 카드 */}
-          <div className="col-span-4">
+          <div className="lg:col-span-4">
             <Card className="sticky top-8 border border-gray-100 bg-white shadow-sm">
               <CardContent className="p-8">
                 <div className="space-y-6 text-center">
@@ -180,7 +180,7 @@ export default function UserDetail({ user, projects }: UserDetailProps) {
           </div>
 
           {/* 오른쪽 - 상세 정보 */}
-          <div className="col-span-8">
+          <div className="lg:col-span-8">
             <Tabs defaultValue="profile">
               {/* 프로필 정보 탭 */}
               <TabsContent value="profile" className="space-y-6">

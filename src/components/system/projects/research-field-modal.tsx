@@ -204,49 +204,49 @@ export default function ResearchFieldModal() {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6">
-            {/* 새 연구 분야 추가 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Plus className="h-5 w-5" />새 연구 분야 추가
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-3">
-                  <div className="flex-1">
-                    <Label htmlFor="newField" className="sr-only">
-                      연구 분야 이름
-                    </Label>
-                    <Input
-                      id="newField"
-                      placeholder="연구 분야 이름을 입력하세요 (예: Artificial Intelligence)"
-                      value={newFieldName}
-                      onChange={(e) => setNewFieldName(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleAddField()}
-                      className="text-base"
-                      maxLength={30}
-                    />
-                    {newFieldName.length >= 30 && (
-                      <p className="text-destructive mt-1 ml-1 text-sm">
-                        최대 30자까지 입력할 수 있습니다.
-                      </p>
-                    )}
-                  </div>
-
-                  <Button
-                    onClick={handleAddField}
-                    disabled={!newFieldName.trim()}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    추가
-                  </Button>
+          {/* 새 연구 분야 추가 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Plus className="h-5 w-5" />새 연구 분야 추가
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <Label htmlFor="newField" className="sr-only">
+                    연구 분야 이름
+                  </Label>
+                  <Input
+                    id="newField"
+                    placeholder="연구 분야 이름을 입력하세요 (예: Artificial Intelligence)"
+                    value={newFieldName}
+                    onChange={(e) => setNewFieldName(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddField()}
+                    className="text-base"
+                    maxLength={30}
+                  />
+                  {newFieldName.length >= 30 && (
+                    <p className="text-destructive mt-1 ml-1 text-sm">
+                      최대 30자까지 입력할 수 있습니다.
+                    </p>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* 연구 분야 목록 */}
-            <Card>
+                <Button
+                  onClick={handleAddField}
+                  disabled={!newFieldName.trim()}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  추가
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 연구 분야 목록 */}
+          <div className="mt-3 overflow-x-auto">
+            <Card className="min-w-[539px]">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">연구 분야 목록</CardTitle>

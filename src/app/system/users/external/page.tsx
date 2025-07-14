@@ -188,7 +188,7 @@ export default function ExternalProfessorPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
               <Label htmlFor="name">
                 이름 <span className="text-destructive text-xs">*</span>
@@ -275,7 +275,7 @@ export default function ExternalProfessorPage() {
         </CardContent>
       </Card>
 
-      <div className="mt-6 overflow-x-auto">
+      <div className="mt-6">
         {/* 교수 목록 */}
         <Card>
           <CardHeader>
@@ -287,73 +287,69 @@ export default function ExternalProfessorPage() {
             </div>
           </CardHeader>
 
-          <div className="overflow-x-auto">
-            <CardContent className="min-w-[768px] p-0">
-              {professors.length === 0 ? (
-                <div className="py-8 text-center">
-                  <UserCheck className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-                  <p className="text-gray-500">등록된 외부 인사가 없습니다.</p>
-                </div>
-              ) : (
-                <Table className="min-w-[768px]">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="pl-6">이름</TableHead>
-                      <TableHead>기관</TableHead>
-                      <TableHead>부서</TableHead>
-                      <TableHead>직책</TableHead>
-                      <TableHead className="w-[100px] text-center">
-                        액션
-                      </TableHead>
+          <CardContent className="p-0">
+            {professors.length === 0 ? (
+              <div className="py-8 text-center">
+                <UserCheck className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+                <p className="text-gray-500">등록된 외부 인사가 없습니다.</p>
+              </div>
+            ) : (
+              <Table className="min-w-[900px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-6">이름</TableHead>
+                    <TableHead>기관</TableHead>
+                    <TableHead>부서</TableHead>
+                    <TableHead>직책</TableHead>
+                    <TableHead className="w-[100px] text-center">
+                      액션
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {professors.map((professor) => (
+                    <TableRow
+                      key={`${professor.name}-${professor.organization}`}
+                    >
+                      <TableCell>
+                        <div className="pl-4 font-medium">{professor.name}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Building className="h-3 w-3 text-gray-400" />
+                          <span>{professor.organization}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="min-w-[120px]">
+                        <span>{professor.department}</span>
+                      </TableCell>
+                      <TableCell className="min-w-[120px]">
+                        <span>{professor.position}</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => startEdit(professor)}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setDeleteProfessor(professor)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {professors.map((professor) => (
-                      <TableRow
-                        key={`${professor.name}-${professor.organization}`}
-                      >
-                        <TableCell>
-                          <div className="pl-4 font-medium">
-                            {professor.name}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Building className="h-3 w-3 text-gray-400" />
-                            <span>{professor.organization}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="min-w-[120px]">
-                          <span>{professor.department}</span>
-                        </TableCell>
-                        <TableCell className="min-w-[120px]">
-                          <span>{professor.position}</span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => startEdit(professor)}
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => setDeleteProfessor(professor)}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </div>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
         </Card>
       </div>
 

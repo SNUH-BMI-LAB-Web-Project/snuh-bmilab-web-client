@@ -161,7 +161,7 @@ export function FilterControls({
   return (
     <div className="space-y-4">
       {/* 상단 필터들 */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* 프로젝트 필터 */}
         <div className="space-y-2">
           <Label htmlFor="project">프로젝트</Label>
@@ -180,7 +180,7 @@ export function FilterControls({
                   value={String(proj.projectId)}
                   title={proj.title}
                 >
-                  <span className="w-[250px] truncate overflow-hidden whitespace-nowrap">
+                  <span className="w-[250px] truncate overflow-hidden text-start whitespace-nowrap">
                     {proj.title}
                   </span>
                 </SelectItem>

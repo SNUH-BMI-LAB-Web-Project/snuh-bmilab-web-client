@@ -232,68 +232,64 @@ export default function ExternalProfessorSelectModal({
               </div>
             </CardHeader>
 
-            <div className="overflow-x-auto">
-              <CardContent className="min-w-[768px] p-0">
-                {professors.length === 0 ? (
-                  <div className="py-8 text-center">
-                    <UserCheck className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-                    <p className="text-gray-500">
-                      등록된 외부 인사가 없습니다.
-                    </p>
-                  </div>
-                ) : (
-                  <Table className="min-w-[768px]">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="pl-6">이름</TableHead>
-                        <TableHead>기관</TableHead>
-                        <TableHead>부서</TableHead>
-                        <TableHead>직책</TableHead>
-                        <TableHead className="w-[100px] text-center" />
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {professors.map((professor) => {
-                        const key = getProfessorKey(professor);
-                        const isSelected = selectedProfessorKeys?.includes(key);
+            <CardContent className="p-0">
+              {professors.length === 0 ? (
+                <div className="py-8 text-center">
+                  <UserCheck className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+                  <p className="text-gray-500">등록된 외부 인사가 없습니다.</p>
+                </div>
+              ) : (
+                <Table className="min-w-[768px]">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="pl-6">이름</TableHead>
+                      <TableHead>기관</TableHead>
+                      <TableHead>부서</TableHead>
+                      <TableHead>직책</TableHead>
+                      <TableHead className="w-[100px] text-center" />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {professors.map((professor) => {
+                      const key = getProfessorKey(professor);
+                      const isSelected = selectedProfessorKeys?.includes(key);
 
-                        return (
-                          <TableRow key={key}>
-                            <TableCell>
-                              <div className="pl-4 font-medium">
-                                {professor.name}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-1">
-                                <Building className="h-3 w-3 text-gray-400" />
-                                <span>{professor.organization}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="min-w-[120px]">
-                              <span>{professor.department}</span>
-                            </TableCell>
-                            <TableCell className="min-w-[120px]">
-                              <span>{professor.position}</span>
-                            </TableCell>
-                            <TableCell className="flex items-center justify-center gap-2">
-                              <Button
-                                size="sm"
-                                className="px-3"
-                                onClick={() => onSelect(professor)}
-                                disabled={isSelected}
-                              >
-                                {isSelected ? '선택됨' : '선택'}
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </div>
+                      return (
+                        <TableRow key={key}>
+                          <TableCell>
+                            <div className="pl-4 font-medium">
+                              {professor.name}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Building className="h-3 w-3 text-gray-400" />
+                              <span>{professor.organization}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="min-w-[120px]">
+                            <span>{professor.department}</span>
+                          </TableCell>
+                          <TableCell className="min-w-[120px]">
+                            <span>{professor.position}</span>
+                          </TableCell>
+                          <TableCell className="flex items-center justify-center gap-2">
+                            <Button
+                              size="sm"
+                              className="px-3"
+                              onClick={() => onSelect(professor)}
+                              disabled={isSelected}
+                            >
+                              {isSelected ? '선택됨' : '선택'}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
           </Card>
         </div>
       </DialogContent>

@@ -73,11 +73,15 @@ export function AdminReportFeed({
                       className="object-cover"
                     />
                   </Avatar>
-                  <div className="flex items-center">
-                    <p className="mr-2 text-sm font-medium">
+                  <div className="flex items-center gap-1 md:flex-col md:items-start lg:flex-row lg:items-center">
+                    <p className="mr-2 text-sm font-medium md:pl-2 lg:pl-0">
                       {report.user?.name}
                     </p>
-                    <Badge variant="outline">{report.project?.title}</Badge>
+                    <Badge variant="outline" title={report.project?.title}>
+                      <div className="truncate overflow-hidden whitespace-nowrap md:max-w-[120px] lg:max-w-none">
+                        {report.project?.title}
+                      </div>
+                    </Badge>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
