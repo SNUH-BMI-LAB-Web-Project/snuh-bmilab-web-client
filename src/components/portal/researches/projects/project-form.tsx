@@ -497,7 +497,7 @@ export function ProjectForm({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="flex items-center text-base font-medium">
-                  <ShieldCheck className="mr-1 h-4 w-4" />
+                  <ShieldCheck className="mr-1 h-4 w-4 shrink-0" />
                   IRB 번호
                 </Label>
                 <Button
@@ -534,7 +534,7 @@ export function ProjectForm({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="flex items-center text-base font-medium">
-                  <ShieldCheck className="mr-1 h-4 w-4" />
+                  <ShieldCheck className="mr-1 h-4 w-4 shrink-0" />
                   DRB 번호
                 </Label>
                 <Button
@@ -607,7 +607,7 @@ export function ProjectForm({
                   className="flex gap-2"
                 >
                   <Input
-                    disabled={isEditing}
+                    disabled
                     placeholder="PI 이름"
                     value={pi.name || ''}
                     onChange={(e) => {
@@ -618,7 +618,7 @@ export function ProjectForm({
                     className="bg-white"
                   />
                   <Input
-                    disabled={isEditing}
+                    disabled
                     placeholder="PI 기관"
                     value={pi.organization || ''}
                     onChange={(e) => {
@@ -629,7 +629,7 @@ export function ProjectForm({
                     className="bg-white"
                   />
                   <Input
-                    disabled={isEditing}
+                    disabled
                     placeholder="PI 부서"
                     value={pi.department || ''}
                     onChange={(e) => {
@@ -640,7 +640,7 @@ export function ProjectForm({
                     className="bg-white"
                   />
                   <Input
-                    disabled={isEditing}
+                    disabled
                     placeholder="PI 직책"
                     value={pi.position || ''}
                     onChange={(e) => {
@@ -692,7 +692,7 @@ export function ProjectForm({
                   className="flex items-center gap-2"
                 >
                   <Input
-                    disabled={isEditing}
+                    disabled
                     placeholder="참여교수 이름"
                     value={prof.name || ''}
                     onChange={(e) => {
@@ -703,7 +703,7 @@ export function ProjectForm({
                     className="bg-white"
                   />
                   <Input
-                    disabled={isEditing}
+                    disabled
                     placeholder="참여교수 기관"
                     value={prof.organization || ''}
                     onChange={(e) => {
@@ -714,7 +714,7 @@ export function ProjectForm({
                     className="bg-white"
                   />
                   <Input
-                    disabled={isEditing}
+                    disabled
                     placeholder="참여교수 부서"
                     value={prof.department || ''}
                     onChange={(e) => {
@@ -725,7 +725,7 @@ export function ProjectForm({
                     className="bg-white"
                   />
                   <Input
-                    disabled={isEditing}
+                    disabled
                     placeholder="참여교수 직책"
                     value={prof.position || ''}
                     onChange={(e) => {

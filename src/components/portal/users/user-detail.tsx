@@ -14,6 +14,8 @@ import {
   User,
   FolderOpen,
   Clock,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import {
   GetAllProjectsStatusEnum,
@@ -34,6 +36,8 @@ import {
 import { format } from 'date-fns';
 import { positionLabelMap } from '@/constants/position-enum';
 import { formatSeatNumber } from '@/utils/user-utils';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 
 interface UserDetailProps {
   user: UserDetailType;
@@ -41,6 +45,8 @@ interface UserDetailProps {
 }
 
 export default function UserDetail({ user, projects }: UserDetailProps) {
+  const [showSubAffiliations, setShowSubAffiliations] = useState(false);
+
   if (!user) return null;
 
   const getEducationStatusInfo = (
@@ -93,7 +99,6 @@ export default function UserDetail({ user, projects }: UserDetailProps) {
                       {user.name}
                     </h1>
                   </div>
-
                   {/* 기본 정보 */}
                   <div className="space-y-4 text-left">
                     {/* 기관, 부서, 소속 */}
@@ -158,22 +163,62 @@ export default function UserDetail({ user, projects }: UserDetailProps) {
                     </div>
                   </div>
 
-                  {/* 좌석 번호 */}
-                  <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 text-left">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200">
-                      <MapPin className="h-5 w-5 text-gray-700" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="mb-1 text-xs font-medium text-gray-700">
-                        좌석 번호
-                      </p>
-                      <p className="text-sm font-semibold text-gray-700">
-                        {user.seatNumber
-                          ? formatSeatNumber(user.seatNumber)
-                          : '좌석 정보 없음'}
-                      </p>
-                    </div>
-                  </div>
+                  {user.subAffiliations && user.subAffiliations.length > 0 && (
+                    <>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setShowSubAffiliations((prev) => !prev)}
+                      >
+                        {showSubAffiliations ? <ChevronUp /> : <ChevronDown />}
+                      </Button>
+
+                      {showSubAffiliations &&
+                        user.subAffiliations.map((aff, index) => (
+                          <div
+                            /* eslint-disable-next-line react/no-array-index-key */
+                            key={index}
+                            className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
+                          >
+                            <div className="border-b border-gray-200 bg-gray-100 px-4 py-2">
+                              <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                <User className="h-4 w-4" />
+                                기타 소속 {index + 1}
+                              </h3>
+                            </div>
+                            <div className="divide-y divide-gray-200">
+                              <div className="flex items-center px-4 py-3">
+                                <div className="flex w-20 items-center gap-2 text-xs font-medium text-gray-600">
+                                  <Building className="h-3 w-3" />
+                                  기관
+                                </div>
+                                <div className="flex-1 text-sm font-semibold text-gray-900">
+                                  {aff.organization}
+                                </div>
+                              </div>
+                              <div className="flex items-center px-4 py-3">
+                                <div className="flex w-20 items-center gap-2 text-xs font-medium text-gray-600">
+                                  <Users className="h-3 w-3" />
+                                  부서
+                                </div>
+                                <div className="flex-1 text-sm font-semibold text-gray-900">
+                                  {aff.department}
+                                </div>
+                              </div>
+                              <div className="flex items-center px-4 py-3">
+                                <div className="flex w-20 items-center gap-2 text-xs font-medium text-gray-600">
+                                  <User className="h-3 w-3" />
+                                  구분
+                                </div>
+                                <div className="flex-1 text-sm font-semibold text-gray-900">
+                                  {aff.position}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -192,11 +237,11 @@ export default function UserDetail({ user, projects }: UserDetailProps) {
                         <Mail className="h-4 w-4 text-gray-600" />
                       </div>
                       <h2 className="text-xl font-semibold text-gray-900">
-                        연락처
+                        연락처 및 좌석 정보
                       </h2>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-6">
+                    <div className="grid grid-cols-2 gap-6">
                       <div className="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm">
                           <Mail className="h-5 w-5 text-gray-600" />
@@ -207,6 +252,22 @@ export default function UserDetail({ user, projects }: UserDetailProps) {
                           </p>
                           <p className="font-medium break-all text-gray-900">
                             {user.email}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm">
+                          <MapPin className="h-5 w-5 text-gray-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="mb-1 text-xs font-medium tracking-wide text-gray-500 uppercase">
+                            좌석 번호
+                          </p>
+                          <p className="font-medium break-all text-gray-900">
+                            {user.seatNumber
+                              ? formatSeatNumber(user.seatNumber)
+                              : '좌석 정보 없음'}
                           </p>
                         </div>
                       </div>
