@@ -260,8 +260,9 @@ function SidebarTrigger({
   onClick,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar, state } = useSidebar();
+  const { toggleSidebar, state, isMobile } = useSidebar();
   const isCollapsed = state === 'collapsed';
+  const Icon = isMobile || isCollapsed ? ChevronRight : ChevronLeft;
 
   return (
     <Button
@@ -270,7 +271,7 @@ function SidebarTrigger({
       variant="ghost"
       size="icon"
       className={cn(
-        'hover:bg-muted justify-end rounded-lg border bg-white pr-1 transition-all',
+        '!bg-sidebar hover:bg-muted w-6 justify-end rounded-none rounded-tr-lg rounded-br-lg border bg-white pr-1 transition-all',
         className,
       )}
       onClick={(event) => {
@@ -279,11 +280,7 @@ function SidebarTrigger({
       }}
       {...props}
     >
-      {isCollapsed ? (
-        <ChevronRight className="text-muted-foreground h-3 w-3" />
-      ) : (
-        <ChevronLeft className="text-muted-foreground h-3 w-3" />
-      )}
+      <Icon className="text-muted-foreground h-3 w-3" />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );
