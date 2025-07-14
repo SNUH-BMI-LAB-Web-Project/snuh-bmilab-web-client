@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import UserInfoCard from '@/components/portal/users/user-info-card';
 import { UserItem, UserApi, UserFindAllResponse } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   ChevronLeft,
