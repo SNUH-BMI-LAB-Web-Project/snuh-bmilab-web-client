@@ -1,4 +1,5 @@
 import { toast } from 'sonner';
+import { handleUnauthorizedOnce } from '@/lib/auth-error-handler';
 
 export const customFetch: typeof fetch = async (...args) => {
   const res = await fetch(...args);
@@ -10,20 +11,22 @@ export const customFetch: typeof fetch = async (...args) => {
     try {
       const json = await res.json();
 
-      // error message 추출
       if ('body' in json && typeof json.body?.message === 'string') {
         message = json.body.message;
       } else if (typeof json.message === 'string') {
         message = json.message;
       }
 
-      // 401이면 로그인 페이지로 리디렉션
+      // 401 처리
       if (status === 401) {
-        toast.error('로그인이 만료되었습니다. 다시 로그인해 주세요.');
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+        if (handleUnauthorizedOnce()) {
+          toast.error('로그인이 만료되었습니다. 다시 로그인해 주세요.');
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 1000);
         }
-        return await new Promise(() => {}); // 이후 코드 실행 중단
+
+        return await new Promise(() => {}); // 이후 코드 중단
       }
 
       const error = new Error(message) as Error & { body?: never };
