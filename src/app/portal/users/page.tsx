@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import UserInfoCard from '@/components/portal/users/user-info-card';
 import { UserItem, UserApi, UserFindAllResponse } from '@/generated-api';
 import { Configuration } from '@/generated-api/runtime';
@@ -12,6 +12,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  User,
 } from 'lucide-react';
 import {
   Select,
@@ -72,11 +73,18 @@ export default function UsersPage() {
     <div className="mb-8 flex flex-col gap-8">
       <h1 className="text-3xl font-bold">구성원</h1>
 
-      <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
-        {users.map((user) => (
-          <UserInfoCard key={user.userId} user={user} />
-        ))}
-      </div>
+      {users.length > 0 ? (
+        <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
+          {users.map((user) => (
+            <UserInfoCard key={user.userId} user={user} />
+          ))}
+        </div>
+      ) : (
+        <div className="py-20 text-center">
+          <User className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+          <p className="text-gray-500">등록된 구성원이 없습니다.</p>
+        </div>
+      )}
 
       <div className="mt-4 flex items-center justify-center">
         <div className="flex items-center space-x-2">
