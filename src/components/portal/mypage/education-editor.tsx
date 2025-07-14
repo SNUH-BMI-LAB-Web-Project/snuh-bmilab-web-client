@@ -80,9 +80,10 @@ export default function EducationEditor({
       onRefReady(getter);
     }
   }, [titles, statusList, startDates, endDates, ids]);
+
   const yearMonthOptions = Array.from(
-    { length: 10 },
-    (_, y) => 2020 + y,
+    { length: 2035 - 1950 + 1 },
+    (_, y) => 1950 + y,
   ).flatMap((year) =>
     Array.from({ length: 12 }, (_, m) => {
       const month = String(m + 1).padStart(2, '0');
