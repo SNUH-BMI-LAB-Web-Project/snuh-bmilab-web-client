@@ -14,7 +14,6 @@ import {
   Minus,
 } from 'lucide-react';
 import { UserApi } from '@/generated-api/apis/UserApi';
-import { Configuration } from '@/generated-api/runtime';
 import {
   UpdateUserRequest,
   UpdateUserRequestPositionEnum,
@@ -38,12 +37,9 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { positionOptions } from '@/constants/position-enum';
+import { getApiConfig } from '@/lib/config';
 
-const userApi = new UserApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const userApi = new UserApi(getApiConfig());
 
 export default function ProfileEditForm() {
   const router = useRouter();
@@ -289,9 +285,9 @@ export default function ProfileEditForm() {
       setIsEditable(false);
       toast.success('개인정보 및 학력이 성공적으로 저장되었습니다.');
     } catch (err) {
-      toast.error(
-        '개인정보 및 학력 저장 중 오류가 발생했습니다. 다시 시도해주세요.',
-      );
+      // toast.error(
+      //   '개인정보 및 학력 저장 중 오류가 발생했습니다. 다시 시도해주세요.',
+      // );
     }
   };
 

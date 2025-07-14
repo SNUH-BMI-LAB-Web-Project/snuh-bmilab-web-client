@@ -25,7 +25,6 @@ import {
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn, setDateWithFixedHour } from '@/lib/utils';
 import {
-  Configuration,
   GeneratePresignedUrlDomainTypeEnum,
   ReportApi,
   SearchProjectItem,
@@ -33,12 +32,9 @@ import {
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { uploadFileWithPresignedUrl } from '@/lib/upload';
+import { getApiConfig } from '@/lib/config';
 
-const reportApi = new ReportApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const reportApi = new ReportApi(getApiConfig());
 
 interface ReportFormProps {
   projectList: SearchProjectItem[];
@@ -106,7 +102,7 @@ export function ReportForm({ projectList, onReportCreated }: ReportFormProps) {
 
       onReportCreated?.();
     } catch (error) {
-      toast.error('보고서 제출 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.error(error);
     }
   };
 

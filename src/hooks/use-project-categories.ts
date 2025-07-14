@@ -1,13 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { ProjectCategoryControllerApi } from '@/generated-api/apis/ProjectCategoryControllerApi';
-import { Configuration } from '@/generated-api';
-import { useAuthStore } from '@/store/auth-store';
+import { getApiConfig } from '@/lib/config';
 
-const categoryApi = new ProjectCategoryControllerApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const categoryApi = new ProjectCategoryControllerApi(getApiConfig());
 
 export const useProjectCategories = () => {
   return useQuery({

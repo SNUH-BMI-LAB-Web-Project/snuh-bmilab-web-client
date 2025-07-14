@@ -9,20 +9,15 @@ import { formatDateTime } from '@/lib/utils';
 import Image from 'next/image';
 import { ProjectApi } from '@/generated-api/apis/ProjectApi';
 import { ProjectDetail } from '@/generated-api/models/ProjectDetail';
-import { Configuration } from '@/generated-api/runtime';
-import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProjectInfoForm from '@/components/portal/researches/projects/project-info-form';
 import ProjectArchiveForm from '@/components/portal/researches/projects/project-archive-form';
 import ConfirmModal from '@/components/common/confirm-modal';
 import { positionLabelMap } from '@/constants/position-enum';
+import { getApiConfig } from '@/lib/config';
 
-const projectApi = new ProjectApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const projectApi = new ProjectApi(getApiConfig());
 
 export default function ProjectDetailPage({
   params,
@@ -42,9 +37,7 @@ export default function ProjectDetailPage({
         const data = await projectApi.getProjectById({ projectId: Number(id) });
         setProject(data);
       } catch (err) {
-        toast.error(
-          '프로젝트 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
-        );
+        console.log(err);
       }
     };
 
@@ -57,7 +50,7 @@ export default function ProjectDetailPage({
       toast.success('프로젝트가 삭제되었습니다.');
       router.push('/system/researches/projects');
     } catch (e) {
-      toast.error('프로젝트 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.log(e);
     } finally {
       setShowDeleteAlert(false);
     }

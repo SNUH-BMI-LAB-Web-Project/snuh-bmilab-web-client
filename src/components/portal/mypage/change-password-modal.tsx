@@ -4,9 +4,7 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { useAuthStore } from '@/store/auth-store';
 import { UserApi } from '@/generated-api/apis/UserApi';
-import { Configuration } from '@/generated-api/runtime';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -16,12 +14,9 @@ import {
   DialogFooter,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { getApiConfig } from '@/lib/config';
 
-const userApi = new UserApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const userApi = new UserApi(getApiConfig());
 
 interface ChangePasswordModalProps {
   triggerButton?: React.ReactNode; // 외부에서 버튼 넘기고 싶을 때
@@ -66,7 +61,7 @@ export function ChangePasswordModal({
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {
-      toast.error('비밀번호 변경 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.log(err);
     } finally {
       setIsSubmitting(false);
     }

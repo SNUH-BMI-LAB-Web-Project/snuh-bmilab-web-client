@@ -6,18 +6,13 @@ import { ProjectForm } from '@/components/portal/researches/projects/project-for
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { ProjectApi } from '@/generated-api/apis/ProjectApi';
-import { Configuration } from '@/generated-api/runtime';
-import { useAuthStore } from '@/store/auth-store';
 import type { ProjectDetail } from '@/generated-api/models/ProjectDetail';
 import type { ProjectRequest } from '@/generated-api/models/ProjectRequest';
 import { ProjectFileSummary } from '@/generated-api';
 import { toast } from 'sonner';
+import { getApiConfig } from '@/lib/config';
 
-const projectApi = new ProjectApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const projectApi = new ProjectApi(getApiConfig());
 
 export default function EditProjectPage({
   params,
@@ -78,7 +73,7 @@ export default function EditProjectPage({
       toast.success('프로젝트가 성공적으로 수정되었습니다.');
       router.push(`/system/researches/projects/${data.projectId}`);
     } catch (error) {
-      toast.error('프로젝트 수정 중 오류가 발생했습니다. 다시 시도해주세요.');
+      console.log(error);
     }
   };
 

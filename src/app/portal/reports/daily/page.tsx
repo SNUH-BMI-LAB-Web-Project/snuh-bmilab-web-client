@@ -12,21 +12,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DateRangePicker } from '@/components/common/data-range-picker';
-import { Configuration, ProjectApi, SearchProjectItem } from '@/generated-api';
-import { useAuthStore } from '@/store/auth-store';
+import { ProjectApi, SearchProjectItem } from '@/generated-api';
 import { subDays } from 'date-fns';
 import { DateRange } from 'react-day-picker';
+import { getApiConfig } from '@/lib/config';
 
 interface ReportFilter {
   user?: string;
   project?: string;
 }
 
-const projectApi = new ProjectApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const projectApi = new ProjectApi(getApiConfig());
 
 export default function DailyPage() {
   const [filters, setFilters] = useState<ReportFilter>({});

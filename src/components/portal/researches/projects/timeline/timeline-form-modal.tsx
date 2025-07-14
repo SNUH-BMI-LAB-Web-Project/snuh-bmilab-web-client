@@ -29,11 +29,7 @@ import {
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn, setDateWithFixedHour } from '@/lib/utils';
-import {
-  Configuration,
-  TimelineApi,
-  TimelineRequestTypeEnum,
-} from '@/generated-api';
+import { TimelineApi, TimelineRequestTypeEnum } from '@/generated-api';
 import { GeneratePresignedUrlDomainTypeEnum } from '@/generated-api/apis/FileApi';
 import { FileSummary, TimelineSummary } from '@/generated-api/models';
 import { useAuthStore } from '@/store/auth-store';
@@ -41,6 +37,7 @@ import { toast } from 'sonner';
 import { uploadFileWithPresignedUrl } from '@/lib/upload';
 import { FileItem } from '@/components/portal/researches/projects/file-item';
 import TimePicker from '@/components/common/time-picker';
+import { getApiConfig } from '@/lib/config';
 
 interface Props {
   mode: 'create' | 'edit';
@@ -60,11 +57,7 @@ interface Props {
   }) => void;
 }
 
-const timelineApi = new TimelineApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const timelineApi = new TimelineApi(getApiConfig());
 
 export default function TimelineFormModal({
   mode,
@@ -153,8 +146,8 @@ export default function TimelineFormModal({
       );
       setFormData((prev) => ({ ...prev, files: [...prev.files, uploaded] }));
       toast.success('파일 업로드 완료');
-    } catch {
-      toast.error('파일 업로드 실패');
+    } catch (error) {
+      console.log(error);
     } finally {
       e.target.value = '';
     }
@@ -231,9 +224,7 @@ export default function TimelineFormModal({
 
       onOpenChange(false);
     } catch (err) {
-      toast.error(
-        '타임라인 등록 또는 수정 중 오류가 발생했습니다. 다시 시도해 주세요.',
-      );
+      console.log(err);
     }
   };
 

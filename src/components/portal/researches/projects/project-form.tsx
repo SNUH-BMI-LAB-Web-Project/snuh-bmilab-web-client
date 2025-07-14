@@ -38,7 +38,6 @@ import { Separator } from '@/components/ui/separator';
 import { FileItem } from '@/components/portal/researches/projects/file-item';
 import { UserTagInput } from '@/components/portal/researches/projects/user-tag-input';
 import {
-  Configuration,
   ExternalProfessorSummary,
   ProjectApi,
   ProjectDetail,
@@ -54,6 +53,7 @@ import { Switch } from '@/components/ui/switch';
 import { useProjectCategories } from '@/hooks/use-project-categories';
 import dynamic from 'next/dynamic';
 import ExternalProfessorSelectModal from '@/components/portal/researches/projects/external-professor-select-modal';
+import { getApiConfig } from '@/lib/config';
 
 const MarkdownEditor = dynamic(
   () => import('@/components/portal/researches/projects/markdown-editor'),
@@ -78,11 +78,8 @@ interface ProjectFormProps {
   isEditing?: boolean;
 }
 
-const projectApi = new ProjectApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const projectApi = new ProjectApi(getApiConfig());
+
 export function ProjectForm({
   initialData,
   onCreate,
@@ -194,7 +191,7 @@ export function ProjectForm({
             return fileRecord;
           })
           .catch(() => {
-            toast.error(`${file.name} 업로드 실패`);
+            console.log(`${file.name} 업로드 실패`);
             return null;
           }),
       );
@@ -262,7 +259,7 @@ export function ProjectForm({
             return fileRecord;
           })
           .catch(() => {
-            toast.error(`${file.name} 업로드 실패`);
+            console.log(`${file.name} 업로드 실패`);
             return null;
           }),
       );
@@ -338,7 +335,7 @@ export function ProjectForm({
         );
       }
     } catch (err) {
-      toast.error('프로젝트 등록 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.log(err);
     }
   };
 

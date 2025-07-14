@@ -27,11 +27,12 @@ import {
 import { UserCheck, Plus, Edit, Trash2, Save, Building } from 'lucide-react';
 import {
   AdminExternalProfessorApi,
-  Configuration,
   ExternalProfessorItem,
 } from '@/generated-api';
-import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
+import { getApiConfig } from '@/lib/config';
+
+const api = new AdminExternalProfessorApi(getApiConfig());
 
 export default function ExternalProfessorPage() {
   const [professors, setProfessors] = useState<ExternalProfessorItem[]>([]);
@@ -45,12 +46,6 @@ export default function ExternalProfessorPage() {
     department: '',
     position: '',
   });
-
-  const api = new AdminExternalProfessorApi(
-    new Configuration({
-      accessToken: async () => useAuthStore.getState().accessToken ?? '',
-    }),
-  );
 
   const fetchProfessors = async () => {
     try {
@@ -92,7 +87,7 @@ export default function ExternalProfessorPage() {
 
       await fetchProfessors();
     } catch (e) {
-      toast.error('외부 인사 등록 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.log(e);
     }
   };
 
@@ -115,9 +110,7 @@ export default function ExternalProfessorPage() {
 
       await fetchProfessors();
     } catch (e) {
-      toast.error(
-        '외부 인사 정보 수정 중 오류가 발생했습니다. 다시 시도해 주세요.',
-      );
+      console.log(e);
     }
   };
 
@@ -142,7 +135,7 @@ export default function ExternalProfessorPage() {
 
       await fetchProfessors();
     } catch (e) {
-      toast.error('외부 인사 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.log(e);
     }
   };
 

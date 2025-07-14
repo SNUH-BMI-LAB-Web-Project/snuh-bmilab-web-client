@@ -20,7 +20,6 @@ import { ko } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import {
   AdminUserApi,
-  Configuration,
   ProjectCategoryApi,
   ProjectCategorySummary,
   RegisterUserRequestPositionEnum,
@@ -32,7 +31,6 @@ import {
   UserSubAffiliationRequest,
   type UserSubAffiliationSummary,
 } from '@/generated-api';
-import { useAuthStore } from '@/store/auth-store';
 import {
   Select,
   SelectContent,
@@ -44,20 +42,11 @@ import { positionOptions } from '@/constants/position-enum';
 import { statusLabelMap } from '@/constants/education-enum';
 import { toast } from 'sonner';
 import { roleOptions } from '@/constants/role-enum';
+import { getApiConfig } from '@/lib/config';
 
-const categoryApi = new ProjectCategoryApi(
-  new Configuration({
-    basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-    accessToken: async () => useAuthStore.getState().accessToken || '',
-  }),
-);
+const categoryApi = new ProjectCategoryApi(getApiConfig());
 
-const adminUserApi = new AdminUserApi(
-  new Configuration({
-    basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-    accessToken: async () => useAuthStore.getState().accessToken || '',
-  }),
-);
+const adminUserApi = new AdminUserApi(getApiConfig());
 
 interface UserEditModalProps {
   user: UserDetail | null;
@@ -287,9 +276,7 @@ export default function UserEditModal({
 
       toast.success('사용자 정보가 성공적으로 수정되었습니다.');
     } catch (err) {
-      toast.error(
-        '사용자 정보 수정 중 오류가 발생했습니다. 다시 시도해 주세요.',
-      );
+      console.log(err);
     }
   };
 

@@ -31,7 +31,6 @@ import {
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import {
-  Configuration,
   GeneratePresignedUrlDomainTypeEnum,
   ReportApi,
   SearchProjectItem,
@@ -43,18 +42,11 @@ import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { uploadFileWithPresignedUrl } from '@/lib/upload';
 import { FileItem } from '@/components/portal/researches/projects/file-item';
+import { getApiConfig } from '@/lib/config';
 
-const reportApi = new ReportApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const reportApi = new ReportApi(getApiConfig());
 
-const fileApi = new FileApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const fileApi = new FileApi(getApiConfig());
 
 interface ReportEditModalProps {
   report: ReportSummary;
@@ -196,7 +188,7 @@ export function ReportEditModal({
       // 모달 닫기
       onOpenChange(false);
     } catch (err) {
-      toast.error('보고서 수정 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.log(err);
     }
   };
 
