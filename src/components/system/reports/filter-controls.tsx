@@ -180,7 +180,7 @@ export function FilterControls({
                   value={String(proj.projectId)}
                   title={proj.title}
                 >
-                  <span className="w-[250px] truncate overflow-hidden whitespace-nowrap">
+                  <span className="w-[250px] truncate overflow-hidden text-start whitespace-nowrap">
                     {proj.title}
                   </span>
                 </SelectItem>
