@@ -11,6 +11,7 @@ import {
   Camera,
   Check,
   Plus,
+  Minus,
 } from 'lucide-react';
 import { UserApi } from '@/generated-api/apis/UserApi';
 import { Configuration } from '@/generated-api/runtime';
@@ -20,6 +21,8 @@ import {
   UserEducationRequestStatusEnum,
   UserEducationRequestTypeEnum,
   UserEducationSummary,
+  UserSubAffiliationRequest,
+  UserSubAffiliationSummary,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
@@ -51,6 +54,7 @@ export default function ProfileEditForm() {
     organization: string;
     department: string;
     position: undefined | UpdateUserRequestPositionEnum;
+    subAffiliations: UserSubAffiliationSummary[];
     phoneNumber: string;
     seatNumber: string;
   }>({
@@ -59,6 +63,7 @@ export default function ProfileEditForm() {
     organization: '',
     department: '',
     position: undefined,
+    subAffiliations: [],
     phoneNumber: '',
     seatNumber: '',
   });
@@ -74,6 +79,10 @@ export default function ProfileEditForm() {
 
   const [seatFloor, setSeatFloor] = useState(''); // 층
   const [seatNumberOnly, setSeatNumberOnly] = useState(''); // 번호
+
+  const [subAffiliations, setSubAffiliations] = useState<
+    UserSubAffiliationSummary[]
+  >([]);
 
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string>(
@@ -98,8 +107,8 @@ export default function ProfileEditForm() {
 
         if (data) {
           const seatParts = data.seatNumber?.split('-') ?? [];
-          const floor = seatParts[1] ?? '';
-          const number = seatParts[2] ?? '';
+          const floor = seatParts[1] === '00' ? '' : (seatParts[1] ?? '');
+          const number = seatParts[2] === '00' ? '' : (seatParts[2] ?? '');
 
           setFormData({
             name: data.name || '',
@@ -109,6 +118,7 @@ export default function ProfileEditForm() {
             position:
               (data.position as UpdateUserRequestPositionEnum) ??
               UpdateUserRequestPositionEnum.ResearcherOrIntern,
+            subAffiliations: data.subAffiliations || [],
             phoneNumber: data.phoneNumber || '',
             seatNumber: data.seatNumber || '',
           });
@@ -120,6 +130,7 @@ export default function ProfileEditForm() {
             data.profileImageUrl || '/default-profile-image.svg',
           );
           setEducations(data.educations || []);
+          setSubAffiliations(data.subAffiliations ?? []);
         }
       } catch (err) {
         toast.error(
@@ -177,8 +188,35 @@ export default function ProfileEditForm() {
     (id) => !selectedCategoryIds.includes(id),
   );
 
+  const handleSubAffiliationChange = (
+    index: number,
+    field: keyof UserSubAffiliationSummary,
+    value: string,
+  ) => {
+    setSubAffiliations((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
+  const addSubAffiliation = () => {
+    setSubAffiliations((prev) => [
+      ...prev,
+      { organization: '', department: '', position: '' },
+    ]);
+  };
+
+  const removeSubAffiliation = (index: number) => {
+    setSubAffiliations((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async () => {
-    if (!formData.name.trim() || !formData.email.trim()) {
+    if (
+      !formData.name.trim() ||
+      !formData.email.trim() ||
+      !formData.phoneNumber.trim()
+    ) {
       toast.error('이름과 이메일은 필수 항목입니다.');
       return;
     }
@@ -196,10 +234,11 @@ export default function ProfileEditForm() {
 
     const payload: ExtendedUpdateUserRequest = {
       ...formData,
-      seatNumber: `융합의학기술원-${seatFloor}-${seatNumberOnly}`,
+      seatNumber: `융합의학기술원-${seatFloor || '00'}-${seatNumberOnly || '00'}`,
       position: formData.position ?? null,
       newCategoryIds,
       deletedCategoryIds,
+      subAffiliations: formData.subAffiliations as UserSubAffiliationRequest[],
     };
 
     const formDataToSend = new FormData();
@@ -335,7 +374,9 @@ export default function ProfileEditForm() {
 
         {/* 전화번호 */}
         <div className="flex flex-col gap-2">
-          <Label className="font-semibold">전화번호</Label>
+          <Label className="font-semibold">
+            전화번호<span className="text-destructive">*</span>
+          </Label>
           <div className="relative">
             <Input
               placeholder="010-1234-5678"
@@ -370,7 +411,7 @@ export default function ProfileEditForm() {
         <div className="flex flex-col gap-2">
           <Label className="font-semibold">BMI LAB 소속 정보</Label>
           <div className="grid grid-cols-3 gap-2 rounded-md border p-3">
-            <div className="flex flex-col gap-2">
+            <div className="relative flex flex-col gap-2">
               <Label>
                 기관<span className="text-destructive">*</span>
               </Label>
@@ -384,12 +425,12 @@ export default function ProfileEditForm() {
               />
               {isEditable && (
                 <span className="text-muted-foreground absolute right-2 bottom-2.5 text-xs">
-                  {formData.organization.length}/50
+                  {formData.organization.length}/20
                 </span>
               )}
             </div>
 
-            <div className="flex flex-col gap-2">
+            <div className="relative flex flex-col gap-2">
               <Label>부서</Label>
               <Input
                 placeholder="AI팀"
@@ -448,15 +489,103 @@ export default function ProfileEditForm() {
           <div className="flex items-center justify-between">
             <Label className="font-semibold">기타 소속 정보</Label>
             {isEditable && (
-              <Button variant="outline">
-                <Plus />
+              <Button variant="outline" onClick={addSubAffiliation}>
+                <Plus className="mr-1 h-4 w-4" />
                 기타 소속 추가
               </Button>
             )}
           </div>
-          <div className="justfy-center text-muted-foreground flex flex-col items-center gap-2 rounded-md border px-2 py-6 text-sm">
-            기재된 기타 소속 정보가 없습니다.
-          </div>
+
+          {subAffiliations.length === 0 ? (
+            <div className="justfy-center text-muted-foreground flex flex-col items-center gap-2 rounded-md border px-2 py-6 text-sm">
+              기재된 기타 소속 정보가 없습니다.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {subAffiliations.map((aff, idx) => (
+                <div
+                  /* eslint-disable-next-line react/no-array-index-key */
+                  key={idx}
+                  className="grid grid-cols-3 items-center gap-2 rounded-md border px-3 py-3"
+                >
+                  <div className="relative flex flex-col gap-2">
+                    <Label>
+                      기관<span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      placeholder="기관 또는 회사명"
+                      value={aff.organization}
+                      disabled={!isEditable}
+                      onChange={(e) =>
+                        handleSubAffiliationChange(
+                          idx,
+                          'organization',
+                          e.target.value,
+                        )
+                      }
+                    />
+                    {isEditable && (
+                      <span className="text-muted-foreground absolute right-2 bottom-2.5 text-xs">
+                        {aff.organization?.length}/50
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative flex flex-col gap-2">
+                    <Label>부서</Label>
+                    <Input
+                      placeholder="소속 부서"
+                      value={aff.department}
+                      disabled={!isEditable}
+                      onChange={(e) =>
+                        handleSubAffiliationChange(
+                          idx,
+                          'department',
+                          e.target.value,
+                        )
+                      }
+                    />
+                    {isEditable && (
+                      <span className="text-muted-foreground absolute right-2 bottom-2.5 text-xs">
+                        {aff.department?.length}/20
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative flex flex-col gap-2">
+                    <Label>구분</Label>
+                    <div className="flex flex-row gap-2">
+                      <Input
+                        placeholder="해당 부서 내 역할"
+                        value={aff.position}
+                        disabled={!isEditable}
+                        onChange={(e) =>
+                          handleSubAffiliationChange(
+                            idx,
+                            'position',
+                            e.target.value,
+                          )
+                        }
+                      />
+                      {isEditable && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => removeSubAffiliation(idx)}
+                        >
+                          <span className="sr-only">삭제</span>
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    {isEditable && (
+                      <span className="text-muted-foreground absolute right-13 bottom-2.5 text-xs">
+                        {aff.position?.length}/20
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* 연구 분야 */}
