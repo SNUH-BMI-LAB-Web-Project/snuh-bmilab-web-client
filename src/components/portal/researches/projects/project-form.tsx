@@ -298,9 +298,8 @@ export function ProjectForm({
         .filter((id): id is number => !!id),
       startDate: setDateWithFixedHour(startDate),
       endDate: endDate ? setDateWithFixedHour(endDate) : undefined,
-      piList: formData.piList as ExternalProfessorRequest[],
-      practicalProfessors:
-        formData.practicalProfessors as ExternalProfessorRequest[],
+      piList: piList as ExternalProfessorRequest[],
+      practicalProfessors: practicalProfessors as ExternalProfessorRequest[],
       irbId: formData.irbId,
       drbId: formData.drbId,
       irbFileIds: irbFiles.map((f) => f.fileId!),

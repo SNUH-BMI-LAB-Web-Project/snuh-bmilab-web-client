@@ -8,9 +8,10 @@ import { getStatusClassName, getStatusLabel } from '@/utils/project-utils';
 import { formatDateTimeVer2 } from '@/lib/utils';
 import UserPopover from '@/components/common/user-popover';
 import { FileItem } from '@/components/portal/researches/projects/file-item';
-import React from 'react';
-import { ProjectDetail } from '@/generated-api';
+import React, { useEffect, useState } from 'react';
+import { ProjectApi, ProjectDetail } from '@/generated-api';
 import { downloadFileFromUrl } from '@/utils/download-file';
+import { getApiConfig } from '@/lib/config';
 
 interface ProjectInfoFormProps {
   id: string;
@@ -23,11 +24,63 @@ const MarkdownViewer = dynamic(
   { ssr: false },
 );
 
+const fileApi = new ProjectApi(getApiConfig());
+
 export default function ProjectInfoForm({
   id,
   project,
   canEdit,
 }: ProjectInfoFormProps) {
+  const [irbBlob, setIrbBlob] = useState<Blob | null>(null);
+  const [drbBlob, setDrbBlob] = useState<Blob | null>(null);
+
+  // IRB 파일 미리 fetch
+  useEffect(() => {
+    const fetchIrb = async () => {
+      try {
+        const res = await fileApi.downloadIrbFilesByZipRaw({
+          projectId: Number(id),
+        });
+        const blob = await res.raw.blob();
+        setIrbBlob(blob);
+      } catch (err) {
+        console.error('IRB 다운로드 실패:', err);
+      }
+    };
+
+    const fetchDrb = async () => {
+      try {
+        const res = await fileApi.downloadDrbFilesByZipRaw({
+          projectId: Number(id),
+        });
+        const blob = await res.raw.blob();
+        setDrbBlob(blob);
+      } catch (err) {
+        console.error('DRB 다운로드 실패:', err);
+      }
+    };
+
+    if (Array.isArray(project.irbFiles) && project.irbFiles.length > 0) {
+      fetchIrb();
+    }
+
+    if (Array.isArray(project.drbFiles) && project.drbFiles.length > 0) {
+      fetchDrb();
+    }
+  }, [id, project.irbFiles, project.drbFiles]);
+
+  // 공통 다운로드 핸들러
+  const triggerDownload = (blob: Blob, filename: string) => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
       <div className="flex flex-col gap-8 lg:col-span-2">
@@ -84,14 +137,11 @@ export default function ProjectInfoForm({
                   <span>IRB 번호</span>
                   <div className="text-muted-foreground flex flex-row items-center text-sm font-normal">
                     {project.irbId}
-                    {project.irbFiles && project.irbFiles.length > 0 && (
+                    {irbBlob && (
                       <FileDown
                         className="ml-2 size-4 cursor-pointer"
                         onClick={() =>
-                          downloadFileFromUrl(
-                            project.irbFiles![0].fileName!,
-                            project.irbFiles![0].uploadUrl!,
-                          )
+                          triggerDownload(irbBlob, `IRB_${id}.zip`)
                         }
                       />
                     )}
@@ -101,14 +151,11 @@ export default function ProjectInfoForm({
                   <span>DRB 번호</span>
                   <div className="text-muted-foreground flex flex-row items-center text-sm font-normal">
                     {project.drbId}
-                    {project.drbFiles && project.drbFiles.length > 0 && (
+                    {drbBlob && (
                       <FileDown
                         className="ml-2 size-4 cursor-pointer"
                         onClick={() =>
-                          downloadFileFromUrl(
-                            project.drbFiles![0].fileName!,
-                            project.drbFiles![0].uploadUrl!,
-                          )
+                          triggerDownload(drbBlob, `DRB_${id}.zip`)
                         }
                       />
                     )}
