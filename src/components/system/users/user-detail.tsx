@@ -38,7 +38,7 @@ import {
 } from '@/constants/project-enum';
 import { format } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
-import { affiliationLabelMap } from '@/constants/affiliation-enum';
+import { positionLabelMap } from '@/constants/position-enum';
 import { formatSeatNumber } from '@/utils/user-utils';
 
 interface UserDetailProps {
@@ -86,9 +86,9 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl">
         {/* 메인 레이아웃 */}
-        <div className="grid grid-cols-12 gap-8">
+        <div className="md grid gap-8 md:grid-cols-1 lg:grid-cols-12">
           {/* 왼쪽 - 프로필 카드 */}
-          <div className="col-span-4">
+          <div className="lg:col-span-4">
             <Card className="sticky top-8 border border-gray-100 bg-white shadow-sm">
               <CardContent className="p-8">
                 <div className="space-y-6 text-center">
@@ -143,8 +143,8 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                             구분
                           </div>
                           <div className="flex-1 text-sm font-semibold text-gray-900">
-                            {user.affiliation
-                              ? affiliationLabelMap[user.affiliation]
+                            {user.position
+                              ? positionLabelMap[user.position]
                               : ''}
                           </div>
                         </div>
@@ -209,7 +209,7 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
           </div>
 
           {/* 오른쪽 - 상세 정보 */}
-          <div className="col-span-8">
+          <div className="lg:col-span-8">
             <Tabs defaultValue="profile">
               <TabsList className="grid h-12 w-full grid-cols-2 border border-gray-200 bg-white p-1">
                 <TabsTrigger

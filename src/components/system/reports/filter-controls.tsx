@@ -31,6 +31,7 @@ import {
   UserSummary,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
+import { Input } from '@/components/ui/input';
 
 interface RawFilter {
   user: string;
@@ -132,15 +133,15 @@ export function FilterControls({
     onFilter({ user: '', project: '', dateRange: undefined, searchQuery: '' });
   }, [onFilter]);
 
-  // // Enter 키로 검색
-  // const handleKeyPress = useCallback(
-  //   (e: React.KeyboardEvent) => {
-  //     if (e.key === 'Enter') {
-  //       handleSearch();
-  //     }
-  //   },
-  //   [handleSearch],
-  // );
+  // Enter 키로 검색
+  const handleKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        handleSearch();
+      }
+    },
+    [handleSearch],
+  );
 
   const renderDateRange = () => {
     if (dateRange?.from) {
@@ -248,22 +249,20 @@ export function FilterControls({
       </div>
 
       {/* 하단 검색 */}
-      {/* {showSearchFilter && ( */}
-      {/*   <div className="space-y-2"> */}
-      {/*     <Label htmlFor="search">검색</Label> */}
-      {/*     <div className="relative"> */}
-      {/*       <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" /> */}
-      {/*       <Input */}
-      {/*         id="search" */}
-      {/*         placeholder="보고 내용, 사용자명, 프로젝트명 검색..." */}
-      {/*         value={searchQuery} */}
-      {/*         onChange={(e) => setSearchQuery(e.target.value)} */}
-      {/*         onKeyPress={handleKeyPress} */}
-      {/*         className="pl-8" */}
-      {/*       /> */}
-      {/*     </div> */}
-      {/*   </div> */}
-      {/* )} */}
+      <div className="space-y-2">
+        <Label htmlFor="search">검색</Label>
+        <div className="relative">
+          <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
+          <Input
+            id="search"
+            placeholder="보고 내용, 사용자명, 프로젝트명 검색..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className="pl-8"
+          />
+        </div>
+      </div>
 
       {/* 검색, 초기화 버튼 */}
       <div className="flex items-center justify-end gap-2 pt-2">

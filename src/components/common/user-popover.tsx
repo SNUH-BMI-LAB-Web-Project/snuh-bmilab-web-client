@@ -8,7 +8,7 @@ import {
 import Image from 'next/image';
 import { UserSummary } from '@/generated-api/models/UserSummary';
 import React from 'react';
-import { affiliationLabelMap } from '@/constants/affiliation-enum';
+import { positionLabelMap } from '@/constants/position-enum';
 
 export default function UserPopover({ user }: { user: UserSummary }) {
   return (
@@ -33,10 +33,10 @@ export default function UserPopover({ user }: { user: UserSummary }) {
             <div className="font-medium text-black">{user?.name}</div>
             <div className="mt-1 text-xs">
               {user?.organization} {user?.department}
-              {user?.affiliation && (
+              {user?.position && (
                 <>
                   <br />
-                  {affiliationLabelMap[user.affiliation]}
+                  {positionLabelMap[user.position]}
                 </>
               )}
               <br />

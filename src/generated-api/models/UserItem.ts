@@ -58,11 +58,11 @@ export interface UserItem {
      */
     department?: string;
     /**
-     * 소속 (있으면)
+     * 구분 (있으면)
      * @type {string}
      * @memberof UserItem
      */
-    affiliation?: UserItemAffiliationEnum;
+    position?: UserItemPositionEnum;
     /**
      * 프로필 이미지 URL
      * @type {string}
@@ -99,7 +99,7 @@ export interface UserItem {
 /**
  * @export
  */
-export const UserItemAffiliationEnum = {
+export const UserItemPositionEnum = {
     Professor: 'PROFESSOR',
     CoPrincipalInvestigator: 'CO_PRINCIPAL_INVESTIGATOR',
     PostdoctoralResearcher: 'POSTDOCTORAL_RESEARCHER',
@@ -109,7 +109,7 @@ export const UserItemAffiliationEnum = {
     ResearcherOrIntern: 'RESEARCHER_OR_INTERN',
     AdministrativeStaff: 'ADMINISTRATIVE_STAFF'
 } as const;
-export type UserItemAffiliationEnum = typeof UserItemAffiliationEnum[keyof typeof UserItemAffiliationEnum];
+export type UserItemPositionEnum = typeof UserItemPositionEnum[keyof typeof UserItemPositionEnum];
 
 
 /**
@@ -134,7 +134,7 @@ export function UserItemFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'name': json['name'] == null ? undefined : json['name'],
         'organization': json['organization'] == null ? undefined : json['organization'],
         'department': json['department'] == null ? undefined : json['department'],
-        'affiliation': json['affiliation'] == null ? undefined : json['affiliation'],
+        'position': json['position'] == null ? undefined : json['position'],
         'profileImageUrl': json['profileImageUrl'] == null ? undefined : json['profileImageUrl'],
         'categories': json['categories'] == null ? undefined : ((json['categories'] as Array<any>).map(ProjectCategorySummaryFromJSON)),
         'seatNumber': json['seatNumber'] == null ? undefined : json['seatNumber'],
@@ -159,7 +159,7 @@ export function UserItemToJSONTyped(value?: UserItem | null, ignoreDiscriminator
         'name': value['name'],
         'organization': value['organization'],
         'department': value['department'],
-        'affiliation': value['affiliation'],
+        'position': value['position'],
         'profileImageUrl': value['profileImageUrl'],
         'categories': value['categories'] == null ? undefined : ((value['categories'] as Array<any>).map(ProjectCategorySummaryToJSON)),
         'seatNumber': value['seatNumber'],

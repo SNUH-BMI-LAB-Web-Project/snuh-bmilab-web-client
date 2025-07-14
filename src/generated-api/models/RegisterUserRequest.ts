@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { UserSubAffiliationRequest } from './UserSubAffiliationRequest';
+import {
+    UserSubAffiliationRequestFromJSON,
+    UserSubAffiliationRequestFromJSONTyped,
+    UserSubAffiliationRequestToJSON,
+    UserSubAffiliationRequestToJSONTyped,
+} from './UserSubAffiliationRequest';
 import type { UserEducationRequest } from './UserEducationRequest';
 import {
     UserEducationRequestFromJSON,
@@ -58,11 +65,17 @@ export interface RegisterUserRequest {
      */
     department: string;
     /**
-     * 소속 (있으면)
+     * 구분 (있으면)
      * @type {string}
      * @memberof RegisterUserRequest
      */
-    affiliation?: RegisterUserRequestAffiliationEnum;
+    position?: RegisterUserRequestPositionEnum;
+    /**
+     * 서브 소속 (있으면)
+     * @type {Array<UserSubAffiliationRequest>}
+     * @memberof RegisterUserRequest
+     */
+    subAffiliations?: Array<UserSubAffiliationRequest>;
     /**
      * 권한
      * @type {string}
@@ -117,7 +130,7 @@ export interface RegisterUserRequest {
 /**
  * @export
  */
-export const RegisterUserRequestAffiliationEnum = {
+export const RegisterUserRequestPositionEnum = {
     Professor: 'PROFESSOR',
     CoPrincipalInvestigator: 'CO_PRINCIPAL_INVESTIGATOR',
     PostdoctoralResearcher: 'POSTDOCTORAL_RESEARCHER',
@@ -127,7 +140,7 @@ export const RegisterUserRequestAffiliationEnum = {
     ResearcherOrIntern: 'RESEARCHER_OR_INTERN',
     AdministrativeStaff: 'ADMINISTRATIVE_STAFF'
 } as const;
-export type RegisterUserRequestAffiliationEnum = typeof RegisterUserRequestAffiliationEnum[keyof typeof RegisterUserRequestAffiliationEnum];
+export type RegisterUserRequestPositionEnum = typeof RegisterUserRequestPositionEnum[keyof typeof RegisterUserRequestPositionEnum];
 
 /**
  * @export
@@ -168,7 +181,8 @@ export function RegisterUserRequestFromJSONTyped(json: any, ignoreDiscriminator:
         'password': json['password'],
         'organization': json['organization'],
         'department': json['department'],
-        'affiliation': json['affiliation'] == null ? undefined : json['affiliation'],
+        'position': json['position'] == null ? undefined : json['position'],
+        'subAffiliations': json['subAffiliations'] == null ? undefined : ((json['subAffiliations'] as Array<any>).map(UserSubAffiliationRequestFromJSON)),
         'role': json['role'],
         'annualLeaveCount': json['annualLeaveCount'] == null ? undefined : json['annualLeaveCount'],
         'usedLeaveCount': json['usedLeaveCount'] == null ? undefined : json['usedLeaveCount'],
@@ -196,7 +210,8 @@ export function RegisterUserRequestToJSONTyped(value?: RegisterUserRequest | nul
         'password': value['password'],
         'organization': value['organization'],
         'department': value['department'],
-        'affiliation': value['affiliation'],
+        'position': value['position'],
+        'subAffiliations': value['subAffiliations'] == null ? undefined : ((value['subAffiliations'] as Array<any>).map(UserSubAffiliationRequestToJSON)),
         'role': value['role'],
         'annualLeaveCount': value['annualLeaveCount'],
         'usedLeaveCount': value['usedLeaveCount'],

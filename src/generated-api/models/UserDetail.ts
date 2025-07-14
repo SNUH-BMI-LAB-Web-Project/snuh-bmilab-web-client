@@ -27,6 +27,13 @@ import {
     UserEducationSummaryToJSON,
     UserEducationSummaryToJSONTyped,
 } from './UserEducationSummary';
+import type { UserSubAffiliationSummary } from './UserSubAffiliationSummary';
+import {
+    UserSubAffiliationSummaryFromJSON,
+    UserSubAffiliationSummaryFromJSONTyped,
+    UserSubAffiliationSummaryToJSON,
+    UserSubAffiliationSummaryToJSONTyped,
+} from './UserSubAffiliationSummary';
 
 /**
  * 
@@ -65,11 +72,17 @@ export interface UserDetail {
      */
     department?: string;
     /**
-     * 소속 (있으면)
+     * 구분 (있으면)
      * @type {string}
      * @memberof UserDetail
      */
-    affiliation?: UserDetailAffiliationEnum;
+    position?: UserDetailPositionEnum;
+    /**
+     * 서브 소속 목록
+     * @type {Array<UserSubAffiliationSummary>}
+     * @memberof UserDetail
+     */
+    subAffiliations?: Array<UserSubAffiliationSummary>;
     /**
      * 사용자 역할
      * @type {string}
@@ -136,7 +149,7 @@ export interface UserDetail {
 /**
  * @export
  */
-export const UserDetailAffiliationEnum = {
+export const UserDetailPositionEnum = {
     Professor: 'PROFESSOR',
     CoPrincipalInvestigator: 'CO_PRINCIPAL_INVESTIGATOR',
     PostdoctoralResearcher: 'POSTDOCTORAL_RESEARCHER',
@@ -146,7 +159,7 @@ export const UserDetailAffiliationEnum = {
     ResearcherOrIntern: 'RESEARCHER_OR_INTERN',
     AdministrativeStaff: 'ADMINISTRATIVE_STAFF'
 } as const;
-export type UserDetailAffiliationEnum = typeof UserDetailAffiliationEnum[keyof typeof UserDetailAffiliationEnum];
+export type UserDetailPositionEnum = typeof UserDetailPositionEnum[keyof typeof UserDetailPositionEnum];
 
 /**
  * @export
@@ -180,7 +193,8 @@ export function UserDetailFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'name': json['name'] == null ? undefined : json['name'],
         'organization': json['organization'] == null ? undefined : json['organization'],
         'department': json['department'] == null ? undefined : json['department'],
-        'affiliation': json['affiliation'] == null ? undefined : json['affiliation'],
+        'position': json['position'] == null ? undefined : json['position'],
+        'subAffiliations': json['subAffiliations'] == null ? undefined : ((json['subAffiliations'] as Array<any>).map(UserSubAffiliationSummaryFromJSON)),
         'role': json['role'] == null ? undefined : json['role'],
         'profileImageUrl': json['profileImageUrl'] == null ? undefined : json['profileImageUrl'],
         'annualLeaveCount': json['annualLeaveCount'] == null ? undefined : json['annualLeaveCount'],
@@ -210,7 +224,8 @@ export function UserDetailToJSONTyped(value?: UserDetail | null, ignoreDiscrimin
         'name': value['name'],
         'organization': value['organization'],
         'department': value['department'],
-        'affiliation': value['affiliation'],
+        'position': value['position'],
+        'subAffiliations': value['subAffiliations'] == null ? undefined : ((value['subAffiliations'] as Array<any>).map(UserSubAffiliationSummaryToJSON)),
         'role': value['role'],
         'profileImageUrl': value['profileImageUrl'],
         'annualLeaveCount': value['annualLeaveCount'],

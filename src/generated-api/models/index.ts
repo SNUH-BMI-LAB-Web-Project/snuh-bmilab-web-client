@@ -49,4 +49,6 @@ export * from './UserFindAllResponse';
 export * from './UserItem';
 export * from './UserProjectFindAllResponse';
 export * from './UserProjectItem';
+export * from './UserSubAffiliationRequest';
+export * from './UserSubAffiliationSummary';
 export * from './UserSummary';
