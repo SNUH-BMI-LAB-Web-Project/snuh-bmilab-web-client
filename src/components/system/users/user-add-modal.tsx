@@ -732,6 +732,7 @@ export default function UserAddModal({
                   <Label>추가 소속</Label>
                   {formData.subAffiliations.map((aff, index) => (
                     <div
+                      /* eslint-disable-next-line react/no-array-index-key */
                       key={index}
                       className="flex items-center gap-2 rounded-lg bg-gray-50 p-3"
                     >
