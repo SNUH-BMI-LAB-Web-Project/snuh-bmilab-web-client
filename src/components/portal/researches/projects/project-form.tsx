@@ -38,6 +38,7 @@ import { Separator } from '@/components/ui/separator';
 import { FileItem } from '@/components/portal/researches/projects/file-item';
 import { UserTagInput } from '@/components/portal/researches/projects/user-tag-input';
 import {
+  ExternalProfessorRequest,
   ExternalProfessorSummary,
   ProjectApi,
   ProjectDetail,
@@ -297,8 +298,9 @@ export function ProjectForm({
         .filter((id): id is number => !!id),
       startDate: setDateWithFixedHour(startDate),
       endDate: endDate ? setDateWithFixedHour(endDate) : undefined,
-      piList,
-      practicalProfessors,
+      piList: formData.piList as ExternalProfessorRequest[],
+      practicalProfessors:
+        formData.practicalProfessors as ExternalProfessorRequest[],
       irbId: formData.irbId,
       drbId: formData.drbId,
       irbFileIds: irbFiles.map((f) => f.fileId!),
