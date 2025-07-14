@@ -51,6 +51,7 @@ import {
   UserEducationRequestStatusEnum,
   UserEducationRequestTypeEnum,
   UserEducationSummaryStatusEnum,
+  UserSubAffiliationRequest,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import EmailConfirmationModal from '@/components/system/users/email-confirmation-modal';
@@ -60,6 +61,19 @@ import { toast } from 'sonner';
 import { positionOptions } from '@/constants/position-enum';
 import { roleOptions } from '@/constants/role-enum';
 import { WorkSchedule } from '@/components/system/users/work-schedule-picker';
+
+const adminUserApi = new AdminUserApi(
+  new Configuration({
+    accessToken: async () => useAuthStore.getState().accessToken ?? '',
+  }),
+);
+
+const categoryApi = new ProjectCategoryApi(
+  new Configuration({
+    basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+    accessToken: async () => useAuthStore.getState().accessToken || '',
+  }),
+);
 
 interface UserAddModalProps {
   open: boolean;
@@ -78,6 +92,7 @@ export default function UserAddModal({
   const [createdUserData, setCreatedUserData] =
     useState<RegisterUserRequest | null>(null);
   const [newEducationError, setNewEducationError] = useState(''); // 학력 에러 문구를 표시하기 위함
+  const [showSubAffiliations, setShowSubAffiliations] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -86,6 +101,7 @@ export default function UserAddModal({
     organization: '서울대학교병원 의생명정보학연구실',
     department: '',
     position: undefined,
+    subAffiliations: [] as UserSubAffiliationRequest[],
     annualLeaveCount: 0,
     usedLeaveCount: 0,
     categoryIds: [] as number[],
@@ -98,6 +114,7 @@ export default function UserAddModal({
     joinedAt: new Date(),
     role: RegisterUserRequestRoleEnum.User,
   });
+
   const [newEducation, setNewEducation] = useState<UserEducationRequest>({
     title: '',
     status: '' as UserEducationRequestStatusEnum,
@@ -106,12 +123,19 @@ export default function UserAddModal({
     endYearMonth: '',
   });
 
+  const [newSubAffiliations, setNewSubAffiliations] =
+    useState<UserSubAffiliationRequest>({
+      organization: '',
+      department: '',
+      position: '',
+    });
+
   // 카테고리 옵션들
   const [categoryOptions, setCategoryOptions] = useState<
     ProjectCategorySummary[]
   >([]);
 
-  // 학력 상태 옵션들
+  // 학력 상태 옵션
   const educationStatusOptions = Object.entries(statusLabelMap).map(
     ([value, label]) => ({
       value: value as UserEducationSummaryStatusEnum,
@@ -119,24 +143,11 @@ export default function UserAddModal({
     }),
   );
 
-  // 학력 상태 옵션들
+  // 학력 구분 옵션
   const educationTypeOptions = Object.entries(typeLabelMap).map(
     ([value, label]) => ({
       value: value as UserEducationRequestTypeEnum,
       label,
-    }),
-  );
-
-  const adminUserApi = new AdminUserApi(
-    new Configuration({
-      accessToken: async () => useAuthStore.getState().accessToken ?? '',
-    }),
-  );
-
-  const categoryApi = new ProjectCategoryApi(
-    new Configuration({
-      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-      accessToken: async () => useAuthStore.getState().accessToken || '',
     }),
   );
 
@@ -187,6 +198,7 @@ export default function UserAddModal({
     setFormData((prev) => ({ ...prev, password }));
   };
 
+  // 비밀번호 복사하기 함수
   const handleCopyPassword = async () => {
     if (formData.password) {
       try {
@@ -266,6 +278,40 @@ export default function UserAddModal({
     }));
   };
 
+  const addSubAffiliations = () => {
+    if (
+      newSubAffiliations.organization.trim() &&
+      newSubAffiliations.department?.trim() &&
+      newSubAffiliations.position?.trim()
+    ) {
+      setFormData((prev) => ({
+        ...prev,
+        subAffiliations: [
+          ...prev.subAffiliations,
+          {
+            organization: newSubAffiliations.organization.trim(),
+            department: newSubAffiliations.department?.trim(),
+            position: newSubAffiliations.position?.trim(),
+          },
+        ],
+      }));
+
+      setNewSubAffiliations({
+        organization: '',
+        department: '',
+        position: '',
+      });
+      setShowSubAffiliations(false);
+    }
+  };
+
+  const removeSubAffiliations = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      subAffiliations: prev.subAffiliations.filter((_, i) => i !== index),
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -320,6 +366,7 @@ export default function UserAddModal({
         organization: '서울대병원 융합의학연구실',
         department: '',
         position: undefined,
+        subAffiliations: [],
         annualLeaveCount: 0,
         usedLeaveCount: 0,
         categoryIds: [],
@@ -332,12 +379,19 @@ export default function UserAddModal({
         joinedAt: new Date(),
         role: RegisterUserRequestRoleEnum.User,
       });
+
       setNewEducation({
         title: '',
         status: '' as UserEducationRequestStatusEnum,
         type: '' as UserEducationRequestTypeEnum,
         startYearMonth: '',
         endYearMonth: '',
+      });
+
+      setNewSubAffiliations({
+        organization: '',
+        department: '',
+        position: '',
       });
 
       toast.success('사용자가 성공적으로 추가되었습니다');
@@ -671,6 +725,142 @@ export default function UserAddModal({
                   </Select>
                 </div>
               </div>
+
+              {/* 추가 소속 목록 */}
+              {formData.subAffiliations.length > 0 && (
+                <div className="space-y-2">
+                  <Label>추가 소속</Label>
+                  {formData.subAffiliations.map((aff, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 rounded-lg bg-gray-50 p-3"
+                    >
+                      <div className="flex-1">
+                        <p className="text-sm">
+                          {aff.organization} | {aff.department} |{' '}
+                          {aff.position}{' '}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => removeSubAffiliations(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* 추가 소속 버튼 */}
+              {!showSubAffiliations && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowSubAffiliations(true)}
+                  className="w-full"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  추가 소속 등록
+                </Button>
+              )}
+
+              {/* 새 추가 소속 폼 */}
+              {showSubAffiliations && (
+                <div className="space-y-4 rounded-lg border bg-gray-50 p-4">
+                  <h4 className="text-sm font-medium">추가 소속</h4>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="additionalOrganization">기관</Label>
+                      <Input
+                        id="additionalOrganization"
+                        value={newSubAffiliations.organization}
+                        onChange={(e) =>
+                          setNewSubAffiliations((prev) => ({
+                            ...prev,
+                            organization: e.target.value,
+                          }))
+                        }
+                        placeholder="서울대학교병원 의생명정보학연구실"
+                        maxLength={50}
+                        className="bg-white"
+                      />
+                      <p className="text-muted-foreground text-right text-xs">
+                        {newSubAffiliations.organization.length}/50자
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="additionalDepartment">부서</Label>
+                      <Input
+                        id="additionalDepartment"
+                        value={newSubAffiliations.department}
+                        onChange={(e) =>
+                          setNewSubAffiliations((prev) => ({
+                            ...prev,
+                            department: e.target.value,
+                          }))
+                        }
+                        placeholder="연구팀"
+                        maxLength={20}
+                        className="bg-white"
+                      />
+                      <p className="text-muted-foreground text-right text-xs">
+                        {newSubAffiliations.department?.length}/20자
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="additionalPosition">구분</Label>
+                      <Input
+                        id="additionalPosition"
+                        value={newSubAffiliations.position}
+                        onChange={(e) =>
+                          setNewSubAffiliations((prev) => ({
+                            ...prev,
+                            position: e.target.value,
+                          }))
+                        }
+                        placeholder="연구 분야를 입력하세요"
+                        maxLength={30}
+                        className="bg-white"
+                      />
+                      <p className="text-muted-foreground text-right text-xs">
+                        {newSubAffiliations.position?.length}/30자
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addSubAffiliations}
+                      className="flex-1 bg-transparent"
+                      disabled={
+                        !newSubAffiliations.organization.trim() ||
+                        !newSubAffiliations.department?.trim() ||
+                        !newSubAffiliations.position?.trim()
+                      }
+                    >
+                      추가 소속 등록
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setShowSubAffiliations(false);
+                        setNewSubAffiliations({
+                          organization: '',
+                          department: '',
+                          position: '',
+                        });
+                      }}
+                    >
+                      취소
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* 카테고리 */}
