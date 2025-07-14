@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Edit, CalendarIcon, Crown, User, Shield } from 'lucide-react';
+import { Edit, CalendarIcon, Crown, User, Shield, Plus, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -29,6 +29,8 @@ import {
   UserEducationSummary,
   UserEducationSummaryStatusEnum,
   UserItem,
+  UserSubAffiliationRequest,
+  type UserSubAffiliationSummary,
 } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import {
@@ -42,6 +44,20 @@ import { positionOptions } from '@/constants/position-enum';
 import { statusLabelMap } from '@/constants/education-enum';
 import { toast } from 'sonner';
 import { roleOptions } from '@/constants/role-enum';
+
+const categoryApi = new ProjectCategoryApi(
+  new Configuration({
+    basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+    accessToken: async () => useAuthStore.getState().accessToken || '',
+  }),
+);
+
+const adminUserApi = new AdminUserApi(
+  new Configuration({
+    basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
+    accessToken: async () => useAuthStore.getState().accessToken || '',
+  }),
+);
 
 interface UserEditModalProps {
   user: UserDetail | null;
@@ -62,6 +78,7 @@ export default function UserEditModal({
     organization: string;
     department: string;
     position: RegisterUserRequestPositionEnum | null;
+    subAffiliations: UserSubAffiliationSummary[];
     annualLeaveCount: number;
     usedLeaveCount: number;
     categories: number[];
@@ -80,6 +97,7 @@ export default function UserEditModal({
     organization: '',
     department: '',
     position: null,
+    subAffiliations: [],
     annualLeaveCount: 15,
     usedLeaveCount: 0,
     categories: [],
@@ -94,24 +112,18 @@ export default function UserEditModal({
     role: RegisterUserRequestRoleEnum.User,
   });
 
-  const categoryApi = new ProjectCategoryApi(
-    new Configuration({
-      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-      accessToken: async () => useAuthStore.getState().accessToken || '',
-    }),
-  );
-
-  const adminUserApi = new AdminUserApi(
-    new Configuration({
-      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-      accessToken: async () => useAuthStore.getState().accessToken || '',
-    }),
-  );
-
   // 카테고리 옵션들
   const [categoryOptions, setCategoryOptions] = useState<
     ProjectCategorySummary[]
   >([]);
+
+  const [showSubAffiliations, setShowSubAffiliations] = useState(false);
+  const [newSubAffiliation, setNewSubAffiliation] =
+    useState<UserSubAffiliationRequest>({
+      organization: '',
+      department: '',
+      position: '',
+    });
 
   // 학력 상태 옵션들
   const educationStatusOptions = Object.entries(statusLabelMap).map(
@@ -145,6 +157,7 @@ export default function UserEditModal({
         organization: user.organization || '',
         department: user.department || '',
         position: user.position || null,
+        subAffiliations: user.subAffiliations ?? [],
         annualLeaveCount: user.annualLeaveCount || 15,
         usedLeaveCount: user.usedLeaveCount || 0,
         categories:
@@ -170,6 +183,39 @@ export default function UserEditModal({
       categories: checked
         ? Array.from(new Set([...prev.categories, categoryId]))
         : prev.categories.filter((id) => id !== categoryId),
+    }));
+  };
+
+  const addSubAffiliation = () => {
+    if (
+      newSubAffiliation.organization.trim() &&
+      newSubAffiliation.department?.trim() &&
+      newSubAffiliation.position?.trim()
+    ) {
+      setFormData((prev) => ({
+        ...prev,
+        subAffiliations: [
+          ...prev.subAffiliations,
+          {
+            organization: newSubAffiliation.organization.trim(),
+            department: newSubAffiliation.department?.trim(),
+            position: newSubAffiliation.position?.trim(),
+          },
+        ],
+      }));
+      setNewSubAffiliation({
+        organization: '',
+        department: '',
+        position: '',
+      });
+      setShowSubAffiliations(false);
+    }
+  };
+
+  const removeSubAffiliation = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      subAffiliations: prev.subAffiliations.filter((_, i) => i !== index),
     }));
   };
 
@@ -214,6 +260,8 @@ export default function UserEditModal({
         organization: formData.organization,
         department: formData.department,
         position: formData.position as RegisterUserRequestPositionEnum,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        subAffiliations: formData.subAffiliations as any,
         phoneNumber: formData.phoneNumber,
         seatNumber: formData.seatNumber,
         annualLeaveCount: formData.annualLeaveCount,
@@ -524,6 +572,124 @@ export default function UserEditModal({
                 </Select>
               </div>
             </div>
+
+            {/* 추가 소속 목록 */}
+            {formData.subAffiliations.length > 0 && (
+              <div className="space-y-2">
+                <Label>추가 소속</Label>
+                {formData.subAffiliations.map((aff, index) => (
+                  <div
+                    /* eslint-disable-next-line react/no-array-index-key */
+                    key={index}
+                    className="flex items-center gap-2 rounded-lg bg-gray-50 p-3"
+                  >
+                    <div className="flex-1">
+                      <p className="text-sm">
+                        {aff.organization} | {aff.department} | {aff.position}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => removeSubAffiliation(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 추가 소속 등록 버튼 */}
+            {!showSubAffiliations && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowSubAffiliations(true)}
+                className="w-full"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                추가 소속 등록
+              </Button>
+            )}
+
+            {/* 새 소속 입력 폼 */}
+            {showSubAffiliations && (
+              <div className="space-y-4 rounded-lg border bg-gray-50 p-4">
+                <h4 className="text-sm font-medium">추가 소속</h4>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label>기관</Label>
+                    <Input
+                      value={newSubAffiliation.organization}
+                      onChange={(e) =>
+                        setNewSubAffiliation((prev) => ({
+                          ...prev,
+                          organization: e.target.value,
+                        }))
+                      }
+                      placeholder="기관명"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>부서</Label>
+                    <Input
+                      value={newSubAffiliation.department}
+                      onChange={(e) =>
+                        setNewSubAffiliation((prev) => ({
+                          ...prev,
+                          department: e.target.value,
+                        }))
+                      }
+                      placeholder="부서명"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>구분</Label>
+                    <Input
+                      value={newSubAffiliation.position}
+                      onChange={(e) =>
+                        setNewSubAffiliation((prev) => ({
+                          ...prev,
+                          position: e.target.value,
+                        }))
+                      }
+                      placeholder="구분"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addSubAffiliation}
+                    className="flex-1"
+                    disabled={
+                      !newSubAffiliation.organization.trim() ||
+                      !newSubAffiliation.department?.trim() ||
+                      !newSubAffiliation.position?.trim()
+                    }
+                  >
+                    추가 소속 등록
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setNewSubAffiliation({
+                        organization: '',
+                        department: '',
+                        position: '',
+                      });
+                      setShowSubAffiliations(false);
+                    }}
+                  >
+                    취소
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 카테고리 */}
