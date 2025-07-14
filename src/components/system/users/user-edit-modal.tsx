@@ -23,7 +23,7 @@ import {
   Configuration,
   ProjectCategoryApi,
   ProjectCategorySummary,
-  RegisterUserRequestAffiliationEnum,
+  RegisterUserRequestPositionEnum,
   RegisterUserRequestRoleEnum,
   UserDetail,
   UserEducationSummary,
@@ -38,7 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { affiliationOptions } from '@/constants/affiliation-enum';
+import { positionOptions } from '@/constants/position-enum';
 import { statusLabelMap } from '@/constants/education-enum';
 import { toast } from 'sonner';
 import { roleOptions } from '@/constants/role-enum';
@@ -61,11 +61,14 @@ export default function UserEditModal({
     email: string;
     organization: string;
     department: string;
-    affiliation: RegisterUserRequestAffiliationEnum | null;
+    position: RegisterUserRequestPositionEnum | null;
     annualLeaveCount: number;
     usedLeaveCount: number;
     categories: number[];
     seatNumber: string;
+    seatBuilding: string;
+    seatFloor: string;
+    seatCode: string;
     phoneNumber: string;
     educations: UserEducationSummary[];
     joinedAt: Date;
@@ -76,11 +79,14 @@ export default function UserEditModal({
     email: '',
     organization: '',
     department: '',
-    affiliation: null,
+    position: null,
     annualLeaveCount: 15,
     usedLeaveCount: 0,
     categories: [],
     seatNumber: '',
+    seatBuilding: '융합기술연구원',
+    seatFloor: '',
+    seatCode: '',
     phoneNumber: '',
     educations: [],
     joinedAt: new Date(),
@@ -131,20 +137,25 @@ export default function UserEditModal({
   // 사용자 데이터로 폼 초기화
   useEffect(() => {
     if (user && open && categoryOptions.length > 0) {
+      const [building, floor, code] = (user.seatNumber ?? '').split('-');
+
       setFormData({
         name: user.name || '',
         email: user.email || '',
         organization: user.organization || '',
         department: user.department || '',
-        affiliation: user.affiliation || null,
+        position: user.position || null,
         annualLeaveCount: user.annualLeaveCount || 15,
         usedLeaveCount: user.usedLeaveCount || 0,
         categories:
           user.categories
             ?.map((c) => c.categoryId)
             .filter((id): id is number => id !== undefined) ?? [],
-        seatNumber: user.seatNumber || '',
-        phoneNumber: user.phoneNumber || user.phoneNumber || '',
+        seatNumber: user.seatNumber ?? '',
+        seatBuilding: building ?? '융합의학기술원',
+        seatFloor: floor ?? '',
+        seatCode: code ?? '',
+        phoneNumber: user.phoneNumber || '',
         educations: user.educations || [],
         joinedAt: user.joinedAt ? new Date(user.joinedAt) : new Date(),
         comment: user.comment || '',
@@ -165,8 +176,13 @@ export default function UserEditModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.email) {
-      toast.error('이름은 필수 입력 항목입니다.');
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.phoneNumber ||
+      !formData.organization
+    ) {
+      toast.error('필수 항목을 입력해주세요.');
       return;
     }
 
@@ -197,7 +213,7 @@ export default function UserEditModal({
         email: formData.email,
         organization: formData.organization,
         department: formData.department,
-        affiliation: formData.affiliation as RegisterUserRequestAffiliationEnum,
+        position: formData.position as RegisterUserRequestPositionEnum,
         phoneNumber: formData.phoneNumber,
         seatNumber: formData.seatNumber,
         annualLeaveCount: formData.annualLeaveCount,
@@ -233,7 +249,27 @@ export default function UserEditModal({
     field: K,
     value: (typeof formData)[K],
   ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value };
+
+      if (
+        field === 'seatBuilding' ||
+        field === 'seatFloor' ||
+        field === 'seatCode'
+      ) {
+        const building =
+          field === 'seatBuilding' ? String(value) : prev.seatBuilding;
+        const floor = field === 'seatFloor' ? String(value) : prev.seatFloor;
+        const code = field === 'seatCode' ? String(value) : prev.seatCode;
+
+        const paddedFloor = floor.padStart(2, '0');
+        const paddedCode = code.padStart(2, '0');
+
+        updated.seatNumber = `${building}-${paddedFloor}-${paddedCode}`;
+      }
+
+      return updated;
+    });
   };
 
   useEffect(() => {
@@ -306,7 +342,9 @@ export default function UserEditModal({
                 </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">이메일 *</Label>
+                <Label htmlFor="email">
+                  이메일 <span className="text-destructive text-xs">*</span>
+                </Label>
                 <Input
                   id="email"
                   value={formData.email}
@@ -318,6 +356,31 @@ export default function UserEditModal({
                 />
                 <p className="text-muted-foreground text-right text-xs">
                   {formData.email.length}/50자
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phoneNumber">
+                  전화번호 <span className="text-destructive text-xs">*</span>
+                </Label>
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  value={formData.phoneNumber}
+                  onChange={(e) =>
+                    handleInputChange(
+                      'phoneNumber',
+                      formatPhoneNumber(e.target.value),
+                    )
+                  }
+                  placeholder="010-1234-5678"
+                  maxLength={13}
+                  inputMode="numeric"
+                  pattern="^\d{3}-\d{3,4}-\d{4}$"
+                  className="bg-white"
+                />
+                <p className="text-muted-foreground text-right text-xs">
+                  {formData.phoneNumber.length}/13자
                 </p>
               </div>
             </div>
@@ -404,7 +467,9 @@ export default function UserEditModal({
             <h3 className="text-sm font-semibold">BMI LAB 소속 정보</h3>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="organization">기관</Label>
+                <Label htmlFor="organization">
+                  기관 <span className="text-destructive text-xs">*</span>
+                </Label>
                 <Input
                   id="organization"
                   value={formData.organization}
@@ -434,15 +499,15 @@ export default function UserEditModal({
                 </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="affiliation">소속</Label>
+                <Label htmlFor="position">소속</Label>
                 <Select
-                  value={formData.affiliation || ''}
+                  value={formData.position || ''}
                   onValueChange={(value) =>
                     handleInputChange(
-                      'affiliation',
+                      'position',
                       value === 'none'
                         ? null
-                        : (value as RegisterUserRequestAffiliationEnum),
+                        : (value as RegisterUserRequestPositionEnum),
                     )
                   }
                 >
@@ -450,17 +515,48 @@ export default function UserEditModal({
                     <SelectValue placeholder="구분 선택" />
                   </SelectTrigger>
                   <SelectContent>
-                    {affiliationOptions.map((affiliation) => (
-                      <SelectItem
-                        key={affiliation.value}
-                        value={affiliation.value}
-                      >
-                        {affiliation.label}
+                    {positionOptions.map((position) => (
+                      <SelectItem key={position.value} value={position.value}>
+                        {position.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+          </div>
+
+          {/* 카테고리 */}
+          <div className="space-y-4 rounded-lg border p-4">
+            <h3 className="text-sm font-semibold">연구 분야</h3>
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+              {categoryOptions.map((category) =>
+                category.categoryId !== undefined ? (
+                  <div
+                    key={category.categoryId}
+                    className="flex items-center space-x-2"
+                  >
+                    <Checkbox
+                      id={`category-${category.categoryId}`}
+                      checked={formData.categories.includes(
+                        category.categoryId,
+                      )}
+                      onCheckedChange={(checked) =>
+                        handleCategoryChange(
+                          category.categoryId!,
+                          checked as boolean,
+                        )
+                      }
+                    />
+                    <Label
+                      htmlFor={`category-${category.categoryId}`}
+                      className="text-sm font-normal"
+                    >
+                      {category.name}
+                    </Label>
+                  </div>
+                ) : null,
+              )}
             </div>
           </div>
 
@@ -521,78 +617,51 @@ export default function UserEditModal({
             </div>
           </div>
 
-          {/* 카테고리 */}
+          {/* 좌석 정보 */}
           <div className="space-y-4 rounded-lg border p-4">
-            <h3 className="text-sm font-semibold">연구 분야</h3>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-              {categoryOptions.map((category) =>
-                category.categoryId !== undefined ? (
-                  <div
-                    key={category.categoryId}
-                    className="flex items-center space-x-2"
-                  >
-                    <Checkbox
-                      id={`category-${category.categoryId}`}
-                      checked={formData.categories.includes(
-                        category.categoryId,
-                      )}
-                      onCheckedChange={(checked) =>
-                        handleCategoryChange(
-                          category.categoryId!,
-                          checked as boolean,
-                        )
-                      }
-                    />
-                    <Label
-                      htmlFor={`category-${category.categoryId}`}
-                      className="text-sm font-normal"
-                    >
-                      {category.name}
-                    </Label>
-                  </div>
-                ) : null,
-              )}
-            </div>
-          </div>
-
-          {/* 연락처 및 위치 정보 */}
-          <div className="space-y-4 rounded-lg border p-4">
-            <h3 className="text-sm font-semibold">연락처 및 위치</h3>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <h3 className="text-sm font-semibold">좌석 정보</h3>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="phoneNumber">전화번호</Label>
+                <Label htmlFor="seatBuilding">건물</Label>
                 <Input
-                  id="phoneNumber"
-                  type="tel"
-                  value={formData.phoneNumber}
+                  id="seatBuilding"
+                  value={formData.seatBuilding}
                   onChange={(e) =>
-                    handleInputChange(
-                      'phoneNumber',
-                      formatPhoneNumber(e.target.value),
-                    )
+                    handleInputChange('seatBuilding', e.target.value)
                   }
-                  placeholder="010-1234-5678"
-                  maxLength={13}
-                  inputMode="numeric"
-                  pattern="^\d{3}-\d{3,4}-\d{4}$"
+                  placeholder="융합의학기술원"
+                  maxLength={10}
+                  disabled
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="seatFloor">층</Label>
+                <Input
+                  id="seatFloor"
+                  value={formData.seatFloor}
+                  onChange={(e) =>
+                    handleInputChange('seatFloor', e.target.value.slice(0, 2))
+                  }
+                  placeholder="MM"
+                  maxLength={2}
                 />
                 <p className="text-muted-foreground text-right text-xs">
-                  {formData.phoneNumber.length}/13자
+                  {formData.seatFloor.length}/2자
                 </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="seatNumber">좌석번호</Label>
+                <Label htmlFor="seatCode">번호</Label>
                 <Input
-                  id="seatNumber"
-                  value={formData.seatNumber}
+                  id="seatCode"
+                  value={formData.seatCode}
                   onChange={(e) =>
-                    handleInputChange('seatNumber', e.target.value)
+                    handleInputChange('seatCode', e.target.value.slice(0, 2))
                   }
-                  placeholder="12-30"
-                  maxLength={10}
+                  placeholder="NN"
+                  maxLength={2}
                 />
                 <p className="text-muted-foreground text-right text-xs">
-                  {formData.seatNumber.length}/10자
+                  {formData.seatCode.length}/2자
                 </p>
               </div>
             </div>
