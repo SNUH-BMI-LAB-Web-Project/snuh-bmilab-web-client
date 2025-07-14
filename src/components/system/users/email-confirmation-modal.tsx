@@ -16,14 +16,13 @@ import {
   Clock,
   User,
 } from 'lucide-react';
-import {
-  AdminUserApi,
-  Configuration,
-  RegisterUserRequest,
-  UserApi,
-} from '@/generated-api';
-import { useAuthStore } from '@/store/auth-store';
+import { AdminUserApi, RegisterUserRequest, UserApi } from '@/generated-api';
 import { toast } from 'sonner';
+import { getApiConfig } from '@/lib/config';
+
+const adminUserApi = new AdminUserApi(getApiConfig());
+
+const userApi = new UserApi(getApiConfig());
 
 interface EmailConfirmationModalProps {
   open: boolean;
@@ -38,18 +37,6 @@ export default function EmailConfirmationModal({
 }: EmailConfirmationModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
-
-  const adminUserApi = new AdminUserApi(
-    new Configuration({
-      accessToken: async () => useAuthStore.getState().accessToken ?? '',
-    }),
-  );
-
-  const userApi = new UserApi(
-    new Configuration({
-      accessToken: async () => useAuthStore.getState().accessToken ?? '',
-    }),
-  );
 
   const handleSendEmail = async () => {
     if (!userData) return;

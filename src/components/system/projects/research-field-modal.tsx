@@ -34,12 +34,15 @@ import {
 import { BookOpen, Plus, Edit, Trash2, Save, X, Tag } from 'lucide-react';
 import {
   AdminProjectCategoryApi,
-  Configuration,
   ProjectCategoryApi,
   ProjectCategorySummary,
 } from '@/generated-api';
-import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
+import { getApiConfig } from '@/lib/config';
+
+const categoryApi = new ProjectCategoryApi(getApiConfig());
+
+const adminCategoryApi = new AdminProjectCategoryApi(getApiConfig());
 
 export default function ResearchFieldModal() {
   const [open, setOpen] = useState(false);
@@ -53,20 +56,6 @@ export default function ResearchFieldModal() {
   );
   const [newFieldName, setNewFieldName] = useState('');
   const [editFieldName, setEditFieldName] = useState('');
-
-  const categoryApi = new ProjectCategoryApi(
-    new Configuration({
-      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-      accessToken: async () => useAuthStore.getState().accessToken || '',
-    }),
-  );
-
-  const adminCategoryApi = new AdminProjectCategoryApi(
-    new Configuration({
-      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-      accessToken: async () => useAuthStore.getState().accessToken || '',
-    }),
-  );
 
   // 카테고리 목록 불러오기
   useEffect(() => {
@@ -109,7 +98,7 @@ export default function ResearchFieldModal() {
       setResearchFields(res.categories ?? []);
       setNewFieldName('');
     } catch (error) {
-      toast.error('연구 분야 추가 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.log(error);
     }
   };
 
@@ -144,7 +133,7 @@ export default function ResearchFieldModal() {
       setEditingField(null);
       setEditFieldName('');
     } catch (error) {
-      toast.error('연구 분야 수정 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.log(error);
     }
   };
 
@@ -161,7 +150,7 @@ export default function ResearchFieldModal() {
       setResearchFields(res.categories ?? []);
       setDeleteField(null);
     } catch (error) {
-      toast.error('연구 분야 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.log(error);
     }
   };
 

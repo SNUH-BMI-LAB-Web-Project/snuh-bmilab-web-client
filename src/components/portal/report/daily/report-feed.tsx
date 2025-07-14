@@ -18,23 +18,18 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  Configuration,
   ReportApi,
   ReportFindAllResponse,
   ReportSummary,
   SearchProjectItem,
 } from '@/generated-api';
-import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { ReportEditModal } from '@/components/portal/report/daily/report-edit-form';
 import { formatDateTimeVer2, setDateWithFixedHour } from '@/lib/utils';
 import { downloadFileFromUrl } from '@/utils/download-file';
+import { getApiConfig } from '@/lib/config';
 
-const reportApi = new ReportApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const reportApi = new ReportApi(getApiConfig());
 
 interface ReportFeedProps {
   filters: {
@@ -95,7 +90,7 @@ export function ReportFeed({
       setReports(updatedReports);
       toast.success('업무 보고가 삭제되었습니다.');
     } catch (err) {
-      toast.error('업무 보고 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.log(err);
     }
   };
 

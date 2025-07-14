@@ -14,15 +14,11 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import PasswordResetModal from '@/components/system/users/password-reset-modal';
 import { toast } from 'sonner';
-import { Configuration, UserApi } from '@/generated-api';
-import { useAuthStore } from '@/store/auth-store';
+import { UserApi } from '@/generated-api';
 import { useRouter } from 'next/navigation';
+import { getApiConfig } from '@/lib/config';
 
-const userApi = new UserApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const userApi = new UserApi(getApiConfig());
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -44,7 +40,7 @@ export default function ResetPasswordPage() {
       toast.success('비밀번호가 재발급 되었습니다. 이메일을 확인해 주세요.');
       router.push('/login');
     } catch (error) {
-      toast.error('비밀번호 재발급 중 오류가 발생했습니다.');
+      console.log(error);
     } finally {
       setShowPasswordResetDialog(false);
     }

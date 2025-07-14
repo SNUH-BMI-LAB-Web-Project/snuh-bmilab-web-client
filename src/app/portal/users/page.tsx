@@ -3,9 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import UserInfoCard from '@/components/portal/users/user-info-card';
 import { UserItem, UserApi, UserFindAllResponse } from '@/generated-api';
-import { Configuration } from '@/generated-api/runtime';
 import { useAuthStore } from '@/store/auth-store';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   ChevronLeft,
@@ -21,6 +19,9 @@ import {
   SelectItem,
   SelectValue,
 } from '@/components/ui/select';
+import { getApiConfig } from '@/lib/config';
+
+const api = new UserApi(getApiConfig());
 
 export default function UsersPage() {
   const [users, setUsers] = useState<UserItem[]>([]);
@@ -35,12 +36,6 @@ export default function UsersPage() {
       const token = useAuthStore.getState().accessToken;
       if (!token) return;
 
-      const api = new UserApi(
-        new Configuration({
-          accessToken: async () => token,
-        }),
-      );
-
       const res: UserFindAllResponse = await api.getAllUsers({
         pageNo: page - 1,
         size,
@@ -50,9 +45,7 @@ export default function UsersPage() {
       setUsers(res.users ?? []);
       setTotalPages(res.totalPage ?? 1);
     } catch (error) {
-      toast.error(
-        '구성원 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
-      );
+      console.log(error);
     }
   };
 

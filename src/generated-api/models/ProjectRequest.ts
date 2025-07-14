@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { ExternalProfessorSummary } from './ExternalProfessorSummary';
+import type { ExternalProfessorRequest } from './ExternalProfessorRequest';
 import {
-    ExternalProfessorSummaryFromJSON,
-    ExternalProfessorSummaryFromJSONTyped,
-    ExternalProfessorSummaryToJSON,
-    ExternalProfessorSummaryToJSONTyped,
-} from './ExternalProfessorSummary';
+    ExternalProfessorRequestFromJSON,
+    ExternalProfessorRequestFromJSONTyped,
+    ExternalProfessorRequestToJSON,
+    ExternalProfessorRequestToJSONTyped,
+} from './ExternalProfessorRequest';
 
 /**
  * 
@@ -65,16 +65,16 @@ export interface ProjectRequest {
     endDate?: Date;
     /**
      * PI
-     * @type {Array<ExternalProfessorSummary>}
+     * @type {Array<ExternalProfessorRequest>}
      * @memberof ProjectRequest
      */
-    piList?: Array<ExternalProfessorSummary>;
+    piList?: Array<ExternalProfessorRequest>;
     /**
      * 실무 교수
-     * @type {Array<ExternalProfessorSummary>}
+     * @type {Array<ExternalProfessorRequest>}
      * @memberof ProjectRequest
      */
-    practicalProfessors?: Array<ExternalProfessorSummary>;
+    practicalProfessors?: Array<ExternalProfessorRequest>;
     /**
      * IRB 번호 (있으면)
      * @type {string}
@@ -155,8 +155,8 @@ export function ProjectRequestFromJSONTyped(json: any, ignoreDiscriminator: bool
         'participantIds': json['participantIds'] == null ? undefined : json['participantIds'],
         'startDate': (new Date(json['startDate'])),
         'endDate': json['endDate'] == null ? undefined : (new Date(json['endDate'])),
-        'piList': json['piList'] == null ? undefined : ((json['piList'] as Array<any>).map(ExternalProfessorSummaryFromJSON)),
-        'practicalProfessors': json['practicalProfessors'] == null ? undefined : ((json['practicalProfessors'] as Array<any>).map(ExternalProfessorSummaryFromJSON)),
+        'piList': json['piList'] == null ? undefined : ((json['piList'] as Array<any>).map(ExternalProfessorRequestFromJSON)),
+        'practicalProfessors': json['practicalProfessors'] == null ? undefined : ((json['practicalProfessors'] as Array<any>).map(ExternalProfessorRequestFromJSON)),
         'irbId': json['irbId'] == null ? undefined : json['irbId'],
         'drbId': json['drbId'] == null ? undefined : json['drbId'],
         'irbFileIds': json['irbFileIds'] == null ? undefined : json['irbFileIds'],
@@ -185,8 +185,8 @@ export function ProjectRequestToJSONTyped(value?: ProjectRequest | null, ignoreD
         'participantIds': value['participantIds'],
         'startDate': ((value['startDate']).toISOString().substring(0,10)),
         'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString().substring(0,10)),
-        'piList': value['piList'] == null ? undefined : ((value['piList'] as Array<any>).map(ExternalProfessorSummaryToJSON)),
-        'practicalProfessors': value['practicalProfessors'] == null ? undefined : ((value['practicalProfessors'] as Array<any>).map(ExternalProfessorSummaryToJSON)),
+        'piList': value['piList'] == null ? undefined : ((value['piList'] as Array<any>).map(ExternalProfessorRequestToJSON)),
+        'practicalProfessors': value['practicalProfessors'] == null ? undefined : ((value['practicalProfessors'] as Array<any>).map(ExternalProfessorRequestToJSON)),
         'irbId': value['irbId'],
         'drbId': value['drbId'],
         'irbFileIds': value['irbFileIds'],

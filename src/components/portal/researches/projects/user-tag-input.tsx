@@ -6,14 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { X, Check } from 'lucide-react';
 import { UserSummary } from '@/generated-api/models/UserSummary';
 import { UserApi } from '@/generated-api/apis/UserApi';
-import { Configuration } from '@/generated-api/runtime';
 import { useAuthStore } from '@/store/auth-store';
+import { getApiConfig } from '@/lib/config';
 
-const userApi = new UserApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const userApi = new UserApi(getApiConfig());
 
 interface UserTagInputProps {
   selectedUsers: UserSummary[];

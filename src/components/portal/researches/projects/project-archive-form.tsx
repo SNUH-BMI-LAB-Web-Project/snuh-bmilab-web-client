@@ -11,21 +11,16 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
-import { useAuthStore } from '@/store/auth-store';
 import {
   ProjectFileSummary,
   ProjectFileSummaryFileTypeEnum,
 } from '@/generated-api/models/ProjectFileSummary';
 import { ProjectApi } from '@/generated-api/apis/ProjectApi';
-import { Configuration } from '@/generated-api/runtime';
 import { Download, Paperclip } from 'lucide-react';
 import { downloadFileFromUrl } from '@/utils/download-file';
+import { getApiConfig } from '@/lib/config';
 
-const projectApi = new ProjectApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const projectApi = new ProjectApi(getApiConfig());
 
 interface ProjectArchiveFormProps {
   projectId?: number;

@@ -40,20 +40,17 @@ import { ko } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import {
   AdminUserApi,
-  Configuration,
   ProjectCategoryApi,
   ProjectCategorySummary,
   RegisterUserRequest,
   RegisterUserRequestPositionEnum,
   RegisterUserRequestRoleEnum,
-  ResponseError,
   UserEducationRequest,
   UserEducationRequestStatusEnum,
   UserEducationRequestTypeEnum,
   UserEducationSummaryStatusEnum,
   UserSubAffiliationRequest,
 } from '@/generated-api';
-import { useAuthStore } from '@/store/auth-store';
 import EmailConfirmationModal from '@/components/system/users/email-confirmation-modal';
 import YearMonthPicker from '@/components/system/users/year-month-picker';
 import { statusLabelMap, typeLabelMap } from '@/constants/education-enum';
@@ -61,19 +58,11 @@ import { toast } from 'sonner';
 import { positionOptions } from '@/constants/position-enum';
 import { roleOptions } from '@/constants/role-enum';
 import { WorkSchedule } from '@/components/system/users/work-schedule-picker';
+import { getApiConfig } from '@/lib/config';
 
-const adminUserApi = new AdminUserApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const adminUserApi = new AdminUserApi(getApiConfig());
 
-const categoryApi = new ProjectCategoryApi(
-  new Configuration({
-    basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-    accessToken: async () => useAuthStore.getState().accessToken || '',
-  }),
-);
+const categoryApi = new ProjectCategoryApi(getApiConfig());
 
 interface UserAddModalProps {
   open: boolean;
@@ -395,13 +384,8 @@ export default function UserAddModal({
       });
 
       toast.success('사용자가 성공적으로 추가되었습니다');
-    } catch (error: unknown) {
-      if (error instanceof ResponseError && error?.response?.status === 409) {
-        const body = await error.response.json();
-        toast.error(body?.message ?? '중복된 요청입니다.');
-      } else {
-        toast.error('사용자 등록 중 오류가 발생했습니다. 다시 시도해 주세요.');
-      }
+    } catch (error) {
+      console.log(error);
     }
   };
 

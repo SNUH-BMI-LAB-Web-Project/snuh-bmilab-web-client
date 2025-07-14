@@ -19,23 +19,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import Link from 'next/link';
-import { Configuration, UserApi, UserSummary } from '@/generated-api';
-import { useAuthStore } from '@/store/auth-store';
+import { UserApi, UserSummary } from '@/generated-api';
 import { cn } from '@/lib/utils';
 import { getStatusClassName, getStatusLabel } from '@/utils/project-utils';
 import { useProjectCategories } from '@/hooks/use-project-categories';
+import { getApiConfig } from '@/lib/config';
 
-const projectApi = new ProjectApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const projectApi = new ProjectApi(getApiConfig());
 
-const userApi = new UserApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const userApi = new UserApi(getApiConfig());
 
 const formatSortOption = (option: string) => {
   const [field, direction] = option.split('-');

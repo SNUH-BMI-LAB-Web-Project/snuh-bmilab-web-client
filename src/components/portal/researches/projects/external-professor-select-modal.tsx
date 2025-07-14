@@ -23,11 +23,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserCheck, Plus, Save, Building } from 'lucide-react';
 import {
   AdminExternalProfessorApi,
-  Configuration,
   ExternalProfessorItem,
 } from '@/generated-api';
-import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
+import { getApiConfig } from '@/lib/config';
+
+const api = new AdminExternalProfessorApi(getApiConfig());
 
 interface ExternalProfessorSelectModalProps {
   open: boolean;
@@ -52,12 +53,6 @@ export default function ExternalProfessorSelectModal({
 
   const getProfessorKey = (p: ExternalProfessorItem) =>
     `${p.name}-${p.organization}-${p.department}-${p.position}`;
-
-  const api = new AdminExternalProfessorApi(
-    new Configuration({
-      accessToken: async () => useAuthStore.getState().accessToken ?? '',
-    }),
-  );
 
   const fetchProfessors = async () => {
     try {
@@ -101,7 +96,7 @@ export default function ExternalProfessorSelectModal({
 
       await fetchProfessors();
     } catch (e) {
-      toast.error('외부 인사 등록 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.log(e);
     }
   };
 

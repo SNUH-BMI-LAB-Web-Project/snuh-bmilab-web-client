@@ -1,17 +1,12 @@
 import { FileApi, GeneratePresignedUrlDomainTypeEnum } from '@/generated-api';
-import { Configuration } from '@/generated-api/runtime';
+import { getApiConfig } from '@/lib/config';
 
 export const uploadFileWithPresignedUrl = async (
   file: File,
   accessToken: string,
   domainType: GeneratePresignedUrlDomainTypeEnum,
 ) => {
-  const api = new FileApi(
-    new Configuration({
-      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-      accessToken: async () => accessToken,
-    }),
-  );
+  const api = new FileApi(getApiConfig());
 
   // 1. 프리사인드 URL 발급
   const presigned = await api.generatePresignedUrl({

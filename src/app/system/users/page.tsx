@@ -30,14 +30,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import {
-  AdminUserApi,
-  Configuration,
-  UserApi,
-  UserDetail,
-  UserItem,
-} from '@/generated-api';
-import { useAuthStore } from '@/store/auth-store';
+import { AdminUserApi, UserApi, UserDetail, UserItem } from '@/generated-api';
 import { toast } from 'sonner';
 import UserEditModal from '@/components/system/users/user-edit-modal';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
@@ -45,18 +38,11 @@ import UserDeleteModal from '@/components/system/users/user-delete-modal';
 import UserAddModal from '@/components/system/users/user-add-modal';
 import { positionLabelMap } from '@/constants/position-enum';
 import PasswordResetModal from '@/components/system/users/password-reset-modal';
+import { getApiConfig } from '@/lib/config';
 
-const userApi = new UserApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const userApi = new UserApi(getApiConfig());
 
-const adminApi = new AdminUserApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const adminApi = new AdminUserApi(getApiConfig());
 
 const getUserColumns = (
   currentPage: number,
@@ -263,9 +249,7 @@ export default function SystemProjectPage() {
       setUsers(res.users ?? []);
       setTotalPage(res.totalPage ?? 1);
     } catch (error) {
-      toast.error(
-        '사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
-      );
+      console.log(error);
     } finally {
       setLoading(false);
     }
@@ -288,9 +272,7 @@ export default function SystemProjectPage() {
       const res = await adminApi.getUserById({ userId });
       return res;
     } catch (e) {
-      toast.error(
-        '상세 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
-      );
+      console.log(e);
       return null;
     }
   };
@@ -325,7 +307,7 @@ export default function SystemProjectPage() {
       setUsers((prev) => prev.filter((user) => user.userId !== targetUserId));
       toast.success('사용자가 삭제되었습니다.');
     } catch (error) {
-      toast.error('사용자 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.log(error);
     } finally {
       setShowDeleteDialog(false);
       setTargetUserId(null);
@@ -355,9 +337,7 @@ export default function SystemProjectPage() {
       });
       toast.success('비밀번호가 재발급 되었습니다.');
     } catch (error) {
-      toast.error(
-        '비밀번호 재발급 중 오류가 발생했습니다. 다시 시도해 주세요.',
-      );
+      console.log(error);
     } finally {
       setShowPasswordResetDialog(false);
       setTargetUserId(null);

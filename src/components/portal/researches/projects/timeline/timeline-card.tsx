@@ -19,9 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn, formatDateTimeVer2 } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { TimelineApi } from '@/generated-api/apis/TimelineApi';
-import { Configuration } from '@/generated-api/runtime';
 import { TimelineSummary } from '@/generated-api/models/TimelineSummary';
-import { useAuthStore } from '@/store/auth-store';
 import TimelineFormModal from '@/components/portal/researches/projects/timeline/timeline-form-modal';
 import { TimelineRequest } from '@/generated-api';
 import { toast } from 'sonner';
@@ -32,12 +30,9 @@ import {
 } from '@/components/ui/popover';
 import ConfirmModal from '@/components/common/confirm-modal';
 import { downloadFileFromUrl } from '@/utils/download-file';
+import { getApiConfig } from '@/lib/config';
 
-const timelineApi = new TimelineApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const timelineApi = new TimelineApi(getApiConfig());
 
 interface TimelineCardProps {
   projectId: string;
@@ -63,9 +58,7 @@ export default function TimelineCard({
         });
         setTimelines(response.timelines || []);
       } catch (err) {
-        toast.error(
-          '타임라인 데이터를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
-        );
+        console.log(err);
       }
     };
 
@@ -106,7 +99,7 @@ export default function TimelineCard({
       toast.success('타임라인이 성공적으로 등록되었습니다.');
       await fetchTimelines();
     } catch (err) {
-      toast.error('타임라인 등록 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.log(err);
     }
   };
 
@@ -133,7 +126,7 @@ export default function TimelineCard({
 
       setEditTarget(null); // 모달 닫기
     } catch (err) {
-      toast.error('타임라인 수정 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.log(err);
     }
   };
 
@@ -147,7 +140,7 @@ export default function TimelineCard({
       toast.success('타임라인이 삭제되었습니다.');
       setTimelines((prev) => prev.filter((t) => t.timelineId !== timelineId));
     } catch (err) {
-      toast.error('타임라인 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.log(err);
     }
   };
 

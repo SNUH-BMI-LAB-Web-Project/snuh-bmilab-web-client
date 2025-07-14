@@ -7,34 +7,22 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import {
   AdminUserApi,
-  Configuration,
   ProjectApi,
   UserDetail as UserDetailType,
   UserProjectItem,
 } from '@/generated-api';
-import { useAuthStore } from '@/store/auth-store';
-import { toast } from 'sonner';
 import UserDetail from '@/components/portal/users/user-detail';
+import { getApiConfig } from '@/lib/config';
+
+const adminUserApi = new AdminUserApi(getApiConfig());
+
+const projectApi = new ProjectApi(getApiConfig());
 
 export default function UserDetailPage() {
   const params = useParams();
   const userId = params.id as string;
   const [user, setUser] = useState<UserDetailType>();
   const [userProjects, setUserProjects] = useState<UserProjectItem[]>([]);
-
-  const adminUserApi = new AdminUserApi(
-    new Configuration({
-      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-      accessToken: async () => useAuthStore.getState().accessToken || '',
-    }),
-  );
-
-  const projectApi = new ProjectApi(
-    new Configuration({
-      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-      accessToken: async () => useAuthStore.getState().accessToken || '',
-    }),
-  );
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -44,9 +32,7 @@ export default function UserDetailPage() {
         });
         setUser(userData);
       } catch (err) {
-        toast.error(
-          '사용자 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
-        );
+        console.log(err);
       }
     };
 

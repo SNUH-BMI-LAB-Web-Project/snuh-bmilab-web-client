@@ -15,17 +15,12 @@ import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import {
   AdminReportApi,
-  Configuration,
   GetReportsByAllUserRequest,
   ReportSummary,
 } from '@/generated-api';
-import { useAuthStore } from '@/store/auth-store';
+import { getApiConfig } from '@/lib/config';
 
-const reportApi = new AdminReportApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const reportApi = new AdminReportApi(getApiConfig());
 
 export function AdminReportFeed({
   filters = {},

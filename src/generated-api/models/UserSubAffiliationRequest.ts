@@ -30,13 +30,13 @@ export interface UserSubAffiliationRequest {
      * @type {string}
      * @memberof UserSubAffiliationRequest
      */
-    department?: string;
+    department: string;
     /**
      * 구분
      * @type {string}
      * @memberof UserSubAffiliationRequest
      */
-    position?: string;
+    position: string;
 }
 
 /**
@@ -44,6 +44,8 @@ export interface UserSubAffiliationRequest {
  */
 export function instanceOfUserSubAffiliationRequest(value: object): value is UserSubAffiliationRequest {
     if (!('organization' in value) || value['organization'] === undefined) return false;
+    if (!('department' in value) || value['department'] === undefined) return false;
+    if (!('position' in value) || value['position'] === undefined) return false;
     return true;
 }
 
@@ -58,8 +60,8 @@ export function UserSubAffiliationRequestFromJSONTyped(json: any, ignoreDiscrimi
     return {
         
         'organization': json['organization'],
-        'department': json['department'] == null ? undefined : json['department'],
-        'position': json['position'] == null ? undefined : json['position'],
+        'department': json['department'],
+        'position': json['position'],
     };
 }
 

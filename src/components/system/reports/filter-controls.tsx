@@ -24,14 +24,17 @@ import { ko } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import type { DateRange } from 'react-day-picker';
 import {
-  Configuration,
   ProjectApi,
   SearchProjectItem,
   UserApi,
   UserSummary,
 } from '@/generated-api';
-import { useAuthStore } from '@/store/auth-store';
 import { Input } from '@/components/ui/input';
+import { getApiConfig } from '@/lib/config';
+
+const projectApi = new ProjectApi(getApiConfig());
+
+const userApi = new UserApi(getApiConfig());
 
 interface RawFilter {
   user: string;
@@ -65,20 +68,6 @@ export function FilterControls({
 
   // 유저 목록
   const [users, setUsers] = useState<UserSummary[]>([]);
-
-  const projectApi = new ProjectApi(
-    new Configuration({
-      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-      accessToken: async () => useAuthStore.getState().accessToken || '',
-    }),
-  );
-
-  const userApi = new UserApi(
-    new Configuration({
-      basePath: process.env.NEXT_PUBLIC_API_BASE_URL!,
-      accessToken: async () => useAuthStore.getState().accessToken || '',
-    }),
-  );
 
   useEffect(() => {
     const fetchProjects = async () => {

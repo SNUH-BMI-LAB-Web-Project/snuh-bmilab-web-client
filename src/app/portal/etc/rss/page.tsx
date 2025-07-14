@@ -8,9 +8,7 @@ import {
   NTISRSSApi,
 } from '@/generated-api/apis/NTISRSSApi';
 import { RSSItem } from '@/generated-api/models/RSSItem';
-import { useAuthStore } from '@/store/auth-store';
 import { useEffect, useState } from 'react';
-import { Configuration } from '@/generated-api/runtime';
 import { formatDateTimeVer3 } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
@@ -23,6 +21,7 @@ import {
 } from '@/components/ui/select';
 import { rssSearchTypeOptions } from '@/constants/rss-search-enum';
 import RssLoading from '@/components/portal/etc/rss/rss-loading';
+import { getApiConfig } from '@/lib/config';
 
 function decodeEntities(html: string) {
   const txt = document.createElement('textarea');
@@ -30,11 +29,7 @@ function decodeEntities(html: string) {
   return txt.value;
 }
 
-const ntisrssApi = new NTISRSSApi(
-  new Configuration({
-    accessToken: async () => useAuthStore.getState().accessToken ?? '',
-  }),
-);
+const ntisrssApi = new NTISRSSApi(getApiConfig());
 
 const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
   {
@@ -119,9 +114,7 @@ export default function RssPage() {
         setRssItems(response.items || []);
         setTotalPage(response.totalPage || 0);
       } catch (error) {
-        toast.error(
-          'RSS 데이터를 가져오는 중 오류가 발생했습니다. 다시 시도해 주세요.',
-        );
+        console.log(error);
       } finally {
         const elapsed = Date.now() - start;
         const minimum = 500;
