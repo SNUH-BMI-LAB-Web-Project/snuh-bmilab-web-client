@@ -164,7 +164,9 @@ export default function ExternalProfessorSelectModal({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="department">부서</Label>
+                <Label htmlFor="department">
+                  부서 <span className="text-destructive text-xs">*</span>
+                </Label>
                 <Input
                   id="department"
                   value={formData.department}
@@ -181,7 +183,9 @@ export default function ExternalProfessorSelectModal({
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="position">직책</Label>
+                <Label htmlFor="position">
+                  직책 <span className="text-destructive text-xs">*</span>
+                </Label>
                 <Input
                   id="position"
                   value={formData.position}
