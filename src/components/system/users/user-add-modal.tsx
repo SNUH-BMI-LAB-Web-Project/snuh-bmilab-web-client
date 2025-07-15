@@ -679,7 +679,7 @@ export default function UserAddModal({
                     onChange={(e) =>
                       handleInputChange('department', e.target.value)
                     }
-                    placeholder="개발팀"
+                    placeholder="AI팀"
                     maxLength={20}
                   />
                   <p className="text-muted-foreground text-right text-xs">
@@ -771,7 +771,7 @@ export default function UserAddModal({
                             organization: e.target.value,
                           }))
                         }
-                        placeholder="서울대학교병원 의생명정보학연구실"
+                        placeholder="기관 또는 회사명"
                         maxLength={50}
                         className="bg-white"
                       />
@@ -790,7 +790,7 @@ export default function UserAddModal({
                             department: e.target.value,
                           }))
                         }
-                        placeholder="연구팀"
+                        placeholder="소속 부서"
                         maxLength={20}
                         className="bg-white"
                       />
@@ -809,7 +809,7 @@ export default function UserAddModal({
                             position: e.target.value,
                           }))
                         }
-                        placeholder="연구 분야를 입력하세요"
+                        placeholder="해당 부서 내 역할"
                         maxLength={30}
                         className="bg-white"
                       />
