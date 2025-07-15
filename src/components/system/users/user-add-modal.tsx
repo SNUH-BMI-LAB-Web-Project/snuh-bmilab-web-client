@@ -423,7 +423,7 @@ export default function UserAddModal({
         ).padStart(2, '0');
         const code = String(
           field === 'seatCode' ? value : updated.seatCode,
-        ).padStart(2, '0');
+        ).padStart(3, '0');
         const building = String(
           field === 'seatBuilding' ? value : updated.seatBuilding,
         );
@@ -924,13 +924,13 @@ export default function UserAddModal({
                     id="seatCode"
                     value={formData.seatCode}
                     onChange={(e) =>
-                      handleInputChange('seatCode', e.target.value.slice(0, 2))
+                      handleInputChange('seatCode', e.target.value.slice(0, 3))
                     }
-                    placeholder="NN"
-                    maxLength={2}
+                    placeholder="NNN"
+                    maxLength={3}
                   />
                   <p className="text-muted-foreground text-right text-xs">
-                    {formData.seatCode.length}/2자
+                    {formData.seatCode.length}/3자
                   </p>
                 </div>
               </div>

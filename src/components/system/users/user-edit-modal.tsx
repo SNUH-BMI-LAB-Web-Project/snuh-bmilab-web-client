@@ -298,7 +298,7 @@ export default function UserEditModal({
         const code = field === 'seatCode' ? String(value) : prev.seatCode;
 
         const paddedFloor = floor.padStart(2, '0');
-        const paddedCode = code.padStart(2, '0');
+        const paddedCode = code.padStart(3, '0');
 
         updated.seatNumber = `${building}-${paddedFloor}-${paddedCode}`;
       }
@@ -828,13 +828,13 @@ export default function UserEditModal({
                   id="seatCode"
                   value={formData.seatCode}
                   onChange={(e) =>
-                    handleInputChange('seatCode', e.target.value.slice(0, 2))
+                    handleInputChange('seatCode', e.target.value.slice(0, 3))
                   }
-                  placeholder="NN"
-                  maxLength={2}
+                  placeholder="NNN"
+                  maxLength={3}
                 />
                 <p className="text-muted-foreground text-right text-xs">
-                  {formData.seatCode.length}/2자
+                  {formData.seatCode.length}/3자
                 </p>
               </div>
             </div>
