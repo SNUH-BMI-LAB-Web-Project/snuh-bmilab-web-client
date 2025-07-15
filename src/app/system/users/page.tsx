@@ -39,6 +39,7 @@ import UserAddModal from '@/components/system/users/user-add-modal';
 import { positionLabelMap } from '@/constants/position-enum';
 import PasswordResetModal from '@/components/system/users/password-reset-modal';
 import { getApiConfig } from '@/lib/config';
+import { formatSeatNumberDetail } from '@/utils/user-utils';
 
 const userApi = new UserApi(getApiConfig());
 
@@ -141,16 +142,16 @@ const getUserColumns = (
   },
   {
     label: '좌석',
-    className: 'text-center w-[130px]',
+    className: 'text-center w-[200px]',
     cell: (row: UserItem) =>
       row.seatNumber?.trim() ? (
         <Badge
           variant="outline"
-          title={row.seatNumber}
-          className="mx-auto flex max-w-[100px] items-center justify-center border-gray-300 font-mono"
+          title={formatSeatNumberDetail(row.seatNumber)}
+          className="mx-auto flex max-w-[150px] items-center justify-center border-gray-300 font-mono"
         >
           <div className="max-w-full truncate overflow-hidden whitespace-nowrap">
-            {row.seatNumber}
+            {formatSeatNumberDetail(row.seatNumber)}
           </div>
         </Badge>
       ) : (
