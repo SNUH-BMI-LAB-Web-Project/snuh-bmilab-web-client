@@ -91,7 +91,7 @@ export default function UserEditModal({
     usedLeaveCount: 0,
     categories: [],
     seatNumber: '',
-    seatBuilding: '융합기술연구원',
+    seatBuilding: '융합의학기술원',
     seatFloor: '',
     seatCode: '',
     phoneNumber: '',
