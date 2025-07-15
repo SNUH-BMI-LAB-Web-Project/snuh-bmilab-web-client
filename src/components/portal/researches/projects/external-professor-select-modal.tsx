@@ -209,7 +209,10 @@ export default function ExternalProfessorSelectModal({
               <Button
                 onClick={handleAddProfessor}
                 disabled={
-                  !formData.name.trim() || !formData.organization.trim()
+                  !formData.name.trim() ||
+                  !formData.organization.trim() ||
+                  !formData.department.trim() ||
+                  !formData.position.trim()
                 }
               >
                 <Save className="mr-2 h-4 w-4" />

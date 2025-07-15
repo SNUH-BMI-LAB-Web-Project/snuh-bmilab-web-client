@@ -263,7 +263,12 @@ export default function ExternalProfessorPage() {
               onClick={
                 editingProfessor ? handleEditProfessor : handleAddProfessor
               }
-              disabled={!formData.name.trim() || !formData.organization.trim()}
+              disabled={
+                !formData.name.trim() ||
+                !formData.organization.trim() ||
+                !formData.department.trim() ||
+                !formData.position.trim()
+              }
             >
               <Save className="mr-2 h-4 w-4" />
               {editingProfessor ? '수정' : '추가'}
