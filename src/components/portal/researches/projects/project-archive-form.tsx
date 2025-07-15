@@ -28,9 +28,9 @@ interface ProjectArchiveFormProps {
 
 const FILE_TYPE_LABELS: Record<ProjectFileSummaryFileTypeEnum, string> = {
   [ProjectFileSummaryFileTypeEnum.General]: '기타',
-  [ProjectFileSummaryFileTypeEnum.Irb]: 'IRB 문서',
-  [ProjectFileSummaryFileTypeEnum.Drb]: 'DRB 문서',
-  [ProjectFileSummaryFileTypeEnum.Meeting]: '미팅 자료',
+  [ProjectFileSummaryFileTypeEnum.Irb]: 'IRB',
+  [ProjectFileSummaryFileTypeEnum.Drb]: 'DRB',
+  [ProjectFileSummaryFileTypeEnum.Meeting]: '타임라인',
 };
 
 export default function ProjectArchiveForm({
