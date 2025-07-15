@@ -610,7 +610,9 @@ export default function UserEditModal({
                 <h4 className="text-sm font-medium">추가 소속</h4>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="space-y-2">
-                    <Label>기관</Label>
+                    <Label>
+                      기관 <span className="text-destructive text-xs">*</span>
+                    </Label>
                     <Input
                       value={newSubAffiliation.organization}
                       onChange={(e) =>
