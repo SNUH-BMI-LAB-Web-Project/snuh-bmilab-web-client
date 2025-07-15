@@ -143,20 +143,17 @@ const getUserColumns = (
   {
     label: '좌석',
     className: 'text-center w-[200px]',
-    cell: (row: UserItem) =>
-      row.seatNumber?.trim() ? (
-        <Badge
-          variant="outline"
-          title={formatSeatNumberDetail(row.seatNumber)}
-          className="mx-auto flex max-w-[150px] items-center justify-center border-gray-300 font-mono"
-        >
-          <div className="max-w-full truncate overflow-hidden whitespace-nowrap">
-            {formatSeatNumberDetail(row.seatNumber)}
-          </div>
-        </Badge>
-      ) : (
-        '-'
-      ),
+    cell: (row: UserItem) => (
+      <Badge
+        variant="outline"
+        title={formatSeatNumberDetail(row.seatNumber || '융합의학기술원-00-00')}
+        className="mx-auto flex max-w-[150px] items-center justify-center border-gray-300 font-mono"
+      >
+        <div className="max-w-full truncate overflow-hidden whitespace-nowrap">
+          {formatSeatNumberDetail(row.seatNumber || '융합의학기술원-00-00')}
+        </div>
+      </Badge>
+    ),
   },
   {
     label: ' ',
