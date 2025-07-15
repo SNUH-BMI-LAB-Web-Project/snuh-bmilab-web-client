@@ -620,7 +620,12 @@ export default function UserEditModal({
                         }))
                       }
                       placeholder="기관명"
+                      maxLength={50}
+                      className="bg-white"
                     />
+                    <p className="text-muted-foreground text-right text-xs">
+                      {newSubAffiliation.organization.length}/50자
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label>부서</Label>
@@ -633,7 +638,12 @@ export default function UserEditModal({
                         }))
                       }
                       placeholder="부서명"
+                      maxLength={20}
+                      className="bg-white"
                     />
+                    <p className="text-muted-foreground text-right text-xs">
+                      {newSubAffiliation.department?.length}/20자
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label>구분</Label>
@@ -646,7 +656,12 @@ export default function UserEditModal({
                         }))
                       }
                       placeholder="구분"
+                      maxLength={30}
+                      className="bg-white"
                     />
+                    <p className="text-muted-foreground text-right text-xs">
+                      {newSubAffiliation.position?.length}/30자
+                    </p>
                   </div>
                 </div>
                 <div className="flex gap-2">
