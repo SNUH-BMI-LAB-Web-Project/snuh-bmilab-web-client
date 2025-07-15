@@ -529,7 +529,7 @@ export default function UserEditModal({
                   onChange={(e) =>
                     handleInputChange('department', e.target.value)
                   }
-                  placeholder="개발팀"
+                  placeholder="AI팀"
                   maxLength={20}
                 />
                 <p className="text-muted-foreground text-right text-xs">
@@ -610,7 +610,9 @@ export default function UserEditModal({
                 <h4 className="text-sm font-medium">추가 소속</h4>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="space-y-2">
-                    <Label>기관</Label>
+                    <Label>
+                      기관 <span className="text-destructive text-xs">*</span>
+                    </Label>
                     <Input
                       value={newSubAffiliation.organization}
                       onChange={(e) =>
@@ -619,7 +621,7 @@ export default function UserEditModal({
                           organization: e.target.value,
                         }))
                       }
-                      placeholder="기관명"
+                      placeholder="기관 또는 회사명"
                       maxLength={50}
                       className="bg-white"
                     />
@@ -637,7 +639,7 @@ export default function UserEditModal({
                           department: e.target.value,
                         }))
                       }
-                      placeholder="부서명"
+                      placeholder="소속 부서"
                       maxLength={20}
                       className="bg-white"
                     />
@@ -655,7 +657,7 @@ export default function UserEditModal({
                           position: e.target.value,
                         }))
                       }
-                      placeholder="구분"
+                      placeholder="해당 부서 내 역할"
                       maxLength={30}
                       className="bg-white"
                     />
