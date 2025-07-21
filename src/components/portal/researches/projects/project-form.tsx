@@ -604,7 +604,7 @@ export function ProjectForm({
               {/* 입력 리스트 */}
               {piList.map((pi, index) => (
                 <div
-                  key={`${pi.name}-${pi.organization}-${pi.department}-${pi.position}`}
+                  key={`${pi.name}-${pi.organization}-${pi.department}-${pi.position}-${pi.position}`}
                   className="flex gap-2"
                 >
                   <Input

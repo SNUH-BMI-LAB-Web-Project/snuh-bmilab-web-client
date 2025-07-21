@@ -311,7 +311,7 @@ export default function ExternalProfessorPage() {
                 <TableBody>
                   {professors.map((professor) => (
                     <TableRow
-                      key={`${professor.name}-${professor.organization}-${professor.department}`}
+                      key={`${professor.name}-${professor.organization}-${professor.department}-${professor.position}`}
                     >
                       <TableCell>
                         <div className="pl-4 font-medium">{professor.name}</div>
