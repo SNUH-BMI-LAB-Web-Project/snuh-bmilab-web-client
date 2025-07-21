@@ -170,7 +170,7 @@ export default function ExternalProfessorPage() {
           <CardTitle className="flex items-center gap-2 text-lg">
             {editingProfessor ? (
               <>
-                <Edit className="h-5 w-5 text-blue-600" />
+                <Edit className="h-5 w-5" />
                 정보 수정
               </>
             ) : (
