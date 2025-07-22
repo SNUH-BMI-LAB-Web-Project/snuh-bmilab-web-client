@@ -92,7 +92,7 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl">
         {/* 메인 레이아웃 */}
-        <div className="md grid gap-8 md:grid-cols-1 lg:grid-cols-12">
+        <div className="md grid gap-8 lg:grid-cols-1 xl:grid-cols-12">
           {/* 왼쪽 - 프로필 카드 */}
           <div className="lg:col-span-4">
             <Card className="sticky top-8 border border-gray-100 bg-white shadow-sm">
@@ -272,7 +272,7 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
           </div>
 
           {/* 오른쪽 - 상세 정보 */}
-          <div className="lg:col-span-8">
+          <div className="lg:col-span-4 xl:col-span-8">
             <Tabs defaultValue="profile">
               <TabsList className="grid h-12 w-full grid-cols-2 border border-gray-200 bg-white p-1">
                 <TabsTrigger
@@ -303,7 +303,7 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                       </h2>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div className="grid gap-6 lg:grid-cols-1 xl:grid-cols-2">
                       <div className="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm">
                           <Mail className="h-5 w-5 text-gray-600" />
@@ -479,7 +479,7 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                       </h2>
                     </div>
 
-                    <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
+                    <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
                       <div className="rounded-xl border border-blue-100 bg-blue-50 p-6 text-center">
                         <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
                           <Calendar className="h-6 w-6 text-blue-600" />

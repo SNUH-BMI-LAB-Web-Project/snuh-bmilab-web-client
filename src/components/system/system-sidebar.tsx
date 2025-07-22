@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Users, Newspaper, FolderSearch } from 'lucide-react';
+import { Users, Newspaper, FolderSearch, CircleFadingPlus } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
@@ -35,18 +35,19 @@ const baseNav = [
       { title: '연구 & 프로젝트', url: '/system/researches/projects' },
     ],
   },
+  {
+    title: '기타 관리',
+    url: '/system/etc',
+    icon: CircleFadingPlus,
+    items: [{ title: '정보 게시판', url: '/system/etc/board' }],
+  },
 ];
 
 export function SystemSidebar() {
   const pathname = usePathname();
   const { user } = useAuthStore();
 
-  if (
-    pathname.startsWith('/system/researches/projects/') ||
-    (pathname.startsWith('/system/users/') &&
-      pathname !== '/system/users' &&
-      pathname !== '/system/users/external')
-  ) {
+  if (pathname.startsWith('/system/researches/projects/')) {
     return null;
   }
 
