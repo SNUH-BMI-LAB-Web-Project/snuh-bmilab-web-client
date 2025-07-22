@@ -53,7 +53,6 @@ export function AppSidebar() {
 
   if (
     pathname.startsWith('/portal/researches/projects/') ||
-    pathname.startsWith('/portal/users/') ||
     pathname.startsWith('/portal/mypage')
   ) {
     return null;

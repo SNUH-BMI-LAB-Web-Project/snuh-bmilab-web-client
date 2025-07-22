@@ -41,12 +41,7 @@ export function SystemSidebar() {
   const pathname = usePathname();
   const { user } = useAuthStore();
 
-  if (
-    pathname.startsWith('/system/researches/projects/') ||
-    (pathname.startsWith('/system/users/') &&
-      pathname !== '/system/users' &&
-      pathname !== '/system/users/external')
-  ) {
+  if (pathname.startsWith('/system/researches/projects/')) {
     return null;
   }
 
