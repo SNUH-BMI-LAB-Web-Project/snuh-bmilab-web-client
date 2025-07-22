@@ -20,6 +20,7 @@ import { LoginRequest } from '@/generated-api/models/LoginRequest';
 import { useAuthStore } from '@/store/auth-store';
 import Cookies from 'js-cookie';
 import Link from 'next/link';
+import { ResponseError } from '@/generated-api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -47,6 +48,7 @@ export default function LoginPage() {
       const api = new AuthApi();
       const loginRequest: LoginRequest = { email, password };
       const response = await api.login({ loginRequest });
+
       login(response);
 
       Cookies.set('accessToken', response.accessToken ?? '', {
@@ -57,15 +59,17 @@ export default function LoginPage() {
       toast.success('로그인 성공! 환영합니다.');
       router.push('/portal/users');
     } catch (error) {
-      let message = '로그인에 실패했습니다. 다시 시도해 주세요.';
+      const fallbackMessage = '로그인에 실패했습니다. 다시 시도해 주세요.';
+      let message = fallbackMessage;
 
-      if (error && typeof error === 'object' && 'body' in error) {
-        const { body } = error as { body: { message?: string } };
-
-        if (body.message?.includes('사용자를 찾을 수 없습니다')) {
-          message = '등록되지 않은 사용자입니다. 관리자에게 문의하세요.';
-        } else if (body.message?.includes('비밀번호가 일치하지 않습니다')) {
-          message = '비밀번호가 일치하지 않습니다. 다시 시도해 주세요.';
+      if (error instanceof ResponseError) {
+        try {
+          const json = await error.response.json();
+          if (typeof json?.message === 'string') {
+            message = json.message;
+          }
+        } catch {
+          // JSON 파싱 실패 시 fallbackMessage 유지
         }
       }
 
