@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Users, Newspaper, FolderSearch } from 'lucide-react';
+import { Users, Newspaper, FolderSearch, CircleFadingPlus } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
@@ -34,6 +34,12 @@ const baseNav = [
       // { title: 'RSS 공고', url: '/system/researches/rss' },
       { title: '연구 & 프로젝트', url: '/system/researches/projects' },
     ],
+  },
+  {
+    title: '기타 관리',
+    url: '/system/etc',
+    icon: CircleFadingPlus,
+    items: [{ title: '정보 게시판', url: '/system/etc/board' }],
   },
 ];
 

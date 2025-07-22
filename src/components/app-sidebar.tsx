@@ -42,7 +42,7 @@ const baseNav = [
     icon: CircleFadingPlus,
     items: [
       { title: 'RSS 공고', url: '/portal/etc/rss' },
-      // { title: '정보 게시판', url: '/portal/etc/board' },
+      { title: '정보 게시판', url: '/portal/etc/board' },
     ],
   },
 ];
