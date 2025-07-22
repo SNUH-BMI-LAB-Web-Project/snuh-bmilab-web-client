@@ -20,7 +20,7 @@ import { LoginRequest } from '@/generated-api/models/LoginRequest';
 import { useAuthStore } from '@/store/auth-store';
 import Cookies from 'js-cookie';
 import Link from 'next/link';
-import { ResponseError } from '@/generated-api';
+import { getPublicApiConfig } from '@/lib/config';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -45,7 +45,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const api = new AuthApi();
+      const api = new AuthApi(getPublicApiConfig());
       const loginRequest: LoginRequest = { email, password };
       const response = await api.login({ loginRequest });
 
@@ -60,18 +60,11 @@ export default function LoginPage() {
       router.push('/portal/users');
     } catch (error) {
       const fallbackMessage = '로그인에 실패했습니다. 다시 시도해 주세요.';
-      let message = fallbackMessage;
-
-      if (error instanceof ResponseError) {
-        try {
-          const json = await error.response.json();
-          if (typeof json?.message === 'string') {
-            message = json.message;
-          }
-        } catch {
-          // JSON 파싱 실패 시 fallbackMessage 유지
-        }
-      }
+      const message =
+        error && typeof error === 'object' && 'body' in error
+          ? ((error as { body?: { message?: string } }).body?.message ??
+            fallbackMessage)
+          : fallbackMessage;
 
       toast.error(message);
     } finally {
