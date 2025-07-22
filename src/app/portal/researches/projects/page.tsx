@@ -230,7 +230,7 @@ export default function ProjectPage() {
     useState('');
   const [allUsers, setAllUsers] = useState<UserSummary[]>([]);
 
-  const [sortOption, setSortOption] = useState('endDate-desc');
+  const [sortOption, setSortOption] = useState('startDate-desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showFilters, setShowFilters] = useState(false);
