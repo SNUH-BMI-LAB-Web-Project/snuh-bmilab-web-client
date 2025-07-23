@@ -207,7 +207,7 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                                   <Building className="h-3 w-3" />
                                   기관
                                 </div>
-                                <div className="flex-1 text-sm font-semibold text-gray-900">
+                                <div className="flex-1 text-left text-sm font-semibold text-gray-900">
                                   {aff.organization}
                                 </div>
                               </div>
@@ -216,7 +216,7 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                                   <Users className="h-3 w-3" />
                                   부서
                                 </div>
-                                <div className="flex-1 text-sm font-semibold text-gray-900">
+                                <div className="flex-1 text-left text-sm font-semibold text-gray-900">
                                   {aff.department}
                                 </div>
                               </div>
@@ -225,7 +225,7 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                                   <User className="h-3 w-3" />
                                   구분
                                 </div>
-                                <div className="flex-1 text-sm font-semibold text-gray-900">
+                                <div className="flex-1 text-left text-sm font-semibold text-gray-900">
                                   {aff.position}
                                 </div>
                               </div>
