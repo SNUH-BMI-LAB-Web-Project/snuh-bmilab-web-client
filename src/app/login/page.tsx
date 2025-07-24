@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
@@ -27,7 +27,9 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isPending, startTransition] = useTransition();
   const login = useAuthStore((state) => state.login);
 
   useEffect(() => {
@@ -42,7 +44,7 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
+    setIsLoading(true);
 
     try {
       const api = new AuthApi(getPublicApiConfig());
@@ -57,7 +59,14 @@ export default function LoginPage() {
       });
 
       toast.success('로그인 성공! 환영합니다.');
-      router.push('/portal/users');
+      startTransition(() => {
+        setTimeout(() => {
+          const token = useAuthStore.getState().accessToken;
+          if (token) {
+            router.push('/portal/users');
+          }
+        }, 1000);
+      });
     } catch (error) {
       const fallbackMessage = '로그인에 실패했습니다. 다시 시도해 주세요.';
       const message =
@@ -67,8 +76,7 @@ export default function LoginPage() {
           : fallbackMessage;
 
       toast.error(message);
-    } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -132,8 +140,8 @@ export default function LoginPage() {
                 </div>
 
                 <div className="flex flex-col gap-3">
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? '로그인 중...' : '로그인'}
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? '로그인 중...' : '로그인'}
                   </Button>
                 </div>
               </form>
