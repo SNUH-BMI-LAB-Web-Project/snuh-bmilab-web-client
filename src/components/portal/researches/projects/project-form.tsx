@@ -578,7 +578,7 @@ export function ProjectForm({
               연구 구성원
             </h3>
 
-            <div className="bg-muted/50 space-y-3 rounded-xl p-4">
+            <div className="bg-muted space-y-3 rounded-xl p-4">
               {/* 상단 헤더: 라벨 + + 버튼 */}
               <div className="flex items-center justify-between">
                 <Label className="flex items-center text-sm font-semibold">
@@ -665,7 +665,7 @@ export function ProjectForm({
               ))}
             </div>
 
-            <div className="bg-muted/50 space-y-3 rounded-xl p-4">
+            <div className="bg-muted space-y-3 rounded-xl p-4">
               <div className="flex items-center justify-between">
                 <Label className="flex items-center text-sm font-semibold">
                   <User className="h-4 w-4" />
@@ -752,7 +752,7 @@ export function ProjectForm({
               ))}
             </div>
 
-            <div className="bg-muted/50 space-y-3 rounded-xl p-4">
+            <div className="bg-muted space-y-3 rounded-xl p-4">
               <Label className="flex items-center text-sm font-semibold">
                 <Users className="h-4 w-4" />
                 실무 책임자 <span className="text-destructive text-xs">*</span>
@@ -766,7 +766,7 @@ export function ProjectForm({
               />
             </div>
 
-            <div className="bg-muted/50 space-y-3 rounded-xl p-4">
+            <div className="bg-muted space-y-3 rounded-xl p-4">
               <Label className="flex items-center text-sm font-semibold">
                 <Users className="h-4 w-4" />
                 실무 연구자

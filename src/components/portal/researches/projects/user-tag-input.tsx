@@ -33,6 +33,17 @@ export function UserTagInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const dropdownItemRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [debouncedInput, setDebouncedInput] = useState('');
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedInput(input);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [input]);
 
   const searchUsersByKeyword = async (raw: string) => {
     const keyword = raw.trim();
@@ -67,12 +78,6 @@ export function UserTagInput({
   };
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      searchUsersByKeyword(input);
-      return;
-    }
-
     if (!isDropdownOpen || searchResults.length === 0) return;
 
     if (e.key === 'ArrowDown') {
@@ -89,6 +94,16 @@ export function UserTagInput({
       );
     }
   };
+
+  useEffect(() => {
+    if (debouncedInput.trim() === '') {
+      setSearchResults([]);
+      return;
+    }
+
+    searchUsersByKeyword(debouncedInput);
+    setIsDropdownOpen(true);
+  }, [debouncedInput]);
 
   useEffect(() => {
     if (highlightedIndex >= 0 && dropdownItemRefs.current[highlightedIndex]) {
