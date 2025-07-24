@@ -8,6 +8,8 @@ import { useRouter } from 'next/navigation';
 import ProfileEditForm from '@/components/portal/mypage/profile-edit-form';
 import ComingSoon from '@/components/common/coming-soon';
 
+// test
+
 export default function MyPage() {
   const router = useRouter();
   const [tab, setTab] = useState('profile');
