@@ -58,7 +58,8 @@ export interface UploadFileRequest {
 export const UploadFileRequestDomainTypeEnum = {
     Project: 'PROJECT',
     Timeline: 'TIMELINE',
-    Report: 'REPORT'
+    Report: 'REPORT',
+    Board: 'BOARD'
 } as const;
 export type UploadFileRequestDomainTypeEnum = typeof UploadFileRequestDomainTypeEnum[keyof typeof UploadFileRequestDomainTypeEnum];
 

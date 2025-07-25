@@ -1,9 +1,12 @@
+apis/AdminBoardCategoryApi.ts
 apis/AdminExternalProfessorApi.ts
 apis/AdminLeaveApi.ts
 apis/AdminProjectCategoryApi.ts
 apis/AdminReportApi.ts
 apis/AdminUserApi.ts
 apis/AuthApi.ts
+apis/BoardApi.ts
+apis/BoardCategoryApi.ts
 apis/FileApi.ts
 apis/LeaveApi.ts
 apis/NTISRSSApi.ts
@@ -16,6 +19,13 @@ apis/index.ts
 index.ts
 models/AdminUpdateUserRequest.ts
 models/ApplyLeaveRequest.ts
+models/BoardCategoryFindAllResponse.ts
+models/BoardCategoryReqeust.ts
+models/BoardCategorySummary.ts
+models/BoardDetail.ts
+models/BoardFindAllResponse.ts
+models/BoardRequest.ts
+models/BoardSummary.ts
 models/ErrorResponse.ts
 models/ExternalProfessorFindAllResponse.ts
 models/ExternalProfessorItem.ts
