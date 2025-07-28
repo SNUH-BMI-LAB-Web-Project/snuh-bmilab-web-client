@@ -1,20 +1,15 @@
-import { Suspense } from 'react';
+'use client';
+
+import { useParams } from 'next/navigation';
 import BoardDetail from '@/components/system/etc/board/board-detail';
 
-interface BoardDetailPageProps {
-  params: {
-    id: string;
-  };
-}
+export default function BoardDetailPage() {
+  const params = useParams();
+  const postId = params.id as string;
 
-export default async function BoardDetailPage({
-  params,
-}: BoardDetailPageProps) {
   return (
     <div className="flex-1 space-y-4">
-      <Suspense fallback={<div>Loading...</div>}>
-        <BoardDetail postId={params.id} />
-      </Suspense>
+      <BoardDetail postId={postId} />
     </div>
   );
 }
