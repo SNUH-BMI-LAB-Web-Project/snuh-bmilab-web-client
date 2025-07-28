@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,23 +13,20 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { SquareLibrary, NotepadText, Paperclip, Plus, Tag } from 'lucide-react';
-import { cn, setDateWithFixedHour } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { FileItem } from '@/components/portal/researches/projects/file-item';
 import {
-  ExternalProfessorRequest,
-  ExternalProfessorSummary,
-  ProjectApi,
-  ProjectDetail,
-  ProjectFileSummary,
-  ProjectRequest,
-  UserSummary,
+  BoardCategoryApi,
+  BoardCategorySummary,
+  BoardDetail,
+  BoardRequest,
+  FileSummary,
 } from '@/generated-api';
 import { GeneratePresignedUrlDomainTypeEnum } from '@/generated-api/apis/FileApi';
 import { uploadFileWithPresignedUrl } from '@/lib/upload';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/auth-store';
-import { useProjectCategories } from '@/hooks/use-project-categories';
 import dynamic from 'next/dynamic';
 import { getApiConfig } from '@/lib/config';
 
@@ -41,22 +38,17 @@ const MarkdownEditor = dynamic(
 );
 
 interface ProjectFormProps {
-  initialData?: ProjectDetail;
-  onCreate?: (
-    data: ProjectRequest,
-    newFiles: ProjectFileSummary[],
-    irbFiles?: ProjectFileSummary[],
-    drbFiles?: ProjectFileSummary[],
-  ) => void;
+  initialData?: BoardDetail;
+  onCreate?: (data: BoardRequest, newFiles: FileSummary[]) => void;
   onUpdate?: (
-    data: { projectId: number; request: ProjectRequest },
-    newFiles: ProjectFileSummary[],
-    removedFileUrls: ProjectFileSummary[],
+    data: { boardId: number; request: BoardRequest },
+    newFiles: FileSummary[],
+    removedFileUrls: FileSummary[],
   ) => void;
   isEditing?: boolean;
 }
 
-const projectApi = new ProjectApi(getApiConfig());
+const categoryApi = new BoardCategoryApi(getApiConfig());
 
 export function BoardPostForm({
   initialData,
@@ -73,72 +65,20 @@ export function BoardPostForm({
     control,
     setValue,
     watch,
-  } = useForm<ProjectRequest>({
+  } = useForm<BoardRequest>({
     mode: 'onSubmit',
     defaultValues: {
       title: initialData?.title ?? '',
       content: initialData?.content ?? '',
-      categoryId: initialData?.category?.categoryId ?? undefined,
-      irbId: initialData?.irbId ?? '',
-      drbId: initialData?.drbId ?? '',
+      boardCategoryId: initialData?.boardCategory?.boardCategoryId ?? undefined,
     },
   });
-  const [isPrivate, setIsPrivate] = useState<boolean>(
-    initialData?.isPrivate ?? false,
-  );
 
-  const { data: categoryList = [] } = useProjectCategories();
-
-  const [startDate, setStartDate] = useState<Date | undefined>(
-    initialData?.startDate ? new Date(initialData.startDate) : undefined,
-  );
-  const [endDate, setEndDate] = useState<Date | undefined>(
-    initialData?.endDate ? new Date(initialData.endDate) : undefined,
-  );
-
-  const [isWaiting, setIsWaiting] = useState<boolean>(
-    initialData?.status === 'WAITING',
-  );
-
-  const [piList, setPiList] = useState<ExternalProfessorSummary[]>(
-    initialData?.piList ?? [],
-  );
-
-  const [practicalProfessors, setPracticalProfessors] = useState<
-    ExternalProfessorSummary[]
-  >(initialData?.practicalProfessors ?? []);
-
-  const [leaders, setLeaders] = useState<UserSummary[]>(
-    initialData?.leaders ?? [],
-  );
-
-  const [participants, setParticipants] = useState<UserSummary[]>(
-    initialData?.participants ?? [],
-  );
-
-  const [existingFiles, setExistingFiles] = useState<ProjectFileSummary[]>(
+  const [existingFiles, setExistingFiles] = useState<FileSummary[]>(
     initialData?.files ?? [],
   );
-  const [newFiles, setNewFiles] = useState<ProjectFileSummary[]>([]);
-  const [removedFiles, setRemovedFiles] = useState<ProjectFileSummary[]>([]);
-  const irbInputRef = useRef<HTMLInputElement>(null);
-  const drbInputRef = useRef<HTMLInputElement>(null);
-
-  const [irbFiles, setIrbFiles] = useState<ProjectFileSummary[]>([]);
-  const [drbFiles, setDrbFiles] = useState<ProjectFileSummary[]>([]);
-
-  const [showPIModal, setShowPIModal] = useState(false);
-  const [showProfessorModal, setShowProfessorModal] = useState(false);
-
-  const getProfessorKey = (p: {
-    name?: string;
-    organization?: string;
-    department?: string;
-    position?: string;
-  }) => `${p.name}-${p.organization}-${p.department}-${p.position}`;
-
-  const selectedPiKeys = piList.map(getProfessorKey);
-  const selectedPracticalKeys = practicalProfessors.map(getProfessorKey);
+  const [newFiles, setNewFiles] = useState<FileSummary[]>([]);
+  const [removedFiles, setRemovedFiles] = useState<FileSummary[]>([]);
 
   const handleRemoveExistingFile = (index: number) => {
     const removed = existingFiles[index];
@@ -176,7 +116,7 @@ export function BoardPostForm({
 
       const uploaded = await Promise.all(uploadPromises);
       const validFiles = uploaded.filter(
-        (record): record is ProjectFileSummary => record !== null,
+        (record): record is FileSummary => record !== null,
       );
       setNewFiles((prev) => [...prev, ...validFiles]);
     } finally {
@@ -212,78 +152,63 @@ export function BoardPostForm({
 
       const uploaded = await Promise.all(uploadPromises);
       const validFiles = uploaded.filter(
-        (record): record is ProjectFileSummary => record !== null,
+        (record): record is FileSummary => record !== null,
       );
       setNewFiles((prev) => [...prev, ...validFiles]);
     },
     [accessToken],
   );
 
-  const handleFormSubmit = async (formData: ProjectRequest) => {
+  const handleFormSubmit = async (formData: BoardRequest) => {
     const hasEmptyRequiredField =
       !formData.title?.trim() ||
       !formData.content?.trim() ||
-      !formData.categoryId ||
-      !startDate ||
-      leaders.length === 0;
+      !formData.boardCategoryId;
 
     if (hasEmptyRequiredField) {
       toast.error('필수 항목을 모두 입력해주세요.');
       return;
     }
 
-    const request: ProjectRequest = {
+    const request: BoardRequest = {
       title: formData.title!,
       content: formData.content!,
-      leaderIds: leaders
-        .map((u) => Number(u.userId))
-        .filter((id): id is number => !Number.isNaN(id)),
-      participantIds: participants
-        .map((u) => u.userId)
-        .filter((id): id is number => !!id),
-      startDate: setDateWithFixedHour(startDate),
-      endDate: endDate ? setDateWithFixedHour(endDate) : undefined,
-      piList: piList as ExternalProfessorRequest[],
-      practicalProfessors: practicalProfessors as ExternalProfessorRequest[],
-      irbId: formData.irbId,
-      drbId: formData.drbId,
-      irbFileIds: irbFiles.map((f) => f.fileId!),
-      drbFileIds: drbFiles.map((f) => f.fileId!),
       fileIds: newFiles.map((file) => file.fileId!),
-      isWaiting,
-      categoryId: formData.categoryId,
-      isPrivate,
+      boardCategoryId: formData.boardCategoryId,
     };
 
     try {
       if (isEditing) {
-        const projectId = initialData?.projectId;
-        if (projectId !== undefined) {
-          await onUpdate?.({ projectId, request }, newFiles, removedFiles);
-
-          if (endDate) {
-            await projectApi.completeProject({
-              projectId,
-              projectCompleteRequest: {
-                endDate: setDateWithFixedHour(endDate),
-              },
-            });
-          }
+        const boardId = initialData?.boardId;
+        if (boardId !== undefined) {
+          await onUpdate?.({ boardId, request }, newFiles, removedFiles);
         } else {
           console.error('프로젝트 ID가 없음');
         }
       } else {
-        await onCreate?.(
-          request,
-          newFiles,
-          irbFiles ?? undefined,
-          drbFiles ?? undefined,
-        );
+        await onCreate?.(request, newFiles);
       }
     } catch (err) {
       console.log(err);
     }
   };
+
+  const [boardCategorys, setBoardCategorys] = useState<BoardCategorySummary[]>(
+    [],
+  );
+
+  useEffect(() => {
+    const fetchCategorys = async () => {
+      try {
+        const res = await categoryApi.getAllBoardCategories();
+        setBoardCategorys(res.categories ?? []);
+      } catch (error) {
+        console.error('카테고리 불러오기 실패:', error);
+      }
+    };
+
+    fetchCategorys();
+  }, []);
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)}>
@@ -316,7 +241,7 @@ export function BoardPostForm({
               카테고리 <span className="text-destructive text-xs">*</span>
             </Label>
             <Controller
-              name="categoryId"
+              name="boardCategoryId"
               control={control}
               render={({ field }) => (
                 <Select
@@ -325,14 +250,14 @@ export function BoardPostForm({
                 >
                   <div className="w-full">
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="연구 분야 선택" />
+                      <SelectValue placeholder="카테고리 선택" />
                     </SelectTrigger>
                   </div>
                   <SelectContent>
-                    {categoryList.map((cat) => (
+                    {boardCategorys.map((cat) => (
                       <SelectItem
-                        key={cat.categoryId}
-                        value={cat.categoryId!.toString()}
+                        key={cat.boardCategoryId}
+                        value={cat.boardCategoryId!.toString()}
                       >
                         {cat.name}
                       </SelectItem>
