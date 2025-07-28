@@ -121,9 +121,7 @@ export default function BoardDetail({ postId }: BoardDetailProps) {
   }, [postId]);
 
   const handleDeletePost = () => {
-    if (confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
-      router.push('/admin/board');
-    }
+    router.push('/admin/board');
   };
 
   const handleAddComment = () => {
@@ -185,9 +183,7 @@ export default function BoardDetail({ postId }: BoardDetailProps) {
   };
 
   const handleDeleteComment = (commentId: string) => {
-    if (confirm('댓글을 삭제하시겠습니까?')) {
-      setComments(comments.filter((comment) => comment.id !== commentId));
-    }
+    setComments(comments.filter((comment) => comment.id !== commentId));
   };
 
   const getCategoryColor = (category: string) => {
@@ -334,9 +330,9 @@ export default function BoardDetail({ postId }: BoardDetailProps) {
               </h3>
             </div>
             <div className="space-y-3">
-              {post.attachments.map((file, index) => (
+              {post.attachments.map((file) => (
                 <div
-                  key={index}
+                  key={file}
                   className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-gray-50"
                 >
                   <div className="flex items-center gap-3">
