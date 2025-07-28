@@ -33,36 +33,35 @@ import {
 } from '@/components/ui/alert-dialog';
 import { BookOpen, Plus, Edit, Trash2, Save, X, Tag } from 'lucide-react';
 import {
-  AdminProjectCategoryApi,
-  ProjectCategoryApi,
-  ProjectCategorySummary,
+  AdminBoardCategoryApi,
+  BoardCategoryApi,
+  BoardCategorySummary,
 } from '@/generated-api';
 import { toast } from 'sonner';
 import { getApiConfig } from '@/lib/config';
 
-const categoryApi = new ProjectCategoryApi(getApiConfig());
+const categoryApi = new BoardCategoryApi(getApiConfig());
 
-const adminCategoryApi = new AdminProjectCategoryApi(getApiConfig());
+const adminCategoryApi = new AdminBoardCategoryApi(getApiConfig());
 
 export default function CategoryModal() {
   const [open, setOpen] = useState(false);
-  const [researchFields, setResearchFields] = useState<
-    ProjectCategorySummary[]
-  >([]);
-  const [editingField, setEditingField] =
-    useState<ProjectCategorySummary | null>(null);
-  const [deleteField, setDeleteField] = useState<ProjectCategorySummary | null>(
-    null,
+  const [boardCategorys, setBoardCategorys] = useState<BoardCategorySummary[]>(
+    [],
   );
-  const [newFieldName, setNewFieldName] = useState('');
-  const [editFieldName, setEditFieldName] = useState('');
+  const [editingCategory, setEditingCategory] =
+    useState<BoardCategorySummary | null>(null);
+  const [deleteCategory, setDeleteCategory] =
+    useState<BoardCategorySummary | null>(null);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [editCategoryName, setEditCategoryName] = useState('');
 
   // 카테고리 목록 불러오기
   useEffect(() => {
     const fetchCategorys = async () => {
       try {
-        const res = await categoryApi.getAllProjectCategories();
-        setResearchFields(res.categories ?? []);
+        const res = await categoryApi.getAllBoardCategories();
+        setBoardCategorys(res.categories ?? []);
       } catch (error) {
         console.error('카테고리 불러오기 실패:', error);
       }
@@ -73,14 +72,14 @@ export default function CategoryModal() {
 
   // 새 카테고리 추가
   const handleAddField = async () => {
-    if (!newFieldName.trim()) {
+    if (!newCategoryName.trim()) {
       toast.error('카테고리 이름을 입력해주세요.');
       return;
     }
 
     if (
-      researchFields.some(
-        (field) => field?.name?.toLowerCase() === newFieldName.toLowerCase(),
+      boardCategorys.some(
+        (field) => field?.name?.toLowerCase() === newCategoryName.toLowerCase(),
       )
     ) {
       toast.error('이미 존재하는 카테고리입니다.');
@@ -88,15 +87,15 @@ export default function CategoryModal() {
     }
 
     try {
-      await adminCategoryApi.createProjectCategory({
-        projectCategoryRequest: { name: newFieldName.trim() },
+      await adminCategoryApi.createBoardCategory({
+        boardCategoryReqeust: { name: newCategoryName.trim() },
       });
 
       toast.success('카테고리가 성공적으로 추가되었습니다.');
 
-      const res = await categoryApi.getAllProjectCategories(); // 최신 목록 반영
-      setResearchFields(res.categories ?? []);
-      setNewFieldName('');
+      const res = await categoryApi.getAllBoardCategories(); // 최신 목록 반영
+      setBoardCategorys(res.categories ?? []);
+      setNewCategoryName('');
     } catch (error) {
       console.log(error);
     }
@@ -104,16 +103,16 @@ export default function CategoryModal() {
 
   // 카테고리 수정
   const handleEditField = async () => {
-    if (!editFieldName.trim()) {
+    if (!editCategoryName.trim()) {
       toast.error('카테고리 이름을 입력해주세요.');
       return;
     }
 
     if (
-      researchFields.some(
+      boardCategorys.some(
         (field) =>
-          field.categoryId !== editingField?.categoryId &&
-          field?.name?.toLowerCase() === editFieldName.toLowerCase(),
+          field.boardCategoryId !== editingCategory?.boardCategoryId &&
+          field?.name?.toLowerCase() === editCategoryName.toLowerCase(),
       )
     ) {
       toast.error('이미 존재하는 카테고리입니다.');
@@ -121,17 +120,17 @@ export default function CategoryModal() {
     }
 
     try {
-      await adminCategoryApi.updateProjectCategory({
-        categoryId: editingField?.categoryId || -1,
-        projectCategoryRequest: { name: editFieldName.trim() },
+      await adminCategoryApi.updateBoardCategory({
+        categoryId: editingCategory?.boardCategoryId || -1,
+        boardCategoryReqeust: { name: editCategoryName.trim() },
       });
 
       toast.success('카테고리가 성공적으로 수정되었습니다.');
 
-      const res = await categoryApi.getAllProjectCategories();
-      setResearchFields(res.categories ?? []);
-      setEditingField(null);
-      setEditFieldName('');
+      const res = await categoryApi.getAllBoardCategories();
+      setBoardCategorys(res.categories ?? []);
+      setEditingCategory(null);
+      setEditCategoryName('');
     } catch (error) {
       console.log(error);
     }
@@ -140,30 +139,30 @@ export default function CategoryModal() {
   // 카테고리 삭제
   const handleDeleteField = async () => {
     try {
-      await adminCategoryApi.deleteById({
-        categoryId: deleteField?.categoryId || -1,
+      await adminCategoryApi.deleteBoardCategory({
+        categoryId: deleteCategory?.boardCategoryId || -1,
       });
 
       toast.success('카테고리가 성공적으로 삭제되었습니다.');
 
-      const res = await categoryApi.getAllProjectCategories();
-      setResearchFields(res.categories ?? []);
-      setDeleteField(null);
+      const res = await categoryApi.getAllBoardCategories();
+      setBoardCategorys(res.categories ?? []);
+      setDeleteCategory(null);
     } catch (error) {
       console.log(error);
     }
   };
 
   // 수정 모드 시작
-  const startEdit = (field: ProjectCategorySummary) => {
-    setEditingField(field);
-    setEditFieldName(field.name || '');
+  const startEdit = (field: BoardCategorySummary) => {
+    setEditingCategory(field);
+    setEditCategoryName(field.name || '');
   };
 
   // 수정 취소
   const cancelEdit = () => {
-    setEditingField(null);
-    setEditFieldName('');
+    setEditingCategory(null);
+    setEditCategoryName('');
   };
 
   return (
@@ -174,9 +173,9 @@ export default function CategoryModal() {
           setOpen(isOpen);
 
           if (!isOpen) {
-            setEditingField(null);
-            setEditFieldName('');
-            setNewFieldName('');
+            setEditingCategory(null);
+            setEditCategoryName('');
+            setNewCategoryName('');
           }
         }}
       >
@@ -209,13 +208,13 @@ export default function CategoryModal() {
                   <Input
                     id="newField"
                     placeholder="카테고리 명을 입력하세요 (예: 교육 자료)"
-                    value={newFieldName}
-                    onChange={(e) => setNewFieldName(e.target.value)}
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleAddField()}
                     className="text-base"
                     maxLength={30}
                   />
-                  {newFieldName.length >= 30 && (
+                  {newCategoryName.length >= 30 && (
                     <p className="text-destructive mt-1 ml-1 text-sm">
                       최대 30자까지 입력할 수 있습니다.
                     </p>
@@ -224,7 +223,7 @@ export default function CategoryModal() {
 
                 <Button
                   onClick={handleAddField}
-                  disabled={!newFieldName.trim()}
+                  disabled={!newCategoryName.trim()}
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   추가
@@ -240,12 +239,12 @@ export default function CategoryModal() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">카테고리 목록</CardTitle>
                   <Badge variant="secondary" className="text-sm">
-                    총 {researchFields.length}개
+                    총 {boardCategorys.length}개
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                {researchFields.length === 0 ? (
+                {boardCategorys.length === 0 ? (
                   <div className="py-8 text-center">
                     <BookOpen className="mx-auto mb-4 h-12 w-12 text-gray-300" />
                     <p className="text-gray-500">등록된 카테고리가 없습니다.</p>
@@ -261,16 +260,17 @@ export default function CategoryModal() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {researchFields.map((field) => (
-                        <TableRow key={field.categoryId}>
+                      {boardCategorys.map((field) => (
+                        <TableRow key={field.boardCategoryId}>
                           <TableCell>
-                            {editingField?.categoryId === field.categoryId ? (
+                            {editingCategory?.boardCategoryId ===
+                            field.boardCategoryId ? (
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
                                   <Input
-                                    value={editFieldName}
+                                    value={editCategoryName}
                                     onChange={(e) =>
-                                      setEditFieldName(e.target.value)
+                                      setEditCategoryName(e.target.value)
                                     }
                                     onKeyPress={(e) =>
                                       e.key === 'Enter' && handleEditField()
@@ -282,7 +282,7 @@ export default function CategoryModal() {
                                   <Button
                                     size="sm"
                                     onClick={handleEditField}
-                                    disabled={!editFieldName.trim()}
+                                    disabled={!editCategoryName.trim()}
                                   >
                                     <Save className="h-3 w-3" />
                                   </Button>
@@ -294,7 +294,7 @@ export default function CategoryModal() {
                                     <X className="h-3 w-3" />
                                   </Button>
                                 </div>
-                                {editFieldName.length >= 30 && (
+                                {editCategoryName.length >= 30 && (
                                   <p className="text-destructive mt-1 ml-1 text-xs">
                                     최대 30자까지 입력할 수 있습니다.
                                   </p>
@@ -307,8 +307,8 @@ export default function CategoryModal() {
                             )}
                           </TableCell>
                           <TableCell>
-                            {editingField?.categoryId ===
-                            field.categoryId ? null : (
+                            {editingCategory?.boardCategoryId ===
+                            field.boardCategoryId ? null : (
                               <div className="flex gap-1">
                                 <Button
                                   size="sm"
@@ -320,7 +320,7 @@ export default function CategoryModal() {
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  onClick={() => setDeleteField(field)}
+                                  onClick={() => setDeleteCategory(field)}
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </Button>
@@ -340,8 +340,8 @@ export default function CategoryModal() {
 
       {/* 삭제 확인 다이얼로그 */}
       <AlertDialog
-        open={!!deleteField}
-        onOpenChange={() => setDeleteField(null)}
+        open={!!deleteCategory}
+        onOpenChange={() => setDeleteCategory(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -350,7 +350,7 @@ export default function CategoryModal() {
               카테고리 삭제 확인
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
-              <strong>{deleteField?.name}</strong> 카테고리를 정말
+              <strong>{deleteCategory?.name}</strong> 카테고리를 정말
               삭제하시겠습니까?
               <br />이 작업은 되돌릴 수 없습니다.
             </AlertDialogDescription>
