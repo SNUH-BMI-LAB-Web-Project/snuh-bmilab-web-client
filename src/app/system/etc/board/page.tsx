@@ -14,87 +14,78 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import Link from 'next/link';
-import { UserApi, UserItem } from '@/generated-api';
+import {
+  BoardApi,
+  BoardCategoryApi,
+  BoardCategorySummary,
+  BoardSummary,
+} from '@/generated-api';
 import { getApiConfig } from '@/lib/config';
-import { formatSeatNumberDetail } from '@/utils/user-utils';
 import CategoryModal from '@/components/system/etc/board/category-modal';
 import { cn } from '@/lib/utils';
 
-const userApi = new UserApi(getApiConfig());
+const boardApi = new BoardApi(getApiConfig());
+
+const categoryApi = new BoardCategoryApi(getApiConfig());
 
 const getUserColumns = (currentPage: number, itemsPerPage: number) => [
   {
     label: 'No',
     className: 'text-center w-[50px]',
-    cell: (row: UserItem, i: number) => (
+    cell: (row: BoardSummary, i: number) => (
       <div className={cn('truncate overflow-hidden whitespace-nowrap')}>
         {((currentPage - 1) * itemsPerPage + i + 1).toString()}
       </div>
     ),
   },
   {
-    label: '제목',
-    className: 'text-left truncate overflow-hidden whitespace-nowrap w-[250px]',
-    cell: (row: UserItem) => (
-      <Link href={`/system/users/${row.userId}`} className="hover:underline">
-        <div className="font-medium">{row.name}</div>
-      </Link>
+    label: '카테고리',
+    className: 'text-center w-[150px]',
+    cell: (row: BoardSummary) => (
+      <Badge
+        variant="outline"
+        title={row.boardCategory?.name}
+        className="mx-auto flex max-w-[100px] items-center justify-center border-gray-300 font-mono"
+      >
+        <div className="max-w-full truncate overflow-hidden whitespace-nowrap">
+          {row.boardCategory?.name || '-'}
+        </div>
+      </Badge>
     ),
   },
   {
-    label: '카테고리',
-    className: 'text-center w-[150px]',
-    cell: (row: UserItem) => {
-      const categories = row.categories ?? [];
-      if (categories.length === 0) return '-';
-
-      const first = categories[0];
-      const othersCount = categories.length - 1;
-
-      return (
-        <div className="flex max-w-[150px] items-center gap-1 text-sm">
-          <Badge
-            variant="secondary"
-            className="max-w-[80px]"
-            title={first.name}
-          >
-            <div className="w-full truncate overflow-hidden text-ellipsis whitespace-nowrap">
-              {first.name}
-            </div>
-          </Badge>
-
-          {othersCount > 0 && (
-            <span className="text-xs text-gray-500">외 {othersCount}개</span>
-          )}
-        </div>
-      );
-    },
+    label: '제목',
+    className: 'text-left truncate overflow-hidden whitespace-nowrap w-[250px]',
+    cell: (row: BoardSummary) => (
+      <Link
+        href={`/system/etc/board/${row.boardId}`}
+        className="hover:underline"
+      >
+        <div className="font-medium">{row.title}</div>
+      </Link>
+    ),
   },
   {
     label: '작성자',
     className:
       'text-center truncate overflow-hidden whitespace-nowrap w-[150px]',
-    cell: (row: UserItem) => row.department || '-',
+    cell: (row: BoardSummary) => row.author?.name || '-',
   },
+  // TODO: 추후에 어드민 페이지에서는 조회수를 없애기
   {
     label: '조회수',
     className:
       'text-center truncate overflow-hidden whitespace-nowrap w-[150px]',
-    cell: (row: UserItem) => row.department || '-',
+    cell: (row: BoardSummary) => row.viewCount || '-',
   },
   {
     label: '게시일',
     className: 'text-center w-[200px]',
-    cell: (row: UserItem) => (
-      <Badge
-        variant="outline"
-        title={formatSeatNumberDetail(row.seatNumber || '융합의학기술원-00-00')}
-        className="mx-auto flex max-w-[150px] items-center justify-center border-gray-300 font-mono"
-      >
-        <div className="max-w-full truncate overflow-hidden whitespace-nowrap">
-          {formatSeatNumberDetail(row.seatNumber || '융합의학기술원-00-00')}
-        </div>
-      </Badge>
+    cell: (row: BoardSummary) => (
+      <div className={cn('truncate overflow-hidden whitespace-nowrap')}>
+        {/* TODO: api 수정되면 게시일 연결 */}
+        {/* {row.startDate?.toISOString().substring(0, 10)} */}
+      </div>
     ),
   },
 ];
@@ -102,31 +93,35 @@ const getUserColumns = (currentPage: number, itemsPerPage: number) => [
 export default function SystemBoardPage() {
   // 실시간 입력값
   const [searchTerm, setSearchTerm] = useState('');
+
   // api 전송을 위한 값
   const [committedSearchTerm, setCommittedSearchTerm] = useState('');
 
-  const [stringSortOption, setStringSortOption] = useState('all');
+  const [categorySortOption, setCategorySortOption] = useState('all');
   const [sortOption, setSortOption] = useState('asc');
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const [users, setUsers] = useState<UserItem[]>([]);
+  const [posts, setPosts] = useState<BoardSummary[]>([]);
   const [totalPage, setTotalPage] = useState(1);
   const [loading, setLoading] = useState(false);
+
+  const [boardCategorys, setBoardCategorys] = useState<BoardCategorySummary[]>(
+    [],
+  );
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await userApi.getAllUsers({
-        filterBy: stringSortOption,
-        filterValue: committedSearchTerm,
-        direction: sortOption,
-        pageNo: currentPage - 1, // 0-based index
+      const res = await boardApi.getAllBoards({
+        search: committedSearchTerm,
+        category: categorySortOption,
+        page: currentPage - 1, // 0-based index
         size: itemsPerPage,
-        criteria: 'createdAt',
+        sort: [`createdAt,${sortOption}`],
       });
-      setUsers(res.users ?? []);
+      setPosts(res.boards ?? []);
       setTotalPage(res.totalPage ?? 1);
     } catch (error) {
       console.log(error);
@@ -135,12 +130,27 @@ export default function SystemBoardPage() {
     }
   };
 
+  // TODO: 열고 닫을 때 fetch 한 번 더 하도록 해야함. select에 적용시키기 위해서
+  // 카테고리 목록 불러오기
+  useEffect(() => {
+    const fetchCategorys = async () => {
+      try {
+        const res = await categoryApi.getAllBoardCategories();
+        setBoardCategorys(res.categories ?? []);
+      } catch (error) {
+        console.error('카테고리 불러오기 실패:', error);
+      }
+    };
+
+    fetchCategorys();
+  }, []);
+
   useEffect(() => {
     fetchUsers();
   }, [
     currentPage,
     itemsPerPage,
-    stringSortOption,
+    categorySortOption,
     sortOption,
     committedSearchTerm,
   ]);
@@ -149,7 +159,7 @@ export default function SystemBoardPage() {
     setSearchTerm('');
     setCommittedSearchTerm('');
     setSortOption('asc');
-    setStringSortOption('all');
+    setCategorySortOption('all');
     setCurrentPage(1);
   };
 
@@ -172,20 +182,23 @@ export default function SystemBoardPage() {
       <div className="space-y-4">
         <div className="flex flex-row gap-2">
           {/* 검색 필터 선택 */}
-          <Select value={stringSortOption} onValueChange={setStringSortOption}>
+          <Select
+            value={categorySortOption}
+            onValueChange={setCategorySortOption}
+          >
             <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="정렬 방식" />
+              <SelectValue placeholder="카테고리 선택" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="w-[200px]">
               <SelectItem value="all">모든 카테고리</SelectItem>
-              <SelectItem value="name">이름</SelectItem>
-              <SelectItem value="email">이메일</SelectItem>
-              <SelectItem value="organization">기관</SelectItem>
-              <SelectItem value="department">부서</SelectItem>
-              <SelectItem value="position">구분</SelectItem>
-              <SelectItem value="categories">연구 분야</SelectItem>
-              <SelectItem value="phoneNumber">연락처</SelectItem>
-              <SelectItem value="seatNumber">좌석</SelectItem>
+              {boardCategorys.map((category) => (
+                <SelectItem
+                  key={category.boardCategoryId}
+                  value={category.name ?? ''}
+                >
+                  {category.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
@@ -231,8 +244,8 @@ export default function SystemBoardPage() {
 
         {/* 페이지네이션 테이블 */}
         <PaginatedTable
-          data={users}
-          rowKey={(row) => String(row.userId)}
+          data={posts}
+          rowKey={(row) => String(row.boardId)}
           columns={getUserColumns(currentPage, itemsPerPage)}
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
