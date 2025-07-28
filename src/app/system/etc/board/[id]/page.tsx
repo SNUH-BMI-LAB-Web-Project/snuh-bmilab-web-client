@@ -177,7 +177,7 @@ export default function BoardDetailPage() {
 
           {/* 게시글 헤더 */}
           <div className="mb-8">
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-6 flex flex-wrap items-center justify-between">
               <Badge className="px-4 py-2 text-sm font-medium">
                 {post.boardCategory?.name}
               </Badge>
@@ -446,7 +446,7 @@ export default function BoardDetailPage() {
                   </div>
                 ))
               ) : (
-                <div className="border-t py-12 text-center">
+                <div className="py-12 text-center">
                   <MessageCircle className="mx-auto mb-4 h-12 w-12 text-gray-300" />
                   <h3 className="mb-2 text-lg font-medium text-gray-700">
                     아직 댓글이 없습니다
