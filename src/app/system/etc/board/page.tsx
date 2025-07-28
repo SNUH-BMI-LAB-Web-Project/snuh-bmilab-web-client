@@ -83,8 +83,9 @@ const getUserColumns = (currentPage: number, itemsPerPage: number) => [
     className: 'text-center w-[200px]',
     cell: (row: BoardSummary) => (
       <div className={cn('truncate overflow-hidden whitespace-nowrap')}>
-        {/* TODO: api 수정되면 게시일 연결 */}
+        {/* TODO: api 수정되면 게시일 연결, error를 막기 위해 아무거나 띄워둠 */}
         {/* {row.startDate?.toISOString().substring(0, 10)} */}
+        {row.author?.name}
       </div>
     ),
   },
