@@ -40,12 +40,12 @@ const getUserColumns = (currentPage: number, itemsPerPage: number) => [
   },
   {
     label: '카테고리',
-    className: 'text-center w-[150px]',
+    className: 'text-center w-[120px]',
     cell: (row: BoardSummary) => (
       <Badge
         variant="outline"
         title={row.boardCategory?.name}
-        className="mx-auto flex max-w-[100px] items-center justify-center border-gray-300 font-mono"
+        className="mx-auto flex max-w-[120px] items-center justify-center border-gray-300 font-mono"
       >
         <div className="max-w-full truncate overflow-hidden whitespace-nowrap">
           {row.boardCategory?.name || '-'}
@@ -116,7 +116,7 @@ export default function SystemBoardPage() {
     try {
       const res = await boardApi.getAllBoards({
         search: committedSearchTerm,
-        category: categorySortOption,
+        category: categorySortOption === 'all' ? '' : categorySortOption,
         page: currentPage - 1, // 0-based index
         size: itemsPerPage,
         sort: [`createdAt,${sortOption}`],
