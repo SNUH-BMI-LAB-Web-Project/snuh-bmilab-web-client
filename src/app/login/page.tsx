@@ -54,7 +54,7 @@ export default function LoginPage() {
       login(response);
 
       Cookies.set('accessToken', response.accessToken ?? '', {
-        expires: 1,
+        expires: 24,
         sameSite: 'strict',
       });
 

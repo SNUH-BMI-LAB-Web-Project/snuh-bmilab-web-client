@@ -16,9 +16,9 @@ import PasswordResetModal from '@/components/system/users/password-reset-modal';
 import { toast } from 'sonner';
 import { UserApi } from '@/generated-api';
 import { useRouter } from 'next/navigation';
-import { getApiConfig } from '@/lib/config';
+import { getPublicApiConfig } from '@/lib/config';
 
-const userApi = new UserApi(getApiConfig());
+const userApi = new UserApi(getPublicApiConfig());
 
 export default function ResetPasswordPage() {
   const router = useRouter();

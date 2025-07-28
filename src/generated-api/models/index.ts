@@ -2,6 +2,13 @@
 /* eslint-disable */
 export * from './AdminUpdateUserRequest';
 export * from './ApplyLeaveRequest';
+export * from './BoardCategoryFindAllResponse';
+export * from './BoardCategoryReqeust';
+export * from './BoardCategorySummary';
+export * from './BoardDetail';
+export * from './BoardFindAllResponse';
+export * from './BoardRequest';
+export * from './BoardSummary';
 export * from './ErrorResponse';
 export * from './ExternalProfessorFindAllResponse';
 export * from './ExternalProfessorItem';

@@ -6,11 +6,13 @@ import { Editor } from '@toast-ui/react-editor';
 interface MarkdownEditorProps {
   content: string;
   setContent: (value: string) => void;
+  hasMoreFeatures?: boolean;
 }
 
 export default function MarkdownEditor({
   content,
   setContent,
+  hasMoreFeatures = false,
 }: MarkdownEditorProps) {
   const editorRef = useRef<Editor>(null);
 
@@ -43,12 +45,22 @@ export default function MarkdownEditor({
       previewStyle="vertical"
       hideModeSwitch
       useCommandShortcut
-      toolbarItems={[
-        ['heading', 'bold', 'italic', 'strike'],
-        ['hr', 'quote'],
-        ['ul', 'ol', 'task'],
-        ['code', 'codeblock'],
-      ]}
+      toolbarItems={
+        hasMoreFeatures
+          ? [
+              ['heading', 'bold', 'italic', 'strike'],
+              ['hr', 'quote'],
+              ['ul', 'ol', 'task'],
+              ['code', 'codeblock'],
+              ['table', 'link', 'image'],
+            ]
+          : [
+              ['heading', 'bold', 'italic', 'strike'],
+              ['hr', 'quote'],
+              ['ul', 'ol', 'task'],
+              ['code', 'codeblock'],
+            ]
+      }
     />
   );
 }

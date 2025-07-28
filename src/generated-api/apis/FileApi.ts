@@ -208,6 +208,7 @@ export class FileApi extends runtime.BaseAPI {
 export const GeneratePresignedUrlDomainTypeEnum = {
     Project: 'PROJECT',
     Timeline: 'TIMELINE',
-    Report: 'REPORT'
+    Report: 'REPORT',
+    Board: 'BOARD'
 } as const;
 export type GeneratePresignedUrlDomainTypeEnum = typeof GeneratePresignedUrlDomainTypeEnum[keyof typeof GeneratePresignedUrlDomainTypeEnum];
