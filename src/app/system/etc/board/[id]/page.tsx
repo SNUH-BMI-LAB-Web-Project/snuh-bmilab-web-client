@@ -13,8 +13,6 @@ import {
   Save,
   X,
   MoreHorizontal,
-  Calendar,
-  Download,
   Trash,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,6 +28,19 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { BoardApi, BoardDetail } from '@/generated-api';
 import { getApiConfig } from '@/lib/config';
+import dynamic from 'next/dynamic';
+import { formatDateTime } from '@/lib/utils';
+import { positionLabelMap } from '@/constants/position-enum';
+import { FileItem } from '@/components/portal/researches/projects/file-item';
+import { downloadFileFromUrl } from '@/utils/download-file';
+import { Card } from '@/components/ui/card';
+import ConfirmModal from '@/components/common/confirm-modal';
+import { toast } from 'sonner';
+
+const MarkdownViewer = dynamic(
+  () => import('@/components/portal/researches/projects/markdown-viewer'),
+  { ssr: false },
+);
 
 interface Comment {
   id: string;
@@ -53,6 +64,7 @@ export default function BoardDetailPage() {
   const [editingCommentContent, setEditingCommentContent] = useState('');
   const [loading, setLoading] = useState(true);
   const currentUser = '현재사용자';
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -70,8 +82,16 @@ export default function BoardDetailPage() {
     fetchPost();
   }, [postId]);
 
-  const handleDeletePost = () => {
-    router.push('/admin/board');
+  const handleDelete = async () => {
+    try {
+      await boardApi.deleteBoard({ boardId: Number(postId) });
+      toast.success('게시글이 삭제되었습니다.');
+      router.push('/system/etc/board');
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setShowDeleteAlert(false);
+    }
   };
 
   const handleAddComment = () => {
@@ -177,29 +197,33 @@ export default function BoardDetailPage() {
 
           {/* 게시글 헤더 */}
           <div className="mb-8">
-            <div className="mb-6 flex flex-wrap items-center justify-between">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
               <Badge className="px-4 py-2 text-sm font-medium">
                 {post.boardCategory?.name}
               </Badge>
               <div className="flex justify-end gap-2">
                 <Button asChild>
-                  <Link href={`/system/researches/projects/${postId}/edit`}>
+                  <Link href={`/system/etc/board/${postId}/edit`}>
                     <Edit /> 수정하기
                   </Link>
                 </Button>
-                <Button variant="destructive" onClick={handleDeletePost}>
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowDeleteAlert(true)}
+                >
                   <Trash /> 삭제하기
                 </Button>
               </div>
             </div>
 
-            <h1 className="mb-8 text-4xl leading-tight font-bold text-gray-900">
+            <h1 className="mb-8 text-3xl leading-tight font-bold">
               {post.title}
             </h1>
 
             {/* 작성자 정보 */}
-            <div className="flex items-center gap-4 border-b pb-6">
-              <Avatar className="h-14 w-14">
+            <div className="flex flex-col gap-4 border-b pb-6 md:flex-row md:items-center">
+              {/* 프로필 이미지 */}
+              <Avatar className="h-12 w-12 flex-shrink-0">
                 <AvatarImage
                   src={
                     post.author?.profileImageUrl || '/default-profile-image.svg'
@@ -209,34 +233,47 @@ export default function BoardDetailPage() {
                 />
               </Avatar>
 
-              <div className="flex w-full items-center justify-between">
-                <div className="flex flex-col gap-2">
-                  <span className="text-lg font-semibold text-gray-900">
+              {/* 왼쪽: 작성자 정보 + 오른쪽: 조회수 등 */}
+              <div className="flex w-full flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                {/* 작성자 정보 */}
+                <div>
+                  <div className="flex items-center gap-2 text-lg font-medium text-black">
                     {post.author?.name}
-                  </span>
+                  </div>
+                  <div className="text-muted-foreground text-xs">
+                    {post.author?.organization} {post.author?.department}{' '}
+                    {post.author?.position &&
+                      positionLabelMap[post.author.position]}{' '}
+                    · {post.author?.email}
+                  </div>
+                </div>
 
-                  <div className="flex items-center gap-6 text-sm text-gray-500">
-                    <div className="flex items-center gap-2">
-                      <Eye className="h-4 w-4" />
+                {/* 오른쪽 정보 */}
+                <div className="flex flex-col gap-2 text-right">
+                  <div className="text-muted-foreground flex flex-wrap justify-end gap-4 text-xs">
+                    <div className="flex items-center gap-1">
+                      <Eye className="h-3 w-3" />
                       <span>조회 {post.viewCount?.toLocaleString()}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <MessageCircle className="h-4 w-4" />
+                    <div className="flex items-center gap-1">
+                      <MessageCircle className="h-3 w-3" />
                       <span>댓글 {comments.length}</span>
                     </div>
                   </div>
-                </div>
-                <div className="flex flex-col items-center gap-2 text-sm text-gray-500">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    {/* <span>최초 작성일: {post.createdAt}</span> */}
-                  </div>
-                  {post.updatedAt !== post.createdAt && (
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      {/* <span>최종 수정일: {post.updatedAt}</span> */}
+                  <div className="text-muted-foreground text-xs">
+                    <div>
+                      최초 작성일:{' '}
+                      {post.createdAt
+                        ? formatDateTime(post.createdAt.toString())
+                        : '-'}
                     </div>
-                  )}
+                    <div>
+                      최종 수정일:{' '}
+                      {post.updatedAt
+                        ? formatDateTime(post.updatedAt.toString())
+                        : '-'}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -244,58 +281,50 @@ export default function BoardDetailPage() {
 
           {/* 게시글 본문 */}
           <div className="mb-12">
-            <div className="prose prose-lg max-w-none">
-              <div className="text-lg leading-8 font-normal whitespace-pre-line text-gray-800">
-                {post.content}
-              </div>
-            </div>
+            <MarkdownViewer content={post.content || ''} />
           </div>
 
           {/* 첨부파일 */}
           {post.files && post.files.length > 0 && (
             <div className="mb-12 border-b pb-8">
               <div className="mb-6 flex items-center gap-3">
-                <Paperclip className="h-5 w-5 text-gray-600" />
-                <h3 className="text-xl font-semibold text-gray-900">
+                <Paperclip className="h-5 w-5" />
+                <h3 className="text-xl font-semibold">
                   첨부파일 ({post.files.length})
                 </h3>
               </div>
-              <div className="space-y-3">
-                {post.files.map((file) => (
-                  <div
-                    key={file.fileId}
-                    className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-gray-50"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-lg bg-blue-50 p-2">
-                        <Paperclip className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <span className="font-medium text-gray-800">
-                        {file.fileName}
-                      </span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      다운로드
-                    </Button>
-                  </div>
-                ))}
-              </div>
+              <ul className="space-y-2 text-sm">
+                {post.files && post.files.length > 0 ? (
+                  post.files.map((file, index) => (
+                    <FileItem
+                      key={file.fileId}
+                      file={{
+                        name: file.fileName!,
+                      }}
+                      index={index}
+                      onAction={() =>
+                        downloadFileFromUrl(file.fileName!, file.uploadUrl!)
+                      }
+                      mode="download"
+                    />
+                  ))
+                ) : (
+                  <Card className="text-muted-foreground px-4 py-6 text-center text-sm">
+                    등록된 첨부파일이 없습니다.
+                  </Card>
+                )}
+              </ul>
             </div>
           )}
 
           {/* 댓글 섹션 */}
           <div>
             <div className="mb-8 flex items-center gap-3">
-              <MessageCircle className="h-6 w-6 text-gray-600" />
-              <h2 className="text-2xl font-bold text-gray-900">댓글</h2>
+              {/* <MessageCircle className="h-6 w-6" /> */}
+              <h2 className="text-xl font-bold">댓글</h2>
               <Badge
                 variant="secondary"
-                className="bg-gray-100 text-sm text-gray-700"
+                className="bg-muted text-muted-foreground text-sm"
               >
                 {comments.length}
               </Badge>
@@ -320,14 +349,13 @@ export default function BoardDetailPage() {
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     rows={3}
-                    className="resize-none border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="resize-none border"
                   />
                   <div className="flex justify-end">
                     <Button
                       onClick={handleAddComment}
                       disabled={!newComment.trim()}
                       size="sm"
-                      className="bg-gray-800 text-white hover:bg-gray-900"
                     >
                       댓글 등록
                     </Button>
@@ -356,10 +384,10 @@ export default function BoardDetailPage() {
                       <div className="min-w-0 flex-1">
                         <div className="mb-2 flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <span className="text-sm font-medium text-gray-900">
+                            <span className="text-sm font-medium">
                               {comment.author}
                             </span>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-muted-foreground text-xs">
                               {comment.createdAt}
                             </span>
                             {comment.updatedAt && (
@@ -430,10 +458,10 @@ export default function BoardDetailPage() {
                                 setEditingCommentContent(e.target.value)
                               }
                               rows={3}
-                              className="resize-none border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                              className="resize-none border"
                             />
                           ) : (
-                            <p className="text-sm leading-relaxed text-gray-700">
+                            <p className="text-muted-foreground text-sm leading-relaxed">
                               {comment.content}
                             </p>
                           )}
@@ -441,17 +469,17 @@ export default function BoardDetailPage() {
                       </div>
                     </div>
                     {index < comments.length - 1 && (
-                      <div className="border-b border-gray-100" />
+                      <div className="border-b" />
                     )}
                   </div>
                 ))
               ) : (
                 <div className="py-12 text-center">
-                  <MessageCircle className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-                  <h3 className="mb-2 text-lg font-medium text-gray-700">
+                  <MessageCircle className="text-muted-foreground/50 mx-auto mb-4 h-12 w-12" />
+                  <h3 className="text-muted-foreground mb-1 text-lg font-medium">
                     아직 댓글이 없습니다
                   </h3>
-                  <p className="text-gray-500">
+                  <p className="text-muted-foreground">
                     이 게시글에 첫 번째 댓글을 작성해보세요!
                   </p>
                 </div>
@@ -460,6 +488,14 @@ export default function BoardDetailPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        open={showDeleteAlert}
+        onOpenChange={setShowDeleteAlert}
+        title="게시글 삭제"
+        description="해당 게시글을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }
