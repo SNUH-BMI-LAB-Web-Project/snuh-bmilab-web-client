@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import UserInfoCard from '@/components/portal/users/user-info-card';
+import UserInfoCard from '@/components/portal/users/members/user-info-card';
 import { UserItem, UserApi, UserFindAllResponse } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import { Button } from '@/components/ui/button';

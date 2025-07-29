@@ -63,7 +63,7 @@ export default function LoginPage() {
         setTimeout(() => {
           const token = useAuthStore.getState().accessToken;
           if (token) {
-            router.push('/portal/users');
+            router.push('/portal/users/members');
           }
         }, 1000);
       });

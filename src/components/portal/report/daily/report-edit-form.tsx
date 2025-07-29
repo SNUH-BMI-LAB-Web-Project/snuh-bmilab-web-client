@@ -41,7 +41,7 @@ import {
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { uploadFileWithPresignedUrl } from '@/lib/upload';
-import { FileItem } from '@/components/portal/researches/projects/file-item';
+import { FileItem } from '@/components/common/file-item';
 import { getApiConfig } from '@/lib/config';
 
 const reportApi = new ReportApi(getApiConfig());

@@ -15,7 +15,7 @@ import {
 import { SquareLibrary, NotepadText, Paperclip, Plus, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { FileItem } from '@/components/portal/researches/projects/file-item';
+import { FileItem } from '@/components/common/file-item';
 import {
   BoardCategoryApi,
   BoardCategorySummary,
@@ -31,7 +31,7 @@ import dynamic from 'next/dynamic';
 import { getApiConfig } from '@/lib/config';
 
 const MarkdownEditor = dynamic(
-  () => import('@/components/portal/researches/projects/markdown-editor'),
+  () => import('@/components/common/markdown-editor'),
   {
     ssr: false, // 에러로 인해 SSR 방지하기 위해
   },

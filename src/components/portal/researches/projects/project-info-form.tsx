@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { getStatusClassName, getStatusLabel } from '@/utils/project-utils';
 import { formatDateTimeVer2 } from '@/lib/utils';
 import UserPopover from '@/components/common/user-popover';
-import { FileItem } from '@/components/portal/researches/projects/file-item';
+import { FileItem } from '@/components/common/file-item';
 import React, { useEffect, useState } from 'react';
 import { ProjectApi, ProjectDetail } from '@/generated-api';
 import { downloadFileFromUrl } from '@/utils/download-file';
@@ -20,7 +20,7 @@ interface ProjectInfoFormProps {
 }
 
 const MarkdownViewer = dynamic(
-  () => import('@/components/portal/researches/projects/markdown-viewer'),
+  () => import('@/components/common/markdown-viewer'),
   { ssr: false },
 );
 

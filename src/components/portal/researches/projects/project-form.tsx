@@ -35,7 +35,7 @@ import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn, setDateWithFixedHour } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { FileItem } from '@/components/portal/researches/projects/file-item';
+import { FileItem } from '@/components/common/file-item';
 import { UserTagInput } from '@/components/portal/researches/projects/user-tag-input';
 import {
   ExternalProfessorRequest,
@@ -57,7 +57,7 @@ import ExternalProfessorSelectModal from '@/components/portal/researches/project
 import { getApiConfig } from '@/lib/config';
 
 const MarkdownEditor = dynamic(
-  () => import('@/components/portal/researches/projects/markdown-editor'),
+  () => import('@/components/common/markdown-editor'),
   {
     ssr: false, // 에러로 인해 SSR 방지하기 위해
   },
