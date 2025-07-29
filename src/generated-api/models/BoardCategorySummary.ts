@@ -31,6 +31,12 @@ export interface BoardCategorySummary {
      * @memberof BoardCategorySummary
      */
     name?: string;
+    /**
+     * 게시판 분야 색상
+     * @type {string}
+     * @memberof BoardCategorySummary
+     */
+    color?: string;
 }
 
 /**
@@ -52,6 +58,7 @@ export function BoardCategorySummaryFromJSONTyped(json: any, ignoreDiscriminator
         
         'boardCategoryId': json['boardCategoryId'] == null ? undefined : json['boardCategoryId'],
         'name': json['name'] == null ? undefined : json['name'],
+        'color': json['color'] == null ? undefined : json['color'],
     };
 }
 
@@ -68,6 +75,7 @@ export function BoardCategorySummaryToJSONTyped(value?: BoardCategorySummary | n
         
         'boardCategoryId': value['boardCategoryId'],
         'name': value['name'],
+        'color': value['color'],
     };
 }
 

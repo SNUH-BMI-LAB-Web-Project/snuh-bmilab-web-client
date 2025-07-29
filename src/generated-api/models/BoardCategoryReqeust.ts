@@ -25,6 +25,12 @@ export interface BoardCategoryReqeust {
      * @memberof BoardCategoryReqeust
      */
     name: string;
+    /**
+     * 게시판 분야 색상
+     * @type {string}
+     * @memberof BoardCategoryReqeust
+     */
+    color: string;
 }
 
 /**
@@ -32,6 +38,7 @@ export interface BoardCategoryReqeust {
  */
 export function instanceOfBoardCategoryReqeust(value: object): value is BoardCategoryReqeust {
     if (!('name' in value) || value['name'] === undefined) return false;
+    if (!('color' in value) || value['color'] === undefined) return false;
     return true;
 }
 
@@ -46,6 +53,7 @@ export function BoardCategoryReqeustFromJSONTyped(json: any, ignoreDiscriminator
     return {
         
         'name': json['name'],
+        'color': json['color'],
     };
 }
 
@@ -61,6 +69,7 @@ export function BoardCategoryReqeustToJSONTyped(value?: BoardCategoryReqeust | n
     return {
         
         'name': value['name'],
+        'color': value['color'],
     };
 }
 

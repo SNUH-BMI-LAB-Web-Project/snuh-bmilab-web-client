@@ -84,13 +84,13 @@ export interface BoardDetail {
      */
     files?: Array<FileSummary>;
     /**
-     * 게시글 생성 시각
+     * 게시글 생성 일시
      * @type {Date}
      * @memberof BoardDetail
      */
     createdAt?: Date;
     /**
-     * 게시글 수정 시각
+     * 게시글 수정 일시
      * @type {Date}
      * @memberof BoardDetail
      */
