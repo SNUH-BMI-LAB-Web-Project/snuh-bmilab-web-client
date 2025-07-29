@@ -142,19 +142,18 @@ export default function SystemBoardPage() {
     }
   };
 
-  // TODO: 열고 닫을 때 fetch 한 번 더 하도록 해야함. select에 적용시키기 위해서
   // 카테고리 목록 불러오기
-  useEffect(() => {
-    const fetchCategorys = async () => {
-      try {
-        const res = await categoryApi.getAllBoardCategories();
-        setBoardCategorys(res.categories ?? []);
-      } catch (error) {
-        console.error('카테고리 불러오기 실패:', error);
-      }
-    };
+  const fetchCategories = async () => {
+    try {
+      const res = await categoryApi.getAllBoardCategories();
+      setBoardCategorys(res.categories ?? []);
+    } catch (error) {
+      console.error('카테고리 불러오기 실패:', error);
+    }
+  };
 
-    fetchCategorys();
+  useEffect(() => {
+    fetchCategories();
   }, []);
 
   useEffect(() => {
@@ -181,7 +180,12 @@ export default function SystemBoardPage() {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">정보 게시판</h1>
         <div className="flex gap-2">
-          <CategoryModal />
+          <CategoryModal
+            onClose={() => {
+              fetchUsers();
+              fetchCategories();
+            }}
+          />
           <Link href="/system/etc/board/new">
             <Button>
               <Plus className="mr-2 h-4 w-4" />

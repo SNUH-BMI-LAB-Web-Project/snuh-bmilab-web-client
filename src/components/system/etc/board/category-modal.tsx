@@ -48,7 +48,11 @@ const adminCategoryApi = new AdminBoardCategoryApi(getApiConfig());
 
 const defaultColor = '#6b7280';
 
-export default function CategoryModal() {
+interface CategoryModalProps {
+  onClose: () => void;
+}
+
+export default function CategoryModal({ onClose }: CategoryModalProps) {
   const [open, setOpen] = useState(false);
   const [boardCategories, setBoardCategories] = useState<
     BoardCategorySummary[]
@@ -220,6 +224,8 @@ export default function CategoryModal() {
             setEditCategoryColor(defaultColor);
             setNewCategoryName('');
             setNewCategoryColor(defaultColor);
+
+            onClose?.();
           }
         }}
       >
