@@ -10,7 +10,7 @@ import { BoardPostForm } from '@/components/system/etc/board/board-post-form';
 
 const boardApi = new BoardApi(getApiConfig());
 
-export default function NewProject() {
+export default function NewBoardPage() {
   const router = useRouter();
 
   const handleCreate = async (data: BoardRequest, newFiles: FileSummary[]) => {
