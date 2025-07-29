@@ -40,7 +40,7 @@ const getUserColumns = (currentPage: number, itemsPerPage: number) => [
   },
   {
     label: '카테고리',
-    className: 'text-center w-[120px]',
+    className: 'text-center w-[150px]',
     cell: (row: BoardSummary) => (
       <Badge
         variant="outline"
