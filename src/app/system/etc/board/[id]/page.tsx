@@ -36,6 +36,7 @@ import { downloadFileFromUrl } from '@/utils/download-file';
 import { Card } from '@/components/ui/card';
 import ConfirmModal from '@/components/common/confirm-modal';
 import { toast } from 'sonner';
+import { hexToRgbaWithOpacity } from '@/utils/color-utils';
 
 const MarkdownViewer = dynamic(
   () => import('@/components/portal/researches/projects/markdown-viewer'),
@@ -51,6 +52,8 @@ interface Comment {
 }
 
 const boardApi = new BoardApi(getApiConfig());
+
+const defaultColor = '#6b7280';
 
 export default function BoardDetailPage() {
   const params = useParams();
@@ -198,7 +201,20 @@ export default function BoardDetailPage() {
           {/* 게시글 헤더 */}
           <div className="mb-8">
             <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
-              <Badge className="px-4 py-2 text-sm font-medium">
+              <Badge
+                className="h-9 px-3 py-2 text-sm font-medium"
+                style={{
+                  backgroundColor: hexToRgbaWithOpacity(
+                    post.boardCategory?.color || defaultColor,
+                    0.1,
+                  ),
+                  color: post.boardCategory?.color,
+                  borderColor: hexToRgbaWithOpacity(
+                    post.boardCategory?.color || defaultColor,
+                    0.5,
+                  ),
+                }}
+              >
                 {post.boardCategory?.name}
               </Badge>
               <div className="flex justify-end gap-2">
