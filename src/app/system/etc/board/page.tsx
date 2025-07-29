@@ -71,21 +71,18 @@ const getUserColumns = (currentPage: number, itemsPerPage: number) => [
       'text-center truncate overflow-hidden whitespace-nowrap w-[150px]',
     cell: (row: BoardSummary) => row.author?.name || '-',
   },
-  // TODO: 추후에 어드민 페이지에서는 조회수를 없애기
-  {
-    label: '조회수',
-    className:
-      'text-center truncate overflow-hidden whitespace-nowrap w-[150px]',
-    cell: (row: BoardSummary) => row.viewCount || '-',
-  },
+  // {
+  //   label: '조회수',
+  //   className:
+  //     'text-center truncate overflow-hidden whitespace-nowrap w-[150px]',
+  //   cell: (row: BoardSummary) => row.viewCount || '-',
+  // },
   {
     label: '게시일',
-    className: 'text-center w-[200px]',
+    className: 'text-center w-[150px]',
     cell: (row: BoardSummary) => (
       <div className={cn('truncate overflow-hidden whitespace-nowrap')}>
-        {/* TODO: api 수정되면 게시일 연결, error를 막기 위해 아무거나 띄워둠 */}
-        {/* {row.startDate?.toISOString().substring(0, 10)} */}
-        {row.author?.name}
+        {row.createdAt?.toISOString().substring(0, 10)}
       </div>
     ),
   },
