@@ -23,10 +23,13 @@ import {
 import { getApiConfig } from '@/lib/config';
 import CategoryModal from '@/components/system/etc/board/category-modal';
 import { cn } from '@/lib/utils';
+import { hexToRgbaWithOpacity } from '@/utils/color-utils';
 
 const boardApi = new BoardApi(getApiConfig());
 
 const categoryApi = new BoardCategoryApi(getApiConfig());
+
+const defaultColor = '#6b7280';
 
 const getUserColumns = (currentPage: number, itemsPerPage: number) => [
   {
@@ -43,12 +46,23 @@ const getUserColumns = (currentPage: number, itemsPerPage: number) => [
     className: 'text-center w-[150px]',
     cell: (row: BoardSummary) => (
       <Badge
-        variant="outline"
         title={row.boardCategory?.name}
-        className="mx-auto flex max-w-[120px] items-center justify-center border-gray-300 font-mono"
+        className="mx-auto flex max-w-[120px] items-center justify-center border"
+        style={{
+          backgroundColor: hexToRgbaWithOpacity(
+            row.boardCategory?.color || defaultColor,
+            0.1,
+          ),
+          color: row.boardCategory?.color,
+          borderColor: hexToRgbaWithOpacity(
+            row.boardCategory?.color || defaultColor,
+            0.5,
+          ),
+        }}
       >
         <div className="max-w-full truncate overflow-hidden whitespace-nowrap">
           {row.boardCategory?.name || '-'}
+          {row.boardCategory?.color || '-'}
         </div>
       </Badge>
     ),
