@@ -32,12 +32,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { AdminUserApi, UserApi, UserDetail, UserItem } from '@/generated-api';
 import { toast } from 'sonner';
-import UserEditModal from '@/components/system/users/user-edit-modal';
+import UserEditModal from '@/components/system/users/members/user-edit-modal';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
-import UserDeleteModal from '@/components/system/users/user-delete-modal';
-import UserAddModal from '@/components/system/users/user-add-modal';
+import UserDeleteModal from '@/components/system/users/members/user-delete-modal';
+import UserAddModal from '@/components/system/users/members/user-add-modal';
 import { positionLabelMap } from '@/constants/position-enum';
-import PasswordResetModal from '@/components/system/users/password-reset-modal';
+import PasswordResetModal from '@/components/system/users/members/password-reset-modal';
 import { getApiConfig } from '@/lib/config';
 import { formatSeatNumberDetail } from '@/utils/user-utils';
 
@@ -70,7 +70,10 @@ const getUserColumns = (
     label: '이름',
     className: 'text-left truncate overflow-hidden whitespace-nowrap w-[250px]',
     cell: (row: UserItem) => (
-      <Link href={`/system/users/${row.userId}`} className="hover:underline">
+      <Link
+        href={`/system/users/members/${row.userId}`}
+        className="hover:underline"
+      >
         <div className="font-medium">{row.name}</div>
         <div className="w-[220px] truncate overflow-hidden text-sm whitespace-nowrap text-gray-500">
           {row.email}
@@ -169,7 +172,7 @@ const getUserColumns = (
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild className="pr-4">
               <Link
-                href={`/system/users/${row.userId}`}
+                href={`/system/users/members/${row.userId}`}
                 className="flex items-center"
               >
                 <Eye className="mr-2 h-4 w-4" />

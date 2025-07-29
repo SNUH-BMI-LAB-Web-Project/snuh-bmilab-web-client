@@ -12,7 +12,7 @@ export default function UserInfoCard({ user }: { user: UserItem }) {
   const router = useRouter();
 
   const handleClick = () => {
-    router.push(`/portal/users/${user.userId}`);
+    router.push(`/portal/users/members/${user.userId}`);
   };
 
   return (

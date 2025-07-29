@@ -27,7 +27,7 @@ export default function AppHeader() {
 
   const handlePortalClick = () => {
     if (accessToken) {
-      router.push('/portal/users');
+      router.push('/portal/users/members');
     } else {
       router.push('/login');
     }
@@ -112,7 +112,7 @@ export default function AppHeader() {
           ) : (
             <button
               type="button"
-              onClick={() => router.push('/system/users')}
+              onClick={() => router.push('/system/users/members')}
               className={cn(
                 pathname.startsWith('/system')
                   ? 'text-black'

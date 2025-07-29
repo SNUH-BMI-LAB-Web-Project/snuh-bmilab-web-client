@@ -51,13 +51,13 @@ import {
   UserEducationSummaryStatusEnum,
   UserSubAffiliationRequest,
 } from '@/generated-api';
-import EmailConfirmationModal from '@/components/system/users/email-confirmation-modal';
-import YearMonthPicker from '@/components/system/users/year-month-picker';
+import EmailConfirmationModal from '@/components/system/users/members/email-confirmation-modal';
+import YearMonthPicker from '@/components/system/users/members/year-month-picker';
 import { statusLabelMap, typeLabelMap } from '@/constants/education-enum';
 import { toast } from 'sonner';
 import { positionOptions } from '@/constants/position-enum';
 import { roleOptions } from '@/constants/role-enum';
-import { WorkSchedule } from '@/components/system/users/work-schedule-picker';
+import { WorkSchedule } from '@/components/system/users/members/work-schedule-picker';
 import { getApiConfig } from '@/lib/config';
 
 const adminUserApi = new AdminUserApi(getApiConfig());

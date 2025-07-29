@@ -7,10 +7,10 @@ export function useShouldShowSidebar() {
 
   const hidePaths = [
     '/portal/researches/projects/',
-    '/portal/users/',
     '/portal/mypage',
+    '/portal/etc/board/',
     '/system/researches/projects/',
-    '/system/users/',
+    '/system/etc/board/',
   ];
 
   return !hidePaths.some((prefix) => pathname.startsWith(prefix));

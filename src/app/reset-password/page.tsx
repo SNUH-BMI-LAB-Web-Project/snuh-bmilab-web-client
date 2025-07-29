@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import PasswordResetModal from '@/components/system/users/password-reset-modal';
+import PasswordResetModal from '@/components/system/users/members/password-reset-modal';
 import { toast } from 'sonner';
 import { UserApi } from '@/generated-api';
 import { useRouter } from 'next/navigation';

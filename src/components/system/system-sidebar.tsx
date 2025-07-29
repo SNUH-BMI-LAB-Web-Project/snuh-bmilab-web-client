@@ -1,12 +1,10 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import { Users, Newspaper, FolderSearch, CircleFadingPlus } from 'lucide-react';
-
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
-
 import { useAuthStore } from '@/store/auth-store';
+import { useShouldShowSidebar } from '@/hooks/use-should-show-sidebar';
 
 const baseNav = [
   {
@@ -14,9 +12,9 @@ const baseNav = [
     url: '/system/users',
     icon: Users,
     items: [
-      { title: '구성원', url: '/system/users' },
+      { title: '구성원', url: '/system/users/members' },
       { title: '외부 인사', url: '/system/users/external' },
-      // { title: '휴가 신청', url: '/system/users/leaves' },
+      { title: '휴가 신청', url: '/system/users/leaves' },
       // { title: '자리배치도', url: '/system/users/seats' },
     ],
   },
@@ -44,14 +42,10 @@ const baseNav = [
 ];
 
 export function SystemSidebar() {
-  const pathname = usePathname();
   const { user } = useAuthStore();
+  const shouldShowSidebar = useShouldShowSidebar();
 
-  if (pathname.startsWith('/system/researches/projects/')) {
-    return null;
-  }
-
-  if (!user) {
+  if (!user || !shouldShowSidebar) {
     return null;
   }
 

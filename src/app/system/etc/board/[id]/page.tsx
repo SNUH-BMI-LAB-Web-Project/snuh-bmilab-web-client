@@ -31,7 +31,7 @@ import { getApiConfig } from '@/lib/config';
 import dynamic from 'next/dynamic';
 import { formatDateTime } from '@/lib/utils';
 import { positionLabelMap } from '@/constants/position-enum';
-import { FileItem } from '@/components/portal/researches/projects/file-item';
+import { FileItem } from '@/components/common/file-item';
 import { downloadFileFromUrl } from '@/utils/download-file';
 import { Card } from '@/components/ui/card';
 import ConfirmModal from '@/components/common/confirm-modal';
@@ -39,7 +39,7 @@ import { toast } from 'sonner';
 import { hexToRgbaWithOpacity } from '@/utils/color-utils';
 
 const MarkdownViewer = dynamic(
-  () => import('@/components/portal/researches/projects/markdown-viewer'),
+  () => import('@/components/common/markdown-viewer'),
   { ssr: false },
 );
 
@@ -182,7 +182,7 @@ export default function BoardDetailPage() {
   }
 
   return (
-    <div className="flex-1 space-y-4">
+    <div className="flex-1 space-y-4 md:px-10 lg:px-20">
       <div className="min-h-screen bg-white">
         <div className="">
           {/* 상단 네비게이션 */}
