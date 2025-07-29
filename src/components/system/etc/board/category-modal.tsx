@@ -46,6 +46,8 @@ const categoryApi = new BoardCategoryApi(getApiConfig());
 
 const adminCategoryApi = new AdminBoardCategoryApi(getApiConfig());
 
+const defaultColor = '#6b7280';
+
 export default function CategoryModal() {
   const [open, setOpen] = useState(false);
   const [boardCategories, setBoardCategories] = useState<
@@ -56,7 +58,7 @@ export default function CategoryModal() {
   const [deleteCategory, setDeleteCategory] =
     useState<BoardCategorySummary | null>(null);
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [newCategoryColor, setNewCategoryColor] = useState('#6b7280');
+  const [newCategoryColor, setNewCategoryColor] = useState(defaultColor);
   const [editCategoryName, setEditCategoryName] = useState('');
   const [editCategoryColor, setEditCategoryColor] = useState('');
 
@@ -122,7 +124,7 @@ export default function CategoryModal() {
       const res = await categoryApi.getAllBoardCategories(); // 최신 목록 반영
       setBoardCategories(res.categories ?? []);
       setNewCategoryName('');
-      setNewCategoryColor('#6b7280');
+      setNewCategoryColor(defaultColor);
     } catch (error) {
       console.log(error);
     }
@@ -161,7 +163,7 @@ export default function CategoryModal() {
       setBoardCategories(res.categories ?? []);
       setEditingCategory(null);
       setEditCategoryName('');
-      setEditCategoryColor('#6b7280');
+      setEditCategoryColor(defaultColor);
     } catch (error) {
       console.log(error);
     }
@@ -183,9 +185,9 @@ export default function CategoryModal() {
       // 삭제 후 폼 초기화
       setEditingCategory(null);
       setEditCategoryName('');
-      setEditCategoryColor('#6b7280');
+      setEditCategoryColor(defaultColor);
       setNewCategoryName('');
-      setNewCategoryColor('#6b7280');
+      setNewCategoryColor(defaultColor);
     } catch (error) {
       console.log(error);
     }
@@ -195,14 +197,14 @@ export default function CategoryModal() {
   const startEdit = (field: BoardCategorySummary) => {
     setEditingCategory(field);
     setEditCategoryName(field.name || '');
-    setEditCategoryColor(field.color || '#6b7280');
+    setEditCategoryColor(field.color || defaultColor);
   };
 
   // 수정 취소
   const cancelEdit = () => {
     setEditingCategory(null);
     setEditCategoryName('');
-    setEditCategoryColor('#6b7280');
+    setEditCategoryColor(defaultColor);
   };
 
   return (
@@ -215,9 +217,9 @@ export default function CategoryModal() {
           if (!isOpen) {
             setEditingCategory(null);
             setEditCategoryName('');
-            setEditCategoryColor('#6b7280');
+            setEditCategoryColor(defaultColor);
             setNewCategoryName('');
-            setNewCategoryColor('#6b7280');
+            setNewCategoryColor(defaultColor);
           }
         }}
       >
@@ -344,7 +346,7 @@ export default function CategoryModal() {
                     style={{
                       backgroundColor: hexToRgbaWithOpacity(
                         isEditMode ? editCategoryColor : newCategoryColor,
-                        0.3,
+                        0.1,
                       ),
                       color: isEditMode ? editCategoryColor : newCategoryColor,
                     }}
@@ -391,7 +393,7 @@ export default function CategoryModal() {
                               <div
                                 className="h-3 w-3 rounded-full"
                                 style={{
-                                  backgroundColor: field.color || '#6b7280',
+                                  backgroundColor: field.color || defaultColor,
                                 }}
                               />
                               <div className="font-medium">{field.name}</div>
