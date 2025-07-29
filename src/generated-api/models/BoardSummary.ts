@@ -64,6 +64,12 @@ export interface BoardSummary {
      * @memberof BoardSummary
      */
     viewCount?: number;
+    /**
+     * 게시글 생성 일시
+     * @type {Date}
+     * @memberof BoardSummary
+     */
+    createdAt?: Date;
 }
 
 /**
@@ -88,6 +94,7 @@ export function BoardSummaryFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'boardCategory': json['boardCategory'] == null ? undefined : BoardCategorySummaryFromJSON(json['boardCategory']),
         'title': json['title'] == null ? undefined : json['title'],
         'viewCount': json['viewCount'] == null ? undefined : json['viewCount'],
+        'createdAt': json['createdAt'] == null ? undefined : (new Date(json['createdAt'])),
     };
 }
 
@@ -107,6 +114,7 @@ export function BoardSummaryToJSONTyped(value?: BoardSummary | null, ignoreDiscr
         'boardCategory': BoardCategorySummaryToJSON(value['boardCategory']),
         'title': value['title'],
         'viewCount': value['viewCount'],
+        'createdAt': value['createdAt'] == null ? undefined : ((value['createdAt']).toISOString()),
     };
 }
 
