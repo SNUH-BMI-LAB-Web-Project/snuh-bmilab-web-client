@@ -70,6 +70,12 @@ export interface BoardSummary {
      * @memberof BoardSummary
      */
     createdAt?: Date;
+    /**
+     * 게시글 고정 여부
+     * @type {boolean}
+     * @memberof BoardSummary
+     */
+    isPinned?: boolean;
 }
 
 /**
@@ -95,6 +101,7 @@ export function BoardSummaryFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'title': json['title'] == null ? undefined : json['title'],
         'viewCount': json['viewCount'] == null ? undefined : json['viewCount'],
         'createdAt': json['createdAt'] == null ? undefined : (new Date(json['createdAt'])),
+        'isPinned': json['isPinned'] == null ? undefined : json['isPinned'],
     };
 }
 
@@ -115,6 +122,7 @@ export function BoardSummaryToJSONTyped(value?: BoardSummary | null, ignoreDiscr
         'title': value['title'],
         'viewCount': value['viewCount'],
         'createdAt': value['createdAt'] == null ? undefined : ((value['createdAt']).toISOString()),
+        'isPinned': value['isPinned'],
     };
 }
 

@@ -116,7 +116,7 @@ export default function BoardDetailPage() {
     try {
       await boardApi.deleteBoard({ boardId: Number(postId) });
       toast.success('게시글이 삭제되었습니다.');
-      router.push('/system/etc/board');
+      router.push('/portal/etc/board');
     } catch (e) {
       console.log(e);
     } finally {
@@ -232,7 +232,7 @@ export default function BoardDetailPage() {
         <div className="">
           {/* 상단 네비게이션 */}
           <div className="mb-8 flex items-center justify-between border-b pb-4">
-            <Link href="/system/etc/board">
+            <Link href="/portal/etc/board">
               <Button
                 variant="ghost"
                 className="text-slate-600 hover:text-slate-900"
@@ -262,19 +262,21 @@ export default function BoardDetailPage() {
               >
                 {post.boardCategory?.name}
               </Badge>
-              <div className="flex justify-end gap-2">
-                <Button asChild>
-                  <Link href={`/system/etc/board/${postId}/edit`}>
-                    <Edit /> 수정하기
-                  </Link>
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => setShowDeleteAlert(true)}
-                >
-                  <Trash /> 삭제하기
-                </Button>
-              </div>
+              {post.author?.userId === user?.userId && (
+                <div className="flex justify-end gap-2">
+                  <Button asChild>
+                    <Link href={`/portal/etc/board/${postId}/edit`}>
+                      <Edit /> 수정하기
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => setShowDeleteAlert(true)}
+                  >
+                    <Trash /> 삭제하기
+                  </Button>
+                </div>
+              )}
             </div>
 
             <h1 className="mb-8 text-3xl leading-tight font-bold">
@@ -452,7 +454,7 @@ export default function BoardDetailPage() {
                         <div className="mb-2 flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <Link
-                              href={`/system/users/members/${comment.user?.userId}`}
+                              href={`/portal/users/members/${comment.user?.userId}`}
                               className="hover:underline"
                             >
                               <span className="text-sm font-medium">

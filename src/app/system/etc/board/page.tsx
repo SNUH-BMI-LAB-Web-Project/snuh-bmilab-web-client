@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PaginatedTable } from '@/components/common/paginated-table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search } from 'lucide-react';
+import { Pin, PinOff, Plus, Search } from 'lucide-react';
 import {
   Select,
   SelectTrigger,
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import Link from 'next/link';
 import {
+  AdminBoardApi,
   BoardApi,
   BoardCategoryApi,
   BoardCategorySummary,
@@ -24,14 +25,21 @@ import { getApiConfig } from '@/lib/config';
 import CategoryModal from '@/components/system/etc/board/category-modal';
 import { cn } from '@/lib/utils';
 import { hexToRgbaWithOpacity } from '@/utils/color-utils';
+import { toast } from 'sonner';
 
 const boardApi = new BoardApi(getApiConfig());
 
 const categoryApi = new BoardCategoryApi(getApiConfig());
 
+const adminBoardApi = new AdminBoardApi(getApiConfig());
+
 const defaultColor = '#6b7280';
 
-const getUserColumns = (currentPage: number, itemsPerPage: number) => [
+const getUserColumns = (
+  currentPage: number,
+  itemsPerPage: number,
+  togglePin: (boardId: number, currentValue: boolean) => void,
+) => [
   {
     label: 'No',
     className: 'text-center w-[50px]',
@@ -62,7 +70,6 @@ const getUserColumns = (currentPage: number, itemsPerPage: number) => [
       >
         <div className="max-w-full truncate overflow-hidden whitespace-nowrap">
           {row.boardCategory?.name || '-'}
-          {row.boardCategory?.color || '-'}
         </div>
       </Badge>
     ),
@@ -98,6 +105,23 @@ const getUserColumns = (currentPage: number, itemsPerPage: number) => [
       <div className={cn('truncate overflow-hidden whitespace-nowrap')}>
         {row.createdAt?.toISOString().substring(0, 10)}
       </div>
+    ),
+  },
+  {
+    label: '고정',
+    className: 'text-center w-[50px]',
+    cell: (row: BoardSummary) => (
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => togglePin(row.boardId!, row.isPinned ?? false)}
+      >
+        {row.isPinned ? (
+          <Pin className="h-4 w-4" />
+        ) : (
+          <PinOff className="h-4 w-4 opacity-50" />
+        )}
+      </Button>
     ),
   },
 ];
@@ -172,6 +196,24 @@ export default function SystemBoardPage() {
     setSortOption('asc');
     setCategorySortOption('all');
     setCurrentPage(1);
+  };
+
+  const togglePin = async (boardId: number, currentValue: boolean) => {
+    try {
+      await adminBoardApi.updateBoardPinStatus({
+        boardId,
+        boardPinRequest: {
+          isPinned: !currentValue,
+        },
+      });
+
+      toast.success(
+        `게시글이 ${!currentValue ? '고정' : '고정 해제'}되었습니다.`,
+      );
+      fetchUsers(); // 목록 다시 불러오기
+    } catch (error) {
+      console.error('핀 상태 변경 실패:', error);
+    }
   };
 
   return (
@@ -262,7 +304,7 @@ export default function SystemBoardPage() {
         <PaginatedTable
           data={posts}
           rowKey={(row) => String(row.boardId)}
-          columns={getUserColumns(currentPage, itemsPerPage)}
+          columns={getUserColumns(currentPage, itemsPerPage, togglePin)}
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
           itemsPerPage={itemsPerPage}
