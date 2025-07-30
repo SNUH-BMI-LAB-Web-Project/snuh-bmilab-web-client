@@ -390,11 +390,14 @@ export default function BoardDetailPage() {
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       rows={3}
-                      maxLength={200}
+                      maxLength={500}
+                      className="pb-5"
                     />
 
-                    <div className="text-muted-foreground absolute right-1.5 bottom-1 text-xs">
-                      {newComment.length}/200
+                    <div className="text-muted-foreground absolute bottom-[1px] w-full pr-4.5 pl-1 text-xs">
+                      <div className="flex w-full justify-end bg-white">
+                        {newComment.length}/500
+                      </div>
                     </div>
                   </div>
 
@@ -521,9 +524,10 @@ export default function BoardDetailPage() {
                                 }
                                 rows={3}
                                 className="resize-none border"
+                                maxLength={500}
                               />
                               <div className="text-muted-foreground mt-1 flex justify-end pr-1 text-xs">
-                                {editingCommentContent.length}/200
+                                {editingCommentContent.length}/500
                               </div>
                             </div>
                           ) : (
