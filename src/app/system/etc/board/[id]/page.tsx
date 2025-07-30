@@ -378,11 +378,8 @@ export default function BoardDetailPage() {
               <div className="flex gap-4">
                 <Avatar className="h-10 w-10 flex-shrink-0">
                   <AvatarImage
-                    src={
-                      post.author?.profileImageUrl ||
-                      '/default-profile-image.svg'
-                    }
-                    alt={post.author?.name}
+                    src={user?.profileImageUrl || '/default-profile-image.svg'}
+                    alt={user?.name}
                     className="object-cover"
                   />
                 </Avatar>
@@ -424,10 +421,10 @@ export default function BoardDetailPage() {
                       <Avatar className="h-9 w-9 flex-shrink-0">
                         <AvatarImage
                           src={
-                            post.author?.profileImageUrl ||
+                            comment.user?.profileImageUrl ||
                             '/default-profile-image.svg'
                           }
-                          alt={post.author?.name}
+                          alt={comment.user?.name}
                           className="object-cover"
                         />
                       </Avatar>
