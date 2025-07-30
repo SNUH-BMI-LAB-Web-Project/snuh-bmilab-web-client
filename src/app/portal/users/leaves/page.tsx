@@ -1,5 +1,5 @@
-import ComingSoon from '@/components/common/coming-soon';
+import LeavesCalendar from '@/components/portal/users/leaves/leaves-calendar';
 
 export default function LeavesPage() {
-  return <ComingSoon />;
+  return <LeavesCalendar />;
 }
