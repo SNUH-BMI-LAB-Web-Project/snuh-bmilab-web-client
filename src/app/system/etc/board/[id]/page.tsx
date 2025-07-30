@@ -431,9 +431,14 @@ export default function BoardDetailPage() {
                       <div className="min-w-0 flex-1">
                         <div className="mb-2 flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <span className="text-sm font-medium">
-                              {comment.user?.name}
-                            </span>
+                            <Link
+                              href={`/system/users/members/${comment.user?.userId}`}
+                              className="hover:underline"
+                            >
+                              <span className="text-sm font-medium">
+                                {comment.user?.name}
+                              </span>
+                            </Link>
                             <span className="text-muted-foreground text-xs">
                               {comment.createdAt?.toLocaleString()}
                             </span>
