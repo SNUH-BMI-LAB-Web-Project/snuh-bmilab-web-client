@@ -78,7 +78,10 @@ const getUserColumns = (
     label: '제목',
     className: 'text-left truncate overflow-hidden whitespace-nowrap w-[250px]',
     cell: (row: BoardSummary) => (
-      <Link href={`/system/etc/board/${row.boardId}`}>
+      <Link
+        href={`/system/etc/board/${row.boardId}`}
+        className="hover:underline"
+      >
         <div className="font-medium">{row.title}</div>
       </Link>
     ),
