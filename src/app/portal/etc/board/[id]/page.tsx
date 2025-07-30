@@ -67,9 +67,16 @@ export default function BoardDetailPage() {
   const [newComment, setNewComment] = useState('');
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingCommentContent, setEditingCommentContent] = useState('');
+  const [selectedCommentId, setSelectedCommentId] = useState<number | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
 
+  // 게시물 삭제 모달
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+
+  // 댓글 삭제 모달
+  const [showCommentDeleteAlert, setShowCommentDeleteAlert] = useState(false);
 
   // 게시물 상세 정보 불러오기
   const fetchPost = async () => {
@@ -173,13 +180,23 @@ export default function BoardDetailPage() {
     setEditingCommentContent('');
   };
 
-  const handleDeleteComment = async (commentId: number) => {
+  const handleDeleteCommentRequest = (commentId: number) => {
+    setSelectedCommentId(commentId);
+    setShowCommentDeleteAlert(true);
+  };
+
+  const handleDeleteComment = async () => {
+    if (selectedCommentId == null) return;
+
     try {
-      await commentApi.deleteComment({ commentId });
+      await commentApi.deleteComment({ commentId: selectedCommentId });
       toast.success('댓글이 삭제되었습니다.');
       fetchComments(); // 목록 갱신
     } catch (error) {
       console.error('댓글 삭제 실패:', error);
+    } finally {
+      setShowCommentDeleteAlert(false);
+      setSelectedCommentId(null);
     }
   };
 
@@ -501,11 +518,11 @@ export default function BoardDetailPage() {
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                       onClick={() =>
-                                        handleDeleteComment(
+                                        handleDeleteCommentRequest(
                                           comment.commentId || -1,
                                         )
                                       }
-                                      className="text-destructive"
+                                      className="text-destructive focus:text-destructive"
                                     >
                                       <Trash2 className="text-destructive mr-2 h-4 w-4" />
                                       삭제
@@ -567,6 +584,17 @@ export default function BoardDetailPage() {
         title="게시글 삭제"
         description="해당 게시글을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
         onConfirm={handleDelete}
+      />
+
+      <ConfirmModal
+        open={showCommentDeleteAlert}
+        onOpenChange={(open) => {
+          if (!open) setSelectedCommentId(null);
+          setShowCommentDeleteAlert(open);
+        }}
+        title="댓글 삭제"
+        description="해당 댓글을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+        onConfirm={handleDeleteComment}
       />
     </div>
   );
