@@ -26,7 +26,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { BoardApi, BoardDetail } from '@/generated-api';
+import {
+  BoardApi,
+  BoardDetail,
+  CommentApi,
+  CommentSummary,
+  GetAllCommentsDomainTypeEnum,
+} from '@/generated-api';
 import { getApiConfig } from '@/lib/config';
 import dynamic from 'next/dynamic';
 import { formatDateTime } from '@/lib/utils';
@@ -37,21 +43,16 @@ import { Card } from '@/components/ui/card';
 import ConfirmModal from '@/components/common/confirm-modal';
 import { toast } from 'sonner';
 import { hexToRgbaWithOpacity } from '@/utils/color-utils';
+import { useAuthStore } from '@/store/auth-store';
 
 const MarkdownViewer = dynamic(
   () => import('@/components/common/markdown-viewer'),
   { ssr: false },
 );
 
-interface Comment {
-  id: string;
-  content: string;
-  author: string;
-  createdAt: string;
-  updatedAt?: string;
-}
-
 const boardApi = new BoardApi(getApiConfig());
+
+const commentApi = new CommentApi(getApiConfig());
 
 const defaultColor = '#6b7280';
 
@@ -59,30 +60,49 @@ export default function BoardDetailPage() {
   const params = useParams();
   const postId = params.id as string;
   const router = useRouter();
+  const { user } = useAuthStore();
 
   const [post, setPost] = useState<BoardDetail | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState<CommentSummary[]>([]);
   const [newComment, setNewComment] = useState('');
-  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingCommentContent, setEditingCommentContent] = useState('');
   const [loading, setLoading] = useState(true);
-  const currentUser = '현재사용자';
+
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
-  useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const data = await boardApi.getBoardById({ boardId: Number(postId) });
-        setPost(data);
-      } catch (error) {
-        console.error('게시글 조회 실패:', error);
-        setPost(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // 게시물 상세 정보 불러오기
+  const fetchPost = async () => {
+    try {
+      const data = await boardApi.getBoardById({ boardId: Number(postId) });
+      setPost(data);
+    } catch (error) {
+      console.error('게시글 조회 실패:', error);
+      setPost(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // 댓글 불러오기
+  const fetchComments = async () => {
+    try {
+      const data = await commentApi.getAllComments({
+        domainType: GetAllCommentsDomainTypeEnum.Board,
+        entityId: Number(postId),
+      });
+      setComments(data.comments || []);
+    } catch (error) {
+      console.error('게시글 조회 실패:', error);
+      setComments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchPost();
+    fetchComments();
   }, [postId]);
 
   const handleDelete = async () => {
@@ -97,53 +117,55 @@ export default function BoardDetailPage() {
     }
   };
 
-  const handleAddComment = () => {
-    if (!newComment.trim()) return;
-    const comment: Comment = {
-      id: Date.now().toString(),
-      content: newComment.trim(),
-      author: currentUser,
-      createdAt: new Date().toLocaleString('ko-KR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-    };
-    setComments([...comments, comment]);
-    setNewComment('');
-  };
+  const handleAddComment = async () => {
+    if (!newComment.trim() || !user) return;
 
-  const handleEditComment = (commentId: string) => {
-    const comment = comments.find((c) => c.id === commentId);
-    if (comment) {
-      setEditingCommentId(commentId);
-      setEditingCommentContent(comment.content);
+    try {
+      await commentApi.createComment({
+        commentRequest: {
+          domainType: GetAllCommentsDomainTypeEnum.Board,
+          entityId: Number(postId),
+          message: newComment.trim(),
+        },
+      });
+
+      toast.success('댓글이 등록되었습니다.');
+      setNewComment('');
+      fetchComments(); // 댓글 목록 다시 불러오기
+    } catch (error) {
+      console.error('댓글 등록 실패:', error);
     }
   };
 
-  const handleSaveComment = (commentId: string) => {
+  const handleEditComment = (commentId: number) => {
+    const comment = comments.find((c) => c.commentId === commentId);
+    if (comment) {
+      setEditingCommentId(commentId);
+      setEditingCommentContent(comment.message || '');
+    }
+  };
+
+  const handleSaveComment = async (commentId: number) => {
     if (!editingCommentContent.trim()) return;
-    setComments(
-      comments.map((comment) =>
-        comment.id === commentId
-          ? {
-              ...comment,
-              content: editingCommentContent.trim(),
-              updatedAt: new Date().toLocaleString('ko-KR', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-              }),
-            }
-          : comment,
-      ),
-    );
-    setEditingCommentId(null);
-    setEditingCommentContent('');
+
+    try {
+      await commentApi.updateComment({
+        commentId,
+        commentRequest: {
+          domainType: GetAllCommentsDomainTypeEnum.Board,
+          entityId: Number(postId),
+          message: editingCommentContent.trim(),
+        },
+      });
+
+      toast.success('댓글이 수정되었습니다.');
+      setEditingCommentId(null);
+      setEditingCommentContent('');
+      fetchComments(); // 목록 갱신
+    } catch (error) {
+      toast.error('댓글 수정 중 오류가 발생했습니다.');
+      console.error('댓글 수정 실패:', error);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -151,8 +173,14 @@ export default function BoardDetailPage() {
     setEditingCommentContent('');
   };
 
-  const handleDeleteComment = (commentId: string) => {
-    setComments(comments.filter((comment) => comment.id !== commentId));
+  const handleDeleteComment = async (commentId: number) => {
+    try {
+      await commentApi.deleteComment({ commentId });
+      toast.success('댓글이 삭제되었습니다.');
+      fetchComments(); // 목록 갱신
+    } catch (error) {
+      console.error('댓글 삭제 실패:', error);
+    }
   };
 
   if (loading) {
@@ -336,7 +364,6 @@ export default function BoardDetailPage() {
           {/* 댓글 섹션 */}
           <div>
             <div className="mb-8 flex items-center gap-3">
-              {/* <MessageCircle className="h-6 w-6" /> */}
               <h2 className="text-xl font-bold">댓글</h2>
               <Badge
                 variant="secondary"
@@ -360,13 +387,20 @@ export default function BoardDetailPage() {
                   />
                 </Avatar>
                 <div className="flex-1 space-y-3">
-                  <Textarea
-                    placeholder="댓글을 작성하세요..."
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    rows={3}
-                    className="resize-none border"
-                  />
+                  <div className="relative">
+                    <Textarea
+                      placeholder="댓글을 작성하세요..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      rows={3}
+                      maxLength={200}
+                    />
+
+                    <div className="text-muted-foreground absolute right-1.5 bottom-1 text-xs">
+                      {newComment.length}/200
+                    </div>
+                  </div>
+
                   <div className="flex justify-end">
                     <Button
                       onClick={handleAddComment}
@@ -385,7 +419,7 @@ export default function BoardDetailPage() {
             <div>
               {comments.length > 0 ? (
                 comments.map((comment, index) => (
-                  <div key={comment.id}>
+                  <div key={comment.commentId}>
                     <div className="group flex gap-4 py-6">
                       <Avatar className="h-9 w-9 flex-shrink-0">
                         <AvatarImage
@@ -401,18 +435,21 @@ export default function BoardDetailPage() {
                         <div className="mb-2 flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <span className="text-sm font-medium">
-                              {comment.author}
+                              {comment.user?.name}
                             </span>
                             <span className="text-muted-foreground text-xs">
-                              {comment.createdAt}
+                              {comment.createdAt?.toLocaleString()}
                             </span>
-                            {comment.updatedAt && (
-                              <span className="rounded bg-amber-50 px-2 py-1 text-xs text-amber-600">
-                                수정됨
-                              </span>
-                            )}
+                            {comment.updatedAt &&
+                              comment.createdAt &&
+                              new Date(comment.createdAt).getTime() !==
+                                new Date(comment.updatedAt).getTime() && (
+                                <span className="rounded bg-amber-50 px-2 py-1 text-xs text-amber-600">
+                                  수정됨
+                                </span>
+                              )}
                           </div>
-                          {comment.author === currentUser && (
+                          {comment.user?.userId === user?.userId && (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
@@ -424,11 +461,13 @@ export default function BoardDetailPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                {editingCommentId === comment.id ? (
+                                {editingCommentId === comment.commentId ? (
                                   <>
                                     <DropdownMenuItem
                                       onClick={() =>
-                                        handleSaveComment(comment.id)
+                                        handleSaveComment(
+                                          comment.commentId || -1,
+                                        )
                                       }
                                     >
                                       <Save className="mr-2 h-4 w-4" />
@@ -445,7 +484,9 @@ export default function BoardDetailPage() {
                                   <>
                                     <DropdownMenuItem
                                       onClick={() =>
-                                        handleEditComment(comment.id)
+                                        handleEditComment(
+                                          comment.commentId || -1,
+                                        )
                                       }
                                     >
                                       <Edit className="mr-2 h-4 w-4" />
@@ -453,7 +494,9 @@ export default function BoardDetailPage() {
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                       onClick={() =>
-                                        handleDeleteComment(comment.id)
+                                        handleDeleteComment(
+                                          comment.commentId || -1,
+                                        )
                                       }
                                       className="text-destructive"
                                     >
@@ -467,18 +510,23 @@ export default function BoardDetailPage() {
                           )}
                         </div>
                         <div className="pl-0">
-                          {editingCommentId === comment.id ? (
-                            <Textarea
-                              value={editingCommentContent}
-                              onChange={(e) =>
-                                setEditingCommentContent(e.target.value)
-                              }
-                              rows={3}
-                              className="resize-none border"
-                            />
+                          {editingCommentId === comment.commentId ? (
+                            <div>
+                              <Textarea
+                                value={editingCommentContent}
+                                onChange={(e) =>
+                                  setEditingCommentContent(e.target.value)
+                                }
+                                rows={3}
+                                className="resize-none border"
+                              />
+                              <div className="text-muted-foreground mt-1 flex justify-end pr-1 text-xs">
+                                {editingCommentContent.length}/200
+                              </div>
+                            </div>
                           ) : (
                             <p className="text-muted-foreground text-sm leading-relaxed">
-                              {comment.content}
+                              {comment.message}
                             </p>
                           )}
                         </div>
