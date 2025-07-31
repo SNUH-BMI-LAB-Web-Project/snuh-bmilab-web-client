@@ -82,7 +82,9 @@ const getUserColumns = (
         href={`/system/etc/board/${row.boardId}`}
         className="hover:underline"
       >
-        <div className="font-medium">{row.title}</div>
+        <div className="w-[250px] truncate overflow-hidden font-medium whitespace-nowrap">
+          {row.title}
+        </div>
       </Link>
     ),
   },
