@@ -114,7 +114,7 @@ export function ReportForm({ projectList, onReportCreated }: ReportFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="project">프로젝트</Label>
           <Select value={project} onValueChange={setProject} required>
@@ -128,7 +128,9 @@ export function ReportForm({ projectList, onReportCreated }: ReportFormProps) {
                   value={String(proj.projectId)}
                   className="cursor-pointer"
                 >
-                  {proj.title}
+                  <span className="w-[250px] cursor-pointer truncate overflow-hidden text-start whitespace-nowrap">
+                    {proj.title}
+                  </span>
                 </SelectItem>
               ))}
             </SelectContent>

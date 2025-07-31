@@ -74,7 +74,9 @@ const getUserColumns = (currentPage: number, itemsPerPage: number) => [
         className="flex items-center gap-1 hover:underline"
       >
         {row.isPinned ? <Pin className="h-3 w-3 shrink-0" /> : null}
-        <div className="font-medium">{row.title}</div>
+        <div className="w-[250px] truncate overflow-hidden font-medium whitespace-nowrap">
+          {row.title}
+        </div>
       </Link>
     ),
   },

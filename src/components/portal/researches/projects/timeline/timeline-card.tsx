@@ -350,7 +350,9 @@ export default function TimelineCard({
                           <span>{timeline.meetingPlace || '장소 미지정'}</span>
                         </div>
                       </div>
-                      <div className="text-sm">{timeline.summary}</div>
+                      <div className="text-sm whitespace-pre-wrap">
+                        {timeline.summary}
+                      </div>
                       <div className="text-muted-foreground flex items-center gap-1 text-xs">
                         <Paperclip className="h-3 w-3" />
                         {timeline.files && timeline.files.length > 0 ? (
