@@ -76,7 +76,7 @@ export default function DailyPage() {
 
   return (
     <div className="bg-muted flex flex-col space-y-6 pb-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-6">
         <h1 className="text-3xl font-bold">일일 업무 보고</h1>
         <DateRangePicker
           value={{ from: startDate, to: endDate }}
