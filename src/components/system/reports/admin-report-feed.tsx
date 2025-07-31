@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,6 +28,7 @@ export function AdminReportFeed({
 }: {
   filters?: GetReportsByAllUserRequest;
 }) {
+  const router = useRouter();
   const [reports, setReports] = useState<ReportSummary[]>([]);
 
   useEffect(() => {
@@ -72,7 +74,16 @@ export function AdminReportFeed({
                     <p className="mr-2 text-sm font-medium md:pl-2 lg:pl-0">
                       {report.user?.name}
                     </p>
-                    <Badge variant="outline" title={report.project?.title}>
+                    <Badge
+                      variant="outline"
+                      title={report.project?.title}
+                      onClick={() =>
+                        router.push(
+                          `/system/researches/projects/${report.project?.projectId}`,
+                        )
+                      }
+                      className="cursor-pointer"
+                    >
                       <div className="max-w-[120px] truncate overflow-hidden whitespace-nowrap lg:max-w-2xs xl:max-w-xl">
                         {report.project?.title}
                       </div>
