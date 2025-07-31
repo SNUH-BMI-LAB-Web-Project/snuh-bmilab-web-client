@@ -168,8 +168,9 @@ export function FilterControls({
                   key={proj.projectId}
                   value={String(proj.projectId)}
                   title={proj.title}
+                  className="cursor-pointer"
                 >
-                  <span className="w-[250px] truncate overflow-hidden text-start whitespace-nowrap">
+                  <span className="w-[250px] cursor-pointer truncate overflow-hidden text-start whitespace-nowrap">
                     {proj.title}
                   </span>
                 </SelectItem>
@@ -195,6 +196,7 @@ export function FilterControls({
                   <SelectItem
                     key={userItem.userId}
                     value={String(userItem.userId)}
+                    className="cursor-pointer"
                   >
                     {userItem.name}
                   </SelectItem>
