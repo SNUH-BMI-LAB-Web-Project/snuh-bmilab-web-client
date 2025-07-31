@@ -25,14 +25,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { UserCheck, Plus, Edit, Trash2, Save, Building } from 'lucide-react';
-import {
-  AdminExternalProfessorApi,
-  ExternalProfessorItem,
-} from '@/generated-api';
+import { AdminProjectApi, ExternalProfessorItem } from '@/generated-api';
 import { toast } from 'sonner';
 import { getApiConfig } from '@/lib/config';
 
-const api = new AdminExternalProfessorApi(getApiConfig());
+const api = new AdminProjectApi(getApiConfig());
 
 export default function ExternalProfessorPage() {
   const [professors, setProfessors] = useState<ExternalProfessorItem[]>([]);

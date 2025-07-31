@@ -29,10 +29,7 @@ import {
   Trash2,
   MoreVertical,
 } from 'lucide-react';
-import {
-  AdminExternalProfessorApi,
-  ExternalProfessorItem,
-} from '@/generated-api';
+import { AdminProjectApi, ExternalProfessorItem } from '@/generated-api';
 import { toast } from 'sonner';
 import { getApiConfig } from '@/lib/config';
 import {
@@ -53,7 +50,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { getProfessorKey } from '@/utils/external-professor-utils';
 
-const api = new AdminExternalProfessorApi(getApiConfig());
+const api = new AdminProjectApi(getApiConfig());
 
 interface ExternalProfessorSelectModalProps {
   open: boolean;
