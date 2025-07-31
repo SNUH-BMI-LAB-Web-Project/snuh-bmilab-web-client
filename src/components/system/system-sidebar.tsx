@@ -14,7 +14,7 @@ const baseNav = [
     items: [
       { title: '구성원', url: '/system/users/members' },
       { title: '외부 인사', url: '/system/users/external' },
-      { title: '휴가 신청', url: '/system/users/leaves' },
+      { title: '휴가 관리', url: '/system/users/leaves' },
       // { title: '자리배치도', url: '/system/users/seats' },
     ],
   },
