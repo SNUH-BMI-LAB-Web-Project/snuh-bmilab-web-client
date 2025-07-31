@@ -66,7 +66,7 @@ export class AdminBoardApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/admin/board/{boardId}/pin`.replace(`{${"boardId"}}`, encodeURIComponent(String(requestParameters['boardId']))),
+            path: `/admin/boards/{boardId}/pin`.replace(`{${"boardId"}}`, encodeURIComponent(String(requestParameters['boardId']))),
             method: 'PATCH',
             headers: headerParameters,
             query: queryParameters,

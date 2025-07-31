@@ -10,7 +10,7 @@ import {
   ProjectApi,
 } from '@/generated-api/apis/ProjectApi';
 import { ProjectSummary } from '@/generated-api/models/ProjectSummary';
-import { SlidersHorizontal, Search, X, Lock } from 'lucide-react';
+import { SlidersHorizontal, Search, X, Lock, Pin } from 'lucide-react';
 import {
   Select,
   SelectTrigger,
@@ -61,6 +61,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
       >
         {row.isPrivate ? (
           <>
+            {row.isPinned ? <Pin className="h-3 w-3 shrink-0" /> : null}
             <Lock className="h-3 w-3 shrink-0" />
             <Link
               href={
@@ -76,8 +77,9 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
         ) : (
           <Link
             href={`/portal/researches/projects/${row.projectId}`}
-            className="w-full truncate hover:underline"
+            className="flex w-full items-center gap-1 truncate hover:underline"
           >
+            {row.isPinned ? <Pin className="h-3 w-3 shrink-0" /> : null}
             {row.title}
           </Link>
         )}

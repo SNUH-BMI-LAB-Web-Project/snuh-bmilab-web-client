@@ -10,7 +10,7 @@ import {
   ProjectApi,
 } from '@/generated-api/apis/ProjectApi';
 import { ProjectSummary } from '@/generated-api/models/ProjectSummary';
-import { SlidersHorizontal, Search, X } from 'lucide-react';
+import { SlidersHorizontal, Search, X, Pin, PinOff } from 'lucide-react';
 import {
   Select,
   SelectTrigger,
@@ -19,23 +19,30 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import Link from 'next/link';
-import { UserApi, UserSummary } from '@/generated-api';
+import { AdminProjectApi, UserApi, UserSummary } from '@/generated-api';
 import { cn } from '@/lib/utils';
 import { getStatusClassName, getStatusLabel } from '@/utils/project-utils';
 import { useProjectCategories } from '@/hooks/use-project-categories';
 import ResearchFieldModal from '@/components/system/projects/research-field-modal';
 import { getApiConfig } from '@/lib/config';
+import { toast } from 'sonner';
 
 const projectApi = new ProjectApi(getApiConfig());
 
 const userApi = new UserApi(getApiConfig());
+
+const adminProjectApi = new AdminProjectApi(getApiConfig());
 
 const formatSortOption = (option: string) => {
   const [field, direction] = option.split('-');
   return `${field},${direction}`;
 };
 
-const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
+const getProjectColumns = (
+  currentPage: number,
+  itemsPerPage: number,
+  togglePin: (projectId: number, currentValue: boolean) => void,
+) => [
   {
     label: 'No',
     className: 'text-center w-[50px]',
@@ -151,6 +158,23 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
       </div>
     ),
   },
+  {
+    label: '고정',
+    className: 'text-center w-[70px]',
+    cell: (row: ProjectSummary) => (
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => togglePin(row.projectId!, row.isPinned ?? false)}
+      >
+        {row.isPinned ? (
+          <Pin className="h-4 w-4" />
+        ) : (
+          <PinOff className="h-4 w-4 opacity-50" />
+        )}
+      </Button>
+    ),
+  },
 ];
 
 export default function ProjectPage() {
@@ -249,6 +273,24 @@ export default function ProjectPage() {
     setPracticalProfessorTerm('');
     setLeaderFilter('all');
     setSortOption('startDate-desc');
+  };
+
+  const togglePin = async (projectId: number, currentValue: boolean) => {
+    try {
+      await adminProjectApi.updateProjectPinStatus({
+        projectId,
+        projectPinRequest: {
+          isPinned: !currentValue,
+        },
+      });
+
+      toast.success(
+        `연구&프로젝트가 ${!currentValue ? '고정' : '고정 해제'}되었습니다.`,
+      );
+      fetchProjects(); // 목록 다시 불러오기
+    } catch (error) {
+      console.error('핀 상태 변경 실패:', error);
+    }
   };
 
   return (
@@ -410,7 +452,7 @@ export default function ProjectPage() {
         <PaginatedTable
           data={projects}
           rowKey={(row) => String(row.projectId)}
-          columns={getProjectColumns(currentPage, itemsPerPage)}
+          columns={getProjectColumns(currentPage, itemsPerPage, togglePin)}
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
           itemsPerPage={itemsPerPage}
