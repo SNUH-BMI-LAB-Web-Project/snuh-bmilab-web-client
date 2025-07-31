@@ -1,8 +1,8 @@
 apis/AdminBoardApi.ts
 apis/AdminBoardCategoryApi.ts
 apis/AdminCommentApi.ts
-apis/AdminExternalProfessorApi.ts
 apis/AdminLeaveApi.ts
+apis/AdminProjectApi.ts
 apis/AdminProjectCategoryApi.ts
 apis/AdminReportApi.ts
 apis/AdminUserApi.ts
@@ -53,6 +53,7 @@ models/ProjectDetail.ts
 models/ProjectFileFindAllResponse.ts
 models/ProjectFileSummary.ts
 models/ProjectFindAllResponse.ts
+models/ProjectPinRequest.ts
 models/ProjectRequest.ts
 models/ProjectSummary.ts
 models/RSSItem.ts

@@ -33,6 +33,7 @@ export * from './ProjectDetail';
 export * from './ProjectFileFindAllResponse';
 export * from './ProjectFileSummary';
 export * from './ProjectFindAllResponse';
+export * from './ProjectPinRequest';
 export * from './ProjectRequest';
 export * from './ProjectSummary';
 export * from './RSSItem';
