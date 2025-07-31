@@ -73,7 +73,7 @@ export function AdminReportFeed({
                       {report.user?.name}
                     </p>
                     <Badge variant="outline" title={report.project?.title}>
-                      <div className="truncate overflow-hidden whitespace-nowrap md:max-w-[120px] lg:max-w-none">
+                      <div className="max-w-[120px] truncate overflow-hidden whitespace-nowrap lg:max-w-2xs xl:max-w-xl">
                         {report.project?.title}
                       </div>
                     </Badge>
