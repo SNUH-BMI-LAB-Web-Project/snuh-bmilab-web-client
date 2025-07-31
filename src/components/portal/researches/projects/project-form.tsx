@@ -38,6 +38,7 @@ import { Separator } from '@/components/ui/separator';
 import { FileItem } from '@/components/common/file-item';
 import { UserTagInput } from '@/components/portal/researches/projects/user-tag-input';
 import {
+  ExternalProfessorItem,
   ExternalProfessorRequest,
   ExternalProfessorSummary,
   ProjectApi,
@@ -55,6 +56,7 @@ import { useProjectCategories } from '@/hooks/use-project-categories';
 import dynamic from 'next/dynamic';
 import ExternalProfessorSelectModal from '@/components/portal/researches/projects/external-professor-select-modal';
 import { getApiConfig } from '@/lib/config';
+import { getProfessorKey } from '@/utils/external-professor-utils';
 
 const MarkdownEditor = dynamic(
   () => import('@/components/common/markdown-editor'),
@@ -153,15 +155,49 @@ export function ProjectForm({
   const [showPIModal, setShowPIModal] = useState(false);
   const [showProfessorModal, setShowProfessorModal] = useState(false);
 
-  const getProfessorKey = (p: {
-    name?: string;
-    organization?: string;
-    department?: string;
-    position?: string;
-  }) => `${p.name}-${p.organization}-${p.department}-${p.position}`;
-
   const selectedPiKeys = piList.map(getProfessorKey);
   const selectedPracticalKeys = practicalProfessors.map(getProfessorKey);
+
+  const handleUpdateProfessor = (
+    updated: ExternalProfessorItem,
+    previousKey: string,
+  ) => {
+    const updatedSummary: ExternalProfessorSummary = {
+      name: updated.name,
+      organization: updated.organization,
+      department: updated.department,
+      position: updated.position,
+    };
+
+    setPiList((prev) =>
+      prev.map((p) =>
+        getProfessorKey(p) === previousKey ? updatedSummary : p,
+      ),
+    );
+    setPracticalProfessors((prev) =>
+      prev.map((p) =>
+        getProfessorKey(p) === previousKey ? updatedSummary : p,
+      ),
+    );
+  };
+  const handleDeleteProfessor = (deleted: ExternalProfessorItem) => {
+    const deletedSummary: ExternalProfessorSummary = {
+      name: deleted.name,
+      organization: deleted.organization,
+      department: deleted.department,
+      position: deleted.position,
+    };
+
+    const deletedKey = getProfessorKey(deletedSummary);
+
+    setPiList((prev) =>
+      prev.filter((pi) => getProfessorKey(pi) !== deletedKey),
+    );
+
+    setPracticalProfessors((prev) =>
+      prev.filter((prof) => getProfessorKey(prof) !== deletedKey),
+    );
+  };
 
   const handleRemoveExistingFile = (index: number) => {
     const removed = existingFiles[index];
@@ -897,6 +933,8 @@ export function ProjectForm({
           setShowPIModal(false);
         }}
         selectedProfessorKeys={selectedPiKeys}
+        onUpdateProfessor={handleUpdateProfessor}
+        onDeleteProfessor={handleDeleteProfessor}
       />
 
       {/* 참여 교수 선택 모달 */}
@@ -908,6 +946,8 @@ export function ProjectForm({
           setShowProfessorModal(false);
         }}
         selectedProfessorKeys={selectedPracticalKeys}
+        onUpdateProfessor={handleUpdateProfessor}
+        onDeleteProfessor={handleDeleteProfessor}
       />
     </form>
   );
