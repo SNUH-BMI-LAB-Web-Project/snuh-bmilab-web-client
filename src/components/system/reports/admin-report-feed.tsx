@@ -12,14 +12,13 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Paperclip } from 'lucide-react';
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import {
   AdminReportApi,
   GetReportsByAllUserRequest,
   ReportSummary,
 } from '@/generated-api';
 import { getApiConfig } from '@/lib/config';
+import { formatDateTimeVer2 } from '@/lib/utils';
 
 const reportApi = new AdminReportApi(getApiConfig());
 
@@ -92,10 +91,7 @@ export function AdminReportFeed({
                 </div>
                 <div className="flex items-center gap-2">
                   <p className="text-right text-xs font-medium">
-                    {report.createdAt &&
-                      format(report.createdAt, 'yyyy년 MM월 dd일', {
-                        locale: ko,
-                      })}
+                    {formatDateTimeVer2(report.date!)}
                   </p>
                 </div>
               </div>
