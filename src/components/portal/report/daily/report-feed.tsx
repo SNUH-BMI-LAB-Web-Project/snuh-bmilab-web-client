@@ -123,11 +123,15 @@ export function ReportFeed({
                       {report.user?.name?.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex items-center">
+                  <div className="flex items-center gap-1 md:flex-col md:items-start lg:flex-row lg:items-center">
                     <p className="mr-2 text-sm font-medium">
                       {report.user?.name}
                     </p>
-                    <Badge variant="outline">{report.project?.title}</Badge>
+                    <Badge variant="outline">
+                      <div className="max-w-[100px] truncate overflow-hidden whitespace-nowrap lg:max-w-2xs xl:max-w-xl">
+                        {report.project?.title}
+                      </div>
+                    </Badge>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
