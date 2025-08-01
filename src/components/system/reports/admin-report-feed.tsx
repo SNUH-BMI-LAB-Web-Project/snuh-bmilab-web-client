@@ -12,8 +12,6 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Paperclip } from 'lucide-react';
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import {
   AdminReportApi,
   GetReportsByAllUserRequest,
