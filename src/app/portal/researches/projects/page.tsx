@@ -39,13 +39,22 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
     label: 'No',
     className: 'text-center w-[50px]',
     cell: (row: ProjectSummary, i: number) => (
-      <div
-        className={cn(
-          'truncate overflow-hidden whitespace-nowrap',
-          row.isPrivate && 'opacity-50',
+      <div className="flex items-center justify-center">
+        {row.isPinned ? (
+          <Pin
+            className={cn('h-4 w-4 shrink-0', row.isPrivate && 'opacity-50')}
+          />
+        ) : (
+          <div
+            className={cn(
+              'truncate overflow-hidden whitespace-nowrap',
+              row.isPrivate && 'opacity-50',
+            )}
+          >
+            {row.isPinned ? <Pin className="h-3 w-3 shrink-0" /> : null}
+            {((currentPage - 1) * itemsPerPage + i + 1).toString()}
+          </div>
         )}
-      >
-        {((currentPage - 1) * itemsPerPage + i + 1).toString()}
       </div>
     ),
   },
@@ -57,11 +66,11 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
         className={cn(
           'flex items-center gap-1 truncate overflow-hidden whitespace-nowrap',
           row.isPrivate && 'opacity-50',
+          row.isPinned && 'font-semibold',
         )}
       >
         {row.isPrivate ? (
           <>
-            {row.isPinned ? <Pin className="h-3 w-3 shrink-0" /> : null}
             <Lock className="h-3 w-3 shrink-0" />
             <Link
               href={
@@ -79,7 +88,6 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
             href={`/portal/researches/projects/${row.projectId}`}
             className="flex w-full items-center gap-1 truncate hover:underline"
           >
-            {row.isPinned ? <Pin className="h-3 w-3 shrink-0" /> : null}
             {row.title}
           </Link>
         )}
@@ -134,6 +142,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
           className={cn(
             'truncate overflow-hidden whitespace-nowrap',
             row.isPrivate && 'opacity-50',
+            row.isPinned && 'font-semibold',
           )}
         >
           {display}
@@ -156,6 +165,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
           className={cn(
             'truncate overflow-hidden whitespace-nowrap',
             row.isPrivate && 'opacity-50',
+            row.isPinned && 'font-semibold',
           )}
         >
           {display}
@@ -178,6 +188,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
           className={cn(
             'truncate overflow-hidden whitespace-nowrap',
             row.isPrivate && 'opacity-50',
+            row.isPinned && 'font-semibold',
           )}
         >
           {display || '-'}
@@ -193,6 +204,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
         className={cn(
           'truncate overflow-hidden whitespace-nowrap',
           row.isPrivate && 'opacity-50',
+          row.isPinned && 'font-semibold',
         )}
       >
         {`${row.participantCount ?? 0}명`}
@@ -207,6 +219,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
         className={cn(
           'truncate overflow-hidden whitespace-nowrap',
           row.isPrivate && 'opacity-50',
+          row.isPinned && 'font-semibold',
         )}
       >
         {`${row.startDate?.toISOString().substring(0, 10)} ~ ${

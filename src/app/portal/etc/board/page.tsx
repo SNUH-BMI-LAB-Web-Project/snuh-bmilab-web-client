@@ -35,8 +35,15 @@ const getUserColumns = (currentPage: number, itemsPerPage: number) => [
     label: 'No',
     className: 'text-center w-[50px]',
     cell: (row: BoardSummary, i: number) => (
-      <div className={cn('truncate overflow-hidden whitespace-nowrap')}>
-        {((currentPage - 1) * itemsPerPage + i + 1).toString()}
+      <div className="flex items-center justify-center">
+        {row.isPinned ? (
+          <Pin className="h-4 w-4 shrink-0" />
+        ) : (
+          <div className={cn('truncate overflow-hidden whitespace-nowrap')}>
+            {row.isPinned ? <Pin className="h-3 w-3 shrink-0" /> : null}
+            {((currentPage - 1) * itemsPerPage + i + 1).toString()}
+          </div>
+        )}
       </div>
     ),
   },
@@ -73,8 +80,12 @@ const getUserColumns = (currentPage: number, itemsPerPage: number) => [
         href={`/portal/etc/board/${row.boardId}`}
         className="flex items-center gap-1 hover:underline"
       >
-        {row.isPinned ? <Pin className="h-3 w-3 shrink-0" /> : null}
-        <div className="w-[250px] truncate overflow-hidden font-medium whitespace-nowrap">
+        <div
+          className={cn(
+            'w-[250px] truncate overflow-hidden whitespace-nowrap',
+            row.isPinned && 'font-semibold',
+          )}
+        >
           {row.title}
         </div>
       </Link>
@@ -84,19 +95,32 @@ const getUserColumns = (currentPage: number, itemsPerPage: number) => [
     label: '작성자',
     className:
       'text-center truncate overflow-hidden whitespace-nowrap w-[150px]',
-    cell: (row: BoardSummary) => row.author?.name || '-',
+    cell: (row: BoardSummary) => (
+      <div className={cn(row.isPinned && 'font-semibold')}>
+        {row.author?.name || '-'}
+      </div>
+    ),
   },
   {
     label: '조회수',
     className:
       'text-center truncate overflow-hidden whitespace-nowrap w-[50px]',
-    cell: (row: BoardSummary) => row.viewCount || '-',
+    cell: (row: BoardSummary) => (
+      <div className={cn(row.isPinned && 'font-semibold')}>
+        {row.viewCount || '-'}
+      </div>
+    ),
   },
   {
     label: '게시일',
     className: 'text-center w-[150px]',
     cell: (row: BoardSummary) => (
-      <div className={cn('truncate overflow-hidden whitespace-nowrap')}>
+      <div
+        className={cn(
+          'truncate overflow-hidden whitespace-nowrap',
+          row.isPinned && 'font-semibold',
+        )}
+      >
         {row.createdAt?.toISOString().substring(0, 10)}
       </div>
     ),
