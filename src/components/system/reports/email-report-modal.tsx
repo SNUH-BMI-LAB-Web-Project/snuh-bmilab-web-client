@@ -175,20 +175,14 @@ export function EmailReportModal({
                 }
                 className="flex-1"
               >
-                {isLoading ? (
-                  '전송 중...'
-                ) : (
-                  <>
-                    전송
-                  </>
-                )}
+                {isLoading ? '전송 중...' : '전송'}
               </Button>
             </div>
           </div>
         ) : (
           // 전송 완료 단계
           <div className="space-y-4 text-center">
-            <CheckCircle className="mx-auto h-12 w-12 />
+            <CheckCircle className="mx-auto h-12 w-12" />
             <div>
               <h3 className="mb-2 text-lg font-semibold text-gray-900">
                 전송 완료
