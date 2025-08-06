@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import ProfileEditForm from '@/components/portal/mypage/profile-edit-form';
-import ComingSoon from '@/components/common/coming-soon';
+import LeavesHistory from '@/components/portal/mypage/leaves-history';
 
 export default function MyPage() {
   const router = useRouter();
@@ -42,7 +42,7 @@ export default function MyPage() {
           <ProfileEditForm />
         </TabsContent>
         <TabsContent value="leave">
-          <ComingSoon />
+          <LeavesHistory />
         </TabsContent>
       </Tabs>
     </div>
