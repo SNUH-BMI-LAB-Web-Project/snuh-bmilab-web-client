@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CalendarIcon, Send, CheckCircle } from 'lucide-react';
+import { CalendarIcon, CheckCircle } from 'lucide-react';
 import { addDays, format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import type { DateRange } from 'react-day-picker';
