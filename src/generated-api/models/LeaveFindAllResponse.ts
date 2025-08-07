@@ -33,6 +33,12 @@ export interface LeaveFindAllResponse {
      * @memberof LeaveFindAllResponse
      */
     leaves?: Array<LeaveDetail>;
+    /**
+     * 
+     * @type {number}
+     * @memberof LeaveFindAllResponse
+     */
+    totalPage?: number;
 }
 
 /**
@@ -53,6 +59,7 @@ export function LeaveFindAllResponseFromJSONTyped(json: any, ignoreDiscriminator
     return {
         
         'leaves': json['leaves'] == null ? undefined : ((json['leaves'] as Array<any>).map(LeaveDetailFromJSON)),
+        'totalPage': json['totalPage'] == null ? undefined : json['totalPage'],
     };
 }
 
@@ -68,6 +75,7 @@ export function LeaveFindAllResponseToJSONTyped(value?: LeaveFindAllResponse | n
     return {
         
         'leaves': value['leaves'] == null ? undefined : ((value['leaves'] as Array<any>).map(LeaveDetailToJSON)),
+        'totalPage': value['totalPage'],
     };
 }
 

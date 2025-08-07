@@ -76,6 +76,18 @@ export interface LeaveDetail {
      */
     rejectReason?: string;
     /**
+     * 휴가 처리자 정보
+     * @type {UserSummary}
+     * @memberof LeaveDetail
+     */
+    processor?: UserSummary;
+    /**
+     * 처리 일시
+     * @type {Date}
+     * @memberof LeaveDetail
+     */
+    processedAt?: Date;
+    /**
      * 신청 일시
      * @type {Date}
      * @memberof LeaveDetail
@@ -99,9 +111,11 @@ export type LeaveDetailStatusEnum = typeof LeaveDetailStatusEnum[keyof typeof Le
  */
 export const LeaveDetailTypeEnum = {
     Annual: 'ANNUAL',
-    Sick: 'SICK',
-    Half: 'HALF',
-    Etc: 'ETC'
+    HalfAm: 'HALF_AM',
+    HalfPm: 'HALF_PM',
+    SpecialHalfAm: 'SPECIAL_HALF_AM',
+    SpecialHalfPm: 'SPECIAL_HALF_PM',
+    SpecialAnnual: 'SPECIAL_ANNUAL'
 } as const;
 export type LeaveDetailTypeEnum = typeof LeaveDetailTypeEnum[keyof typeof LeaveDetailTypeEnum];
 
@@ -131,6 +145,8 @@ export function LeaveDetailFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'type': json['type'] == null ? undefined : json['type'],
         'reason': json['reason'] == null ? undefined : json['reason'],
         'rejectReason': json['rejectReason'] == null ? undefined : json['rejectReason'],
+        'processor': json['processor'] == null ? undefined : UserSummaryFromJSON(json['processor']),
+        'processedAt': json['processedAt'] == null ? undefined : (new Date(json['processedAt'])),
         'applicatedAt': json['applicatedAt'] == null ? undefined : (new Date(json['applicatedAt'])),
     };
 }
@@ -148,12 +164,14 @@ export function LeaveDetailToJSONTyped(value?: LeaveDetail | null, ignoreDiscrim
         
         'leaveId': value['leaveId'],
         'user': UserSummaryToJSON(value['user']),
-        'startDate': value['startDate'] == null ? undefined : ((value['startDate']).toISOString()),
-        'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString()),
+        'startDate': value['startDate'] == null ? undefined : ((value['startDate']).toISOString().substring(0,10)),
+        'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString().substring(0,10)),
         'status': value['status'],
         'type': value['type'],
         'reason': value['reason'],
         'rejectReason': value['rejectReason'],
+        'processor': UserSummaryToJSON(value['processor']),
+        'processedAt': value['processedAt'] == null ? undefined : ((value['processedAt']).toISOString()),
         'applicatedAt': value['applicatedAt'] == null ? undefined : ((value['applicatedAt']).toISOString()),
     };
 }

@@ -59,6 +59,7 @@ export * from './UserEducationRequest';
 export * from './UserEducationSummary';
 export * from './UserFindAllResponse';
 export * from './UserItem';
+export * from './UserLeaveResponse';
 export * from './UserProjectFindAllResponse';
 export * from './UserProjectItem';
 export * from './UserSubAffiliationRequest';
