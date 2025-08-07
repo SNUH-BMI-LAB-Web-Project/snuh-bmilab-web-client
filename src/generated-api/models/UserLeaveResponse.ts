@@ -45,6 +45,12 @@ export interface UserLeaveResponse {
      * @memberof UserLeaveResponse
      */
     leaves?: Array<LeaveDetail>;
+    /**
+     * 
+     * @type {number}
+     * @memberof UserLeaveResponse
+     */
+    totalPage?: number;
 }
 
 /**
@@ -67,6 +73,7 @@ export function UserLeaveResponseFromJSONTyped(json: any, ignoreDiscriminator: b
         'annualLeaveCount': json['annualLeaveCount'] == null ? undefined : json['annualLeaveCount'],
         'usedLeaveCount': json['usedLeaveCount'] == null ? undefined : json['usedLeaveCount'],
         'leaves': json['leaves'] == null ? undefined : ((json['leaves'] as Array<any>).map(LeaveDetailFromJSON)),
+        'totalPage': json['totalPage'] == null ? undefined : json['totalPage'],
     };
 }
 
@@ -84,6 +91,7 @@ export function UserLeaveResponseToJSONTyped(value?: UserLeaveResponse | null, i
         'annualLeaveCount': value['annualLeaveCount'],
         'usedLeaveCount': value['usedLeaveCount'],
         'leaves': value['leaves'] == null ? undefined : ((value['leaves'] as Array<any>).map(LeaveDetailToJSON)),
+        'totalPage': value['totalPage'],
     };
 }
 

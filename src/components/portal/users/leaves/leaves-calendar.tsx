@@ -7,6 +7,7 @@ import {
   Plus,
   X,
   Calendar as CalendarIcon,
+  Settings,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -41,6 +42,7 @@ import {
   LeaveDetailTypeEnum,
 } from '@/generated-api';
 import { getApiConfig } from '@/lib/config';
+import { toast } from 'sonner';
 
 const leaveApi = new LeaveApi(getApiConfig());
 
@@ -49,7 +51,7 @@ const leaveApi = new LeaveApi(getApiConfig());
  * ======================= */
 type VacationMeta = {
   name: string;
-  color: string; // tailwind class
+  color: string;
   requireReason: boolean;
 };
 
@@ -115,10 +117,10 @@ export const toYmd = (d: Date | string | undefined | null): string => {
   }
 
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // 0-indexed
+  const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
 
-  return `${year}-${month}-${day}`; // 로컬 기준 YMD
+  return `${year}-${month}-${day}`;
 };
 
 const isSameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
@@ -130,11 +132,11 @@ const startOfMonth = (date: Date) =>
 function generateCalendarDays(base: Date): Date[] {
   const first = startOfMonth(base);
   const gridStart = new Date(first);
-  gridStart.setDate(first.getDate() - first.getDay()); // Sunday
+  gridStart.setDate(first.getDate() - first.getDay());
 
   const days: Date[] = [];
   const cursor = new Date(gridStart);
-  // 6주 = 42칸
+
   for (let i = 0; i < 42; i += 1) {
     days.push(new Date(cursor));
     cursor.setDate(cursor.getDate() + 1);
@@ -184,8 +186,8 @@ const getVacationSegmentKind = (
     Number.isNaN(start.getTime()) ||
     Number.isNaN(end.getTime())
   ) {
-    console.warn('Invalid vacation date:', vacation);
-    return 'single'; // fallback
+    console.warn('잘못된 휴가 날짜:', vacation);
+    return 'single';
   }
 
   const target = toYmd(targetDate);
@@ -214,10 +216,10 @@ export function getCalendarDateRange(current: Date): {
   );
 
   const gridStart = new Date(firstDayOfMonth);
-  gridStart.setDate(gridStart.getDate() - gridStart.getDay()); // 일요일로 보정
+  gridStart.setDate(gridStart.getDate() - gridStart.getDay());
 
   const gridEnd = new Date(lastDayOfMonth);
-  gridEnd.setDate(gridEnd.getDate() + (6 - gridEnd.getDay())); // 토요일로 보정
+  gridEnd.setDate(gridEnd.getDate() + (6 - gridEnd.getDay()));
 
   return {
     startDate: toYmd(gridStart),
@@ -230,13 +232,26 @@ export function getCalendarDateRange(current: Date): {
  * ======================= */
 function Legend() {
   return (
-    <div className="mb-6 flex flex-wrap gap-4 p-4">
-      {Object.entries(VACATION_TYPES).map(([key, value]) => (
-        <div key={key} className="flex items-center gap-2">
-          <div className={`h-4 w-4 rounded ${value.color}`} />
-          <span className="text-sm text-gray-900">{value.name}</span>
+    <div>
+      <div className="mb-6 flex items-center justify-between gap-10">
+        {/* 왼쪽: 색상 범례 */}
+        <div className="flex flex-wrap gap-4">
+          {Object.entries(VACATION_TYPES).map(([key, value]) => (
+            <div key={key} className="flex items-center gap-2">
+              <div className={`h-4 w-4 rounded ${value.color}`} />
+              <span className="text-sm text-gray-900">{value.name}</span>
+            </div>
+          ))}
         </div>
-      ))}
+
+        {/* 오른쪽: 툴팁 아이콘 */}
+        <div className="text-muted-foreground text-xs">
+          * 휴가 신청 내역에 대해서는{' '}
+          <Settings className="text-muted-foreground mb-0.5 inline h-3 w-3 font-bold" />{' '}
+          <strong>&gt; 마이 페이지 &gt; 휴가 내역</strong> 에서 확인할 수
+          있습니다.
+        </div>
+      </div>
     </div>
   );
 }
@@ -252,7 +267,6 @@ function DayCell({
   isSelected: boolean;
   isToday: boolean;
 }) {
-  // 중첩 3항 없이 명시적 분기
   if (isSelected) {
     return (
       <div className="bg-muted-foreground flex size-5 items-center justify-center rounded-full">
@@ -269,7 +283,6 @@ function DayCell({
     );
   }
 
-  // 기본 표시: 요일에 따라 색상 지정 (일: 빨강, 토: 파랑, 평일: 기존 회색/검정)
   const dow = date.getDay(); // 0=일, 6=토
   let colorClass = '';
   if (dow === 0) {
@@ -515,7 +528,7 @@ export default function LeavesCalendar() {
 
       setVacations(res.leaves ?? []);
     } catch (error) {
-      console.error('휴가 데이터 불러오기 실패', error);
+      console.error('휴가 조회 실패:', error);
     }
   }, [currentDate]);
 
@@ -537,7 +550,6 @@ export default function LeavesCalendar() {
         Number.isNaN(start.getTime()) ||
         Number.isNaN(end.getTime())
       ) {
-        console.warn('Invalid date in vacation:', v);
         return;
       }
 
@@ -590,12 +602,12 @@ export default function LeavesCalendar() {
       const { type, startDate, endDate, reason } = formData;
 
       if (!type || !startDate) {
-        alert('모든 필수 항목을 입력해주세요.');
+        toast.error('필수 항목을 모두 입력해주세요.');
         return;
       }
 
       if (isReasonRequired() && !reason.trim()) {
-        alert('해당 휴가 종류는 사유를 입력해야 합니다.');
+        toast.error('특별 연차 및 반차는 사유를 필수로 입력해야 합니다.');
         return;
       }
 
@@ -609,7 +621,7 @@ export default function LeavesCalendar() {
           },
         });
 
-        alert('휴가 신청이 완료되었습니다.');
+        toast.success('휴가 신청이 성공적으로 완료되었습니다.');
         await fetchLeaves();
         setFormData({
           type: '',
@@ -619,8 +631,7 @@ export default function LeavesCalendar() {
         });
         setIsModalOpen(false);
       } catch (error) {
-        console.error('휴가 신청 실패', error);
-        alert('휴가 신청 중 오류가 발생했습니다.');
+        console.error('휴가 신청 실패:', error);
       }
     },
     [formData, isReasonRequired, fetchLeaves],

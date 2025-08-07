@@ -37,6 +37,12 @@ export interface GetLeavesRequest {
     endDate?: Date;
 }
 
+export interface GetLeavesByUserRequest {
+    page?: any;
+    size?: any;
+    sort?: Array<any>;
+}
+
 /**
  * 
  */
@@ -135,8 +141,20 @@ export class LeaveApi extends runtime.BaseAPI {
      * 사용자의 휴가 정보를 조회하는 GET API
      * 사용자 휴가 조회
      */
-    async getLeavesByUserRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserLeaveResponse>> {
+    async getLeavesByUserRaw(requestParameters: GetLeavesByUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserLeaveResponse>> {
         const queryParameters: any = {};
+
+        if (requestParameters['page'] != null) {
+            queryParameters['page'] = requestParameters['page'];
+        }
+
+        if (requestParameters['size'] != null) {
+            queryParameters['size'] = requestParameters['size'];
+        }
+
+        if (requestParameters['sort'] != null) {
+            queryParameters['sort'] = requestParameters['sort'];
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -162,8 +180,8 @@ export class LeaveApi extends runtime.BaseAPI {
      * 사용자의 휴가 정보를 조회하는 GET API
      * 사용자 휴가 조회
      */
-    async getLeavesByUser(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserLeaveResponse> {
-        const response = await this.getLeavesByUserRaw(initOverrides);
+    async getLeavesByUser(requestParameters: GetLeavesByUserRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserLeaveResponse> {
+        const response = await this.getLeavesByUserRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
