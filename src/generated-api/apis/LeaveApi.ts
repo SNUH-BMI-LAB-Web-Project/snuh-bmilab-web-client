@@ -17,12 +17,15 @@ import * as runtime from '../runtime';
 import type {
   ApplyLeaveRequest,
   LeaveFindAllResponse,
+  UserLeaveResponse,
 } from '../models/index';
 import {
     ApplyLeaveRequestFromJSON,
     ApplyLeaveRequestToJSON,
     LeaveFindAllResponseFromJSON,
     LeaveFindAllResponseToJSON,
+    UserLeaveResponseFromJSON,
+    UserLeaveResponseToJSON,
 } from '../models/index';
 
 export interface ApplyLeaveOperationRequest {
@@ -92,11 +95,11 @@ export class LeaveApi extends runtime.BaseAPI {
         const queryParameters: any = {};
 
         if (requestParameters['startDate'] != null) {
-            queryParameters['startDate'] = (requestParameters['startDate'] as any).toISOString();
+            queryParameters['startDate'] = (requestParameters['startDate'] as any).toISOString().substring(0,10);
         }
 
         if (requestParameters['endDate'] != null) {
-            queryParameters['endDate'] = (requestParameters['endDate'] as any).toISOString();
+            queryParameters['endDate'] = (requestParameters['endDate'] as any).toISOString().substring(0,10);
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -132,7 +135,7 @@ export class LeaveApi extends runtime.BaseAPI {
      * 사용자의 휴가 정보를 조회하는 GET API
      * 사용자 휴가 조회
      */
-    async getLeavesByUserRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<LeaveFindAllResponse>> {
+    async getLeavesByUserRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserLeaveResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -152,14 +155,14 @@ export class LeaveApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => LeaveFindAllResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserLeaveResponseFromJSON(jsonValue));
     }
 
     /**
      * 사용자의 휴가 정보를 조회하는 GET API
      * 사용자 휴가 조회
      */
-    async getLeavesByUser(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<LeaveFindAllResponse> {
+    async getLeavesByUser(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserLeaveResponse> {
         const response = await this.getLeavesByUserRaw(initOverrides);
         return await response.value();
     }

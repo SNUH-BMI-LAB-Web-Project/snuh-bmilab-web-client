@@ -20,19 +20,19 @@ import { mapValues } from '../runtime';
  */
 export interface ApplyLeaveRequest {
     /**
-     * 휴가 시작 일시
+     * 휴가 시작일
      * @type {Date}
      * @memberof ApplyLeaveRequest
      */
     startDate: Date;
     /**
-     * 휴가 종료 일시
+     * 휴가 종료일
      * @type {Date}
      * @memberof ApplyLeaveRequest
      */
-    endDate: Date;
+    endDate?: Date;
     /**
-     * 휴가 종류 (예: ANNUAL, SICK, HALF)
+     * 휴가 종류
      * @type {string}
      * @memberof ApplyLeaveRequest
      */
@@ -51,9 +51,11 @@ export interface ApplyLeaveRequest {
  */
 export const ApplyLeaveRequestTypeEnum = {
     Annual: 'ANNUAL',
-    Sick: 'SICK',
-    Half: 'HALF',
-    Etc: 'ETC'
+    HalfAm: 'HALF_AM',
+    HalfPm: 'HALF_PM',
+    SpecialHalfAm: 'SPECIAL_HALF_AM',
+    SpecialHalfPm: 'SPECIAL_HALF_PM',
+    SpecialAnnual: 'SPECIAL_ANNUAL'
 } as const;
 export type ApplyLeaveRequestTypeEnum = typeof ApplyLeaveRequestTypeEnum[keyof typeof ApplyLeaveRequestTypeEnum];
 
@@ -63,7 +65,6 @@ export type ApplyLeaveRequestTypeEnum = typeof ApplyLeaveRequestTypeEnum[keyof t
  */
 export function instanceOfApplyLeaveRequest(value: object): value is ApplyLeaveRequest {
     if (!('startDate' in value) || value['startDate'] === undefined) return false;
-    if (!('endDate' in value) || value['endDate'] === undefined) return false;
     if (!('type' in value) || value['type'] === undefined) return false;
     return true;
 }
@@ -79,7 +80,7 @@ export function ApplyLeaveRequestFromJSONTyped(json: any, ignoreDiscriminator: b
     return {
         
         'startDate': (new Date(json['startDate'])),
-        'endDate': (new Date(json['endDate'])),
+        'endDate': json['endDate'] == null ? undefined : (new Date(json['endDate'])),
         'type': json['type'],
         'reason': json['reason'] == null ? undefined : json['reason'],
     };
@@ -96,8 +97,8 @@ export function ApplyLeaveRequestToJSONTyped(value?: ApplyLeaveRequest | null, i
 
     return {
         
-        'startDate': ((value['startDate']).toISOString()),
-        'endDate': ((value['endDate']).toISOString()),
+        'startDate': ((value['startDate']).toISOString().substring(0,10)),
+        'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString().substring(0,10)),
         'type': value['type'],
         'reason': value['reason'],
     };

@@ -79,6 +79,7 @@ models/UserEducationRequest.ts
 models/UserEducationSummary.ts
 models/UserFindAllResponse.ts
 models/UserItem.ts
+models/UserLeaveResponse.ts
 models/UserProjectFindAllResponse.ts
 models/UserProjectItem.ts
 models/UserSubAffiliationRequest.ts
