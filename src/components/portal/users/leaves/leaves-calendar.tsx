@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -33,28 +33,20 @@ import {
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
+import { cn, formatDateTimeVer2 } from '@/lib/utils';
+import {
+  ApplyLeaveRequestTypeEnum,
+  LeaveApi,
+  LeaveDetail,
+  LeaveDetailTypeEnum,
+} from '@/generated-api';
+import { getApiConfig } from '@/lib/config';
+
+const leaveApi = new LeaveApi(getApiConfig());
 
 /* =========================
  * Types
  * ======================= */
-type VacationTypeKey =
-  | 'ANNUAL'
-  | 'HALF_AM'
-  | 'HALF_PM'
-  | 'SPECIAL_HALF_AM'
-  | 'SPECIAL_HALF_PM'
-  | 'SPECIAL_ANNUAL';
-
-type Vacation = {
-  id: number;
-  name: string;
-  type: VacationTypeKey;
-  startDate: string; // YYYY-MM-DD
-  endDate: string; // YYYY-MM-DD
-  reason?: string;
-};
-
 type VacationMeta = {
   name: string;
   color: string; // tailwind class
@@ -64,7 +56,7 @@ type VacationMeta = {
 /* =========================
  * Constants
  * ======================= */
-const VACATION_TYPES: Record<VacationTypeKey, VacationMeta> = {
+export const VACATION_TYPES: Record<LeaveDetailTypeEnum, VacationMeta> = {
   ANNUAL: { name: '일반 연차', color: 'bg-blue-200', requireReason: false },
   HALF_AM: {
     name: '일반 반차(오전)',
@@ -110,70 +102,24 @@ const monthNames = [
 
 const weekdayLabels = ['일', '월', '화', '수', '목', '금', '토'] as const;
 
-/* 샘플 데이터 */
-const sampleVacations: Vacation[] = [
-  {
-    id: 1,
-    name: '김철수',
-    type: 'ANNUAL',
-    startDate: '2025-07-02',
-    endDate: '2025-07-03',
-    reason: '개인 사정',
-  },
-  {
-    id: 2,
-    name: '이영희',
-    type: 'HALF_AM',
-    startDate: '2025-07-02',
-    endDate: '2025-07-02',
-    reason: '병원 진료',
-  },
-  {
-    id: 3,
-    name: '박민수',
-    type: 'HALF_AM',
-    startDate: '2025-07-02',
-    endDate: '2025-07-02',
-    reason: '병원 진료',
-  },
-  {
-    id: 4,
-    name: '정수진',
-    type: 'SPECIAL_ANNUAL',
-    startDate: '2025-07-02',
-    endDate: '2025-07-02',
-    reason: '가족 행사',
-  },
-  {
-    id: 5,
-    name: '최동현',
-    type: 'HALF_PM',
-    startDate: '2025-07-02',
-    endDate: '2025-07-02',
-    reason: '개인 업무',
-  },
-  {
-    id: 6,
-    name: '홍길동',
-    type: 'ANNUAL',
-    startDate: '2025-07-15',
-    endDate: '2025-07-17',
-    reason: '여행',
-  },
-  {
-    id: 7,
-    name: '김영수',
-    type: 'SPECIAL_HALF_AM',
-    startDate: '2025-07-20',
-    endDate: '2025-07-20',
-    reason: '개인 사정',
-  },
-];
-
 /* =========================
  * Utils (date helpers)
  * ======================= */
-const toYmd = (d: Date) => d.toISOString().split('T')[0];
+export const toYmd = (d: Date | string | undefined | null): string => {
+  if (!d) throw new Error('Invalid date passed to toYmd (null or undefined)');
+
+  const date = typeof d === 'string' ? new Date(d) : d;
+
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    throw new Error('Invalid date passed to toYmd');
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // 0-indexed
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`; // 로컬 기준 YMD
+};
 
 const isSameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
 
@@ -225,16 +171,58 @@ const fromYmdLocal = (s?: string) => {
   return new Date(y, m - 1, d);
 };
 
-type SegmentKind = 'single' | 'start' | 'middle' | 'end';
+const getVacationSegmentKind = (
+  vacation: LeaveDetail,
+  targetDate: Date,
+): 'start' | 'end' | 'single' | 'middle' => {
+  const start = vacation.startDate ? new Date(vacation.startDate) : null;
+  const end = vacation.endDate ? new Date(vacation.endDate) : start;
 
-function getVacationSegmentKind(v: Vacation, date: Date): SegmentKind | null {
-  const ymd = toYmd(date);
-  if (ymd < v.startDate || ymd > v.endDate) return null;
+  if (
+    !start ||
+    !end ||
+    Number.isNaN(start.getTime()) ||
+    Number.isNaN(end.getTime())
+  ) {
+    console.warn('Invalid vacation date:', vacation);
+    return 'single'; // fallback
+  }
 
-  if (v.startDate === v.endDate) return 'single';
-  if (ymd === v.startDate) return 'start';
-  if (ymd === v.endDate) return 'end';
+  const target = toYmd(targetDate);
+  const sd = toYmd(start);
+  const ed = toYmd(end);
+
+  if (sd === ed && sd === target) return 'single';
+  if (sd === target) return 'start';
+  if (ed === target) return 'end';
   return 'middle';
+};
+
+export function getCalendarDateRange(current: Date): {
+  startDate: string;
+  endDate: string;
+} {
+  const firstDayOfMonth = new Date(
+    current.getFullYear(),
+    current.getMonth(),
+    1,
+  );
+  const lastDayOfMonth = new Date(
+    current.getFullYear(),
+    current.getMonth() + 1,
+    0,
+  );
+
+  const gridStart = new Date(firstDayOfMonth);
+  gridStart.setDate(gridStart.getDate() - gridStart.getDay()); // 일요일로 보정
+
+  const gridEnd = new Date(lastDayOfMonth);
+  gridEnd.setDate(gridEnd.getDate() + (6 - gridEnd.getDay())); // 토요일로 보정
+
+  return {
+    startDate: toYmd(gridStart),
+    endDate: toYmd(gridEnd),
+  };
 }
 
 /* =========================
@@ -347,55 +335,61 @@ export function SingleDayPill({
   v,
 }: {
   meta: VacationMeta;
-  v: Vacation;
+  v: LeaveDetail;
 }) {
   return (
     <BasePill
       color={meta.color}
-      name={v.name}
+      name={v.user!.name!}
       label={meta.name}
       className="mx-1 rounded"
-      title={`${v.name} - ${meta.name}${v.reason ? ` (${v.reason})` : ''}`}
+      title={`${v.user!.name!} - ${meta.name}${v.reason ? ` (${v.reason})` : ''}`}
     />
   );
 }
 
-export function StartPill({ meta, v }: { meta: VacationMeta; v: Vacation }) {
+export function StartPill({ meta, v }: { meta: VacationMeta; v: LeaveDetail }) {
   return (
     <BasePill
       color={meta.color}
-      name={v.name}
+      name={v.user!.name!}
       label={meta.name}
       className="-mr-px ml-1 rounded-l rounded-r-none"
-      title={`${v.name} - ${meta.name}${v.reason ? ` (${v.reason})` : ''}`}
+      title={`${v.user!.name!} - ${meta.name}${v.reason ? ` (${v.reason})` : ''}`}
     />
   );
 }
 
-export function MiddlePill({ meta, v }: { meta: VacationMeta; v: Vacation }) {
+export function MiddlePill({
+  meta,
+  v,
+}: {
+  meta: VacationMeta;
+  v: LeaveDetail;
+}) {
   return (
     <BasePill
       color={meta.color}
-      name={v.name}
+      name={v.user!.name!}
       label={meta.name}
       hideText
-      ariaLabel={`${v.name} ${meta.name}`}
+      ariaLabel={`${v.user!.name!} ${meta.name}`}
       className="-mx-px rounded-none px-0"
-      title={`${v.name} - ${meta.name}${v.reason ? ` (${v.reason})` : ''}`}
+      title={`${v.user!.name!} - ${meta.name}${v.reason ? ` (${v.reason})` : ''}`}
     />
   );
 }
 
-export function EndPill({ meta, v }: { meta: VacationMeta; v: Vacation }) {
+export function EndPill({ meta, v }: { meta: VacationMeta; v: LeaveDetail }) {
   return (
     <BasePill
       color={meta.color}
-      name={v.name}
+      name={v.user!.name!}
       label={meta.name}
       hideText
-      ariaLabel={`${v.name} ${meta.name}`}
+      ariaLabel={`${v.user!.name!} ${meta.name}`}
       className="mr-1 -ml-px rounded-l-none rounded-r px-0"
-      title={`${v.name} - ${meta.name}${v.reason ? ` (${v.reason})` : ''}`}
+      title={`${v.user!.name!} - ${meta.name}${v.reason ? ` (${v.reason})` : ''}`}
     />
   );
 }
@@ -406,7 +400,7 @@ function Sidebar({
   onClose,
 }: {
   selectedDate: Date | null;
-  vacations: Vacation[];
+  vacations: LeaveDetail[];
   onClose: () => void;
 }) {
   const selectedDateText =
@@ -436,25 +430,44 @@ function Sidebar({
           </p>
         ) : (
           vacations.map((v) => {
-            const meta = VACATION_TYPES[v.type];
+            const meta = VACATION_TYPES[v.type || LeaveDetailTypeEnum.Annual];
             return (
-              <div key={v.id} className="mr-6 ml-2 border-b pt-2 pb-4">
+              <div key={v.leaveId} className="mr-6 ml-2 border-b pt-2 pb-4">
                 <div className="mb-1 flex items-center gap-2">
-                  <div className={`size-3 rounded ${meta.color}`} />
-                  <div className="flex items-center gap-1 text-sm font-medium">
-                    {v.name}{' '}
-                    <span className="text-muted-foreground text-xs">
-                      example123@example.com
-                    </span>
+                  <div
+                    className={`size-3 flex-shrink-0 rounded ${meta.color}`}
+                  />
+
+                  <div className="flex flex-col text-sm font-medium sm:flex-row sm:items-center sm:gap-2">
+                    {/* 이름: truncate 적용 */}
+                    <div className="max-w-[160px] truncate whitespace-nowrap">
+                      {v.user!.name}
+                    </div>
+
+                    {/* 이메일: 줄바꿈 허용 + 항상 보이도록 별도 block으로 분리 */}
+                    <div className="text-muted-foreground text-xs break-words">
+                      {v.user!.email}
+                    </div>
                   </div>
                 </div>
                 <div className="text-muted-foreground mb-1 ml-6 text-xs">
                   {meta.name}
                 </div>
                 <div className="text-muted-foreground ml-6 text-xs">
-                  {v.startDate === v.endDate
-                    ? v.startDate
-                    : `${v.startDate} ~ ${v.endDate}`}
+                  {(() => {
+                    if (!v.startDate) return '날짜 정보 없음';
+
+                    const start = formatDateTimeVer2(v.startDate);
+                    const end = v.endDate
+                      ? formatDateTimeVer2(v.endDate)
+                      : null;
+
+                    if (!end || start === end) {
+                      return start;
+                    }
+
+                    return `${start} ~ ${end}`;
+                  })()}
                 </div>
               </div>
             );
@@ -473,18 +486,16 @@ export default function LeavesCalendar() {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
-  const [vacations, setVacations] = useState<Vacation[]>(sampleVacations);
+  const [vacations, setVacations] = useState<LeaveDetail[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [formData, setFormData] = useState<{
-    name: string;
-    type: '' | VacationTypeKey;
+    type: '' | ApplyLeaveRequestTypeEnum;
     startDate: string;
     endDate: string;
     reason: string;
   }>({
-    name: '',
     type: '',
     startDate: '',
     endDate: '',
@@ -495,17 +506,52 @@ export default function LeavesCalendar() {
 
   const days = useMemo(() => generateCalendarDays(currentDate), [currentDate]);
 
+  const fetchLeaves = useCallback(async () => {
+    const { startDate, endDate } = getCalendarDateRange(currentDate);
+    try {
+      const sd = new Date(startDate);
+      const ed = new Date(endDate);
+      const res = await leaveApi.getLeaves({ startDate: sd, endDate: ed });
+
+      setVacations(res.leaves ?? []);
+    } catch (error) {
+      console.error('휴가 데이터 불러오기 실패', error);
+    }
+  }, [currentDate]);
+
+  useEffect(() => {
+    fetchLeaves();
+  }, [fetchLeaves]);
+
   /** 휴가를 날짜별로 빠르게 조회하기 위한 맵 (YYYY-MM-DD → Vacation[]) */
   const vacationsByDateMap = useMemo(() => {
-    const map = new Map<string, Vacation[]>();
+    const map = new Map<string, LeaveDetail[]>();
+
     vacations.forEach((v) => {
-      eachDateRange(v.startDate, v.endDate, (d) => {
+      const start = v.startDate ? new Date(v.startDate) : null;
+      const end = v.endDate ? new Date(v.endDate) : start;
+
+      if (
+        !start ||
+        !end ||
+        Number.isNaN(start.getTime()) ||
+        Number.isNaN(end.getTime())
+      ) {
+        console.warn('Invalid date in vacation:', v);
+        return;
+      }
+
+      const sd = toYmd(start);
+      const ed = toYmd(end);
+
+      eachDateRange(sd, ed, (d) => {
         const key = toYmd(d);
         const list = map.get(key);
         if (list) list.push(v);
         else map.set(key, [v]);
       });
     });
+
     return map;
   }, [vacations]);
 
@@ -538,39 +584,56 @@ export default function LeavesCalendar() {
   }, [formData.type]);
 
   const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
-      const { name, type, startDate, endDate, reason } = formData;
-      if (!name || !type || !startDate || !endDate) {
+
+      const { type, startDate, endDate, reason } = formData;
+
+      if (!type || !startDate) {
         alert('모든 필수 항목을 입력해주세요.');
         return;
       }
+
       if (isReasonRequired() && !reason.trim()) {
         alert('해당 휴가 종류는 사유를 입력해야 합니다.');
         return;
       }
 
-      const newVacation: Vacation = {
-        id: Date.now(),
-        name,
-        type,
-        startDate,
-        endDate,
-        reason: reason.trim() || undefined,
-      };
+      try {
+        await leaveApi.applyLeave({
+          applyLeaveRequest: {
+            type,
+            startDate: new Date(startDate),
+            endDate: endDate ? new Date(endDate) : undefined,
+            reason: reason.trim() || undefined,
+          },
+        });
 
-      setVacations((prev) => [...prev, newVacation]);
-      setFormData({
-        name: '',
-        type: '',
-        startDate: '',
-        endDate: '',
-        reason: '',
-      });
-      setIsModalOpen(false);
+        alert('휴가 신청이 완료되었습니다.');
+        await fetchLeaves();
+        setFormData({
+          type: '',
+          startDate: '',
+          endDate: '',
+          reason: '',
+        });
+        setIsModalOpen(false);
+      } catch (error) {
+        console.error('휴가 신청 실패', error);
+        alert('휴가 신청 중 오류가 발생했습니다.');
+      }
     },
-    [formData, isReasonRequired],
+    [formData, isReasonRequired, fetchLeaves],
   );
+
+  const isHalfDayType = useCallback(() => {
+    return (
+      formData.type === ApplyLeaveRequestTypeEnum.HalfAm ||
+      formData.type === ApplyLeaveRequestTypeEnum.HalfPm ||
+      formData.type === ApplyLeaveRequestTypeEnum.SpecialHalfAm ||
+      formData.type === ApplyLeaveRequestTypeEnum.SpecialHalfPm
+    );
+  }, [formData.type]);
 
   return (
     <div className="mx-auto flex max-w-7xl bg-white">
@@ -615,12 +678,19 @@ export default function LeavesCalendar() {
                     </Label>
                     <Select
                       value={formData.type}
-                      onValueChange={(value) =>
+                      onValueChange={(value) => {
+                        const isHalf =
+                          value === ApplyLeaveRequestTypeEnum.HalfAm ||
+                          value === ApplyLeaveRequestTypeEnum.HalfPm ||
+                          value === ApplyLeaveRequestTypeEnum.SpecialHalfAm ||
+                          value === ApplyLeaveRequestTypeEnum.SpecialHalfPm;
+
                         setFormData((s) => ({
                           ...s,
-                          type: value as VacationTypeKey,
-                        }))
-                      }
+                          type: value as ApplyLeaveRequestTypeEnum,
+                          endDate: isHalf ? '' : s.endDate,
+                        }));
+                      }}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="휴가 종류를 선택하세요" />
@@ -695,15 +765,15 @@ export default function LeavesCalendar() {
 
                     {/* 종료일 */}
                     <div className="space-y-2">
-                      <Label htmlFor="endDate">
-                        종료일 <span className="text-xs text-white">*</span>
-                      </Label>
+                      <Label htmlFor="endDate">종료일</Label>
+
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             id="endDate"
                             variant="outline"
                             className="w-full justify-start text-left font-normal"
+                            disabled={isHalfDayType()}
                           >
                             <CalendarIcon
                               className={cn(
@@ -835,23 +905,48 @@ export default function LeavesCalendar() {
 
                   {/* 휴가 리스트: 위부터 쌓임 */}
                   <div className="flex flex-col justify-start gap-1">
-                    {[...displayVacations] // 기존 displayVacations 그대로 사용
-                      .sort((a, b) => a.id - b.id)
+                    {[...displayVacations]
+                      .sort((a, b) => {
+                        const kindA = getVacationSegmentKind(a, day);
+                        const kindB = getVacationSegmentKind(b, day);
+                        const kindOrder = {
+                          start: 0,
+                          middle: 1,
+                          end: 2,
+                          single: 3,
+                        };
+                        const orderA = kindOrder[kindA!] ?? 99;
+                        const orderB = kindOrder[kindB!] ?? 99;
+                        if (orderA !== orderB) return orderA - orderB;
+                        return a.leaveId! - b.leaveId!;
+                      })
                       .map((v) => {
-                        const meta = VACATION_TYPES[v.type];
+                        const meta = VACATION_TYPES[v.type!];
                         const kind = getVacationSegmentKind(v, day);
                         if (!kind) return null;
 
-                        if (kind === 'single') {
-                          return <SingleDayPill key={v.id} meta={meta} v={v} />;
+                        switch (kind) {
+                          case 'single':
+                            return (
+                              <SingleDayPill
+                                key={v.leaveId}
+                                meta={meta}
+                                v={v}
+                              />
+                            );
+                          case 'start':
+                            return (
+                              <StartPill key={v.leaveId} meta={meta} v={v} />
+                            );
+                          case 'end':
+                            return (
+                              <EndPill key={v.leaveId} meta={meta} v={v} />
+                            );
+                          default:
+                            return (
+                              <MiddlePill key={v.leaveId} meta={meta} v={v} />
+                            );
                         }
-                        if (kind === 'start') {
-                          return <StartPill key={v.id} meta={meta} v={v} />;
-                        }
-                        if (kind === 'end') {
-                          return <EndPill key={v.id} meta={meta} v={v} />;
-                        }
-                        return <MiddlePill key={v.id} meta={meta} v={v} />;
                       })}
                     {hasMore && (
                       <div className="bg-border/70 text-muted-foreground mx-1 rounded px-2 py-1 text-center text-xs">
