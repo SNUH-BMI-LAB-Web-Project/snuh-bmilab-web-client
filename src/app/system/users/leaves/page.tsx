@@ -3,8 +3,8 @@ import React from 'react';
 
 export default function LeavesPage() {
   return (
-    <div className="mb-8 flex flex-col">
-      <h1 className="text-3xl font-bold">휴가 관리</h1>
+    <div>
+      <h1 className="mb-6 text-3xl font-bold">휴가 관리</h1>
       <LeavesAdmin />
     </div>
   );
