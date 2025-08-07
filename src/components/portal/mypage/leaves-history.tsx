@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -17,141 +17,54 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Calendar, AlertCircle, Clock, Plane, Coffee } from 'lucide-react';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import {
+  Calendar,
+  AlertCircle,
+  Clock,
+  ChevronsLeft,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsRight,
+} from 'lucide-react';
 import { formatDateTimeVer2, formatDateTimeVer5 } from '@/lib/utils';
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { LeaveStatCard } from '@/components/common/leaves-stat-card';
+import {
+  LeaveApi,
+  type LeaveDetail,
+  LeaveDetailTypeEnum,
+  UserLeaveResponse,
+} from '@/generated-api';
+import {
+  leaveStatusColorMap,
+  leaveStatusLabelMap,
+  leaveTyoeLabelMap,
+} from '@/constants/leave-enum';
+import { getApiConfig } from '@/lib/config';
+import { LeaveOverview } from '@/components/portal/mypage/leave-overview';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
-type VacationTypeKey =
-  | 'ANNUAL'
-  | 'HALF_AM'
-  | 'HALF_PM'
-  | 'SPECIAL_HALF_AM'
-  | 'SPECIAL_HALF_PM'
-  | 'SPECIAL_ANNUAL';
-
-type VacationStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
-
-interface VacationRequest {
-  id: string;
-  type: VacationTypeKey;
-  startDate: string;
-  endDate: string;
-  reason?: string;
-  status: VacationStatus;
-  appliedAt: string;
-  processedAt?: string;
-  processedBy?: string;
-  rejectReason?: string;
-}
-
-const vacationTypeLabels: Record<VacationTypeKey, string> = {
-  ANNUAL: '일반 연차',
-  HALF_AM: '일반 반차 (오전)',
-  HALF_PM: '일반 반차 (오후)',
-  SPECIAL_ANNUAL: '특별 연차',
-  SPECIAL_HALF_AM: '특별 반차 (오전)',
-  SPECIAL_HALF_PM: '특별 반차 (오후)',
-};
-
-const statusLabels: Record<VacationStatus, string> = {
-  PENDING: '대기',
-  APPROVED: '승인',
-  REJECTED: '반려',
-};
-
-const statusColors: Record<VacationStatus, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  APPROVED: 'bg-green-100 text-green-800',
-  REJECTED: 'bg-red-100 text-red-800',
-};
-
-// 샘플 데이터
-const sampleRequests: VacationRequest[] = [
-  {
-    id: '1',
-    type: 'ANNUAL',
-    startDate: '2024-02-15',
-    endDate: '2024-02-16',
-    status: 'APPROVED',
-    appliedAt: '2024-02-01T09:00:00Z',
-    processedAt: '2024-02-02T10:30:00Z',
-    processedBy: '김팀장',
-  },
-  {
-    id: '2',
-    type: 'SPECIAL_ANNUAL',
-    startDate: '2024-02-20',
-    endDate: '2024-02-20',
-    reason:
-      '가족 경조사로 인한 특별휴가 신청입니다. 할머니 장례식에 참석해야 하며, 지방에 있어 이동시간을 고려하여 하루 종일 휴가가 필요합니다.',
-    status: 'PENDING',
-    appliedAt: '2024-02-02T14:30:00Z',
-  },
-  {
-    id: '3',
-    type: 'HALF_AM',
-    startDate: '2024-02-10',
-    endDate: '2024-02-10',
-    status: 'APPROVED',
-    appliedAt: '2024-01-28T11:15:00Z',
-    processedAt: '2024-01-29T09:00:00Z',
-    processedBy: '이부장',
-  },
-  {
-    id: '4',
-    type: 'SPECIAL_HALF_PM',
-    startDate: '2024-02-08',
-    endDate: '2024-02-08',
-    reason: '정기 건강검진 및 병원 진료',
-    status: 'REJECTED',
-    appliedAt: '2024-01-25T16:45:00Z',
-    processedAt: '2024-01-26T10:30:00Z',
-    processedBy: '박과장',
-    rejectReason:
-      '해당 날짜에 중요한 회의가 예정되어 있어 오후 반차 승인이 어렵습니다. 다른 날짜로 변경 후 재신청 부탁드립니다.',
-  },
-  {
-    id: '5',
-    type: 'ANNUAL',
-    startDate: '2024-02-12',
-    endDate: '2024-02-14',
-    status: 'APPROVED',
-    appliedAt: '2024-01-30T13:20:00Z',
-    processedAt: '2024-01-31T08:45:00Z',
-    processedBy: '최차장',
-  },
-  {
-    id: '6',
-    type: 'HALF_PM',
-    startDate: '2024-01-30',
-    endDate: '2024-01-30',
-    status: 'REJECTED',
-    appliedAt: '2024-01-28T09:00:00Z',
-    processedAt: '2024-01-29T14:20:00Z',
-    processedBy: '김팀장',
-    rejectReason: '업무 일정상 해당 날짜 휴가 불가합니다.',
-  },
-];
+const leaveApi = new LeaveApi(getApiConfig());
 
 function calculateDuration(
-  startDate: string,
-  endDate: string,
-  type: VacationTypeKey,
-) {
-  if (type.includes('HALF')) {
+  startDate: Date,
+  endDate?: Date,
+  type?: LeaveDetailTypeEnum,
+): string {
+  if (type?.includes('HALF')) {
     return '0.5일';
   }
 
-  if (startDate === endDate) {
+  if (!endDate || startDate.getTime() === endDate.getTime()) {
     return '1일';
   }
 
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const diffTime = Math.abs(end.getTime() - start.getTime());
+  const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
   return `${diffDays}일`;
@@ -164,7 +77,7 @@ function LeavesDetailDialog({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  request: VacationRequest | null;
+  request: LeaveDetail | null;
 }) {
   if (!request) return null;
 
@@ -188,21 +101,22 @@ function LeavesDetailDialog({
                 <Calendar className="h-4 w-4" />
                 <span className="font-medium">휴가 종류:</span>
                 <Badge variant="outline" className="bg-white">
-                  {vacationTypeLabels[request.type]}
+                  {leaveTyoeLabelMap[request.type!]}
                 </Badge>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
                 <span className="font-medium">휴가 기간:</span>
                 <span>
-                  {request.startDate === request.endDate
-                    ? formatDateTimeVer2(request.startDate)
-                    : `${formatDateTimeVer2(request.startDate)} ~ ${formatDateTimeVer2(request.endDate)}`}
+                  {!request.endDate || request.startDate === request.endDate
+                    ? formatDateTimeVer2(request.startDate!)
+                    : `${formatDateTimeVer2(request.startDate!)} ~ ${formatDateTimeVer2(request.endDate!)}`}
                 </span>
+
                 <span className="text-primary font-medium">
                   (
                   {calculateDuration(
-                    request.startDate,
+                    request.startDate!,
                     request.endDate,
                     request.type,
                   )}
@@ -211,8 +125,8 @@ function LeavesDetailDialog({
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-medium">상태:</span>
-                <Badge className={statusColors[request.status]}>
-                  {statusLabels[request.status]}
+                <Badge className={leaveStatusColorMap[request.status!]}>
+                  {leaveStatusLabelMap[request.status!]}
                 </Badge>
               </div>
               {request.reason && (
@@ -223,7 +137,7 @@ function LeavesDetailDialog({
               <div className="my-1 border-b" />
               <div className="flex items-center gap-2">
                 <span className="font-medium">신청일:</span>
-                <span>{formatDateTimeVer5(request.appliedAt)}</span>
+                <span>{formatDateTimeVer5(request.applicatedAt!)}</span>
               </div>
               {request.processedAt && (
                 <div className="flex items-center gap-2">
@@ -254,16 +168,38 @@ function LeavesDetailDialog({
     </Dialog>
   );
 }
+interface LeavesTableProps {
+  data: LeaveDetail[];
+  onRowClick: (request: LeaveDetail) => void;
+  showPagination?: boolean;
+  currentPage: number;
+  itemsPerPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  onItemsPerPageChange: (count: number) => void;
+}
+
+const DEFAULT_ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
 
 function LeavesTable({
   data,
   onRowClick,
-}: {
-  data: VacationRequest[];
-  onRowClick: (request: VacationRequest) => void;
-}) {
+  showPagination = true,
+  currentPage,
+  itemsPerPage,
+  totalPages,
+  onPageChange,
+  onItemsPerPageChange,
+}: LeavesTableProps) {
+  const paginatedData = data;
+
+  const changePage = (page: number) => {
+    const clampedPage = Math.min(Math.max(1, page), totalPages);
+    onPageChange(clampedPage);
+  };
+
   return (
-    <TooltipProvider>
+    <div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -283,8 +219,9 @@ function LeavesTable({
               </TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
-            {data.length === 0 ? (
+            {paginatedData.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={7}
@@ -297,33 +234,34 @@ function LeavesTable({
                 </TableCell>
               </TableRow>
             ) : (
-              data.map((request) => (
+              paginatedData.map((request) => (
                 <TableRow
-                  key={request.id}
+                  key={request.leaveId}
                   className="hover:bg-muted/30 h-16 cursor-pointer transition-colors"
                   onClick={() => onRowClick(request)}
                 >
                   <TableCell className="min-w-[80px] py-4 text-center">
                     <Badge
-                      className={`${statusColors[request.status]} font-medium`}
+                      className={`${leaveStatusColorMap[request.status!]} font-medium`}
                     >
-                      {statusLabels[request.status]}
+                      {leaveStatusLabelMap[request.status!]}
                     </Badge>
                   </TableCell>
                   <TableCell className="min-w-[140px] py-4 text-center">
                     <Badge variant="outline" className="whitespace-nowrap">
-                      {vacationTypeLabels[request.type]}
+                      {leaveTyoeLabelMap[request.type!]}
                     </Badge>
                   </TableCell>
                   <TableCell className="min-w-[140px] truncate py-4 text-center">
-                    {request.startDate === request.endDate
-                      ? formatDateTimeVer2(request.startDate)
-                      : `${formatDateTimeVer2(request.startDate)} ~ ${formatDateTimeVer2(request.endDate)}`}
+                    {!request.endDate ||
+                    request.startDate!.getTime() === request.endDate.getTime()
+                      ? formatDateTimeVer2(request.startDate!)
+                      : `${formatDateTimeVer2(request.startDate!)} ~ ${formatDateTimeVer2(request.endDate)}`}
                   </TableCell>
                   <TableCell className="min-w-[80px] py-4 text-center">
                     <span className="text-primary font-medium">
                       {calculateDuration(
-                        request.startDate,
+                        request.startDate!,
                         request.endDate,
                         request.type,
                       )}
@@ -333,7 +271,7 @@ function LeavesTable({
                     {request.reason}
                   </TableCell>
                   <TableCell className="min-w-[140px] truncate py-4 text-center">
-                    {formatDateTimeVer5(request.appliedAt)}
+                    {formatDateTimeVer5(request.applicatedAt!)}
                   </TableCell>
                   <TableCell className="min-w-[140px] truncate py-4 text-center">
                     {request.processedAt ? (
@@ -350,70 +288,110 @@ function LeavesTable({
           </TableBody>
         </Table>
       </div>
-    </TooltipProvider>
-  );
-}
-
-function LeaveOverview() {
-  const annualLeave = 10;
-  const usedLeave = 5;
-  const remainingLeave = annualLeave - usedLeave;
-  const usedRate = Math.round((usedLeave / annualLeave) * 100);
-
-  return (
-    <Card className="border bg-white shadow-none">
-      <CardContent className="p-8">
-        <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <LeaveStatCard
-            icon={<Calendar className="h-6 w-6 text-blue-600" />}
-            value={annualLeave}
-            label="연간 연차"
-            colorScheme="blue"
-          />
-          <LeaveStatCard
-            icon={<Plane className="h-6 w-6 text-red-600" />}
-            value={usedLeave}
-            label="사용한 연차"
-            colorScheme="red"
-          />
-          <LeaveStatCard
-            icon={<Coffee className="h-6 w-6 text-green-600" />}
-            value={remainingLeave}
-            label="남은 연차"
-            colorScheme="green"
-          />
-        </div>
-
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">
-              연차 사용률
+      {showPagination && (
+        <div className="mt-4 flex items-center justify-center">
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => changePage(1)}
+              disabled={currentPage === 1}
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => changePage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm">
+              {currentPage} / {Math.max(1, totalPages)}
             </span>
-            <span className="text-sm text-gray-600">{usedRate}%</span>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => changePage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => changePage(totalPages)}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+            <Select
+              value={itemsPerPage.toString()}
+              onValueChange={(value) => {
+                onItemsPerPageChange(Number(value));
+              }}
+            >
+              <SelectTrigger className="w-[80px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="z-50">
+                {DEFAULT_ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option.toString()}>
+                    {option}개
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Progress value={usedRate} className="h-3" />
-          <p className="text-sm text-gray-500">
-            {remainingLeave}일의 연차가 남아있습니다.
-          </p>
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }
 
 export default function LeavesHistory() {
-  const [requests] = useState<VacationRequest[]>(sampleRequests);
-  const [selectedRequest, setSelectedRequest] =
-    useState<VacationRequest | null>(null);
+  const [requests, setRequests] = useState<LeaveDetail[]>([]);
+  const [annualLeaveCount, setAnnualLeaveCount] = useState<number>(0);
+  const [usedLeaveCount, setUsedLeaveCount] = useState<number>(0);
+  const [selectedRequest, setSelectedRequest] = useState<LeaveDetail | null>(
+    null,
+  );
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
-  const handleRowClick = (request: VacationRequest) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    const fetchLeaves = async () => {
+      try {
+        const res: UserLeaveResponse = await leaveApi.getLeavesByUser({
+          page: currentPage - 1,
+          size: itemsPerPage,
+        });
+
+        setRequests(res.leaves ?? []);
+        setAnnualLeaveCount(res.annualLeaveCount ?? 0);
+        setUsedLeaveCount(res.usedLeaveCount ?? 0);
+
+        setTotalPages(res.totalPage ?? 1);
+      } catch (error) {
+        console.error('휴가 조회 실패:', error);
+      }
+    };
+
+    fetchLeaves();
+  }, [currentPage, itemsPerPage]);
+
+  const handleRowClick = (request: LeaveDetail) => {
     setSelectedRequest(request);
     setIsDetailDialogOpen(true);
   };
 
   return (
     <div className="mb-10 flex flex-col gap-14">
+      {/* 연차 현황 */}
       <div>
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold">휴가 현황</h1>
@@ -421,8 +399,13 @@ export default function LeavesHistory() {
             연차 사용 및 잔여 일수를 한눈에 확인할 수 있습니다.
           </p>
         </div>
-        <LeaveOverview />
+        <LeaveOverview
+          annualLeaveCount={annualLeaveCount}
+          usedLeaveCount={usedLeaveCount}
+        />
       </div>
+
+      {/* 휴가 신청 내역 */}
       <div>
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-bold">휴가 신청 내역</h1>
@@ -431,7 +414,19 @@ export default function LeavesHistory() {
           </p>
         </div>
 
-        <LeavesTable data={requests} onRowClick={handleRowClick} />
+        <LeavesTable
+          data={requests}
+          onRowClick={handleRowClick}
+          showPagination
+          currentPage={currentPage}
+          itemsPerPage={itemsPerPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={(count) => {
+            setItemsPerPage(count);
+            setCurrentPage(1);
+          }}
+        />
 
         <LeavesDetailDialog
           isOpen={isDetailDialogOpen}
