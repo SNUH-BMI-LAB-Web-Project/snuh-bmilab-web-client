@@ -628,7 +628,7 @@ export default function LeavesAdmin() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="space-y-4">
+        <TabsContent value="all" className="space-y-4 [&_th:first-child]:pl-14">
           <PaginatedTable
             data={requests}
             rowKey={(row) => String(row.leaveId)}
@@ -645,7 +645,10 @@ export default function LeavesAdmin() {
           />
         </TabsContent>
 
-        <TabsContent value="pending" className="space-y-4">
+        <TabsContent
+          value="pending"
+          className="space-y-4 [&_th:first-child]:pl-14"
+        >
           <PaginatedTable
             data={requests}
             rowKey={(row) => String(row.leaveId)}
@@ -662,7 +665,10 @@ export default function LeavesAdmin() {
           />
         </TabsContent>
 
-        <TabsContent value="approved" className="space-y-4">
+        <TabsContent
+          value="approved"
+          className="space-y-4 [&_th:first-child]:pl-14"
+        >
           <PaginatedTable
             data={requests}
             rowKey={(row) => String(row.leaveId)}
@@ -679,7 +685,10 @@ export default function LeavesAdmin() {
           />
         </TabsContent>
 
-        <TabsContent value="rejected" className="space-y-4">
+        <TabsContent
+          value="rejected"
+          className="space-y-4 [&_th:first-child]:pl-14"
+        >
           <PaginatedTable
             data={requests}
             rowKey={(row) => String(row.leaveId)}
