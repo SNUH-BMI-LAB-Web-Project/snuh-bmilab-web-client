@@ -55,7 +55,8 @@ export const ApplyLeaveRequestTypeEnum = {
     HalfPm: 'HALF_PM',
     SpecialHalfAm: 'SPECIAL_HALF_AM',
     SpecialHalfPm: 'SPECIAL_HALF_PM',
-    SpecialAnnual: 'SPECIAL_ANNUAL'
+    SpecialAnnual: 'SPECIAL_ANNUAL',
+    All: 'ALL'
 } as const;
 export type ApplyLeaveRequestTypeEnum = typeof ApplyLeaveRequestTypeEnum[keyof typeof ApplyLeaveRequestTypeEnum];
 

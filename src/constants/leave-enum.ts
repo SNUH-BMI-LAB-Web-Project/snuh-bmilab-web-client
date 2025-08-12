@@ -13,6 +13,7 @@ export const leaveTyoeLabelMap: Record<LeaveDetailTypeEnum, string> = {
   SPECIAL_ANNUAL: '특별 연차',
   SPECIAL_HALF_AM: '특별 반차(오전)',
   SPECIAL_HALF_PM: '특별 반차(오후)',
+  ALL: '랩실 전체 휴가',
 };
 
 export const leaveStatusColorMap: Record<LeaveDetailStatusEnum, string> = {

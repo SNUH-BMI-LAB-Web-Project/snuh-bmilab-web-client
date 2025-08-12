@@ -137,6 +137,42 @@ export class ReportApi extends runtime.BaseAPI {
     }
 
     /**
+     * 현재 로그인한 사용자의 업무보고 목록을 엑셀파일로 다운로드할 수 있는 GET API
+     * 내 업무보고 엑셀파일 다운로드
+     */
+    async getExcelFileByCurrentUserRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/reports/excel`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.BlobApiResponse(response);
+    }
+
+    /**
+     * 현재 로그인한 사용자의 업무보고 목록을 엑셀파일로 다운로드할 수 있는 GET API
+     * 내 업무보고 엑셀파일 다운로드
+     */
+    async getExcelFileByCurrentUser(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.getExcelFileByCurrentUserRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
      * 현재 로그인한 사용자의 일일 업무 보고를 조회하는 API
      * 내 일일 업무 보고 조회
      */

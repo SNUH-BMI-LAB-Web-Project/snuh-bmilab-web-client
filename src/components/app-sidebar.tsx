@@ -10,7 +10,6 @@ import {
 import NavUser from '@/components/nav-user';
 
 import { useAuthStore } from '@/store/auth-store';
-import { useShouldShowSidebar } from '@/hooks/use-should-show-sidebar';
 
 const baseNav = [
   {
@@ -48,9 +47,8 @@ const baseNav = [
 
 export function AppSidebar() {
   const { user } = useAuthStore();
-  const shouldShowSidebar = useShouldShowSidebar();
 
-  if (!user || !shouldShowSidebar) {
+  if (!user) {
     return null;
   }
 

@@ -4,7 +4,6 @@ import { Users, Newspaper, FolderSearch, CircleFadingPlus } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
 import { useAuthStore } from '@/store/auth-store';
-import { useShouldShowSidebar } from '@/hooks/use-should-show-sidebar';
 
 const baseNav = [
   {
@@ -43,9 +42,8 @@ const baseNav = [
 
 export function SystemSidebar() {
   const { user } = useAuthStore();
-  const shouldShowSidebar = useShouldShowSidebar();
 
-  if (!user || !shouldShowSidebar) {
+  if (!user) {
     return null;
   }
 
