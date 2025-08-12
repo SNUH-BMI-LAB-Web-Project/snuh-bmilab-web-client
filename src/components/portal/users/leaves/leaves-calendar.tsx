@@ -708,23 +708,22 @@ export default function LeavesCalendar() {
     let cancelled = false;
 
     (async () => {
-      const y = currentDate.getFullYear();
       try {
-        const res = await fetch(`/api/holidays?y=${y}&around=1`, {
+        const res = await fetch(`/api/holidays?y=${currentYear}&around=1`, {
           cache: 'force-cache',
         });
 
         if (!res.ok) {
-          const body = await res.text().catch(() => '');
-          console.error(`[holidays] ${res.status} ${res.statusText}`, body);
+          const text = await res.text();
+          console.error('GET /api/holidays failed:', res.status, text);
           if (!cancelled) setHolidays([]);
           return;
         }
 
         const data: HolidayLite[] = await res.json();
         if (!cancelled) setHolidays(data);
-      } catch (err) {
-        console.error('[holidays] fetch failed:', err);
+      } catch (e) {
+        console.error('GET /api/holidays threw:', e);
         if (!cancelled) setHolidays([]);
       }
     })();

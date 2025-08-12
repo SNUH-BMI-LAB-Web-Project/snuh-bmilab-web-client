@@ -1,58 +1,72 @@
-import { NextResponse } from 'next/server';
-import os from 'os';
-import path from 'path';
-import fs from 'fs/promises';
+import type { NextRequest } from 'next/server';
+
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 type HolidayLite = { date: string; name: string };
 
-export async function GET(req: Request) {
+let modPromise: Promise<typeof import('@kokr/date')> | null = null;
+
+async function ensureDenostackHomeReady() {
+  if (!process.env.HOME) process.env.HOME = '/tmp';
+
+  const home = os.homedir() || '/tmp';
+  const denoDir = path.join(home, '.denostack');
+
+  try {
+    fs.mkdirSync(denoDir, { recursive: true });
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[holidays] mkdir failed:', err);
+    }
+  }
+}
+
+async function getKokr() {
+  await ensureDenostackHomeReady();
+  if (!modPromise) {
+    modPromise = import('@kokr/date');
+  }
+  return modPromise;
+}
+
+export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const y = Number(searchParams.get('y'));
-    const around = Number(searchParams.get('around') ?? '0');
-
-    if (!Number.isInteger(y)) {
-      return NextResponse.json(
-        { error: '`y` must be an integer' },
-        { status: 400 },
-      );
-    }
-    if (!Number.isInteger(around) || around < 0 || around > 5) {
-      return NextResponse.json(
-        { error: '`around` must be 0~5' },
-        { status: 400 },
-      );
-    }
-
-    process.env.HOME ||= '/tmp';
-    const denoRoot = path.join(os.homedir(), '.denostack');
-    await fs.mkdir(denoRoot, { recursive: true });
-
-    const { getHolidays, DateKind } = await import('@kokr/date');
-
-    const years: number[] = Array.from(
-      { length: around * 2 + 1 },
-      (_, i) => y - around + i,
+    const y = Number(searchParams.get('y') ?? new Date().getFullYear());
+    const around = Math.max(
+      0,
+      Math.min(3, Number(searchParams.get('around') ?? 0)),
     );
 
-    const lists = await Promise.all(years.map((year) => getHolidays(year)));
+    const { getHolidays, DateKind } = await getKokr();
 
-    const out: HolidayLite[] = lists
+    const years = new Set<number>([y]);
+    for (let i = 1; i <= around; i += 1) {
+      years.add(y - i);
+      years.add(y + i);
+    }
+
+    const lists = await Promise.all([...years].map((yy) => getHolidays(yy)));
+
+    const all: HolidayLite[] = lists
       .flat()
       .filter((d) => d.kind === DateKind.Holiday)
       .map((d) => ({ date: d.date, name: d.name }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
-    return NextResponse.json(out, {
-      headers: {
-        'cache-control': 'public, max-age=86400, stale-while-revalidate=604800',
-      },
-    });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error('[api/holidays] failed:', message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    all.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    return Response.json(all, { status: 200 });
+  } catch (err) {
+    console.error('[GET /api/holidays] failed:', err);
+    return Response.json(
+      { error: 'failed_to_fetch_holidays' },
+      { status: 500 },
+    );
   }
 }
