@@ -43,6 +43,7 @@ import {
 } from '@/generated-api';
 import { getApiConfig } from '@/lib/config';
 import { toast } from 'sonner';
+import { useAuthStore } from '@/store/auth-store';
 
 const leaveApi = new LeaveApi(getApiConfig());
 
@@ -84,6 +85,11 @@ export const VACATION_TYPES: Record<LeaveDetailTypeEnum, VacationMeta> = {
     name: '특별 반차(오후)',
     color: 'bg-orange-200',
     requireReason: true,
+  },
+  ALL: {
+    name: '랩실 전체 휴가',
+    color: 'bg-red-400 text-white',
+    requireReason: false,
   },
 };
 
@@ -239,7 +245,9 @@ function Legend() {
           {Object.entries(VACATION_TYPES).map(([key, value]) => (
             <div key={key} className="flex items-center gap-2">
               <div className={`h-4 w-4 rounded ${value.color}`} />
-              <span className="text-sm text-gray-900">{value.name}</span>
+              <span className="text-sm text-xs text-gray-900">
+                {value.name}
+              </span>
             </div>
           ))}
         </div>
@@ -261,31 +269,54 @@ function DayCell({
   isCurrentMonth,
   isSelected,
   isToday,
+  holidayName,
 }: {
   date: Date;
   isCurrentMonth: boolean;
   isSelected: boolean;
   isToday: boolean;
+  holidayName?: string;
 }) {
+  const dayNumber = date.getDate();
+  const holidayTextClass = isCurrentMonth ? 'text-red-600' : 'text-red-300';
+
   if (isSelected) {
+    // 선택일: 숫자는 선택 스타일 유지, 공휴일 이름만 월 여부에 따라 빨강 농도
     return (
-      <div className="bg-muted-foreground flex size-5 items-center justify-center rounded-full">
-        <span className="text-xs text-white">{date.getDate()}</span>
+      <div className="flex items-center gap-1 rounded-full">
+        <span className="bg-muted-foreground flex size-5 items-center justify-center rounded-full text-xs text-white">
+          {dayNumber}
+        </span>
+        {holidayName && (
+          <span className={`text-xs whitespace-nowrap ${holidayTextClass}`}>
+            {holidayName}
+          </span>
+        )}
       </div>
     );
   }
 
   if (isToday) {
+    // 오늘: 숫자는 오늘 스타일 유지, 공휴일 이름만 월 여부에 따라 빨강 농도
     return (
-      <div className="flex size-5 items-center justify-center rounded-full bg-blue-500">
-        <span className="text-xs text-white">{date.getDate()}</span>
+      <div className="flex items-center gap-1 rounded-full">
+        <span className="flex size-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
+          {dayNumber}
+        </span>
+        {holidayName && (
+          <span className={`text-xs whitespace-nowrap ${holidayTextClass}`}>
+            {holidayName}
+          </span>
+        )}
       </div>
     );
   }
 
-  const dow = date.getDay(); // 0=일, 6=토
+  // 숫자 색상 계산 (공휴일 또는 일요일 빨강, 토요일 파랑, 평일 회색)
+  const isHoliday = Boolean(holidayName);
+  const dow = date.getDay();
   let colorClass = '';
-  if (dow === 0) {
+  if (isHoliday || dow === 0) {
     colorClass = isCurrentMonth ? 'text-red-600' : 'text-red-300';
   } else if (dow === 6) {
     colorClass = isCurrentMonth ? 'text-blue-600' : 'text-blue-300';
@@ -294,11 +325,18 @@ function DayCell({
   }
 
   return (
-    <span
-      className={`flex size-5 items-center justify-center rounded-full text-xs ${colorClass}`}
-    >
-      {date.getDate()}
-    </span>
+    <div className="flex items-center gap-1 rounded-full">
+      <span
+        className={`flex size-5 items-center justify-center rounded-full text-xs ${colorClass}`}
+      >
+        {dayNumber}
+      </span>
+      {holidayName && (
+        <span className={`text-xs whitespace-nowrap ${holidayTextClass}`}>
+          {holidayName}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -325,7 +363,7 @@ export function BasePill({
     <div
       className={cn(
         color,
-        'relative z-10 truncate px-2 py-1 text-xs text-gray-800',
+        'relative z-10 truncate px-2 py-1 text-xs',
         hideText && 'flex h-6 items-center px-0',
         className,
       )}
@@ -411,14 +449,16 @@ function Sidebar({
   selectedDate,
   vacations,
   onClose,
+  holidayName,
 }: {
   selectedDate: Date | null;
   vacations: LeaveDetail[];
   onClose: () => void;
+  holidayName?: string;
 }) {
   const selectedDateText =
     selectedDate &&
-    `${selectedDate.getFullYear()}년 ${monthNames[selectedDate.getMonth()]} ${selectedDate.getDate()}일`;
+    `${selectedDate.getFullYear()}년 ${monthNames[selectedDate.getMonth()]} ${selectedDate.getDate()}일 (${weekdayLabels[selectedDate.getDay()]})`;
 
   return (
     <div className="absolute right-0 h-full w-1/4 border-l bg-white py-4 pr-2 pl-6">
@@ -426,6 +466,11 @@ function Sidebar({
         <div className="flex items-center gap-2">
           <CalendarIcon className="h-5 w-5" />
           <h2 className="text-lg font-semibold">{selectedDateText}</h2>
+          {holidayName && (
+            <span className="text-sm whitespace-nowrap text-red-600">
+              {holidayName}
+            </span>
+          )}
         </div>
         <Button variant="ghost" size="sm" onClick={onClose}>
           <X className="h-4 w-4" />
@@ -495,6 +540,7 @@ function Sidebar({
  * Main Component
  * ======================= */
 export default function LeavesCalendar() {
+  const role = useAuthStore((s) => s.role);
   const [currentDate, setCurrentDate] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -646,11 +692,36 @@ export default function LeavesCalendar() {
     );
   }, [formData.type]);
 
+  type HolidayLite = { date: string; name: string };
+
+  const [holidays, setHolidays] = useState<HolidayLite[]>([]);
+
+  const holidaysMap = useMemo(() => {
+    const map = new Map<string, HolidayLite>();
+    holidays.forEach((h) => map.set(h.date, h));
+    return map;
+  }, [holidays]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const y = currentDate.getFullYear();
+      const res = await fetch(`/api/holidays?y=${y}&around=1`, {
+        cache: 'force-cache',
+      });
+      const data: HolidayLite[] = await res.json();
+      if (!cancelled) setHolidays(data);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentDate]);
+
   return (
     <div className="mx-auto flex max-w-7xl bg-white">
       {/* 메인 캘린더 영역 */}
       <div
-        className={`relative transition-all duration-300 ${isSidebarOpen ? 'w-3/4' : 'w-full'}`}
+        className={`relative px-10 transition-all duration-300 ${isSidebarOpen ? 'w-3/4' : 'w-full'}`}
       >
         {/* 헤더 */}
         <div className="relative mt-10 mb-6 flex items-center justify-center">
@@ -707,16 +778,20 @@ export default function LeavesCalendar() {
                         <SelectValue placeholder="휴가 종류를 선택하세요" />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.entries(VACATION_TYPES).map(([key, value]) => (
-                          <SelectItem key={key} value={key}>
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={`h-3 w-3 rounded ${value.color}`}
-                              />
-                              {value.name}
-                            </div>
-                          </SelectItem>
-                        ))}
+                        {Object.entries(VACATION_TYPES)
+                          .filter(([key]) =>
+                            key === 'ALL' ? role === 'ADMIN' : true,
+                          )
+                          .map(([key, value]) => (
+                            <SelectItem key={key} value={key}>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`h-3 w-3 rounded ${value.color}`}
+                                />
+                                {value.name}
+                              </div>
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -891,9 +966,32 @@ export default function LeavesCalendar() {
                 ? isSameDay(day, selectedDate)
                 : false;
 
-              const dayVacations = vacationsByDateMap.get(toYmd(day)) ?? [];
-              const displayVacations = dayVacations.slice(0, 3);
-              const hasMore = dayVacations.length > 3;
+              const dayVacationsRaw = vacationsByDateMap.get(toYmd(day)) ?? [];
+              const sortedDayVacations = [...dayVacationsRaw].sort((a, b) => {
+                const aIsAll = String(a.type) === 'ALL';
+                const bIsAll = String(b.type) === 'ALL';
+                if (aIsAll !== bIsAll) return aIsAll ? -1 : 1;
+
+                const kindA = getVacationSegmentKind(a, day);
+                const kindB = getVacationSegmentKind(b, day);
+                const kindOrder = {
+                  start: 0,
+                  middle: 1,
+                  end: 2,
+                  single: 3,
+                } as const;
+                const orderA = kindOrder[kindA] ?? 99;
+                const orderB = kindOrder[kindB] ?? 99;
+                if (orderA !== orderB) return orderA - orderB;
+
+                return (a.leaveId ?? 0) - (b.leaveId ?? 0);
+              });
+
+              const displayVacations = sortedDayVacations.slice(0, 3);
+              const hasMore = sortedDayVacations.length > 3;
+
+              const holiday = holidaysMap.get(toYmd(day));
+              const holidayName = holiday?.name;
 
               return (
                 <button
@@ -911,57 +1009,37 @@ export default function LeavesCalendar() {
                       isCurrentMonth={isCurrentMonth}
                       isSelected={isSelectedFlag}
                       isToday={isTodayFlag && !isSelectedFlag}
+                      holidayName={holidayName}
                     />
                   </div>
 
                   {/* 휴가 리스트: 위부터 쌓임 */}
                   <div className="flex flex-col justify-start gap-1">
-                    {[...displayVacations]
-                      .sort((a, b) => {
-                        const kindA = getVacationSegmentKind(a, day);
-                        const kindB = getVacationSegmentKind(b, day);
-                        const kindOrder = {
-                          start: 0,
-                          middle: 1,
-                          end: 2,
-                          single: 3,
-                        };
-                        const orderA = kindOrder[kindA!] ?? 99;
-                        const orderB = kindOrder[kindB!] ?? 99;
-                        if (orderA !== orderB) return orderA - orderB;
-                        return a.leaveId! - b.leaveId!;
-                      })
-                      .map((v) => {
-                        const meta = VACATION_TYPES[v.type!];
-                        const kind = getVacationSegmentKind(v, day);
-                        if (!kind) return null;
+                    {displayVacations.map((v) => {
+                      const meta = VACATION_TYPES[v.type!];
+                      const kind = getVacationSegmentKind(v, day);
+                      if (!kind) return null;
 
-                        switch (kind) {
-                          case 'single':
-                            return (
-                              <SingleDayPill
-                                key={v.leaveId}
-                                meta={meta}
-                                v={v}
-                              />
-                            );
-                          case 'start':
-                            return (
-                              <StartPill key={v.leaveId} meta={meta} v={v} />
-                            );
-                          case 'end':
-                            return (
-                              <EndPill key={v.leaveId} meta={meta} v={v} />
-                            );
-                          default:
-                            return (
-                              <MiddlePill key={v.leaveId} meta={meta} v={v} />
-                            );
-                        }
-                      })}
+                      switch (kind) {
+                        case 'single':
+                          return (
+                            <SingleDayPill key={v.leaveId} meta={meta} v={v} />
+                          );
+                        case 'start':
+                          return (
+                            <StartPill key={v.leaveId} meta={meta} v={v} />
+                          );
+                        case 'end':
+                          return <EndPill key={v.leaveId} meta={meta} v={v} />;
+                        default:
+                          return (
+                            <MiddlePill key={v.leaveId} meta={meta} v={v} />
+                          );
+                      }
+                    })}
                     {hasMore && (
                       <div className="bg-border/70 text-muted-foreground mx-1 rounded px-2 py-1 text-center text-xs">
-                        + {dayVacations.length - 3}명
+                        + {sortedDayVacations.length - 3}명
                       </div>
                     )}
                   </div>
@@ -978,6 +1056,11 @@ export default function LeavesCalendar() {
           selectedDate={selectedDate}
           vacations={selectedDateVacations}
           onClose={() => setIsSidebarOpen(false)}
+          holidayName={
+            selectedDate
+              ? holidaysMap.get(toYmd(selectedDate))?.name
+              : undefined
+          }
         />
       )}
     </div>
