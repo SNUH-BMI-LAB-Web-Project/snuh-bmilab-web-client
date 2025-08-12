@@ -1,57 +1,82 @@
-import { NextResponse, NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-process.env.HOME ||= '/tmp';
-
-interface MemoryStorage {
-  length: number;
-  key(i: number): string | null;
-  getItem(k: string): string | null;
-  setItem(k: string, v: string): void;
-  removeItem(k: string): void;
-  clear(): void;
+/* eslint-disable vars-on-top */
+declare global {
+  // eslint-disable-next-line no-var
+  var memStore: Map<string, string> | undefined;
+  type StorageLike = {
+    readonly length: number;
+    key: (i: number) => string | null;
+    getItem: (k: string) => string | null;
+    setItem: (k: string, v: string) => void;
+    removeItem: (k: string) => void;
+    clear: () => void;
+  };
+  // eslint-disable-next-line no-var
+  var serverLocalStorage: StorageLike | undefined;
 }
 
-const memStore = new Map<string, string>();
-const g = globalThis as { localStorage?: MemoryStorage };
-g.localStorage ??= {
-  get length() {
-    return memStore.size;
-  },
-  key: (i) => Array.from(memStore.keys())[i] ?? null,
-  getItem: (k) => memStore.get(k) ?? null,
-  setItem: (k, v) => {
-    memStore.set(k, v);
-  },
-  removeItem: (k) => {
-    memStore.delete(k);
-  },
-  clear: () => {
-    memStore.clear();
-  },
-};
-
-type HolidayLite = { date: string; name: string };
-
-function parseIntStrict(v: string | null, fallback: number) {
+function parseIntStrict(v: string | null, fallback: number): number {
   if (!v) return fallback;
   const n = Number.parseInt(v, 10);
   return Number.isFinite(n) ? n : fallback;
 }
 
-export async function GET(req: NextRequest) {
-  try {
-    const { getHolidays, DateKind } = await import('@kokr/date');
+type HolidayLite = { date: string; name: string };
 
+function ensureServerStorage(): void {
+  if (!globalThis.memStore) {
+    globalThis.memStore = new Map<string, string>();
+  }
+  if (!globalThis.serverLocalStorage) {
+    const store = globalThis.memStore;
+    globalThis.serverLocalStorage = {
+      get length() {
+        return store?.size ?? 0;
+      },
+      key: (i: number) =>
+        store ? (Array.from(store.keys())[i] ?? null) : null,
+      getItem: (k: string) => (store ? (store.get(k) ?? null) : null),
+      setItem: (k: string, v: string) => {
+        store?.set(k, v);
+      },
+      removeItem: (k: string) => {
+        store?.delete(k);
+      },
+      clear: () => {
+        store?.clear();
+      },
+    };
+  }
+}
+
+function toErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  return 'unknown';
+}
+
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  if (!process.env.HOME) {
+    // eslint-disable-next-line no-process-env
+    process.env.HOME = '/tmp';
+  }
+
+  ensureServerStorage();
+
+  const { getHolidays, DateKind } = await import('@kokr/date');
+
+  try {
     const url = new URL(req.url);
     const currentYear = new Date().getFullYear();
+
     const y = parseIntStrict(url.searchParams.get('y'), currentYear);
-    const around = Math.min(
-      Math.max(parseIntStrict(url.searchParams.get('around'), 0), 0),
-      2,
-    );
+    const aroundRaw = parseIntStrict(url.searchParams.get('around'), 0);
+    const around = Math.min(Math.max(aroundRaw, 0), 2);
 
     const years = new Set<number>([y]);
     for (let i = 1; i <= around; i += 1) {
@@ -72,12 +97,13 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(all, {
       headers: {
-        'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=3600',
+        'Cache-Control': 's-maxage=86400, stale-while-revalidate=3600',
       },
     });
   } catch (err) {
-    console.error('[api/holidays] failed:', err);
-    const message = err instanceof Error ? err.message : 'unknown';
-    return NextResponse.json({ error: message }, { status: 500 });
+    // eslint-disable-next-line no-console
+    console.error('[api/holidays] HOME=', process.env.HOME, 'error=', err);
+
+    return NextResponse.json({ error: toErrorMessage(err) }, { status: 500 });
   }
 }
