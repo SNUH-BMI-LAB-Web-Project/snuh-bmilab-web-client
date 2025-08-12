@@ -702,20 +702,37 @@ export default function LeavesCalendar() {
     return map;
   }, [holidays]);
 
+  const currentYear = useMemo(() => currentDate.getFullYear(), [currentDate]);
+
   useEffect(() => {
     let cancelled = false;
+
     (async () => {
       const y = currentDate.getFullYear();
-      const res = await fetch(`/api/holidays?y=${y}&around=1`, {
-        cache: 'force-cache',
-      });
-      const data: HolidayLite[] = await res.json();
-      if (!cancelled) setHolidays(data);
+      try {
+        const res = await fetch(`/api/holidays?y=${y}&around=1`, {
+          cache: 'force-cache',
+        });
+
+        if (!res.ok) {
+          const body = await res.text().catch(() => '');
+          console.error(`[holidays] ${res.status} ${res.statusText}`, body);
+          if (!cancelled) setHolidays([]);
+          return;
+        }
+
+        const data: HolidayLite[] = await res.json();
+        if (!cancelled) setHolidays(data);
+      } catch (err) {
+        console.error('[holidays] fetch failed:', err);
+        if (!cancelled) setHolidays([]);
+      }
     })();
+
     return () => {
       cancelled = true;
     };
-  }, [currentDate]);
+  }, [currentYear]);
 
   return (
     <div className="mx-auto flex max-w-7xl bg-white">
