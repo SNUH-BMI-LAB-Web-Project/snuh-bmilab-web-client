@@ -715,7 +715,7 @@ export default function LeavesCalendar() {
 
         if (!res.ok) {
           const text = await res.text();
-          console.error('GET /api/holidays failed:', res.status, text);
+          console.error('GET /api/holidays failed 4th:', res.status, text);
           if (!cancelled) setHolidays([]);
           return;
         }
@@ -723,7 +723,7 @@ export default function LeavesCalendar() {
         const data: HolidayLite[] = await res.json();
         if (!cancelled) setHolidays(data);
       } catch (e) {
-        console.error('GET /api/holidays threw:', e);
+        console.error('GET /api/holidays threw 4th:', e);
         if (!cancelled) setHolidays([]);
       }
     })();
