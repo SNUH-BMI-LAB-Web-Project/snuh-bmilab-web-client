@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getHolidays, DateKind, type DateInfo } from '@kokr/date';
 
+export const runtime = 'nodejs';
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const y = Number(searchParams.get('y')) || new Date().getFullYear();
