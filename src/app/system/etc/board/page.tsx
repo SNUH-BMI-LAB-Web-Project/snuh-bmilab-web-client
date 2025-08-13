@@ -94,12 +94,6 @@ const getUserColumns = (
       'text-center truncate overflow-hidden whitespace-nowrap w-[150px]',
     cell: (row: BoardSummary) => row.author?.name || '-',
   },
-  // {
-  //   label: '조회수',
-  //   className:
-  //     'text-center truncate overflow-hidden whitespace-nowrap w-[150px]',
-  //   cell: (row: BoardSummary) => row.viewCount || '-',
-  // },
   {
     label: '게시일',
     className: 'text-center w-[150px]',
