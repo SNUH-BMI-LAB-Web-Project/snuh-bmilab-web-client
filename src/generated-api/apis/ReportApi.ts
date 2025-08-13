@@ -33,6 +33,11 @@ export interface DeleteReportRequest {
     reportId: number;
 }
 
+export interface GetExcelFileByCurrentUserRequest {
+    startDate?: Date;
+    endDate?: Date;
+}
+
 export interface GetReportsByCurrentUserRequest {
     projectId?: number;
     startDate?: Date;
@@ -140,8 +145,16 @@ export class ReportApi extends runtime.BaseAPI {
      * 현재 로그인한 사용자의 업무보고 목록을 엑셀파일로 다운로드할 수 있는 GET API
      * 내 업무보고 엑셀파일 다운로드
      */
-    async getExcelFileByCurrentUserRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
+    async getExcelFileByCurrentUserRaw(requestParameters: GetExcelFileByCurrentUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
         const queryParameters: any = {};
+
+        if (requestParameters['startDate'] != null) {
+            queryParameters['startDate'] = (requestParameters['startDate'] as any).toISOString().substring(0,10);
+        }
+
+        if (requestParameters['endDate'] != null) {
+            queryParameters['endDate'] = (requestParameters['endDate'] as any).toISOString().substring(0,10);
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -167,8 +180,8 @@ export class ReportApi extends runtime.BaseAPI {
      * 현재 로그인한 사용자의 업무보고 목록을 엑셀파일로 다운로드할 수 있는 GET API
      * 내 업무보고 엑셀파일 다운로드
      */
-    async getExcelFileByCurrentUser(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
-        const response = await this.getExcelFileByCurrentUserRaw(initOverrides);
+    async getExcelFileByCurrentUser(requestParameters: GetExcelFileByCurrentUserRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.getExcelFileByCurrentUserRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
