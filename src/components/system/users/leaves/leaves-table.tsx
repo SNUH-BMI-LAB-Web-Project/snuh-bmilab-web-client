@@ -571,12 +571,6 @@ export default function LeavesAdmin() {
             className="group flex items-center gap-2"
           >
             전체
-            {/* <Badge */}
-            {/*   variant="secondary" */}
-            {/*   className="group-data-[state=inactive]:text-muted-foreground ml-1 group-data-[state=inactive]:bg-white" */}
-            {/* > */}
-            {/*   {requests.length} */}
-            {/* </Badge> */}
           </TabsTrigger>
           <TabsTrigger
             value="pending"
@@ -587,12 +581,6 @@ export default function LeavesAdmin() {
             className="group flex items-center gap-2"
           >
             대기
-            {/* <Badge */}
-            {/*   variant="secondary" */}
-            {/*   className="group-data-[state=inactive]:text-muted-foreground ml-1 group-data-[state=inactive]:bg-white" */}
-            {/* > */}
-            {/*   {requests.length} */}
-            {/* </Badge> */}
           </TabsTrigger>
           <TabsTrigger
             value="approved"
@@ -603,12 +591,6 @@ export default function LeavesAdmin() {
             className="group flex items-center gap-2"
           >
             승인
-            {/* <Badge */}
-            {/*   variant="secondary" */}
-            {/*   className="group-data-[state=inactive]:text-muted-foreground ml-1 group-data-[state=inactive]:bg-white" */}
-            {/* > */}
-            {/*   {requests.length} */}
-            {/* </Badge> */}
           </TabsTrigger>
           <TabsTrigger
             value="rejected"
@@ -619,91 +601,31 @@ export default function LeavesAdmin() {
             className="group flex items-center gap-2"
           >
             반려
-            {/* <Badge */}
-            {/*   variant="secondary" */}
-            {/*   className="group-data-[state=inactive]:text-muted-foreground ml-1 group-data-[state=inactive]:bg-white" */}
-            {/* > */}
-            {/*   {requests.length} */}
-            {/* </Badge> */}
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all" className="space-y-4 [&_th:first-child]:pl-14">
-          <PaginatedTable
-            data={requests}
-            rowKey={(row) => String(row.leaveId)}
-            columns={getLeaveColumns({
-              onApprove: handleApprove,
-              onReject: handleReject,
-            })}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            itemsPerPage={itemsPerPage}
-            setItemsPerPage={setItemsPerPage}
-            totalPage={totalPage}
-            loading={loading}
-          />
-        </TabsContent>
-
-        <TabsContent
-          value="pending"
-          className="space-y-4 [&_th:first-child]:pl-14"
-        >
-          <PaginatedTable
-            data={requests}
-            rowKey={(row) => String(row.leaveId)}
-            columns={getLeaveColumns({
-              onApprove: handleApprove,
-              onReject: handleReject,
-            })}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            itemsPerPage={itemsPerPage}
-            setItemsPerPage={setItemsPerPage}
-            totalPage={totalPage}
-            loading={loading}
-          />
-        </TabsContent>
-
-        <TabsContent
-          value="approved"
-          className="space-y-4 [&_th:first-child]:pl-14"
-        >
-          <PaginatedTable
-            data={requests}
-            rowKey={(row) => String(row.leaveId)}
-            columns={getLeaveColumns({
-              onApprove: handleApprove,
-              onReject: handleReject,
-            })}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            itemsPerPage={itemsPerPage}
-            setItemsPerPage={setItemsPerPage}
-            totalPage={totalPage}
-            loading={loading}
-          />
-        </TabsContent>
-
-        <TabsContent
-          value="rejected"
-          className="space-y-4 [&_th:first-child]:pl-14"
-        >
-          <PaginatedTable
-            data={requests}
-            rowKey={(row) => String(row.leaveId)}
-            columns={getLeaveColumns({
-              onApprove: handleApprove,
-              onReject: handleReject,
-            })}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            itemsPerPage={itemsPerPage}
-            setItemsPerPage={setItemsPerPage}
-            totalPage={totalPage}
-            loading={loading}
-          />
-        </TabsContent>
+        {['all', 'pending', 'approved', 'rejected'].map((value) => (
+          <TabsContent
+            key={value}
+            value={value}
+            className="space-y-4 [&_th:first-child]:pl-14"
+          >
+            <PaginatedTable
+              data={requests}
+              rowKey={(row) => String(row.leaveId)}
+              columns={getLeaveColumns({
+                onApprove: handleApprove,
+                onReject: handleReject,
+              })}
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              setItemsPerPage={setItemsPerPage}
+              totalPage={totalPage}
+              loading={loading}
+            />
+          </TabsContent>
+        ))}
       </Tabs>
 
       <RejectDialog
