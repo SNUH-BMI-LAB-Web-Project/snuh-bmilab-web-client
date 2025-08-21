@@ -65,7 +65,7 @@ export default function LoginPage() {
           if (token) {
             router.push('/portal/users/members');
           }
-        }, 1000);
+        }, 10);
       });
     } catch (error) {
       const fallbackMessage = '로그인에 실패했습니다. 다시 시도해 주세요.';
