@@ -47,7 +47,6 @@ import {
   ProjectRequest,
   UserSummary,
 } from '@/generated-api';
-import { GeneratePresignedUrlDomainTypeEnum } from '@/generated-api/apis/FileApi';
 import { uploadFileWithPresignedUrl } from '@/lib/upload';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/auth-store';
@@ -218,11 +217,7 @@ export function ProjectForm({
 
     try {
       const uploadPromises = files.map((file) =>
-        uploadFileWithPresignedUrl(
-          file,
-          accessToken!,
-          GeneratePresignedUrlDomainTypeEnum.Project,
-        )
+        uploadFileWithPresignedUrl(file, accessToken!)
           .then((fileRecord) => {
             toast.success(`${file.name} 업로드 완료`);
             return fileRecord;
@@ -251,13 +246,7 @@ export function ProjectForm({
     if (!files.length) return;
 
     const uploaded = await Promise.all(
-      files.map((file) =>
-        uploadFileWithPresignedUrl(
-          file,
-          accessToken!,
-          GeneratePresignedUrlDomainTypeEnum.Project,
-        ),
-      ),
+      files.map((file) => uploadFileWithPresignedUrl(file, accessToken!)),
     );
 
     if (type === 'IRB') {
@@ -286,11 +275,7 @@ export function ProjectForm({
       if (!files.length) return;
 
       const uploadPromises = files.map((file) =>
-        uploadFileWithPresignedUrl(
-          file,
-          accessToken!,
-          GeneratePresignedUrlDomainTypeEnum.Project,
-        )
+        uploadFileWithPresignedUrl(file, accessToken!)
           .then((fileRecord) => {
             toast.success(`${file.name} 업로드 완료`);
             return fileRecord;

@@ -23,7 +23,6 @@ import {
   BoardRequest,
   FileSummary,
 } from '@/generated-api';
-import { GeneratePresignedUrlDomainTypeEnum } from '@/generated-api/apis/FileApi';
 import { uploadFileWithPresignedUrl } from '@/lib/upload';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/auth-store';
@@ -99,11 +98,7 @@ export function BoardPostForm({
 
     try {
       const uploadPromises = files.map((file) =>
-        uploadFileWithPresignedUrl(
-          file,
-          accessToken!,
-          GeneratePresignedUrlDomainTypeEnum.Project,
-        )
+        uploadFileWithPresignedUrl(file, accessToken!)
           .then((fileRecord) => {
             toast.success(`${file.name} 업로드 완료`);
             return fileRecord;
@@ -135,11 +130,7 @@ export function BoardPostForm({
       if (!files.length) return;
 
       const uploadPromises = files.map((file) =>
-        uploadFileWithPresignedUrl(
-          file,
-          accessToken!,
-          GeneratePresignedUrlDomainTypeEnum.Project,
-        )
+        uploadFileWithPresignedUrl(file, accessToken!)
           .then((fileRecord) => {
             toast.success(`${file.name} 업로드 완료`);
             return fileRecord;
@@ -159,6 +150,44 @@ export function BoardPostForm({
     [accessToken],
   );
 
+  const [urlToId] = useState(() => new Map<string, string>());
+
+  const handleImageUploaded = useCallback(
+    (f: {
+      fileId: string;
+      fileName: string;
+      size: number;
+      uploadUrl: string;
+    }) => {
+      urlToId.set(f.uploadUrl, f.fileId);
+    },
+    [urlToId],
+  );
+
+  const extractImageUrls = (markdown: string): string[] => {
+    const urls = new Set<string>();
+
+    // ![alt](url "title") 형태
+    markdown.replace(
+      /!\[[^\]]*]\(([^)\s]+)(?:\s+"[^"]*")?\)/g,
+      (match, url: string) => {
+        if (url) urls.add(url);
+        return match; // 원문 유지
+      },
+    );
+
+    // <img src="..."> 형태
+    markdown.replace(
+      /<img\b[^>]*\bsrc=(["']?)([^"'\s>]+)\1[^>]*>/gi,
+      (match, _q: string, src: string) => {
+        if (src) urls.add(src);
+        return match; // 원문 유지
+      },
+    );
+
+    return Array.from(urls);
+  };
+
   const handleFormSubmit = async (formData: BoardRequest) => {
     const hasEmptyRequiredField =
       !formData.title?.trim() ||
@@ -170,11 +199,17 @@ export function BoardPostForm({
       return;
     }
 
+    const urlsInContent = extractImageUrls(formData.content ?? '');
+    const imageFileIds = urlsInContent
+      .map((u) => urlToId.get(u))
+      .filter((v): v is string => Boolean(v));
+
     const request: BoardRequest = {
       title: formData.title!,
       content: formData.content!,
       fileIds: newFiles.map((file) => file.fileId!),
       boardCategoryId: formData.boardCategoryId,
+      imageFileIds,
     };
 
     try {
@@ -213,26 +248,6 @@ export function BoardPostForm({
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)}>
       <div className="space-y-8 rounded-lg border bg-white p-8 shadow-sm">
-        {/* 제목 */}
-        <div className="space-y-3 pt-2 pb-6">
-          <Label className="flex items-center gap-1 text-base font-medium">
-            <Tag className="h-4 w-4" />
-            제목 <span className="text-destructive text-xs">*</span>
-          </Label>
-
-          <Input
-            id="title"
-            placeholder="제목을 입력하세요"
-            {...register('title')}
-            className="focus-visible:none rounded-none border-0 border-b px-0 !text-xl font-medium shadow-none transition-colors focus-visible:ring-0 focus-visible:ring-offset-0"
-          />
-          {errors.title && (
-            <p className="text-destructive mt-2 text-sm">
-              {errors.title.message as string}
-            </p>
-          )}
-        </div>
-
         <div className="grid grid-cols-1 gap-8">
           {/* 카테고리 */}
           <div className="space-y-3">
@@ -269,6 +284,26 @@ export function BoardPostForm({
           </div>
         </div>
 
+        {/* 제목 */}
+        <div className="space-y-3 pt-2">
+          <Label className="flex items-center gap-1 text-base font-medium">
+            <Tag className="h-4 w-4" />
+            제목 <span className="text-destructive text-xs">*</span>
+          </Label>
+
+          <Input
+            id="title"
+            placeholder="제목을 입력하세요"
+            {...register('title')}
+            className="focus-visible:none rounded-none border-0 border-b px-0 !text-xl font-medium shadow-none transition-colors focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+          {errors.title && (
+            <p className="text-destructive mt-2 text-sm">
+              {errors.title.message as string}
+            </p>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 gap-8">
           <Separator className="my-6" />
 
@@ -285,6 +320,7 @@ export function BoardPostForm({
               content={watch('content') ?? ''}
               setContent={(val) => setValue('content', val)}
               hasMoreFeatures
+              onImageUploaded={handleImageUploaded}
             />
           </div>
 
