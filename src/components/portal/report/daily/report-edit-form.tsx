@@ -31,7 +31,6 @@ import {
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import {
-  GeneratePresignedUrlDomainTypeEnum,
   ReportApi,
   SearchProjectItem,
   ProjectFileSummary,
@@ -145,11 +144,7 @@ export function ReportEditModal({
 
       // 2. 새 파일 업로드
       const uploadPromises = formData.files.map((file) =>
-        uploadFileWithPresignedUrl(
-          file,
-          accessToken,
-          GeneratePresignedUrlDomainTypeEnum.Report,
-        ),
+        uploadFileWithPresignedUrl(file, accessToken),
       );
       const uploadedFiles = await Promise.all(uploadPromises);
       const newFileIds = uploadedFiles.map((f) => f.fileId!);
