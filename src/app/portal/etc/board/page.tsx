@@ -101,16 +101,16 @@ const getUserColumns = (currentPage: number, itemsPerPage: number) => [
       </div>
     ),
   },
-  {
-    label: '조회수',
-    className:
-      'text-center truncate overflow-hidden whitespace-nowrap w-[50px]',
-    cell: (row: BoardSummary) => (
-      <div className={cn(row.isPinned && 'font-semibold')}>
-        {row.viewCount || '-'}
-      </div>
-    ),
-  },
+  // {
+  //   label: '조회수',
+  //   className:
+  //     'text-center truncate overflow-hidden whitespace-nowrap w-[50px]',
+  //   cell: (row: BoardSummary) => (
+  //     <div className={cn(row.isPinned && 'font-semibold')}>
+  //       {row.viewCount || '-'}
+  //     </div>
+  //   ),
+  // },
   {
     label: '게시일',
     className: 'text-center w-[150px]',
