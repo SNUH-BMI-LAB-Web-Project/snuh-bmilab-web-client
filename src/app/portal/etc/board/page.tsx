@@ -135,7 +135,7 @@ export default function PortalBoardPage() {
   const [committedSearchTerm, setCommittedSearchTerm] = useState('');
 
   const [categorySortOption, setCategorySortOption] = useState('all');
-  const [sortOption, setSortOption] = useState('asc');
+  const [sortOption, setSortOption] = useState('desc');
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -194,7 +194,7 @@ export default function PortalBoardPage() {
   const resetFilters = () => {
     setSearchTerm('');
     setCommittedSearchTerm('');
-    setSortOption('asc');
+    setSortOption('desc');
     setCategorySortOption('all');
     setCurrentPage(1);
   };
