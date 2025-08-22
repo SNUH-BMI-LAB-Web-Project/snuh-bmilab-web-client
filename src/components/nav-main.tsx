@@ -49,7 +49,7 @@ export function NavMain({
               {item.items?.length ? (
                 <SidebarMenuSub>
                   {item.items.map((subItem) => {
-                    const isSubActive = pathname === subItem.url;
+                    const isSubActive = pathname.startsWith(subItem.url);
 
                     return (
                       <SidebarMenuSubItem key={subItem.title}>

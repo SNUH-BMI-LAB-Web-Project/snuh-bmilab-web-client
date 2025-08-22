@@ -43,25 +43,7 @@ export interface UploadFileRequest {
      * @memberof UploadFileRequest
      */
     size?: number;
-    /**
-     * 파일 도메인 타입
-     * @type {string}
-     * @memberof UploadFileRequest
-     */
-    domainType: UploadFileRequestDomainTypeEnum;
 }
-
-
-/**
- * @export
- */
-export const UploadFileRequestDomainTypeEnum = {
-    Project: 'PROJECT',
-    Timeline: 'TIMELINE',
-    Report: 'REPORT'
-} as const;
-export type UploadFileRequestDomainTypeEnum = typeof UploadFileRequestDomainTypeEnum[keyof typeof UploadFileRequestDomainTypeEnum];
-
 
 /**
  * Check if a given object implements the UploadFileRequest interface.
@@ -70,7 +52,6 @@ export function instanceOfUploadFileRequest(value: object): value is UploadFileR
     if (!('uuid' in value) || value['uuid'] === undefined) return false;
     if (!('fileName' in value) || value['fileName'] === undefined) return false;
     if (!('extension' in value) || value['extension'] === undefined) return false;
-    if (!('domainType' in value) || value['domainType'] === undefined) return false;
     return true;
 }
 
@@ -88,7 +69,6 @@ export function UploadFileRequestFromJSONTyped(json: any, ignoreDiscriminator: b
         'fileName': json['fileName'],
         'extension': json['extension'],
         'size': json['size'] == null ? undefined : json['size'],
-        'domainType': json['domainType'],
     };
 }
 
@@ -107,7 +87,6 @@ export function UploadFileRequestToJSONTyped(value?: UploadFileRequest | null, i
         'fileName': value['fileName'],
         'extension': value['extension'],
         'size': value['size'],
-        'domainType': value['domainType'],
     };
 }
 

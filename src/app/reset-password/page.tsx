@@ -12,13 +12,13 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import PasswordResetModal from '@/components/system/users/password-reset-modal';
+import PasswordResetModal from '@/components/system/users/members/password-reset-modal';
 import { toast } from 'sonner';
 import { UserApi } from '@/generated-api';
 import { useRouter } from 'next/navigation';
-import { getApiConfig } from '@/lib/config';
+import { getPublicApiConfig } from '@/lib/config';
 
-const userApi = new UserApi(getApiConfig());
+const userApi = new UserApi(getPublicApiConfig());
 
 export default function ResetPasswordPage() {
   const router = useRouter();

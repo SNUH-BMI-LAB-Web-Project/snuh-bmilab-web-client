@@ -20,21 +20,51 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserCheck, Plus, Save, Building } from 'lucide-react';
 import {
-  AdminExternalProfessorApi,
-  ExternalProfessorItem,
-} from '@/generated-api';
+  UserCheck,
+  Plus,
+  Save,
+  Building,
+  Edit,
+  Trash2,
+  MoreVertical,
+} from 'lucide-react';
+import { AdminProjectApi, ExternalProfessorItem } from '@/generated-api';
 import { toast } from 'sonner';
 import { getApiConfig } from '@/lib/config';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { getProfessorKey } from '@/utils/external-professor-utils';
 
-const api = new AdminExternalProfessorApi(getApiConfig());
+const api = new AdminProjectApi(getApiConfig());
 
 interface ExternalProfessorSelectModalProps {
   open: boolean;
   onClose: () => void;
   onSelect: (prof: ExternalProfessorItem) => void;
   selectedProfessorKeys?: string[];
+  onUpdateProfessor?: (
+    prof: ExternalProfessorItem,
+    previousKey: string,
+  ) => void;
+  onDeleteProfessor?: (
+    prof: ExternalProfessorItem,
+    previousKey: string,
+  ) => void;
 }
 
 export default function ExternalProfessorSelectModal({
@@ -42,8 +72,14 @@ export default function ExternalProfessorSelectModal({
   onClose,
   onSelect,
   selectedProfessorKeys = [],
+  onUpdateProfessor,
+  onDeleteProfessor,
 }: ExternalProfessorSelectModalProps) {
   const [professors, setProfessors] = useState<ExternalProfessorItem[]>([]);
+  const [editingProfessor, setEditingProfessor] =
+    useState<ExternalProfessorItem | null>(null);
+  const [deleteProfessor, setDeleteProfessor] =
+    useState<ExternalProfessorItem | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     organization: '',
@@ -51,8 +87,7 @@ export default function ExternalProfessorSelectModal({
     position: '',
   });
 
-  const getProfessorKey = (p: ExternalProfessorItem) =>
-    `${p.name}-${p.organization}-${p.department}-${p.position}`;
+  const [previousKey, setPreviousKey] = useState<string | null>(null);
 
   const fetchProfessors = async () => {
     try {
@@ -100,6 +135,82 @@ export default function ExternalProfessorSelectModal({
     }
   };
 
+  // 교수 정보 수정
+  const handleEditProfessor = async () => {
+    try {
+      await api.updateExternalProfessor({
+        professorId: Number(editingProfessor?.professorId),
+        externalProfessorRequest: {
+          name: formData.name,
+          organization: formData.organization,
+          department: formData.department,
+          position: formData.position,
+        },
+      });
+
+      const updated: ExternalProfessorItem = {
+        professorId: editingProfessor!.professorId,
+        name: formData.name,
+        organization: formData.organization,
+        department: formData.department,
+        position: formData.position,
+      };
+
+      resetForm();
+      setEditingProfessor(null);
+      toast.success('외부 인사 정보가 성공적으로 수정되었습니다.');
+      await fetchProfessors();
+
+      if (previousKey) {
+        onUpdateProfessor?.(updated, previousKey);
+        setPreviousKey(null);
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  // 교수 삭제
+  const handleDeleteProfessor = async () => {
+    try {
+      await api.deleteExternalProfessor({
+        professorId: Number(deleteProfessor?.professorId),
+      });
+
+      if (
+        editingProfessor &&
+        editingProfessor.professorId === deleteProfessor?.professorId
+      ) {
+        setEditingProfessor(null);
+        resetForm();
+      }
+
+      toast.success('외부 인사가 성공적으로 삭제되었습니다.');
+
+      if (deleteProfessor) {
+        const deletedKey = getProfessorKey(deleteProfessor);
+        onDeleteProfessor?.(deleteProfessor, deletedKey); // 삭제 전 key 함께 전달
+      }
+
+      setDeleteProfessor(null);
+      await fetchProfessors();
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  // 수정 모드 시작
+  const startEdit = (professor: ExternalProfessorItem) => {
+    setEditingProfessor(professor);
+    setPreviousKey(getProfessorKey(professor)); // 수정 전에 key를 미리 저장해두기
+    setFormData({
+      name: professor.name || '',
+      organization: professor.organization || '',
+      department: professor.department || '',
+      position: professor.position || '',
+    });
+  };
+
   // 수정/추가 취소
   const cancelForm = () => {
     resetForm();
@@ -122,7 +233,16 @@ export default function ExternalProfessorSelectModal({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Plus className="h-5 w-5" />새 외부 인사 추가
+              {editingProfessor ? (
+                <>
+                  <Edit className="h-5 w-5" />
+                  정보 수정
+                </>
+              ) : (
+                <>
+                  <Plus className="h-5 w-5" />새 외부 인사 추가
+                </>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -207,7 +327,9 @@ export default function ExternalProfessorSelectModal({
                 취소
               </Button>
               <Button
-                onClick={handleAddProfessor}
+                onClick={
+                  editingProfessor ? handleEditProfessor : handleAddProfessor
+                }
                 disabled={
                   !formData.name.trim() ||
                   !formData.organization.trim() ||
@@ -216,7 +338,7 @@ export default function ExternalProfessorSelectModal({
                 }
               >
                 <Save className="mr-2 h-4 w-4" />
-                추가
+                {editingProfessor ? '수정' : '추가'}
               </Button>
             </div>
           </CardContent>
@@ -249,6 +371,7 @@ export default function ExternalProfessorSelectModal({
                       <TableHead>부서</TableHead>
                       <TableHead>직책</TableHead>
                       <TableHead className="w-[100px] text-center" />
+                      <TableHead className="w-[50px] text-center" />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -263,18 +386,22 @@ export default function ExternalProfessorSelectModal({
                               {professor.name}
                             </div>
                           </TableCell>
+
                           <TableCell>
                             <div className="flex items-center gap-1">
                               <Building className="h-3 w-3 text-gray-400" />
                               <span>{professor.organization}</span>
                             </div>
                           </TableCell>
+
                           <TableCell className="min-w-[120px]">
                             <span>{professor.department}</span>
                           </TableCell>
+
                           <TableCell className="min-w-[120px]">
                             <span>{professor.position}</span>
                           </TableCell>
+
                           <TableCell className="flex items-center justify-center gap-2">
                             <Button
                               size="sm"
@@ -284,6 +411,35 @@ export default function ExternalProfessorSelectModal({
                             >
                               {isSelected ? '선택됨' : '선택'}
                             </Button>
+                          </TableCell>
+
+                          <TableCell className="text-center">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => startEdit(professor)}
+                                >
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  수정
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => setDeleteProfessor(professor)}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="text-destructive mr-2 h-4 w-4" />
+                                  삭제
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       );
@@ -295,6 +451,34 @@ export default function ExternalProfessorSelectModal({
           </Card>
         </div>
       </DialogContent>
+
+      {/* 삭제 확인 다이얼로그 */}
+      <AlertDialog
+        open={!!deleteProfessor}
+        onOpenChange={() => setDeleteProfessor(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              외부 인사 삭제 확인
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <strong>{deleteProfessor?.name}</strong> 인사 정보를 정말
+              삭제하시겠습니까?
+              <br />이 작업은 되돌릴 수 없습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteProfessor}
+              className="bg-destructive hover:bg-destructive/90 text-white shadow-xs"
+            >
+              삭제
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

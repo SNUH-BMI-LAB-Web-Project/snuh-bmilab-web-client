@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,14 +12,13 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Paperclip } from 'lucide-react';
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import {
   AdminReportApi,
   GetReportsByAllUserRequest,
   ReportSummary,
 } from '@/generated-api';
 import { getApiConfig } from '@/lib/config';
+import { formatDateTimeVer2 } from '@/lib/utils';
 
 const reportApi = new AdminReportApi(getApiConfig());
 
@@ -27,6 +27,7 @@ export function AdminReportFeed({
 }: {
   filters?: GetReportsByAllUserRequest;
 }) {
+  const router = useRouter();
   const [reports, setReports] = useState<ReportSummary[]>([]);
 
   useEffect(() => {
@@ -72,8 +73,17 @@ export function AdminReportFeed({
                     <p className="mr-2 text-sm font-medium md:pl-2 lg:pl-0">
                       {report.user?.name}
                     </p>
-                    <Badge variant="outline" title={report.project?.title}>
-                      <div className="truncate overflow-hidden whitespace-nowrap md:max-w-[120px] lg:max-w-none">
+                    <Badge
+                      variant="outline"
+                      title={report.project?.title}
+                      onClick={() =>
+                        router.push(
+                          `/system/researches/projects/${report.project?.projectId}`,
+                        )
+                      }
+                      className="cursor-pointer"
+                    >
+                      <div className="max-w-[120px] truncate overflow-hidden whitespace-nowrap lg:max-w-2xs xl:max-w-xl">
                         {report.project?.title}
                       </div>
                     </Badge>
@@ -81,10 +91,7 @@ export function AdminReportFeed({
                 </div>
                 <div className="flex items-center gap-2">
                   <p className="text-right text-xs font-medium">
-                    {report.createdAt &&
-                      format(report.createdAt, 'yyyy년 MM월 dd일', {
-                        locale: ko,
-                      })}
+                    {formatDateTimeVer2(report.date!)}
                   </p>
                 </div>
               </div>

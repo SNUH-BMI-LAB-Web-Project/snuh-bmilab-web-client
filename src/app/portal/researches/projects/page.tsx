@@ -10,7 +10,7 @@ import {
   ProjectApi,
 } from '@/generated-api/apis/ProjectApi';
 import { ProjectSummary } from '@/generated-api/models/ProjectSummary';
-import { SlidersHorizontal, Search, X, Lock } from 'lucide-react';
+import { SlidersHorizontal, Search, X, Lock, Pin } from 'lucide-react';
 import {
   Select,
   SelectTrigger,
@@ -39,13 +39,22 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
     label: 'No',
     className: 'text-center w-[50px]',
     cell: (row: ProjectSummary, i: number) => (
-      <div
-        className={cn(
-          'truncate overflow-hidden whitespace-nowrap',
-          row.isPrivate && 'opacity-50',
+      <div className="flex items-center justify-center">
+        {row.isPinned ? (
+          <Pin
+            className={cn('h-4 w-4 shrink-0', row.isPrivate && 'opacity-50')}
+          />
+        ) : (
+          <div
+            className={cn(
+              'truncate overflow-hidden whitespace-nowrap',
+              row.isPrivate && 'opacity-50',
+            )}
+          >
+            {row.isPinned ? <Pin className="h-3 w-3 shrink-0" /> : null}
+            {((currentPage - 1) * itemsPerPage + i + 1).toString()}
+          </div>
         )}
-      >
-        {((currentPage - 1) * itemsPerPage + i + 1).toString()}
       </div>
     ),
   },
@@ -57,6 +66,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
         className={cn(
           'flex items-center gap-1 truncate overflow-hidden whitespace-nowrap',
           row.isPrivate && 'opacity-50',
+          row.isPinned && 'font-semibold',
         )}
       >
         {row.isPrivate ? (
@@ -76,7 +86,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
         ) : (
           <Link
             href={`/portal/researches/projects/${row.projectId}`}
-            className="w-full truncate hover:underline"
+            className="flex w-full items-center gap-1 truncate hover:underline"
           >
             {row.title}
           </Link>
@@ -132,6 +142,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
           className={cn(
             'truncate overflow-hidden whitespace-nowrap',
             row.isPrivate && 'opacity-50',
+            row.isPinned && 'font-semibold',
           )}
         >
           {display}
@@ -154,6 +165,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
           className={cn(
             'truncate overflow-hidden whitespace-nowrap',
             row.isPrivate && 'opacity-50',
+            row.isPinned && 'font-semibold',
           )}
         >
           {display}
@@ -176,6 +188,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
           className={cn(
             'truncate overflow-hidden whitespace-nowrap',
             row.isPrivate && 'opacity-50',
+            row.isPinned && 'font-semibold',
           )}
         >
           {display || '-'}
@@ -191,6 +204,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
         className={cn(
           'truncate overflow-hidden whitespace-nowrap',
           row.isPrivate && 'opacity-50',
+          row.isPinned && 'font-semibold',
         )}
       >
         {`${row.participantCount ?? 0}명`}
@@ -205,6 +219,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
         className={cn(
           'truncate overflow-hidden whitespace-nowrap',
           row.isPrivate && 'opacity-50',
+          row.isPinned && 'font-semibold',
         )}
       >
         {`${row.startDate?.toISOString().substring(0, 10)} ~ ${
@@ -230,7 +245,7 @@ export default function ProjectPage() {
     useState('');
   const [allUsers, setAllUsers] = useState<UserSummary[]>([]);
 
-  const [sortOption, setSortOption] = useState('endDate-desc');
+  const [sortOption, setSortOption] = useState('startDate-desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showFilters, setShowFilters] = useState(false);

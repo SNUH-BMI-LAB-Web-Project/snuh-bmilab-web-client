@@ -15,15 +15,25 @@
 
 import * as runtime from '../runtime';
 import type {
+  LeaveFindAllResponse,
   RejectLeaveRequest,
 } from '../models/index';
 import {
+    LeaveFindAllResponseFromJSON,
+    LeaveFindAllResponseToJSON,
     RejectLeaveRequestFromJSON,
     RejectLeaveRequestToJSON,
 } from '../models/index';
 
 export interface ApproveLeaveRequest {
     leaveId: number;
+}
+
+export interface GetLeaves1Request {
+    status?: GetLeaves1StatusEnum;
+    page?: any;
+    size?: any;
+    sort?: Array<any>;
 }
 
 export interface RejectLeaveOperationRequest {
@@ -79,6 +89,58 @@ export class AdminLeaveApi extends runtime.BaseAPI {
     }
 
     /**
+     * 휴가 정보를 모두 조회하거나 기간별로 조회할 수 있는 GET API
+     * (관리자) 전체 휴가 조회
+     */
+    async getLeaves1Raw(requestParameters: GetLeaves1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<LeaveFindAllResponse>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['status'] != null) {
+            queryParameters['status'] = requestParameters['status'];
+        }
+
+        if (requestParameters['page'] != null) {
+            queryParameters['page'] = requestParameters['page'];
+        }
+
+        if (requestParameters['size'] != null) {
+            queryParameters['size'] = requestParameters['size'];
+        }
+
+        if (requestParameters['sort'] != null) {
+            queryParameters['sort'] = requestParameters['sort'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/admin/leaves`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => LeaveFindAllResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * 휴가 정보를 모두 조회하거나 기간별로 조회할 수 있는 GET API
+     * (관리자) 전체 휴가 조회
+     */
+    async getLeaves1(requestParameters: GetLeaves1Request = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<LeaveFindAllResponse> {
+        const response = await this.getLeaves1Raw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * 휴가 요청을 반려하는 POST API
      * 휴가 반려
      */
@@ -131,3 +193,13 @@ export class AdminLeaveApi extends runtime.BaseAPI {
     }
 
 }
+
+/**
+ * @export
+ */
+export const GetLeaves1StatusEnum = {
+    Pending: 'PENDING',
+    Approved: 'APPROVED',
+    Rejected: 'REJECTED'
+} as const;
+export type GetLeaves1StatusEnum = typeof GetLeaves1StatusEnum[keyof typeof GetLeaves1StatusEnum];

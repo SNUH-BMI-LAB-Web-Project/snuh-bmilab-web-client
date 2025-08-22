@@ -22,6 +22,11 @@ import {
     ReportFindAllResponseToJSON,
 } from '../models/index';
 
+export interface CreateReportExcelRequest {
+    startDate: Date;
+    endDate?: Date;
+}
+
 export interface GetReportsByAllUserRequest {
     userId?: number;
     projectId?: number;
@@ -34,6 +39,57 @@ export interface GetReportsByAllUserRequest {
  * 
  */
 export class AdminReportApi extends runtime.BaseAPI {
+
+    /**
+     * 일별로 업무보고 엑셀파일을 다운로드할 수 있는 GET API
+     * 일별 보고 엑셀파일 다운로드
+     */
+    async createReportExcelRaw(requestParameters: CreateReportExcelRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
+        if (requestParameters['startDate'] == null) {
+            throw new runtime.RequiredError(
+                'startDate',
+                'Required parameter "startDate" was null or undefined when calling createReportExcel().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['startDate'] != null) {
+            queryParameters['startDate'] = (requestParameters['startDate'] as any).toISOString().substring(0,10);
+        }
+
+        if (requestParameters['endDate'] != null) {
+            queryParameters['endDate'] = (requestParameters['endDate'] as any).toISOString().substring(0,10);
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/admin/reports/excel`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.BlobApiResponse(response);
+    }
+
+    /**
+     * 일별로 업무보고 엑셀파일을 다운로드할 수 있는 GET API
+     * 일별 보고 엑셀파일 다운로드
+     */
+    async createReportExcel(requestParameters: CreateReportExcelRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.createReportExcelRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      * 일일 업무 보고를 조회하는 API

@@ -1,11 +1,8 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
-import { Users, Newspaper, FolderSearch } from 'lucide-react';
-
+import { Users, Newspaper, FolderSearch, CircleFadingPlus } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
-
 import { useAuthStore } from '@/store/auth-store';
 
 const baseNav = [
@@ -14,9 +11,9 @@ const baseNav = [
     url: '/system/users',
     icon: Users,
     items: [
-      { title: '구성원', url: '/system/users' },
+      { title: '구성원', url: '/system/users/members' },
       { title: '외부 인사', url: '/system/users/external' },
-      // { title: '휴가 신청', url: '/system/users/leaves' },
+      { title: '휴가 관리', url: '/system/users/leaves' },
       // { title: '자리배치도', url: '/system/users/seats' },
     ],
   },
@@ -35,20 +32,16 @@ const baseNav = [
       { title: '연구 & 프로젝트', url: '/system/researches/projects' },
     ],
   },
+  {
+    title: '기타 관리',
+    url: '/system/etc',
+    icon: CircleFadingPlus,
+    items: [{ title: '정보 게시판', url: '/system/etc/board' }],
+  },
 ];
 
 export function SystemSidebar() {
-  const pathname = usePathname();
   const { user } = useAuthStore();
-
-  if (
-    pathname.startsWith('/system/researches/projects/') ||
-    (pathname.startsWith('/system/users/') &&
-      pathname !== '/system/users' &&
-      pathname !== '/system/users/external')
-  ) {
-    return null;
-  }
 
   if (!user) {
     return null;

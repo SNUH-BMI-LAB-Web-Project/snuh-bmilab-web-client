@@ -1,8 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import { Users, Newspaper, FolderSearch, CircleFadingPlus } from 'lucide-react';
-
 import { NavMain } from '@/components/nav-main';
 import {
   Sidebar,
@@ -19,8 +17,8 @@ const baseNav = [
     url: '/portal/users',
     icon: Users,
     items: [
-      { title: '구성원', url: '/portal/users' },
-      // { title: '휴가 신청', url: '/portal/users/leaves' },
+      { title: '구성원', url: '/portal/users/members' },
+      { title: '휴가 신청', url: '/portal/users/leaves' },
       // { title: '자리배치도', url: '/portal/users/seats' },
     ],
   },
@@ -42,22 +40,13 @@ const baseNav = [
     icon: CircleFadingPlus,
     items: [
       { title: 'RSS 공고', url: '/portal/etc/rss' },
-      // { title: '정보 게시판', url: '/portal/etc/board' },
+      { title: '정보 게시판', url: '/portal/etc/board' },
     ],
   },
 ];
 
 export function AppSidebar() {
-  const pathname = usePathname();
   const { user } = useAuthStore();
-
-  if (
-    pathname.startsWith('/portal/researches/projects/') ||
-    pathname.startsWith('/portal/users/') ||
-    pathname.startsWith('/portal/mypage')
-  ) {
-    return null;
-  }
 
   if (!user) {
     return null;

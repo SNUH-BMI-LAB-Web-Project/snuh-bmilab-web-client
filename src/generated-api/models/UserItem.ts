@@ -93,6 +93,12 @@ export interface UserItem {
      * @memberof UserItem
      */
     education?: string;
+    /**
+     * 입사일
+     * @type {Date}
+     * @memberof UserItem
+     */
+    joinedAt?: Date;
 }
 
 
@@ -140,6 +146,7 @@ export function UserItemFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'seatNumber': json['seatNumber'] == null ? undefined : json['seatNumber'],
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
         'education': json['education'] == null ? undefined : json['education'],
+        'joinedAt': json['joinedAt'] == null ? undefined : (new Date(json['joinedAt'])),
     };
 }
 
@@ -165,6 +172,7 @@ export function UserItemToJSONTyped(value?: UserItem | null, ignoreDiscriminator
         'seatNumber': value['seatNumber'],
         'phoneNumber': value['phoneNumber'],
         'education': value['education'],
+        'joinedAt': value['joinedAt'] == null ? undefined : ((value['joinedAt']).toISOString().substring(0,10)),
     };
 }
 

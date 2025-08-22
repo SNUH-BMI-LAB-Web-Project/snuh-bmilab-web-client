@@ -35,9 +35,10 @@ import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn, setDateWithFixedHour } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { FileItem } from '@/components/portal/researches/projects/file-item';
+import { FileItem } from '@/components/common/file-item';
 import { UserTagInput } from '@/components/portal/researches/projects/user-tag-input';
 import {
+  ExternalProfessorItem,
   ExternalProfessorRequest,
   ExternalProfessorSummary,
   ProjectApi,
@@ -46,7 +47,6 @@ import {
   ProjectRequest,
   UserSummary,
 } from '@/generated-api';
-import { GeneratePresignedUrlDomainTypeEnum } from '@/generated-api/apis/FileApi';
 import { uploadFileWithPresignedUrl } from '@/lib/upload';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/auth-store';
@@ -55,9 +55,10 @@ import { useProjectCategories } from '@/hooks/use-project-categories';
 import dynamic from 'next/dynamic';
 import ExternalProfessorSelectModal from '@/components/portal/researches/projects/external-professor-select-modal';
 import { getApiConfig } from '@/lib/config';
+import { getProfessorKey } from '@/utils/external-professor-utils';
 
 const MarkdownEditor = dynamic(
-  () => import('@/components/portal/researches/projects/markdown-editor'),
+  () => import('@/components/common/markdown-editor'),
   {
     ssr: false, // 에러로 인해 SSR 방지하기 위해
   },
@@ -153,15 +154,49 @@ export function ProjectForm({
   const [showPIModal, setShowPIModal] = useState(false);
   const [showProfessorModal, setShowProfessorModal] = useState(false);
 
-  const getProfessorKey = (p: {
-    name?: string;
-    organization?: string;
-    department?: string;
-    position?: string;
-  }) => `${p.name}-${p.organization}-${p.department}-${p.position}`;
-
   const selectedPiKeys = piList.map(getProfessorKey);
   const selectedPracticalKeys = practicalProfessors.map(getProfessorKey);
+
+  const handleUpdateProfessor = (
+    updated: ExternalProfessorItem,
+    previousKey: string,
+  ) => {
+    const updatedSummary: ExternalProfessorSummary = {
+      name: updated.name,
+      organization: updated.organization,
+      department: updated.department,
+      position: updated.position,
+    };
+
+    setPiList((prev) =>
+      prev.map((p) =>
+        getProfessorKey(p) === previousKey ? updatedSummary : p,
+      ),
+    );
+    setPracticalProfessors((prev) =>
+      prev.map((p) =>
+        getProfessorKey(p) === previousKey ? updatedSummary : p,
+      ),
+    );
+  };
+  const handleDeleteProfessor = (deleted: ExternalProfessorItem) => {
+    const deletedSummary: ExternalProfessorSummary = {
+      name: deleted.name,
+      organization: deleted.organization,
+      department: deleted.department,
+      position: deleted.position,
+    };
+
+    const deletedKey = getProfessorKey(deletedSummary);
+
+    setPiList((prev) =>
+      prev.filter((pi) => getProfessorKey(pi) !== deletedKey),
+    );
+
+    setPracticalProfessors((prev) =>
+      prev.filter((prof) => getProfessorKey(prof) !== deletedKey),
+    );
+  };
 
   const handleRemoveExistingFile = (index: number) => {
     const removed = existingFiles[index];
@@ -182,11 +217,7 @@ export function ProjectForm({
 
     try {
       const uploadPromises = files.map((file) =>
-        uploadFileWithPresignedUrl(
-          file,
-          accessToken!,
-          GeneratePresignedUrlDomainTypeEnum.Project,
-        )
+        uploadFileWithPresignedUrl(file, accessToken!)
           .then((fileRecord) => {
             toast.success(`${file.name} 업로드 완료`);
             return fileRecord;
@@ -215,13 +246,7 @@ export function ProjectForm({
     if (!files.length) return;
 
     const uploaded = await Promise.all(
-      files.map((file) =>
-        uploadFileWithPresignedUrl(
-          file,
-          accessToken!,
-          GeneratePresignedUrlDomainTypeEnum.Project,
-        ),
-      ),
+      files.map((file) => uploadFileWithPresignedUrl(file, accessToken!)),
     );
 
     if (type === 'IRB') {
@@ -250,11 +275,7 @@ export function ProjectForm({
       if (!files.length) return;
 
       const uploadPromises = files.map((file) =>
-        uploadFileWithPresignedUrl(
-          file,
-          accessToken!,
-          GeneratePresignedUrlDomainTypeEnum.Project,
-        )
+        uploadFileWithPresignedUrl(file, accessToken!)
           .then((fileRecord) => {
             toast.success(`${file.name} 업로드 완료`);
             return fileRecord;
@@ -604,7 +625,7 @@ export function ProjectForm({
               {/* 입력 리스트 */}
               {piList.map((pi, index) => (
                 <div
-                  key={`${pi.name}-${pi.organization}-${pi.department}-${pi.position}`}
+                  key={`${pi.name}-${pi.organization}-${pi.department}-${pi.position}-${pi.position}`}
                   className="flex gap-2"
                 >
                   <Input
@@ -897,6 +918,8 @@ export function ProjectForm({
           setShowPIModal(false);
         }}
         selectedProfessorKeys={selectedPiKeys}
+        onUpdateProfessor={handleUpdateProfessor}
+        onDeleteProfessor={handleDeleteProfessor}
       />
 
       {/* 참여 교수 선택 모달 */}
@@ -908,6 +931,8 @@ export function ProjectForm({
           setShowProfessorModal(false);
         }}
         selectedProfessorKeys={selectedPracticalKeys}
+        onUpdateProfessor={handleUpdateProfessor}
+        onDeleteProfessor={handleDeleteProfessor}
       />
     </form>
   );

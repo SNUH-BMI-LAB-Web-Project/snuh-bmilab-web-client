@@ -66,7 +66,7 @@ export default function ProjectDetailPage({
   const handleDelete = async () => {
     try {
       await projectApi.deleteProjectById({ projectId: Number(id) });
-      toast.success('프로젝트가 삭제되었습니다');
+      toast.success('프로젝트가 삭제되었습니다.');
       router.push('/portal/researches/projects');
     } catch (e) {
       console.log(e);
@@ -105,7 +105,7 @@ export default function ProjectDetailPage({
             alt={project.author?.name || '사용자 프로필'}
             width={40}
             height={40}
-            className="h-10 w-10 rounded-full object-cover"
+            className="h-10 w-10 shrink-0 rounded-full object-cover"
           />
           <div className="flex flex-col text-sm break-words">
             <div className="font-medium text-black">{project.author?.name}</div>

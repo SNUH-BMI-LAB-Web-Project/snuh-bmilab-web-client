@@ -4,6 +4,7 @@ import '@toast-ui/editor/dist/toastui-editor.css';
 import AppHeader from '@/components/app-header';
 import { Toaster } from '@/components/ui/sonner';
 import QueryProvider from '@/providers/query-provider';
+import LayoutContent from '@/components/common/layout-content';
 
 export const metadata: Metadata = {
   title: 'BMI-LAB',
@@ -20,7 +21,7 @@ export default function RootLayout({
       <body>
         <QueryProvider>
           <AppHeader />
-          <div className="mt-[70px] min-w-[768px]">{children}</div>
+          <LayoutContent>{children}</LayoutContent>
           <Toaster className="fixed z-[9999]" />
         </QueryProvider>
       </body>

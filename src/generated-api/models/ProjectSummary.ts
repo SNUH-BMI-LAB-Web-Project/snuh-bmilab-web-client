@@ -113,6 +113,12 @@ export interface ProjectSummary {
      * @memberof ProjectSummary
      */
     isAccessible?: boolean;
+    /**
+     * 연구 고정 여부
+     * @type {boolean}
+     * @memberof ProjectSummary
+     */
+    isPinned?: boolean;
 }
 
 
@@ -157,6 +163,7 @@ export function ProjectSummaryFromJSONTyped(json: any, ignoreDiscriminator: bool
         'status': json['status'] == null ? undefined : json['status'],
         'isPrivate': json['isPrivate'] == null ? undefined : json['isPrivate'],
         'isAccessible': json['isAccessible'] == null ? undefined : json['isAccessible'],
+        'isPinned': json['isPinned'] == null ? undefined : json['isPinned'],
     };
 }
 
@@ -183,6 +190,7 @@ export function ProjectSummaryToJSONTyped(value?: ProjectSummary | null, ignoreD
         'status': value['status'],
         'isPrivate': value['isPrivate'],
         'isAccessible': value['isAccessible'],
+        'isPinned': value['isPinned'],
     };
 }
 

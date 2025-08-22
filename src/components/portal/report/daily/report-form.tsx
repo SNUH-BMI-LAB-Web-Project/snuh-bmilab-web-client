@@ -24,11 +24,7 @@ import {
 } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn, setDateWithFixedHour } from '@/lib/utils';
-import {
-  GeneratePresignedUrlDomainTypeEnum,
-  ReportApi,
-  SearchProjectItem,
-} from '@/generated-api';
+import { ReportApi, SearchProjectItem } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { uploadFileWithPresignedUrl } from '@/lib/upload';
@@ -74,11 +70,7 @@ export function ReportForm({ projectList, onReportCreated }: ReportFormProps) {
 
     try {
       const uploadPromises = files.map((file) =>
-        uploadFileWithPresignedUrl(
-          file,
-          accessToken,
-          GeneratePresignedUrlDomainTypeEnum.Report,
-        ),
+        uploadFileWithPresignedUrl(file, accessToken),
       );
 
       const uploadedRecords = await Promise.all(uploadPromises);
@@ -114,7 +106,7 @@ export function ReportForm({ projectList, onReportCreated }: ReportFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="project">프로젝트</Label>
           <Select value={project} onValueChange={setProject} required>
@@ -128,7 +120,9 @@ export function ReportForm({ projectList, onReportCreated }: ReportFormProps) {
                   value={String(proj.projectId)}
                   className="cursor-pointer"
                 >
-                  {proj.title}
+                  <span className="w-[250px] cursor-pointer truncate overflow-hidden text-start whitespace-nowrap">
+                    {proj.title}
+                  </span>
                 </SelectItem>
               ))}
             </SelectContent>

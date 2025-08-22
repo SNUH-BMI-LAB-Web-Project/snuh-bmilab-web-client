@@ -1,11 +1,17 @@
 /* tslint:disable */
 /* eslint-disable */
-export * from './AdminExternalProfessorApi';
+export * from './AdminBoardApi';
+export * from './AdminBoardCategoryApi';
+export * from './AdminCommentApi';
 export * from './AdminLeaveApi';
+export * from './AdminProjectApi';
 export * from './AdminProjectCategoryApi';
 export * from './AdminReportApi';
 export * from './AdminUserApi';
 export * from './AuthApi';
+export * from './BoardApi';
+export * from './BoardCategoryApi';
+export * from './CommentApi';
 export * from './FileApi';
 export * from './LeaveApi';
 export * from './NTISRSSApi';

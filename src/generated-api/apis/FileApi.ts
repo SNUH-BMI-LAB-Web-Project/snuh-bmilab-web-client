@@ -33,7 +33,6 @@ export interface DeleteFileRequest {
 }
 
 export interface GeneratePresignedUrlRequest {
-    domainType: GeneratePresignedUrlDomainTypeEnum;
     fileName: string;
     contentType: string;
 }
@@ -90,13 +89,6 @@ export class FileApi extends runtime.BaseAPI {
      * Presigned URL 발급
      */
     async generatePresignedUrlRaw(requestParameters: GeneratePresignedUrlRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<FilePresignedUrlResponse>> {
-        if (requestParameters['domainType'] == null) {
-            throw new runtime.RequiredError(
-                'domainType',
-                'Required parameter "domainType" was null or undefined when calling generatePresignedUrl().'
-            );
-        }
-
         if (requestParameters['fileName'] == null) {
             throw new runtime.RequiredError(
                 'fileName',
@@ -112,10 +104,6 @@ export class FileApi extends runtime.BaseAPI {
         }
 
         const queryParameters: any = {};
-
-        if (requestParameters['domainType'] != null) {
-            queryParameters['domainType'] = requestParameters['domainType'];
-        }
 
         if (requestParameters['fileName'] != null) {
             queryParameters['fileName'] = requestParameters['fileName'];
@@ -201,13 +189,3 @@ export class FileApi extends runtime.BaseAPI {
     }
 
 }
-
-/**
- * @export
- */
-export const GeneratePresignedUrlDomainTypeEnum = {
-    Project: 'PROJECT',
-    Timeline: 'TIMELINE',
-    Report: 'REPORT'
-} as const;
-export type GeneratePresignedUrlDomainTypeEnum = typeof GeneratePresignedUrlDomainTypeEnum[keyof typeof GeneratePresignedUrlDomainTypeEnum];

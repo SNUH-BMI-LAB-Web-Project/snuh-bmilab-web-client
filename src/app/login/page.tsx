@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
@@ -20,13 +20,16 @@ import { LoginRequest } from '@/generated-api/models/LoginRequest';
 import { useAuthStore } from '@/store/auth-store';
 import Cookies from 'js-cookie';
 import Link from 'next/link';
+import { getPublicApiConfig } from '@/lib/config';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isPending, startTransition] = useTransition();
   const login = useAuthStore((state) => state.login);
 
   useEffect(() => {
@@ -41,37 +44,39 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
+    setIsLoading(true);
 
     try {
-      const api = new AuthApi();
+      const api = new AuthApi(getPublicApiConfig());
       const loginRequest: LoginRequest = { email, password };
       const response = await api.login({ loginRequest });
+
       login(response);
 
       Cookies.set('accessToken', response.accessToken ?? '', {
-        expires: 1,
+        expires: 24,
         sameSite: 'strict',
       });
 
       toast.success('로그인 성공! 환영합니다.');
-      router.push('/portal/users');
+      startTransition(() => {
+        setTimeout(() => {
+          const token = useAuthStore.getState().accessToken;
+          if (token) {
+            router.push('/portal/users/members');
+          }
+        }, 10);
+      });
     } catch (error) {
-      let message = '로그인에 실패했습니다. 다시 시도해 주세요.';
-
-      if (error && typeof error === 'object' && 'body' in error) {
-        const { body } = error as { body: { message?: string } };
-
-        if (body.message?.includes('사용자를 찾을 수 없습니다')) {
-          message = '등록되지 않은 사용자입니다. 관리자에게 문의하세요.';
-        } else if (body.message?.includes('비밀번호가 일치하지 않습니다')) {
-          message = '비밀번호가 일치하지 않습니다. 다시 시도해 주세요.';
-        }
-      }
+      const fallbackMessage = '로그인에 실패했습니다. 다시 시도해 주세요.';
+      const message =
+        error && typeof error === 'object' && 'body' in error
+          ? ((error as { body?: { message?: string } }).body?.message ??
+            fallbackMessage)
+          : fallbackMessage;
 
       toast.error(message);
-    } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -135,8 +140,8 @@ export default function LoginPage() {
                 </div>
 
                 <div className="flex flex-col gap-3">
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? '로그인 중...' : '로그인'}
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? '로그인 중...' : '로그인'}
                   </Button>
                 </div>
               </form>
