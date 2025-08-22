@@ -30,7 +30,6 @@ import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn, setDateWithFixedHour } from '@/lib/utils';
 import { TimelineApi, TimelineRequestTypeEnum } from '@/generated-api';
-import { GeneratePresignedUrlDomainTypeEnum } from '@/generated-api/apis/FileApi';
 import { FileSummary, TimelineSummary } from '@/generated-api/models';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
@@ -139,11 +138,7 @@ export default function TimelineFormModal({
     if (!file) return;
 
     try {
-      const uploaded = await uploadFileWithPresignedUrl(
-        file,
-        accessToken!,
-        GeneratePresignedUrlDomainTypeEnum.Timeline,
-      );
+      const uploaded = await uploadFileWithPresignedUrl(file, accessToken!);
       setFormData((prev) => ({ ...prev, files: [...prev.files, uploaded] }));
       toast.success('파일 업로드 완료');
     } catch (error) {

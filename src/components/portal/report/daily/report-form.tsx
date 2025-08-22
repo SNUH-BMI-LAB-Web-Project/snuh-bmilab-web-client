@@ -24,11 +24,7 @@ import {
 } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn, setDateWithFixedHour } from '@/lib/utils';
-import {
-  GeneratePresignedUrlDomainTypeEnum,
-  ReportApi,
-  SearchProjectItem,
-} from '@/generated-api';
+import { ReportApi, SearchProjectItem } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { uploadFileWithPresignedUrl } from '@/lib/upload';
@@ -74,11 +70,7 @@ export function ReportForm({ projectList, onReportCreated }: ReportFormProps) {
 
     try {
       const uploadPromises = files.map((file) =>
-        uploadFileWithPresignedUrl(
-          file,
-          accessToken,
-          GeneratePresignedUrlDomainTypeEnum.Report,
-        ),
+        uploadFileWithPresignedUrl(file, accessToken),
       );
 
       const uploadedRecords = await Promise.all(uploadPromises);

@@ -43,6 +43,12 @@ export interface BoardRequest {
      * @memberof BoardRequest
      */
     fileIds?: Array<string>;
+    /**
+     * 내용 이미지 파일 ID 리스트
+     * @type {Array<string>}
+     * @memberof BoardRequest
+     */
+    imageFileIds?: Array<string>;
 }
 
 /**
@@ -69,6 +75,7 @@ export function BoardRequestFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'title': json['title'],
         'content': json['content'],
         'fileIds': json['fileIds'] == null ? undefined : json['fileIds'],
+        'imageFileIds': json['imageFileIds'] == null ? undefined : json['imageFileIds'],
     };
 }
 
@@ -87,6 +94,7 @@ export function BoardRequestToJSONTyped(value?: BoardRequest | null, ignoreDiscr
         'title': value['title'],
         'content': value['content'],
         'fileIds': value['fileIds'],
+        'imageFileIds': value['imageFileIds'],
     };
 }
 
