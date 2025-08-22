@@ -148,7 +148,7 @@ export default function PortalBoardPage() {
     [],
   );
 
-  const fetchUsers = async () => {
+  const fetchBoards = async () => {
     setLoading(true);
     try {
       const res = await boardApi.getAllBoards({
@@ -182,7 +182,7 @@ export default function PortalBoardPage() {
   }, []);
 
   useEffect(() => {
-    fetchUsers();
+    fetchBoards();
   }, [
     currentPage,
     itemsPerPage,
