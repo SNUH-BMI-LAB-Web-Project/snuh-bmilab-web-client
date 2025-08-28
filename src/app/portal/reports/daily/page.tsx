@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ReportFeed } from '@/components/portal/report/daily/report-feed';
 import { ReportForm } from '@/components/portal/report/daily/report-form';
@@ -153,7 +153,9 @@ export default function DailyPage() {
                       value={String(proj.projectId)}
                       className="cursor-pointer"
                     >
-                      {proj.title}
+                      <span className="w-64 cursor-pointer truncate overflow-hidden text-start whitespace-nowrap">
+                        {proj.title}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
