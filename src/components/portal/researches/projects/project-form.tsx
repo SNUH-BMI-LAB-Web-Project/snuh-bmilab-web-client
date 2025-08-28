@@ -397,7 +397,7 @@ export function ProjectForm({
           )}
         </div>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* 연구 분야 */}
           <div className="space-y-3">
             <Label className="flex items-center text-base font-medium">
@@ -514,7 +514,7 @@ export function ProjectForm({
         </div>
 
         <div className="grid grid-cols-1 gap-8">
-          <div className="grid grid-cols-2 gap-8">
+          <div className="grid gap-8 lg:grid-cols-2">
             {/* IRB */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">

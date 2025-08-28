@@ -90,7 +90,7 @@ export default function EditProjectPage({
   }
 
   return (
-    <div className="flex flex-col px-30">
+    <div className="flex flex-col xl:px-30">
       {/* 헤더 */}
       <div className="mb-6 flex items-center">
         <Button
