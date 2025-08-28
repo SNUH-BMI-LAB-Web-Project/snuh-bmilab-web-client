@@ -13,7 +13,7 @@ export default function MyPage() {
   const [tab, setTab] = useState('profile');
 
   return (
-    <div className="flex flex-col px-0 lg:px-30">
+    <div className="flex flex-col px-0 xl:px-30">
       {/* 헤더 */}
       <div className="mb-6 flex items-center">
         <Button

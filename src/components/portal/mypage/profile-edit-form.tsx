@@ -294,7 +294,7 @@ export default function ProfileEditForm() {
   };
 
   return (
-    <div className="flex flex-col items-center gap-10 lg:flex-row lg:items-start">
+    <div className="flex flex-col items-center gap-10 xl:flex-row xl:items-start">
       {/* 프로필 사진 */}
       <div className="relative mx-10 aspect-square h-48 w-48">
         <Image
@@ -325,7 +325,7 @@ export default function ProfileEditForm() {
       </div>
 
       {/* 개인정보 수정 */}
-      <div className="space-y-6 lg:w-3/4">
+      <div className="space-y-6 xl:w-3/4">
         {/* 이름 */}
         <div className="flex flex-col gap-2">
           <Label className="font-semibold">
