@@ -44,6 +44,11 @@ export interface GetReportsByCurrentUserRequest {
     endDate?: Date;
 }
 
+export interface GetWordFileByCurrentUserRequest {
+    startDate?: Date;
+    endDate?: Date;
+}
+
 export interface UpdateReportRequest {
     reportId: number;
     reportRequest: ReportRequest;
@@ -230,6 +235,50 @@ export class ReportApi extends runtime.BaseAPI {
      */
     async getReportsByCurrentUser(requestParameters: GetReportsByCurrentUserRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ReportFindAllResponse> {
         const response = await this.getReportsByCurrentUserRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * 현재 로그인한 사용자의 업무보고 목록을 엑셀파일로 다운로드할 수 있는 GET API
+     * 내 업무보고 워드파일 다운로드
+     */
+    async getWordFileByCurrentUserRaw(requestParameters: GetWordFileByCurrentUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['startDate'] != null) {
+            queryParameters['startDate'] = (requestParameters['startDate'] as any).toISOString().substring(0,10);
+        }
+
+        if (requestParameters['endDate'] != null) {
+            queryParameters['endDate'] = (requestParameters['endDate'] as any).toISOString().substring(0,10);
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/reports/word`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.BlobApiResponse(response);
+    }
+
+    /**
+     * 현재 로그인한 사용자의 업무보고 목록을 엑셀파일로 다운로드할 수 있는 GET API
+     * 내 업무보고 워드파일 다운로드
+     */
+    async getWordFileByCurrentUser(requestParameters: GetWordFileByCurrentUserRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.getWordFileByCurrentUserRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
