@@ -150,7 +150,7 @@ export function FilterControls({
   return (
     <div className="space-y-4">
       {/* 상단 필터들 */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4">
         {/* 프로젝트 필터 */}
         <div className="space-y-2">
           <Label htmlFor="project">프로젝트</Label>
@@ -170,7 +170,7 @@ export function FilterControls({
                   title={proj.title}
                   className="cursor-pointer"
                 >
-                  <span className="w-[250px] cursor-pointer truncate overflow-hidden text-start whitespace-nowrap">
+                  <span className="w-[var(--radix-select-trigger-width)] cursor-pointer truncate overflow-hidden text-start whitespace-nowrap">
                     {proj.title}
                   </span>
                 </SelectItem>
@@ -178,65 +178,66 @@ export function FilterControls({
             </SelectContent>
           </Select>
         </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {/* 유저 필터 */}
+          {showUserFilter && (
+            <div className="space-y-2">
+              <Label htmlFor="user">사용자</Label>
+              <Select
+                value={user || 'all'}
+                onValueChange={(value) => setUser(value === 'all' ? '' : value)}
+              >
+                <SelectTrigger id="user" className="w-full cursor-pointer">
+                  <SelectValue placeholder="모든 사용자" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">모든 사용자</SelectItem>
+                  {users.map((userItem) => (
+                    <SelectItem
+                      key={userItem.userId}
+                      value={String(userItem.userId)}
+                      className="cursor-pointer"
+                    >
+                      {userItem.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-        {/* 유저 필터 */}
-        {showUserFilter && (
-          <div className="space-y-2">
-            <Label htmlFor="user">사용자</Label>
-            <Select
-              value={user || 'all'}
-              onValueChange={(value) => setUser(value === 'all' ? '' : value)}
-            >
-              <SelectTrigger id="user" className="w-full cursor-pointer">
-                <SelectValue placeholder="모든 사용자" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">모든 사용자</SelectItem>
-                {users.map((userItem) => (
-                  <SelectItem
-                    key={userItem.userId}
-                    value={String(userItem.userId)}
-                    className="cursor-pointer"
+          {/* 보고일자 필터 */}
+          {showDateFilter && (
+            <div className="space-y-2">
+              <Label>보고일자</Label>
+              <Popover>
+                <PopoverTrigger asChild className="w-full">
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !dateRange && 'text-muted-foreground',
+                    )}
                   >
-                    {userItem.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {/* 보고일자 필터 */}
-        {showDateFilter && (
-          <div className="space-y-2">
-            <Label>보고일자</Label>
-            <Popover>
-              <PopoverTrigger asChild className="w-full">
-                <Button
-                  variant="outline"
-                  className={cn(
-                    'w-full justify-start text-left font-normal',
-                    !dateRange && 'text-muted-foreground',
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {renderDateRange()}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={dateRange?.from}
-                  selected={dateRange}
-                  onSelect={setDateRange}
-                  numberOfMonths={2}
-                  locale={ko}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        )}
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {renderDateRange()}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={dateRange?.from}
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    numberOfMonths={2}
+                    locale={ko}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 하단 검색 */}
