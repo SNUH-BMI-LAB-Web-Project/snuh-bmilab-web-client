@@ -25,12 +25,14 @@ interface ReportDownloadModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDownload: (range: { from: Date; to: Date }) => Promise<void>;
+  title?: string;
 }
 
 export function ReportDownloadModal({
   open,
   onOpenChange,
   onDownload,
+  title = '일일 업무 보고 파일 다운로드',
 }: ReportDownloadModalProps) {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: addDays(new Date(), -7),
@@ -66,7 +68,7 @@ export function ReportDownloadModal({
         <div className="space-y-6">
           <DialogHeader>
             <DialogTitle className="text-center text-lg font-semibold">
-              일일 업무 보고 파일 다운로드
+              {title}
             </DialogTitle>
           </DialogHeader>
 
