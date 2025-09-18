@@ -120,7 +120,7 @@ export function ReportForm({ projectList, onReportCreated }: ReportFormProps) {
                   value={String(proj.projectId)}
                   className="cursor-pointer"
                 >
-                  <span className="w-[250px] cursor-pointer truncate overflow-hidden text-start whitespace-nowrap lg:w-[448px]">
+                  <span className="w-[var(--radix-select-trigger-width)] cursor-pointer truncate overflow-hidden text-start whitespace-nowrap">
                     {proj.title}
                   </span>
                 </SelectItem>
