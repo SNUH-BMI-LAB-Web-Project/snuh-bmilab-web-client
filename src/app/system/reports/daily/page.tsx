@@ -96,9 +96,9 @@ export default function AdminPage() {
         </CardContent>
       </Card>
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="grid gap-3 lg:grid-cols-2 lg:items-center">
           <h3 className="text-xl font-semibold">업무 보고 피드</h3>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-end">
             <Button
               onClick={() => {
                 setDownloadKind('excel');
