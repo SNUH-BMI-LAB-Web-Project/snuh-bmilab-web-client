@@ -23,41 +23,6 @@ import {
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-const taskStatuses = {
-  '공고 예정': {
-    color: 'bg-blue-200 hover:bg-blue-300',
-    textColor: 'text-blue-800',
-  },
-  '제안서 작성': {
-    color: 'bg-blue-500 hover:bg-blue-600',
-    textColor: 'text-white',
-  },
-  '제안서 탈락': {
-    color: 'bg-blue-100 hover:bg-blue-200',
-    textColor: 'text-blue-700',
-  },
-  '발표 준비': {
-    color: 'bg-blue-400 hover:bg-blue-500',
-    textColor: 'text-white',
-  },
-  '발표 탈락': {
-    color: 'bg-blue-100 hover:bg-blue-200',
-    textColor: 'text-blue-700',
-  },
-  '협약 진행': {
-    color: 'bg-blue-600 hover:bg-blue-700',
-    textColor: 'text-white',
-  },
-  '과제 진행': {
-    color: 'bg-blue-700 hover:bg-blue-800',
-    textColor: 'text-white',
-  },
-  과제종료: {
-    color: 'bg-blue-300 hover:bg-blue-400',
-    textColor: 'text-blue-800',
-  },
-};
-
 const sampleTasks = [
   {
     id: 1,
@@ -385,6 +350,7 @@ export default function TaskManagementPage() {
                   </div>
 
                   {/* Title section (카드 어디든 눌러 상세 페이지 이동) */}
+                  {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events */}
                   <div className="p-8" onClick={() => handleTaskClick(task.id)}>
                     <div className="mb-8">
                       <h3 className="mb-3 text-2xl leading-tight font-bold text-gray-900">
@@ -566,9 +532,9 @@ export default function TaskManagementPage() {
                               </div>
                               <div className="space-y-1 pl-6">
                                 {task.participatingInstitutions.map(
-                                  (institution, index) => (
+                                  (institution) => (
                                     <div
-                                      key={index}
+                                      key={institution.name}
                                       className="text-xs text-gray-600"
                                     >
                                       {institution.name} ({institution.type})
