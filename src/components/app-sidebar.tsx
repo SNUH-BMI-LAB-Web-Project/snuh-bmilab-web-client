@@ -32,7 +32,10 @@ const baseNav = [
     title: '연구',
     url: '/portal/researches',
     icon: FolderSearch,
-    items: [{ title: '연구 & 프로젝트', url: '/portal/researches/projects' }],
+    items: [
+      { title: '과제', url: '/portal/researches/assignment' },
+      { title: '연구 & 프로젝트', url: '/portal/researches/projects' },
+    ],
   },
   {
     title: '기타',

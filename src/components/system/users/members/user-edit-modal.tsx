@@ -750,6 +750,7 @@ export default function UserEditModal({
                     )
                   }
                   placeholder="15"
+                  step={0.5}
                   min={formData.usedLeaveCount}
                   max={99999}
                 />

@@ -35,6 +35,15 @@ export interface GetReportsByAllUserRequest {
     keyword?: string;
 }
 
+export interface GetWordFileByCurrentUser1Request {
+    startDate: Date;
+    endDate?: Date;
+}
+
+export interface PreviewMailBodyRequest {
+    date: Date;
+}
+
 /**
  * 
  */
@@ -144,6 +153,108 @@ export class AdminReportApi extends runtime.BaseAPI {
      */
     async getReportsByAllUser(requestParameters: GetReportsByAllUserRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ReportFindAllResponse> {
         const response = await this.getReportsByAllUserRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * 일별로 업무보고 엑셀파일을 다운로드할 수 있는 GET API
+     * 일별 보고 워드파일 다운로드
+     */
+    async getWordFileByCurrentUser1Raw(requestParameters: GetWordFileByCurrentUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Blob>> {
+        if (requestParameters['startDate'] == null) {
+            throw new runtime.RequiredError(
+                'startDate',
+                'Required parameter "startDate" was null or undefined when calling getWordFileByCurrentUser1().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['startDate'] != null) {
+            queryParameters['startDate'] = (requestParameters['startDate'] as any).toISOString().substring(0,10);
+        }
+
+        if (requestParameters['endDate'] != null) {
+            queryParameters['endDate'] = (requestParameters['endDate'] as any).toISOString().substring(0,10);
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/admin/reports/word`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.BlobApiResponse(response);
+    }
+
+    /**
+     * 일별로 업무보고 엑셀파일을 다운로드할 수 있는 GET API
+     * 일별 보고 워드파일 다운로드
+     */
+    async getWordFileByCurrentUser1(requestParameters: GetWordFileByCurrentUser1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Blob> {
+        const response = await this.getWordFileByCurrentUser1Raw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * 실제 발송 없이 지정한 날짜의 보고서 메일 본문을 반환하는 GET API  - date 파라미터: 해당 날짜 보고서 본문 조회 - 스케줄러는 항상 전일 보고서를 발송 (월요일은 금요일 보고서) 
+     * 일별 보고 메일 본문 미리보기
+     */
+    async previewMailBodyRaw(requestParameters: PreviewMailBodyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<string>> {
+        if (requestParameters['date'] == null) {
+            throw new runtime.RequiredError(
+                'date',
+                'Required parameter "date" was null or undefined when calling previewMailBody().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['date'] != null) {
+            queryParameters['date'] = (requestParameters['date'] as any).toISOString().substring(0,10);
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/admin/reports/email/preview`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        if (this.isJsonMime(response.headers.get('content-type'))) {
+            return new runtime.JSONApiResponse<string>(response);
+        } else {
+            return new runtime.TextApiResponse(response) as any;
+        }
+    }
+
+    /**
+     * 실제 발송 없이 지정한 날짜의 보고서 메일 본문을 반환하는 GET API  - date 파라미터: 해당 날짜 보고서 본문 조회 - 스케줄러는 항상 전일 보고서를 발송 (월요일은 금요일 보고서) 
+     * 일별 보고 메일 본문 미리보기
+     */
+    async previewMailBody(requestParameters: PreviewMailBodyRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<string> {
+        const response = await this.previewMailBodyRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

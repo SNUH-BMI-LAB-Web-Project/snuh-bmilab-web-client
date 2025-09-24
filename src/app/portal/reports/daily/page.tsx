@@ -16,7 +16,7 @@ import { ProjectApi, ReportApi, SearchProjectItem } from '@/generated-api';
 import { format, subDays } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { getApiConfig } from '@/lib/config';
-import { FileDown } from 'lucide-react';
+import { FileDown, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ReportDownloadModal } from '@/components/system/reports/report-download-modal';
 import { downloadBlob, ensureLocalNoon } from '@/utils/download-file';
@@ -30,6 +30,9 @@ interface ReportFilter {
 const projectApi = new ProjectApi(getApiConfig());
 const reportsApi = new ReportApi(getApiConfig());
 
+// 일일업무보고 다운로드 파일 타입(엑셀, 워드)
+type DownloadKind = 'excel' | 'word';
+
 export default function DailyPage() {
   const [filters, setFilters] = useState<ReportFilter>({});
   const [projects, setProjects] = useState<SearchProjectItem[]>([]);
@@ -39,6 +42,8 @@ export default function DailyPage() {
   const [endDate, setEndDate] = useState<Date>(() => new Date());
   const [refreshKey, setRefreshKey] = useState(0);
   const [fileDownloadModalOpen, setFileDownloadModalOpen] = useState(false);
+  const [downloadKind, setDownloadKind] = useState<DownloadKind>('excel');
+
   const handleReportCreated = () => {
     setRefreshKey((prev) => prev + 1);
   };
@@ -87,24 +92,35 @@ export default function DailyPage() {
     }
   };
 
+  // 엑셀/워드 공용 다운로드 핸들러 (종류에 따라 분기)
   const handleUserDownload = useCallback(
     async ({ from, to }: { from: Date; to: Date }) => {
       const start = ensureLocalNoon(from);
       const end = ensureLocalNoon(to);
 
-      const blob = await reportsApi.getExcelFileByCurrentUser({
-        startDate: start,
-        endDate: end,
-      });
-
-      const filename = `${safeFilename(userName)}_일일 업무 보고_${format(
-        start,
-        'yyyy-MM-dd',
-      )}~${format(end, 'yyyy-MM-dd')}.xlsx`;
-
-      downloadBlob(blob, filename);
+      if (downloadKind === 'excel') {
+        const blob = await reportsApi.getExcelFileByCurrentUser({
+          startDate: start,
+          endDate: end,
+        });
+        const filename = `${safeFilename(userName)}_일일 업무 보고_${format(
+          start,
+          'yyyy-MM-dd',
+        )}~${format(end, 'yyyy-MM-dd')}.xlsx`;
+        downloadBlob(blob, filename);
+      } else {
+        const blob = await reportsApi.getWordFileByCurrentUser({
+          startDate: start,
+          endDate: end,
+        });
+        const filename = `${safeFilename(userName)}_일일 업무 보고_${format(
+          start,
+          'yyyy-MM-dd',
+        )}~${format(end, 'yyyy-MM-dd')}.docx`;
+        downloadBlob(blob, filename);
+      }
     },
-    [],
+    [downloadKind, userName], // userName/safeFilename 의존성 반영
   );
 
   return (
@@ -153,7 +169,7 @@ export default function DailyPage() {
                       value={String(proj.projectId)}
                       className="cursor-pointer"
                     >
-                      <span className="w-64 cursor-pointer truncate overflow-hidden text-start whitespace-nowrap">
+                      <span className="w-[var(--radix-select-trigger-width)] cursor-pointer truncate overflow-hidden text-start whitespace-nowrap">
                         {proj.title}
                       </span>
                     </SelectItem>
@@ -163,11 +179,25 @@ export default function DailyPage() {
             </div>
 
             <Button
-              onClick={() => setFileDownloadModalOpen(true)}
+              onClick={() => {
+                setDownloadKind('excel');
+                setFileDownloadModalOpen(true);
+              }}
               className="flex items-center gap-2"
             >
               <FileDown className="h-4 w-4" />
               엑셀 파일 다운로드
+            </Button>
+
+            <Button
+              onClick={() => {
+                setDownloadKind('word');
+                setFileDownloadModalOpen(true);
+              }}
+              className="flex items-center gap-2"
+            >
+              <FileText className="h-4 w-4" />
+              워드 파일 다운로드
             </Button>
           </div>
         </div>
@@ -184,6 +214,11 @@ export default function DailyPage() {
         open={fileDownloadModalOpen}
         onOpenChange={setFileDownloadModalOpen}
         onDownload={handleUserDownload}
+        title={
+          downloadKind === 'excel'
+            ? '일일 업무 보고 엑셀 파일 다운로드'
+            : '일일 업무 보고 워드 파일 다운로드'
+        }
       />
     </div>
   );

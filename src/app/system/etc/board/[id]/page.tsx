@@ -7,7 +7,6 @@ import {
   ArrowLeft,
   Edit,
   Trash2,
-  Eye,
   MessageCircle,
   Paperclip,
   Save,
@@ -313,8 +312,8 @@ export default function BoardDetailPage() {
                 <div className="flex flex-col gap-2 text-right">
                   <div className="text-muted-foreground flex flex-wrap justify-end gap-4 text-xs">
                     <div className="flex items-center gap-1">
-                      <Eye className="h-3 w-3" />
-                      <span>조회 {post.viewCount?.toLocaleString()}</span>
+                      {/* <Eye className="h-3 w-3" /> */}
+                      {/* <span>조회 {post.viewCount?.toLocaleString()}</span> */}
                     </div>
                     <div className="flex items-center gap-1">
                       <MessageCircle className="h-3 w-3" />
