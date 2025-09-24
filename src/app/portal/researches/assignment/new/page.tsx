@@ -1,10 +1,9 @@
 'use client';
 
-import type React from 'react';
+import React, { useState } from 'react';
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -16,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { ArrowLeft, X } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import SingleUserSelectInput from '@/components/portal/researches/assignment/single-user-select-input';
 
 interface YearlyPeriod {
   year: number;
@@ -45,7 +45,10 @@ export default function AddTaskPage() {
   });
 
   const [institutionInput, setInstitutionInput] = useState('');
+
   const [isComposing, setIsComposing] = useState(false);
+
+  const [, setPracticalManagerId] = useState<number | null>(null);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -442,13 +445,16 @@ export default function AddTaskPage() {
                     <Label htmlFor="practicalManager">
                       실무 책임자<span className="text-destructive">*</span>
                     </Label>
-                    <Input
-                      id="practicalManager"
-                      placeholder="실무 책임자를 입력하세요"
+                    <SingleUserSelectInput
                       value={formData.practicalManager}
-                      onChange={(e) =>
-                        handleInputChange('practicalManager', e.target.value)
+                      onValueChange={(v) =>
+                        handleInputChange('practicalManager', v)
                       }
+                      onUserSelected={(u) => {
+                        // 선택한 사용자 객체(ID 필요 시 활용)
+                        setPracticalManagerId(u?.userId ?? null); // 옵션
+                      }}
+                      placeholder="이름/부서/이메일로 검색 후 선택"
                       required
                     />
                   </div>
