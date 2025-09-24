@@ -7,7 +7,6 @@ import {
   ArrowLeft,
   Edit,
   Trash2,
-  Eye,
   MessageCircle,
   Paperclip,
   Save,
