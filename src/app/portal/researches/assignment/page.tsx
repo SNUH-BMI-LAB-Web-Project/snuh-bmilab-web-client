@@ -356,18 +356,18 @@ export default function TaskManagementPage() {
                       <h3 className="mb-3 text-2xl leading-tight font-bold text-gray-900">
                         {task.taskName}
                       </h3>
-                      <div className="space-y-2">
+                      <div className="flex gap-2">
                         <div className="text-primary flex items-center gap-2 text-sm">
                           <Hash className="h-4 w-4" />
                           <span className="font-medium">{task.rfpNumber}</span>
                         </div>
-                        <p className="pl-6 text-sm font-medium text-gray-600">
-                          {task.rfpName}
+                        <p className="text-sm font-medium text-gray-600">
+                          ( {task.rfpName} )
                         </p>
                       </div>
                     </div>
 
-                    {/* ⬇️ 한 번에 접히는 영역: 기본정보 / 기간 및 기관 / 인력 및 참여기관 */}
+                    {/* 접히는 영역: 기본정보 / 기간 및 기관 / 인력 및 참여기관 */}
                     {isOpen && (
                       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                         {/* 기본 정보 */}
