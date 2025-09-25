@@ -13,9 +13,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, X } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  ArrowLeft,
+  X,
+  Minus,
+  Plus,
+  Calendar as CalendarIcon,
+} from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
 import { Separator } from '@/components/ui/separator';
 import SingleUserSelectInput from '@/components/portal/researches/assignment/single-user-select-input';
+import ExternalProfessorSelectModal from '@/components/portal/researches/projects/external-professor-select-modal';
+import { ExternalProfessorItem } from '@/generated-api';
+import { getProfessorKey } from '@/utils/external-professor-utils';
+import { format, parseISO } from 'date-fns';
+import { ko } from 'date-fns/locale';
 
 interface YearlyPeriod {
   year: number;
@@ -49,6 +66,21 @@ export default function AddTaskPage() {
   const [isComposing, setIsComposing] = useState(false);
 
   const [, setPracticalManagerId] = useState<number | null>(null);
+
+  const [showHostProfessorModal, setShowHostProfessorModal] = useState(false);
+  const [showSnuhPIModal, setShowSnuhPIModal] = useState(false);
+
+  const [hostProfessor, setHostProfessor] =
+    useState<ExternalProfessorItem | null>(null);
+  const [snuhPIs, setSnuhPIs] = useState<ExternalProfessorItem[]>([]);
+
+  // 중복 방지용 key
+  const selectedHostKeys = hostProfessor
+    ? [getProfessorKey(hostProfessor)]
+    : [];
+  const selectedSnuhKeys = snuhPIs.map(getProfessorKey);
+
+  const toYMD = (d?: Date) => (d ? format(d, 'yyyy-MM-dd') : '');
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -128,9 +160,35 @@ export default function AddTaskPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // 여기에 과제 저장 로직 추가
-    console.log('과제 데이터:', formData);
-    // 저장 후 메인 페이지로 이동
+
+    if (!hostProfessor) {
+      alert('담당교수를 선택하세요.');
+      return;
+    }
+    if (snuhPIs.length === 0) {
+      alert('SNUH PI를 1명 이상 선택하세요.');
+      return;
+    }
+
+    const payload = {
+      ...formData,
+      hostProfessor: {
+        professorId: hostProfessor.professorId,
+        name: hostProfessor.name,
+        organization: hostProfessor.organization,
+        department: hostProfessor.department,
+        position: hostProfessor.position,
+      },
+      snuhPis: snuhPIs.map((p) => ({
+        professorId: p.professorId,
+        name: p.name,
+        organization: p.organization,
+        department: p.department,
+        position: p.position,
+      })),
+    };
+
+    console.log('과제 데이터:', payload);
     window.location.href = '/portal/researches/assignment';
   };
 
@@ -158,7 +216,7 @@ export default function AddTaskPage() {
       <main className="container mx-auto px-6 pb-8">
         <form onSubmit={handleSubmit}>
           <Card className="border-gray-200 py-8">
-            <CardContent className="space-y-10">
+            <CardContent className="space-y-12">
               <div className="space-y-6">
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   {/* 연구과제번호 */}
@@ -285,55 +343,90 @@ export default function AddTaskPage() {
 
                 {formData.yearlyPeriods.length > 0 && (
                   <div className="space-y-4">
-                    <Label>
-                      연차별 기간<span className="text-destructive">*</span>
-                    </Label>
                     {formData.yearlyPeriods.map((period, index) => (
                       <div
                         key={period.year}
-                        className="grid grid-cols-1 gap-4 rounded-lg border border-gray-200 p-4 lg:grid-cols-3"
+                        className="bg-muted/50 grid grid-cols-1 gap-4 rounded-lg border border-gray-200 p-4 lg:grid-cols-5"
                       >
                         <div className="flex items-center">
                           <Label className="font-medium">
                             {period.year}년차
                           </Label>
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`startDate-${period.year}`}>
-                            시작일
-                          </Label>
-                          <Input
-                            id={`startDate-${period.year}`}
-                            type="date"
-                            value={period.startDate}
-                            onChange={(e) =>
-                              handleYearlyPeriodChange(
-                                index,
-                                'startDate',
-                                e.target.value,
-                              )
-                            }
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`endDate-${period.year}`}>
-                            종료일
-                          </Label>
-                          <Input
-                            id={`endDate-${period.year}`}
-                            type="date"
-                            value={period.endDate}
-                            onChange={(e) =>
-                              handleYearlyPeriodChange(
-                                index,
-                                'endDate',
-                                e.target.value,
-                              )
-                            }
-                            required
-                          />
-                        </div>
+
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              id={`startDate-${period.year}`}
+                              variant="outline"
+                              className="w-full justify-start bg-white text-left font-normal lg:col-span-2"
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {period.startDate
+                                ? format(
+                                    parseISO(period.startDate),
+                                    'yyyy.MM.dd',
+                                    { locale: ko },
+                                  )
+                                : '시작일 선택'}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={
+                                period.startDate
+                                  ? parseISO(period.startDate)
+                                  : undefined
+                              }
+                              onSelect={(d) =>
+                                handleYearlyPeriodChange(
+                                  index,
+                                  'startDate',
+                                  toYMD(d || undefined),
+                                )
+                              }
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              id={`endDate-${period.year}`}
+                              variant="outline"
+                              className="w-full justify-start bg-white text-left font-normal lg:col-span-2"
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {period.endDate
+                                ? format(
+                                    parseISO(period.endDate),
+                                    'yyyy.MM.dd',
+                                    { locale: ko },
+                                  )
+                                : '종료일 선택'}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={
+                                period.endDate
+                                  ? parseISO(period.endDate)
+                                  : undefined
+                              }
+                              onSelect={(d) =>
+                                handleYearlyPeriodChange(
+                                  index,
+                                  'endDate',
+                                  toYMD(d || undefined),
+                                )
+                              }
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     ))}
                   </div>
@@ -355,7 +448,7 @@ export default function AddTaskPage() {
                       required
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="선택하세요" />
+                        <SelectValue placeholder="연구과제지원 선택" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="총괄">총괄</SelectItem>
@@ -384,35 +477,133 @@ export default function AddTaskPage() {
                   </div>
                 </div>
 
+                {/* 담당교수: 단일 선택 */}
                 <div className="space-y-2">
-                  <Label htmlFor="hostProfessor">
+                  <Label className="flex items-center gap-1">
                     담당교수<span className="text-destructive">*</span>
                   </Label>
-                  <Input
-                    id="hostProfessor"
-                    placeholder="담당교수를 입력하세요"
-                    value={formData.hostProfessor}
-                    onChange={(e) =>
-                      handleInputChange('hostProfessor', e.target.value)
-                    }
-                    required
-                  />
+
+                  {/* 선택 버튼 유지 */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowHostProfessorModal(true)}
+                    className="w-full justify-center"
+                    disabled={!!hostProfessor}
+                    title={hostProfessor ? '이미 선택됨' : '담당교수 선택'}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    담당교수 선택
+                  </Button>
+
+                  {/* 선택 후 UI */}
+                  {hostProfessor && (
+                    <div className="mt-2">
+                      <div className="flex gap-2">
+                        <Input
+                          disabled
+                          placeholder="이름"
+                          value={hostProfessor.name || ''}
+                          className="bg-white"
+                        />
+                        <Input
+                          disabled
+                          placeholder="기관"
+                          value={hostProfessor.organization || ''}
+                          className="bg-white"
+                        />
+                        <Input
+                          disabled
+                          placeholder="부서"
+                          value={hostProfessor.department || ''}
+                          className="bg-white"
+                        />
+                        <Input
+                          disabled
+                          placeholder="직책"
+                          value={hostProfessor.position || ''}
+                          className="bg-white"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setHostProfessor(null)}
+                          title="선택 해제"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* SNUH PI */}
+                {/* SNUH PI: 다중 선택 */}
                 <div className="space-y-2">
-                  <Label htmlFor="snuhPI">
+                  <Label className="flex items-center gap-1">
                     SNUH PI<span className="text-destructive">*</span>
                   </Label>
-                  <Input
-                    id="snuhPI"
-                    placeholder="SNUH PI를 입력하세요"
-                    value={formData.snuhPI}
-                    onChange={(e) =>
-                      handleInputChange('snuhPI', e.target.value)
-                    }
-                    required
-                  />
+
+                  {/* 추가 버튼 유지 */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowSnuhPIModal(true)}
+                    className="w-full justify-center"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    SNUH PI 추가
+                  </Button>
+
+                  {/* 선택 후 UI */}
+                  {snuhPIs.length > 0 && (
+                    <div className="mt-2 space-y-2">
+                      {snuhPIs.map((p, index) => {
+                        const key = getProfessorKey(p);
+                        return (
+                          <div key={key} className="flex items-center gap-2">
+                            <Input
+                              disabled
+                              placeholder="이름"
+                              value={p.name || ''}
+                              className="bg-white"
+                            />
+                            <Input
+                              disabled
+                              placeholder="기관"
+                              value={p.organization || ''}
+                              className="bg-white"
+                            />
+                            <Input
+                              disabled
+                              placeholder="부서"
+                              value={p.department || ''}
+                              className="bg-white"
+                            />
+                            <Input
+                              disabled
+                              placeholder="직책"
+                              value={p.position || ''}
+                              className="bg-white"
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() =>
+                                setSnuhPIs((prev) =>
+                                  prev.filter((_, i) => i !== index),
+                                )
+                              }
+                              title="제거"
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -454,7 +645,7 @@ export default function AddTaskPage() {
                         // 선택한 사용자 객체(ID 필요 시 활용)
                         setPracticalManagerId(u?.userId ?? null); // 옵션
                       }}
-                      placeholder="이름/부서/이메일로 검색 후 선택"
+                      placeholder="실무 책임자 이름을 입력하세요"
                       required
                     />
                   </div>
@@ -511,7 +702,7 @@ export default function AddTaskPage() {
                     required
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="선택하세요" />
+                      <SelectValue placeholder="3책5공 선택" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="포함">포함</SelectItem>
@@ -561,6 +752,33 @@ export default function AddTaskPage() {
           </div>
         </form>
       </main>
+
+      {/* 담당교수 선택 모달 (단일) */}
+      <ExternalProfessorSelectModal
+        open={showHostProfessorModal}
+        onClose={() => setShowHostProfessorModal(false)}
+        onSelect={(prof) => {
+          setHostProfessor(prof);
+          setShowHostProfessorModal(false);
+        }}
+        selectedProfessorKeys={selectedHostKeys}
+      />
+
+      {/* SNUH PI 선택 모달 (다중) */}
+      <ExternalProfessorSelectModal
+        open={showSnuhPIModal}
+        onClose={() => setShowSnuhPIModal(false)}
+        onSelect={(prof) => {
+          const key = getProfessorKey(prof);
+          setSnuhPIs((prev) =>
+            prev.some((p) => getProfessorKey(p) === key)
+              ? prev
+              : [...prev, prof],
+          );
+          setShowSnuhPIModal(false);
+        }}
+        selectedProfessorKeys={selectedSnuhKeys}
+      />
     </div>
   );
 }
