@@ -26,6 +26,7 @@ import {
   Calendar as CalendarIcon,
 } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
+import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import SingleUserSelectInput from '@/components/portal/researches/assignment/single-user-select-input';
 import ExternalProfessorSelectModal from '@/components/portal/researches/projects/external-professor-select-modal';
@@ -217,7 +218,7 @@ export default function AddTaskPage() {
         <form onSubmit={handleSubmit}>
           <Card className="border-gray-200 py-8">
             <CardContent className="space-y-12">
-              <div className="space-y-6">
+              <div className="space-y-8">
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   {/* 연구과제번호 */}
                   <div className="w-full space-y-2">
@@ -346,7 +347,7 @@ export default function AddTaskPage() {
                     {formData.yearlyPeriods.map((period, index) => (
                       <div
                         key={period.year}
-                        className="bg-muted/50 grid grid-cols-1 gap-4 rounded-lg border border-gray-200 p-4 lg:grid-cols-5"
+                        className="bg-muted/50 grid grid-cols-1 gap-4 rounded-xl p-4 lg:grid-cols-5"
                       >
                         <div className="flex items-center">
                           <Label className="font-medium">
@@ -435,7 +436,7 @@ export default function AddTaskPage() {
 
               <Separator className="my-6" />
 
-              <div className="space-y-6">
+              <div className="space-y-8">
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="researchType">
@@ -483,22 +484,23 @@ export default function AddTaskPage() {
                     담당교수<span className="text-destructive">*</span>
                   </Label>
 
-                  {/* 선택 버튼 유지 */}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowHostProfessorModal(true)}
-                    className="w-full justify-center"
-                    disabled={!!hostProfessor}
-                    title={hostProfessor ? '이미 선택됨' : '담당교수 선택'}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    담당교수 선택
-                  </Button>
+                  {/* 선택 버튼 */}
+                  {!hostProfessor && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowHostProfessorModal(true)}
+                      className="w-full justify-center"
+                      title="담당교수 선택"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      담당교수 선택
+                    </Button>
+                  )}
 
                   {/* 선택 후 UI */}
                   {hostProfessor && (
-                    <div className="mt-2">
+                    <div className="bg-muted/50 mt-2 rounded-xl p-4">
                       <div className="flex gap-2">
                         <Input
                           disabled
@@ -557,7 +559,7 @@ export default function AddTaskPage() {
 
                   {/* 선택 후 UI */}
                   {snuhPIs.length > 0 && (
-                    <div className="mt-2 space-y-2">
+                    <div className="bg-muted/50 mt-2 space-y-3 rounded-xl p-4">
                       {snuhPIs.map((p, index) => {
                         const key = getProfessorKey(p);
                         return (
@@ -669,19 +671,20 @@ export default function AddTaskPage() {
                   {formData.participatingInstitutions.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {formData.participatingInstitutions.map((institution) => (
-                        <div
+                        <Badge
                           key={institution}
-                          className="text-primary flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-sm"
+                          variant="secondary"
+                          className="bg-border flex items-center gap-1 rounded-full px-3 py-1 text-sm"
                         >
                           <span>{institution}</span>
                           <button
                             type="button"
                             onClick={() => handleRemoveInstitution(institution)}
-                            className="rounded-full p-0.5 hover:bg-blue-200"
+                            className="rounded-full p-0.5 hover:cursor-pointer hover:bg-black/5"
                           >
                             <X className="h-3 w-3" />
                           </button>
-                        </div>
+                        </Badge>
                       ))}
                     </div>
                   )}
