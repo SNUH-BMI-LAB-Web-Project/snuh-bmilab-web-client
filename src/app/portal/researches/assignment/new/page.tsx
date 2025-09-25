@@ -160,7 +160,7 @@ export default function AddTaskPage() {
           <Card className="border-gray-200 py-8">
             <CardContent className="space-y-10">
               <div className="space-y-6">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   {/* 연구과제번호 */}
                   <div className="w-full space-y-2">
                     <Label htmlFor="researchNumber">
@@ -194,7 +194,7 @@ export default function AddTaskPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div className="w-full space-y-2">
                     <Label htmlFor="rfpNumber">
                       RFP번호<span className="text-destructive">*</span>
@@ -227,7 +227,7 @@ export default function AddTaskPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   {/* 사업명 */}
                   <div className="w-full space-y-2">
                     <Label htmlFor="projectName">
@@ -291,7 +291,7 @@ export default function AddTaskPage() {
                     {formData.yearlyPeriods.map((period, index) => (
                       <div
                         key={period.year}
-                        className="grid grid-cols-1 gap-4 rounded-lg border border-gray-200 p-4 md:grid-cols-3"
+                        className="grid grid-cols-1 gap-4 rounded-lg border border-gray-200 p-4 lg:grid-cols-3"
                       >
                         <div className="flex items-center">
                           <Label className="font-medium">
@@ -343,7 +343,7 @@ export default function AddTaskPage() {
               <Separator className="my-6" />
 
               <div className="space-y-6">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="researchType">
                       연구과제지원<span className="text-destructive">*</span>
@@ -415,7 +415,7 @@ export default function AddTaskPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="kimKwangSooRole">
                       김광수교수님<span className="text-destructive">*</span>
@@ -480,7 +480,7 @@ export default function AddTaskPage() {
                       {formData.participatingInstitutions.map((institution) => (
                         <div
                           key={institution}
-                          className="flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-800"
+                          className="text-primary flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-sm"
                         >
                           <span>{institution}</span>
                           <button
@@ -499,7 +499,7 @@ export default function AddTaskPage() {
 
               <Separator className="my-6" />
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="includesThreeToFive">
                     3책5공<span className="text-destructive">*</span>
