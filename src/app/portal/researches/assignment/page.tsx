@@ -304,7 +304,7 @@ export default function TaskManagementPage() {
               return (
                 <div
                   key={task.id}
-                  className="cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-white transition-all duration-300 hover:shadow-lg"
+                  className="cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-white transition hover:shadow-md"
                 >
                   {/* Header with status badge + details toggle */}
                   <div className="border-b border-gray-100 bg-gray-50 px-8 py-4">
