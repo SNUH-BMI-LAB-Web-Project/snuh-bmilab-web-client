@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { TaskPeriodResponse } from './TaskPeriodResponse';
+import {
+    TaskPeriodResponseFromJSON,
+    TaskPeriodResponseFromJSONTyped,
+    TaskPeriodResponseToJSON,
+    TaskPeriodResponseToJSONTyped,
+} from './TaskPeriodResponse';
+
 /**
  * 
  * @export
@@ -80,18 +88,6 @@ export interface TaskSummaryResponse {
      */
     threeFiveRule?: boolean;
     /**
-     * 과제 시작일
-     * @type {Date}
-     * @memberof TaskSummaryResponse
-     */
-    startDate?: Date;
-    /**
-     * 과제 종료일
-     * @type {Date}
-     * @memberof TaskSummaryResponse
-     */
-    endDate?: Date;
-    /**
      * 총 연차
      * @type {number}
      * @memberof TaskSummaryResponse
@@ -103,6 +99,24 @@ export interface TaskSummaryResponse {
      * @memberof TaskSummaryResponse
      */
     currentYear?: number;
+    /**
+     * 과제 전체 시작일 (첫 연차의 시작일)
+     * @type {Date}
+     * @memberof TaskSummaryResponse
+     */
+    taskStartDate?: Date;
+    /**
+     * 과제 전체 종료일 (마지막 연차의 종료일)
+     * @type {Date}
+     * @memberof TaskSummaryResponse
+     */
+    taskEndDate?: Date;
+    /**
+     * 과제 연차별 기간 목록
+     * @type {Array<TaskPeriodResponse>}
+     * @memberof TaskSummaryResponse
+     */
+    periods?: Array<TaskPeriodResponse>;
     /**
      * 주관기관
      * @type {string}
@@ -208,10 +222,11 @@ export function TaskSummaryResponseFromJSONTyped(json: any, ignoreDiscriminator:
         'issuingAgency': json['issuingAgency'] == null ? undefined : json['issuingAgency'],
         'supportType': json['supportType'] == null ? undefined : json['supportType'],
         'threeFiveRule': json['threeFiveRule'] == null ? undefined : json['threeFiveRule'],
-        'startDate': json['startDate'] == null ? undefined : (new Date(json['startDate'])),
-        'endDate': json['endDate'] == null ? undefined : (new Date(json['endDate'])),
         'totalYears': json['totalYears'] == null ? undefined : json['totalYears'],
         'currentYear': json['currentYear'] == null ? undefined : json['currentYear'],
+        'taskStartDate': json['taskStartDate'] == null ? undefined : (new Date(json['taskStartDate'])),
+        'taskEndDate': json['taskEndDate'] == null ? undefined : (new Date(json['taskEndDate'])),
+        'periods': json['periods'] == null ? undefined : ((json['periods'] as Array<any>).map(TaskPeriodResponseFromJSON)),
         'leadInstitution': json['leadInstitution'] == null ? undefined : json['leadInstitution'],
         'leadProfessor': json['leadProfessor'] == null ? undefined : json['leadProfessor'],
         'snuhPi': json['snuhPi'] == null ? undefined : json['snuhPi'],
@@ -242,10 +257,11 @@ export function TaskSummaryResponseToJSONTyped(value?: TaskSummaryResponse | nul
         'issuingAgency': value['issuingAgency'],
         'supportType': value['supportType'],
         'threeFiveRule': value['threeFiveRule'],
-        'startDate': value['startDate'] == null ? undefined : ((value['startDate']).toISOString().substring(0,10)),
-        'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString().substring(0,10)),
         'totalYears': value['totalYears'],
         'currentYear': value['currentYear'],
+        'taskStartDate': value['taskStartDate'] == null ? undefined : ((value['taskStartDate']).toISOString().substring(0,10)),
+        'taskEndDate': value['taskEndDate'] == null ? undefined : ((value['taskEndDate']).toISOString().substring(0,10)),
+        'periods': value['periods'] == null ? undefined : ((value['periods'] as Array<any>).map(TaskPeriodResponseToJSON)),
         'leadInstitution': value['leadInstitution'],
         'leadProfessor': value['leadProfessor'],
         'snuhPi': value['snuhPi'],
