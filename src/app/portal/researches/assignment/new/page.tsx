@@ -30,10 +30,20 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import SingleUserSelectInput from '@/components/portal/researches/assignment/single-user-select-input';
 import ExternalProfessorSelectModal from '@/components/portal/researches/projects/external-professor-select-modal';
-import { ExternalProfessorItem } from '@/generated-api';
+import {
+  ExternalProfessorItem,
+  TaskPeriodRequest,
+  TaskRequest,
+} from '@/generated-api';
 import { getProfessorKey } from '@/utils/external-professor-utils';
 import { format, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { TaskApi } from '@/generated-api/apis/TaskApi';
+import { getApiConfig } from '@/lib/config';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+
+const taskApi = new TaskApi(getApiConfig());
 
 interface YearlyPeriod {
   year: number;
@@ -42,6 +52,47 @@ interface YearlyPeriod {
 }
 
 export default function AddTaskPage() {
+  const supportTypeMap: Record<string, TaskRequest['supportType']> = {
+    총괄: 'TOTAL',
+    '1주관': 'FIRST_LEAD',
+    '2주관': 'SECOND_LEAD',
+    '3주관': 'THIRD_LEAD',
+    '4주관': 'FOURTH_LEAD',
+    '5주관': 'FIFTH_LEAD',
+  };
+
+  const professorRoleMap: Record<string, TaskRequest['professorRole']> = {
+    공동연구자: 'CO_RESEARCHER',
+    공동책임연구자: 'CO_PRINCIPAL_INVESTIGATOR',
+    책임연구자: 'PRINCIPAL_INVESTIGATOR',
+    위탁: 'CONSIGNMENT',
+  };
+
+  const statusMap: Record<string, NonNullable<TaskRequest['status']>> = {
+    '공고 예정': 'PROPOSAL_WRITING',
+    '제안서 작성': 'PROPOSAL_WRITING',
+    '제안서 탈락': 'PROPOSAL_REJECTED',
+    '발표 준비': 'PRESENTATION_PREPARING',
+    '발표 탈락': 'PRESENTATION_REJECTED',
+    '협약 진행': 'AGREEMENT_PREPARING',
+    '1년차': 'IN_PROGRESS',
+    '2년차': 'IN_PROGRESS',
+    '3년차': 'IN_PROGRESS',
+    '4년차': 'IN_PROGRESS',
+    '5년차': 'IN_PROGRESS',
+    과제종료: 'COMPLETED',
+  };
+
+  const parseCurrentYear = (label: string) => {
+    const m = label.match(/^(\d+)년차$/);
+    if (m) return Number(m[1]);
+    // 진행 전 단계면 0년차로 보냄
+    return 0;
+  };
+
+  const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
+
   const [formData, setFormData] = useState({
     researchNumber: '',
     taskName: '',
@@ -66,7 +117,9 @@ export default function AddTaskPage() {
 
   const [isComposing, setIsComposing] = useState(false);
 
-  const [, setPracticalManagerId] = useState<number | null>(null);
+  const [practicalManagerId, setPracticalManagerId] = useState<number | null>(
+    null,
+  );
 
   const [showHostProfessorModal, setShowHostProfessorModal] = useState(false);
   const [showSnuhPIModal, setShowSnuhPIModal] = useState(false);
@@ -159,9 +212,11 @@ export default function AddTaskPage() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
 
+    // 필수 검증
     if (!hostProfessor) {
       alert('담당교수를 선택하세요.');
       return;
@@ -170,27 +225,69 @@ export default function AddTaskPage() {
       alert('SNUH PI를 1명 이상 선택하세요.');
       return;
     }
+    if (!practicalManagerId) {
+      alert('실무 책임자를 선택하세요.');
+      return;
+    }
 
-    const payload = {
-      ...formData,
-      hostProfessor: {
-        professorId: hostProfessor.professorId,
-        name: hostProfessor.name,
-        organization: hostProfessor.organization,
-        department: hostProfessor.department,
-        position: hostProfessor.position,
-      },
-      snuhPis: snuhPIs.map((p) => ({
-        professorId: p.professorId,
-        name: p.name,
-        organization: p.organization,
-        department: p.department,
-        position: p.position,
-      })),
+    // 스키마 변환
+    const threeFiveRule = formData.includesThreeToFive === '포함';
+    const totalYears = formData.totalYears ? Number(formData.totalYears) : 0;
+    const currentYear = parseCurrentYear(formData.progressStage);
+    const periods: TaskPeriodRequest[] | undefined = (
+      formData.yearlyPeriods ?? []
+    )
+      .filter((p) => p.startDate && p.endDate)
+      .map((p) => ({
+        yearNumber: p.year,
+        startDate: parseISO(p.startDate),
+        endDate: parseISO(p.endDate),
+      }));
+
+    const payload: TaskRequest = {
+      // 기본 정보
+      researchTaskNumber: formData.researchNumber,
+      title: formData.taskName,
+      rfpNumber: formData.rfpNumber,
+      rfpName: formData.rfpName,
+      businessName: formData.projectName,
+      issuingAgency: formData.client,
+
+      // enum/불리언
+      supportType: supportTypeMap[formData.researchType],
+      threeFiveRule,
+      totalYears,
+      currentYear,
+
+      // 기간
+      periods,
+
+      // 기관/사람
+      leadInstitution: formData.hostInstitution,
+      // 서버 스키마가 string이라 이름 문자열로 전달 (여러 명 허용 X → 합쳐서 보냄)
+      leadProfessor: hostProfessor.name ?? '',
+      snuhPi: snuhPIs.map((p) => p.name).join(', '),
+
+      professorRole: professorRoleMap[formData.kimKwangSooRole],
+      practicalManagerId, // number
+
+      // 참여기관: 서버 스키마가 string → 콤마로 조인
+      participatingInstitutions: formData.participatingInstitutions.join(', '),
+
+      // 진행 상태: 선택 안 하면 undefined로 전달
+      status: statusMap[formData.progressStage],
     };
 
-    console.log('과제 데이터:', payload);
-    window.location.href = '/portal/researches/assignment';
+    try {
+      setSubmitting(true);
+      await taskApi.createTask({ taskRequest: payload });
+      toast.success('과제가 성공적으로 등록되었습니다!');
+      router.push('/portal/researches/assignment');
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -754,8 +851,8 @@ export default function AddTaskPage() {
 
           {/* 버튼 */}
           <div className="flex w-full justify-end gap-4 pt-8">
-            <Button type="submit" className="px-10">
-              등록
+            <Button type="submit" className="px-10" disabled={submitting}>
+              {submitting ? '등록 중…' : '등록'}
             </Button>
           </div>
         </form>
