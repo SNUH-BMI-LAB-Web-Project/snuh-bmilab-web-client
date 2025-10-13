@@ -338,11 +338,11 @@ export default function AddTaskPage() {
                       <SelectItem value="3">3년</SelectItem>
                       <SelectItem value="4">4년</SelectItem>
                       <SelectItem value="5">5년</SelectItem>
-                      <SelectItem value="5">6년</SelectItem>
-                      <SelectItem value="5">7년</SelectItem>
-                      <SelectItem value="5">8년</SelectItem>
-                      <SelectItem value="5">9년</SelectItem>
-                      <SelectItem value="5">10년</SelectItem>
+                      <SelectItem value="6">6년</SelectItem>
+                      <SelectItem value="7">7년</SelectItem>
+                      <SelectItem value="8">8년</SelectItem>
+                      <SelectItem value="9">9년</SelectItem>
+                      <SelectItem value="10">10년</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
