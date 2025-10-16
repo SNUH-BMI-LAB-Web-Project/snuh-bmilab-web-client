@@ -438,9 +438,10 @@ export default function TaskManagementPage() {
                     </div>
 
                     {/* 타이틀 + 본문 */}
+                    {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events */}
                     <div
                       className="p-8"
-                      onClick={() => router.push(`assignment/${task.id}`)}
+                      onClick={() => router.push(`assignment/task/${task.id}`)}
                     >
                       <div className="mb-8">
                         <h3 className="mb-3 text-2xl leading-tight font-bold text-gray-900">
@@ -686,6 +687,7 @@ export default function TaskManagementPage() {
                 .map((i, idx) =>
                   i === -1 ? (
                     <span
+                      /* eslint-disable-next-line react/no-array-index-key */
                       key={`gap-${idx}`}
                       className="px-2 text-sm text-gray-400"
                     >
