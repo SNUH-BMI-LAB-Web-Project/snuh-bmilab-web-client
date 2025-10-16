@@ -18,5 +18,6 @@ export * from './NTISRSSApi';
 export * from './ProjectApi';
 export * from './ProjectCategoryApi';
 export * from './ReportApi';
+export * from './TaskApi';
 export * from './TimelineApi';
 export * from './UserApi';
