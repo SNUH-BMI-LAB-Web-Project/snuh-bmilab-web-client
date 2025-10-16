@@ -114,7 +114,7 @@ export default function TaskManagementPage() {
 
   // 페이지네이션
   const [page, setPage] = useState(0); // 0-based
-  const [size, setSize] = useState(10);
+  const [size] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
 
@@ -145,7 +145,7 @@ export default function TaskManagementPage() {
     // periods: Date 객체로 들어옴 (FromJSON에서 new Date 처리)
     const yearlyPeriods = Array.isArray(item.periods)
       ? item.periods.map((p) => ({
-          year: (p as any)?.yearNumber ?? 0,
+          year: p?.yearNumber ?? 0,
           startDate: p?.startDate
             ? format(p.startDate as Date, 'yyyy.MM.dd')
             : '',
@@ -263,10 +263,6 @@ export default function TaskManagementPage() {
 
   const handleAddTask = () => {
     router.push('/portal/researches/assignment/new');
-  };
-
-  const toggleDetails = (id: number) => {
-    setOpenDetailById((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   return (
@@ -388,6 +384,7 @@ export default function TaskManagementPage() {
           </div>
 
           <div className="space-y-6">
+            {/* eslint-disable-next-line no-nested-ternary */}
             {loadingTasks ? (
               <div className="rounded-lg border p-8 text-center text-sm text-gray-500">
                 불러오는 중…
