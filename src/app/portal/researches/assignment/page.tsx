@@ -366,31 +366,15 @@ export default function TaskManagementPage() {
             </SelectContent>
           </Select>
 
-          <div className="flex w-full items-center gap-3">
-            <div className="relative w-full">
-              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-              <Input
-                type="text"
-                placeholder="과제명 / RFP / 번호 검색"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="border-gray-200 pl-10"
-              />
-            </div>
-
-            <select
-              value={size}
-              onChange={(e) => {
-                setSize(Number(e.target.value));
-              }}
-              className="h-9 rounded-md border border-gray-200 bg-white px-2 text-sm"
-            >
-              {[10, 20, 30, 50].map((n) => (
-                <option key={n} value={n}>
-                  {n}/페이지
-                </option>
-              ))}
-            </select>
+          <div className="relative w-full">
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+            <Input
+              type="text"
+              placeholder="과제명 / RFP / 번호 검색"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="border-gray-200 pl-10"
+            />
           </div>
         </div>
 
@@ -678,56 +662,76 @@ export default function TaskManagementPage() {
         </div>
         {/* 페이지네이션 */}
         {totalPages > 0 && (
-          <div className="mt-8 flex items-center justify-center gap-2">
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={page === 0}
-              className="rounded-md border px-3 py-1 text-sm disabled:opacity-40"
-            >
-              이전
-            </button>
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            {/* 좌측: 페이지네이션 버튼들 */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="rounded-md border px-3 py-1 text-sm disabled:opacity-40"
+              >
+                이전
+              </button>
 
-            {Array.from({ length: totalPages }, (_, i) => i)
-              .filter((i) => {
-                const near = Math.abs(i - page) <= 2;
-                const edge = i < 1 || i > totalPages - 2;
-                return near || edge;
-              })
-              .reduce<number[]>((acc, cur, idx, arr) => {
-                if (idx === 0) return [cur];
-                if (cur - arr[idx - 1] > 1) acc.push(-1);
-                acc.push(cur);
-                return acc;
-              }, [])
-              .map((i, idx) =>
-                i === -1 ? (
-                  <span
-                    key={`gap-${idx}`}
-                    className="px-2 text-sm text-gray-400"
-                  >
-                    …
-                  </span>
-                ) : (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => setPage(i)}
-                    className={`rounded-md px-3 py-1 text-sm ${i === page ? 'bg-primary text-white' : 'border'}`}
-                  >
-                    {i + 1}
-                  </button>
-                ),
-              )}
+              {Array.from({ length: totalPages }, (_, i) => i)
+                .filter((i) => {
+                  const near = Math.abs(i - page) <= 2;
+                  const edge = i < 1 || i > totalPages - 2;
+                  return near || edge;
+                })
+                .reduce<number[]>((acc, cur, idx, arr) => {
+                  if (idx === 0) return [cur];
+                  if (cur - arr[idx - 1] > 1) acc.push(-1);
+                  acc.push(cur);
+                  return acc;
+                }, [])
+                .map((i, idx) =>
+                  i === -1 ? (
+                    <span
+                      key={`gap-${idx}`}
+                      className="px-2 text-sm text-gray-400"
+                    >
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setPage(i)}
+                      className={`rounded-md px-3 py-1 text-sm ${i === page ? 'bg-primary text-white' : 'border'}`}
+                    >
+                      {i + 1}
+                    </button>
+                  ),
+                )}
 
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-              disabled={page >= totalPages - 1}
-              className="rounded-md border px-3 py-1 text-sm disabled:opacity-40"
-            >
-              다음
-            </button>
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+                className="rounded-md border px-3 py-1 text-sm disabled:opacity-40"
+              >
+                다음
+              </button>
+            </div>
+
+            {/* 우측: 페이지당 개수 선택 (페이지네이션 옆) */}
+            {/* <div className="flex items-center gap-2 text-sm"> */}
+            {/*   <span className="text-gray-600">페이지당</span> */}
+            {/*   <select */}
+            {/*     value={size} */}
+            {/*     onChange={(e) => setSize(Number(e.target.value))} */}
+            {/*     className="h-9 rounded-md border border-gray-200 bg-white px-2 text-sm" */}
+            {/*   > */}
+            {/*     {[10, 20, 30, 50].map((n) => ( */}
+            {/*       <option key={n} value={n}> */}
+            {/*         {n} */}
+            {/*       </option> */}
+            {/*     ))} */}
+            {/*   </select> */}
+            {/*   <span className="text-gray-600">개</span> */}
+            {/* </div> */}
           </div>
         )}
       </main>
