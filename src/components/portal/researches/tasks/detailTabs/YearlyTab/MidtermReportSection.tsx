@@ -2,47 +2,45 @@
 
 import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { FileText, Download, Trash2 } from 'lucide-react';
+import { FileText, Trash2, Download } from 'lucide-react';
 
-interface ReportFile {
+interface FileMeta {
   fileId: string;
-  name: string;
+  fileName: string;
   size: number;
-  uploadedAt: string;
-  uploadUrl?: string;
+  uploadUrl: string;
 }
 
 interface Props {
   isEditMode: boolean;
   year: number | string;
-  midtermFile?: ReportFile | null;
+  files?: FileMeta[];
   taskId?: number;
   periodId?: number;
-  onChange?: (update: { midtermFile?: ReportFile | null }) => void;
+  onChange?: (files: FileMeta[]) => void;
 }
 
 export default function MidtermReportSection({
-  isEditMode,
-  year,
-  midtermFile = null,
-  taskId,
-  periodId,
-  onChange,
-}: Props) {
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+                                               isEditMode,
+                                               year,
+                                               files = [],
+                                               taskId,
+                                               periodId,
+                                               onChange,
+                                             }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  const getToken = () => {
+  const getToken = (): string | null => {
     try {
       const raw = localStorage.getItem('auth-storage');
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      if (typeof parsed.state === 'string')
-        parsed.state = JSON.parse(parsed.state);
+      if (typeof parsed.state === 'string') parsed.state = JSON.parse(parsed.state);
       return (
-        parsed.state?.accessToken ||
         parsed.state?.auth?.accessToken ||
-        parsed.accessToken ||
+        parsed.state?.accessToken ||
+        parsed?.accessToken ||
         null
       );
     } catch {
@@ -50,171 +48,153 @@ export default function MidtermReportSection({
     }
   };
 
-  const uploadFile = async (file: File): Promise<ReportFile> => {
-    const token = getToken();
-    if (!token) throw new Error('로그인이 필요합니다.');
+  // 파일 추가
+  const handleAddFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = e.target.files;
+    if (!selectedFiles?.length || !taskId || !periodId) return;
 
-    const presRes = await fetch(
-      `${API_BASE}/files/presigned-url?fileName=${encodeURIComponent(
-        file.name,
-      )}&contentType=${encodeURIComponent(file.type)}`,
-      { headers: { Authorization: `Bearer ${token}` } },
-    );
-    if (!presRes.ok) throw new Error('Presigned URL 요청 실패');
-    const presJson = await presRes.json();
-    const uuid = presJson.uuid ?? presJson.fileId ?? presJson.id;
-    const presignedUrl = presJson.presignedUrl ?? presJson.url;
-    if (!uuid || !presignedUrl) throw new Error('Presigned 응답 오류');
-
-    const s3Res = await fetch(presignedUrl, {
-      method: 'PUT',
-      body: file,
-      headers: { 'Content-Type': file.type },
-    });
-    if (!s3Res.ok) throw new Error('S3 업로드 실패');
-
-    const saveRes = await fetch(`${API_BASE}/files`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        uuid,
-        fileName: file.name,
-        extension: (file.name.split('.').pop() || '').toLowerCase(),
-        size: file.size,
-        taskId,
-      }),
-    });
-    if (!saveRes.ok) throw new Error('파일 저장 실패');
-    const saved = await saveRes.json();
-
-    return {
-      fileId: saved.fileId ?? saved.id ?? saved.uuid,
-      name: saved.fileName ?? file.name,
-      size: saved.size ?? file.size,
-      uploadedAt: new Date().toISOString().split('T')[0],
-      uploadUrl: saved.uploadUrl ?? saved.url,
-    };
-  };
-
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { files } = e.target;
-    if (!files?.length || !taskId || !periodId) return;
     const token = getToken();
     if (!token) return alert('로그인이 필요합니다.');
 
     try {
-      const file = files[0];
-      const uploaded = await uploadFile(file);
+      const uploadTasks = Array.from(selectedFiles).map(async (file) => {
+        // presigned URL 요청
+        const pres = await fetch(
+          `${API_BASE}/files/presigned-url?fileName=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const json = await pres.json();
+        const uuid = json.uuid ?? json.fileId ?? json.id;
+        const presignedUrl = json.presignedUrl ?? json.url;
 
-      const patchRes = await fetch(
-        `${API_BASE}/tasks/${taskId}/periods/${periodId}`,
-        {
-          method: 'PATCH',
+        // S3 업로드
+        await fetch(presignedUrl, {
+          method: 'PUT',
+          body: file,
+          headers: { 'Content-Type': file.type },
+        });
+
+        // DB 등록
+        const save = await fetch(`${API_BASE}/files`, {
+          method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ midtermReportFileId: uploaded.fileId }),
-        },
-      );
-      if (!patchRes.ok) throw new Error('파일 연결 실패');
+          body: JSON.stringify({
+            uuid,
+            fileName: file.name,
+            extension: (file.name.split('.').pop() || '').toLowerCase(),
+            size: file.size,
+            taskId,
+          }),
+        });
+        const saved = await save.json();
 
-      onChange?.({ midtermFile: uploaded });
-    } catch (err: any) {
-      alert(`업로드 실패: ${err.message}`);
-    } finally {
-      e.target.value = '';
-    }
-  };
+        return {
+          fileId: saved.fileId ?? saved.id ?? saved.uuid,
+          fileName: saved.fileName ?? file.name,
+          size: saved.size ?? file.size,
+          uploadUrl: saved.uploadUrl ?? saved.url,
+        } as FileMeta;
+      });
 
-  const handleDelete = async (fileId: string) => {
-    if (!taskId || !periodId) return;
-    const token = getToken();
-    if (!token) return alert('로그인이 필요합니다.');
+      const uploaded = await Promise.all(uploadTasks);
 
-    const res = await fetch(`${API_BASE}/files/${fileId}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) return alert('삭제 실패');
+      // 기존 파일 + 새 파일 병합
+      const allFiles = [...files, ...uploaded];
 
-    const patchRes = await fetch(
-      `${API_BASE}/tasks/${taskId}/periods/${periodId}`,
-      {
+      // 과제 기간에 반영
+      await fetch(`${API_BASE}/tasks/${taskId}/periods/${periodId}`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ midtermReportFileId: null }),
-      },
-    );
-    if (!patchRes.ok) return alert('파일 연결 해제 실패');
+        body: JSON.stringify({ interimReportFileIds: allFiles.map((f) => f.fileId) }),
+      });
 
-    onChange?.({ midtermFile: null });
+      // 상태 업데이트
+      onChange?.(allFiles);
+    } finally {
+      e.target.value = '';
+    }
   };
 
-  const handleDownload = async (file: ReportFile) => {
-    if (!file.uploadUrl) return;
+  // 파일 삭제
+  const handleDelete = async (fileId: string) => {
+    const token = getToken();
+    if (!token || !taskId || !periodId) return;
+
+    await fetch(`${API_BASE}/files/${fileId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const updated = files.filter((f) => f.fileId !== fileId);
+
+    await fetch(`${API_BASE}/tasks/${taskId}/periods/${periodId}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ interimReportFileIds: updated.map((f) => f.fileId) }),
+    });
+
+    onChange?.(updated);
+  };
+
+  // 파일 다운로드
+  const handleDownload = async (file: FileMeta) => {
     const res = await fetch(file.uploadUrl);
     const blob = await res.blob();
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = file.name;
+    a.download = file.fileName;
     a.click();
     URL.revokeObjectURL(a.href);
   };
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6">
-      <h3 className="mb-4 text-lg font-semibold">
-        중간보고 파일 관리 ({year}년차)
-      </h3>
+      <h3 className="mb-4 text-lg font-semibold">중간보고서 ({year}년차)</h3>
 
-      {!midtermFile && !isEditMode && (
+      {files.length === 0 && !isEditMode && (
         <div className="text-sm text-gray-500">등록된 파일 없음</div>
       )}
 
-      {midtermFile && (
-        <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
+      {files.map((file) => (
+        <div
+          key={file.fileId}
+          className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
+        >
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-gray-500" />
-            <span>{midtermFile.name}</span>
-            <span className="text-sm text-gray-400">
-              {(midtermFile.size / 1024).toFixed(1)} KB
-            </span>
+            <span>{file.fileName}</span>
+            <span className="text-sm text-gray-400">{Math.round(file.size / 1024)} KB</span>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleDownload(midtermFile)}
-            >
+            <Button variant="ghost" size="sm" onClick={() => handleDownload(file)}>
               <Download className="h-4 w-4 text-blue-600" />
             </Button>
             {isEditMode && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleDelete(midtermFile.fileId)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => handleDelete(file.fileId)}>
                 <Trash2 className="h-4 w-4 text-red-600" />
               </Button>
             )}
           </div>
         </div>
-      )}
+      ))}
 
       {isEditMode && (
         <>
           <input
             ref={inputRef}
             type="file"
+            multiple
             className="hidden"
-            onChange={handleUpload}
+            onChange={handleAddFiles}
           />
           <Button
             className="mt-3 bg-blue-600 text-white"
