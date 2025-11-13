@@ -11,9 +11,7 @@ import AnnualReportSection from './AnnualReportSection';
 export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [taskId, setTaskId] = useState<number | null>(null);
-  const [yearTabs, setYearTabs] = useState<
-    { year: number; periodId: number }[]
-  >([]);
+  const [yearTabs, setYearTabs] = useState<{ year: number; periodId: number }[]>([]);
   const [yearlyData, setYearlyData] = useState<Record<number, any>>({});
 
   const getToken = () => {
@@ -24,9 +22,7 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
   useEffect(() => {
     if (taskInfo?.id) setTaskId(Number(taskInfo.id));
     else if (typeof window !== 'undefined') {
-      const id = Number(
-        window.location.pathname.split('/').filter(Boolean).pop(),
-      );
+      const id = Number(window.location.pathname.split('/').filter(Boolean).pop());
       if (!Number.isNaN(id)) setTaskId(id);
     }
   }, [taskInfo]);
@@ -36,17 +32,14 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
     if (!taskId || !token) return;
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/tasks/${taskId}/basic-info`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: 'no-store',
-        },
-      );
-      if (!res.ok) throw new Error(`GET basic-info ${res.status}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/tasks/${taskId}/basic-info`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: 'no-store',
+      });
+      if (!res.ok) throw new Error(`GET 실패 (${res.status})`);
       const data = await res.json();
-
       const periods = Array.isArray(data?.periods) ? data.periods : [];
+
       const tabs = periods.map((p: any) => ({
         year: Number(p.yearNumber),
         periodId: Number(p.id),
@@ -59,15 +52,11 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/tasks/${taskId}/periods/${p.periodId}`,
           { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' },
         );
-        if (!dRes.ok)
-          throw new Error(`GET periods/${p.periodId} ${dRes.status}`);
         const detail = await dRes.json();
         fetched[p.year] = detail;
       }
       setYearlyData(fetched);
-    } catch (e) {
-      console.error('[YearlyTab] 연차 데이터 조회 실패:', e);
-    }
+    } catch {}
   };
 
   useEffect(() => {
@@ -81,16 +70,40 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
     try {
       for (const { year, periodId } of yearTabs) {
         const period = yearlyData[year] || {};
+
         const managerId =
           period.managerId ??
           period.manager?.userId ??
           period.manager?.id ??
           null;
+
         const memberIds = Array.isArray(period.members)
           ? period.members.map((m: any) => m.userId)
           : [];
 
-        const body = { managerId, memberIds };
+        const periodFileIds = Array.isArray(period.periodFiles)
+          ? period.periodFiles.map((f: any) => f.fileId)
+          : [];
+        const interimReportFileIds = Array.isArray(period.interimReportFiles)
+          ? period.interimReportFiles.map((f: any) => f.fileId)
+          : [];
+        const annualReportFileIds = Array.isArray(period.annualReportFiles)
+          ? period.annualReportFiles.map((f: any) => f.fileId)
+          : [];
+
+        const startDate = period.startDate ?? null;
+        const endDate = period.endDate ?? null;
+
+        const body = {
+          startDate,
+          endDate,
+          managerId,
+          memberIds,
+          periodFileIds,
+          interimReportFileIds,
+          annualReportFileIds,
+        };
+
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/tasks/${taskId}/periods/${periodId}`,
           {
@@ -102,40 +115,27 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
             body: JSON.stringify(body),
           },
         );
-        if (!res.ok)
-          console.error(`❌ PATCH 실패: ${year}년차 (${res.status})`);
+        if (!res.ok) throw new Error();
       }
 
       await fetchPeriods();
       setIsEditMode(false);
       alert('저장 완료');
-    } catch (err) {
-      console.error('저장 실패:', err);
+    } catch {
       alert('저장 실패');
     }
   };
 
   if (!taskId)
-    return (
-      <div className="py-10 text-center text-gray-500">
-        과제 정보를 불러오는 중입니다...
-      </div>
-    );
+    return <div className="py-10 text-center text-gray-500">과제 정보를 불러오는 중입니다...</div>;
   if (yearTabs.length === 0)
-    return (
-      <div className="py-10 text-center text-gray-500">
-        표시할 연차 정보가 없습니다.
-      </div>
-    );
+    return <div className="py-10 text-center text-gray-500">표시할 연차 정보가 없습니다.</div>;
 
   return (
     <div className="space-y-6">
       <div className="mb-4 flex justify-end gap-2">
         {!isEditMode ? (
-          <Button
-            onClick={() => setIsEditMode(true)}
-            className="bg-blue-600 text-white"
-          >
+          <Button onClick={() => setIsEditMode(true)} className="bg-blue-600 text-white">
             수정
           </Button>
         ) : (
@@ -175,7 +175,7 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
           return (
             <TabsContent key={year} value={`year-${year}`}>
               <div className="space-y-6">
-                {/* 담당자 및 참여자 관리 */}
+                {/* 과제 담당자 및 참여자 */}
                 <YearlyTaskSection
                   isEditMode={isEditMode}
                   year={year}
@@ -192,43 +192,43 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
                 <YearlyFileSection
                   isEditMode={isEditMode}
                   year={year}
-                  files={periodData?.files || []}
+                  files={Array.isArray(periodData?.periodFiles) ? periodData.periodFiles : []}
                   taskId={taskId}
                   periodId={periodId}
                   onChange={(updated) =>
                     setYearlyData((prev) => ({
                       ...prev,
-                      [year]: { ...prev[year], files: updated },
+                      [year]: { ...prev[year], periodFiles: updated },
                     }))
                   }
                 />
 
-                {/* 중간보고 (선택사항) */}
+                {/* 중간보고서 */}
                 <MidtermReportSection
                   isEditMode={isEditMode}
                   year={year}
-                  midtermFile={periodData?.midtermFile || null}
+                  files={Array.isArray(periodData?.interimReportFiles) ? periodData.interimReportFiles : []}
                   taskId={taskId}
                   periodId={periodId}
                   onChange={(updated) =>
                     setYearlyData((prev) => ({
                       ...prev,
-                      [year]: { ...prev[year], ...updated },
+                      [year]: { ...prev[year], interimReportFiles: updated },
                     }))
                   }
                 />
 
-                {/* 연차보고 (필수) */}
+                {/* 연차보고서 */}
                 <AnnualReportSection
                   isEditMode={isEditMode}
                   year={year}
-                  annualFile={periodData?.annualFile || null}
+                  files={Array.isArray(periodData?.annualReportFiles) ? periodData.annualReportFiles : []}
                   taskId={taskId}
                   periodId={periodId}
                   onChange={(updated) =>
                     setYearlyData((prev) => ({
                       ...prev,
-                      [year]: { ...prev[year], ...updated },
+                      [year]: { ...prev[year], annualReportFiles: updated.files ?? [] },
                     }))
                   }
                 />
