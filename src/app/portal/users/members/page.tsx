@@ -67,7 +67,7 @@ export default function UsersPage() {
       <h1 className="text-3xl font-bold">구성원</h1>
 
       {users.length > 0 ? (
-        <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
+        <div className="grid w-full grid-cols-1 gap-6 lg:grid-cols-1 xl:grid-cols-2">
           {users.map((user) => (
             <UserInfoCard key={user.userId} user={user} />
           ))}

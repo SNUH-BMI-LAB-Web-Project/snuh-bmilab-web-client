@@ -82,8 +82,8 @@ export default function ProjectInfoForm({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-      <div className="flex flex-col gap-8 lg:col-span-2">
+    <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">
+      <div className="flex flex-col gap-8 xl:col-span-2">
         <div className="flex flex-col gap-4">
           <Label className="flex flex-row text-lg font-semibold">
             <NotepadText className="h-4 w-4" />
@@ -100,7 +100,7 @@ export default function ProjectInfoForm({
         <TimelineCard projectId={id} canEdit={canEdit} />
       </div>
 
-      <div className="flex flex-col gap-8 lg:col-span-1">
+      <div className="flex flex-col gap-8 xl:col-span-1">
         <div className="flex flex-col gap-4">
           <Label className="flex flex-row text-lg font-semibold">
             <Info className="h-4 w-4" />

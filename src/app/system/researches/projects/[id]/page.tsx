@@ -57,7 +57,7 @@ export default function ProjectDetailPage({
   };
 
   return (
-    <div className="flex flex-col gap-8 px-20">
+    <div className="flex flex-col gap-8 xl:px-20">
       <div className="flex items-center justify-between">
         <div className="flex flex-row">
           <Button
