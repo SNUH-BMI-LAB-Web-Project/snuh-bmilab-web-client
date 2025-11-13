@@ -2,7 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { Building2, Calendar, MapPin, Users } from 'lucide-react';
+import { Building2, Calendar, MapPin, Users, MoreHorizontal } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 type TaskInfo = {
   id: number;
@@ -81,6 +88,14 @@ export default function TaskHeaderCard() {
     if (id) fetchTaskDetail();
   }, [id]);
 
+  const handleEdit = () => {
+    alert('수정하기 클릭됨');
+  };
+
+  const handleDelete = () => {
+    if (confirm('정말 삭제하시겠습니까?')) alert('삭제 완료');
+  };
+
   if (!taskInfo) {
     return (
       <div className="p-8 text-center text-gray-500">
@@ -95,7 +110,7 @@ export default function TaskHeaderCard() {
         <div className="text-sm text-gray-500">
           {taskInfo.researchTaskNumber}
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <span
             className={`rounded-full px-2 py-1 text-xs font-medium ${getProgressStageStyle(
               taskInfo.status,
@@ -103,6 +118,30 @@ export default function TaskHeaderCard() {
           >
             {taskInfo.status}
           </span>
+
+          {/* ... 버튼 추가 (DropdownMenu) */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-gray-500 hover:text-gray-700"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-32">
+              <DropdownMenuItem onClick={handleEdit}>
+                수정하기
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleDelete}
+                className="text-red-600 focus:text-red-600"
+              >
+                삭제하기
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

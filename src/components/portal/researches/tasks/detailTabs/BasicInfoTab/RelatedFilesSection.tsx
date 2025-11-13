@@ -155,7 +155,7 @@ export default function RelatedFilesSection({
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6">
-      <h3 className="mb-4 text-lg font-semibold">관련 파일 ({fileType})</h3>
+      <h3 className="mb-4 text-lg font-semibold">관련 파일</h3>
 
       {files.length === 0 && !isEditMode && (
         <div className="text-sm text-gray-500">등록된 파일 없음</div>

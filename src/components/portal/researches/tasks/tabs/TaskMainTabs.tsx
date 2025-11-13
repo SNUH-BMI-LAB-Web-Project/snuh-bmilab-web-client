@@ -1,7 +1,6 @@
 'use client';
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
 
 import BasicInfoTab from '../detailTabs/BasicInfoTab/BasicInfoTab';
 import ProposalTab from '../detailTabs/ProposalTab/ProposalTab';
@@ -10,21 +9,8 @@ import ContractTab from '../detailTabs/ContractTab/ContractTab';
 import YearlyTab from '../detailTabs/YearlyTab/YearlyTab';
 
 export default function TaskMainTabs({ taskInfo }: { taskInfo?: any }) {
-  const handleDelete = () => {
-    if (confirm('정말 삭제하시겠습니까?')) alert('삭제 완료');
-  };
-
   return (
     <div className="w-full">
-      <div className="mb-4 flex justify-end gap-2">
-        <Button
-          onClick={handleDelete}
-          className="bg-red-600 text-white hover:bg-red-700"
-        >
-          삭제
-        </Button>
-      </div>
-
       <Tabs defaultValue="basic" className="w-full">
         <TabsList className="grid h-10 w-full grid-cols-5 rounded-lg border border-gray-200 bg-white">
           <TabsTrigger
