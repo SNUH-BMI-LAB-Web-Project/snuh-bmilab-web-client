@@ -10,7 +10,9 @@ export default function AcknowledgmentTab() {
   const taskId = Number(pathname.split('/').filter(Boolean).pop());
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  const [ackData, setAckData] = useState<{ text: string; link: string } | null>(null);
+  const [ackData, setAckData] = useState<{ text: string; link: string } | null>(
+    null,
+  );
   const [isEditMode, setIsEditMode] = useState(false);
   const [tempText, setTempText] = useState('');
   const [tempLink, setTempLink] = useState('');
@@ -29,13 +31,16 @@ export default function AcknowledgmentTab() {
       const token = getAuthToken();
       if (!token) throw new Error('토큰이 없습니다.');
 
-      const res = await fetch(`${API_BASE}/tasks/${taskId}/acknowledgement?t=${Date.now()}`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
+      const res = await fetch(
+        `${API_BASE}/tasks/${taskId}/acknowledgement?t=${Date.now()}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
         },
-      });
+      );
 
       if (!res.ok) throw new Error(`서버 오류 (${res.status})`);
 
@@ -93,20 +98,33 @@ export default function AcknowledgmentTab() {
   }, [taskId]);
 
   if (loading)
-    return <div className="py-10 text-center text-gray-500">사사표기 정보를 불러오는 중입니다...</div>;
+    return (
+      <div className="py-10 text-center text-gray-500">
+        사사표기 정보를 불러오는 중입니다...
+      </div>
+    );
 
   if (errorMessage)
-    return <div className="py-10 text-center text-red-600">⚠️ {errorMessage}</div>;
+    return (
+      <div className="py-10 text-center text-red-600">⚠️ {errorMessage}</div>
+    );
 
   if (!ackData)
-    return <div className="py-10 text-center text-gray-500">불러온 데이터가 없습니다.</div>;
+    return (
+      <div className="py-10 text-center text-gray-500">
+        불러온 데이터가 없습니다.
+      </div>
+    );
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <div className="flex justify-between items-center mb-4">
+    <div className="rounded-lg border border-gray-200 bg-white p-6">
+      <div className="mb-4 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">사사표기</h3>
         {!isEditMode ? (
-          <Button onClick={() => setIsEditMode(true)} className="bg-blue-600 text-white">
+          <Button
+            onClick={() => setIsEditMode(true)}
+            className="bg-blue-600 text-white"
+          >
             수정
           </Button>
         ) : (
@@ -130,7 +148,9 @@ export default function AcknowledgmentTab() {
 
       <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-blue-600 mb-2">사사표기 문구</label>
+          <label className="mb-2 block text-sm font-medium text-blue-600">
+            사사표기 문구
+          </label>
           {isEditMode ? (
             <Input
               value={tempText}
@@ -138,11 +158,15 @@ export default function AcknowledgmentTab() {
               placeholder="사사표기 문구를 입력하세요"
             />
           ) : (
-            <div className="text-gray-900 p-4 bg-gray-50 rounded-lg">{ackData.text || '내용 없음'}</div>
+            <div className="rounded-lg bg-gray-50 p-4 text-gray-900">
+              {ackData.text || '내용 없음'}
+            </div>
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium text-blue-600 mb-2">관련 링크</label>
+          <label className="mb-2 block text-sm font-medium text-blue-600">
+            관련 링크
+          </label>
           {isEditMode ? (
             <Input
               value={tempLink}
@@ -154,7 +178,7 @@ export default function AcknowledgmentTab() {
               href={ackData.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 underline"
+              className="text-blue-600 underline hover:text-blue-800"
             >
               {ackData.link}
             </a>

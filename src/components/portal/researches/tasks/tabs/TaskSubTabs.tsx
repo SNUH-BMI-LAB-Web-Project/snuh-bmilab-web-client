@@ -1,10 +1,11 @@
-"use client"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import AcknowledgmentTab from "../detailTabs/SubTabs/AcknowledgmentTab"
-import ResearchProjectsTab from "../detailTabs/SubTabs/ResearchProjectsTab"
-import PapersTab from "../detailTabs/SubTabs/PapersTab"
-import ConferencesTab from "../detailTabs/SubTabs/ConferencesTab"
-import PatentsTab from "../detailTabs/SubTabs/PatentsTab"
+'use client';
+
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import AcknowledgmentTab from '../detailTabs/SubTabs/AcknowledgmentTab';
+import ResearchProjectsTab from '../detailTabs/SubTabs/ResearchProjectsTab';
+import PapersTab from '../detailTabs/SubTabs/PapersTab';
+import ConferencesTab from '../detailTabs/SubTabs/ConferencesTab';
+import PatentsTab from '../detailTabs/SubTabs/PatentsTab';
 
 export default function TaskSubTabs() {
   return (
@@ -13,31 +14,31 @@ export default function TaskSubTabs() {
       <TabsList className="grid h-10 w-full grid-cols-5 rounded-lg border border-gray-200 bg-white shadow-sm">
         <TabsTrigger
           value="acknowledgment"
-          className="font-medium text-gray-700 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 transition-colors duration-150"
+          className="font-medium text-gray-700 transition-colors duration-150 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
         >
           사사표기
         </TabsTrigger>
         <TabsTrigger
           value="research-projects"
-          className="font-medium text-gray-700 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 transition-colors duration-150"
+          className="font-medium text-gray-700 transition-colors duration-150 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
         >
           관련연구과제
         </TabsTrigger>
         <TabsTrigger
           value="papers"
-          className="font-medium text-gray-700 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 transition-colors duration-150"
+          className="font-medium text-gray-700 transition-colors duration-150 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
         >
           논문
         </TabsTrigger>
         <TabsTrigger
           value="conferences"
-          className="font-medium text-gray-700 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 transition-colors duration-150"
+          className="font-medium text-gray-700 transition-colors duration-150 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
         >
           학회발표
         </TabsTrigger>
         <TabsTrigger
           value="patents"
-          className="font-medium text-gray-700 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 transition-colors duration-150"
+          className="font-medium text-gray-700 transition-colors duration-150 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
         >
           특허
         </TabsTrigger>
@@ -64,5 +65,5 @@ export default function TaskSubTabs() {
         <PatentsTab />
       </TabsContent>
     </Tabs>
-  )
+  );
 }
