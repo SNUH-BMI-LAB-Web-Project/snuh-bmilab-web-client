@@ -21,13 +21,13 @@ interface Props {
 }
 
 export default function AnnualReportSection({
-                                              isEditMode,
-                                              year,
-                                              files = [],
-                                              taskId,
-                                              periodId,
-                                              onChange,
-                                            }: Props) {
+  isEditMode,
+  year,
+  files = [],
+  taskId,
+  periodId,
+  onChange,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -36,7 +36,8 @@ export default function AnnualReportSection({
       const raw = localStorage.getItem('auth-storage');
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      if (typeof parsed.state === 'string') parsed.state = JSON.parse(parsed.state);
+      if (typeof parsed.state === 'string')
+        parsed.state = JSON.parse(parsed.state);
       return (
         parsed.state?.auth?.accessToken ||
         parsed.state?.accessToken ||
@@ -48,7 +49,9 @@ export default function AnnualReportSection({
     }
   };
 
-  const handleAddFiles = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+  const handleAddFiles = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): Promise<void> => {
     const { files: selectedFiles } = e.target;
     if (!selectedFiles?.length || !taskId || !periodId) return;
     const token = getToken();
@@ -58,7 +61,7 @@ export default function AnnualReportSection({
       const uploadTasks = Array.from(selectedFiles).map(async (file) => {
         const pres = await fetch(
           `${API_BASE}/files/presigned-url?fileName=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
         const json = await pres.json();
         const uuid = json.uuid ?? json.fileId ?? json.id;
@@ -129,7 +132,9 @@ export default function AnnualReportSection({
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ annualReportFileIds: updatedFiles.map((f) => f.fileId) }),
+      body: JSON.stringify({
+        annualReportFileIds: updatedFiles.map((f) => f.fileId),
+      }),
     });
 
     onChange?.({ files: updatedFiles });
@@ -154,18 +159,31 @@ export default function AnnualReportSection({
       )}
 
       {files.map((file) => (
-        <div key={file.fileId} className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
+        <div
+          key={file.fileId}
+          className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
+        >
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-gray-500" />
             <span>{file.fileName}</span>
-            <span className="text-sm text-gray-400">{Math.round(file.size / 1024)} KB</span>
+            <span className="text-sm text-gray-400">
+              {Math.round(file.size / 1024)} KB
+            </span>
           </div>
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={() => handleDownload(file)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleDownload(file)}
+            >
               <Download className="h-4 w-4 text-blue-600" />
             </Button>
             {isEditMode && (
-              <Button variant="ghost" size="sm" onClick={() => handleDelete(file.fileId)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleDelete(file.fileId)}
+              >
                 <Trash2 className="h-4 w-4 text-red-600" />
               </Button>
             )}
@@ -175,8 +193,17 @@ export default function AnnualReportSection({
 
       {isEditMode && (
         <>
-          <input ref={inputRef} type="file" multiple className="hidden" onChange={handleAddFiles} />
-          <Button className="mt-3 bg-blue-600 text-white" onClick={() => inputRef.current?.click()}>
+          <input
+            ref={inputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={handleAddFiles}
+          />
+          <Button
+            className="mt-3 bg-blue-600 text-white"
+            onClick={() => inputRef.current?.click()}
+          >
             파일 추가
           </Button>
         </>

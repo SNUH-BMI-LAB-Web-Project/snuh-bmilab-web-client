@@ -21,13 +21,13 @@ interface Props {
 }
 
 export default function YearlyFileSection({
-                                            isEditMode,
-                                            year,
-                                            files = [],
-                                            taskId,
-                                            periodId,
-                                            onChange,
-                                          }: Props) {
+  isEditMode,
+  year,
+  files = [],
+  taskId,
+  periodId,
+  onChange,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -36,7 +36,8 @@ export default function YearlyFileSection({
       const raw = localStorage.getItem('auth-storage');
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      if (typeof parsed.state === 'string') parsed.state = JSON.parse(parsed.state);
+      if (typeof parsed.state === 'string')
+        parsed.state = JSON.parse(parsed.state);
       return (
         parsed.state?.auth?.accessToken ||
         parsed.state?.accessToken ||
@@ -58,7 +59,7 @@ export default function YearlyFileSection({
       const uploadTasks = Array.from(selectedFiles).map(async (file) => {
         const pres = await fetch(
           `${API_BASE}/files/presigned-url?fileName=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
         const json = await pres.json();
         const uuid = json.uuid ?? json.fileId ?? json.id;
@@ -94,7 +95,10 @@ export default function YearlyFileSection({
       });
 
       const uploaded = await Promise.all(uploadTasks);
-      const allIds = [...files.map((f) => f.fileId), ...uploaded.map((u) => u.fileId)];
+      const allIds = [
+        ...files.map((f) => f.fileId),
+        ...uploaded.map((u) => u.fileId),
+      ];
 
       await fetch(`${API_BASE}/tasks/${taskId}/periods/${periodId}`, {
         method: 'PATCH',
@@ -145,21 +149,34 @@ export default function YearlyFileSection({
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6">
-      <h3 className="mb-4 text-lg font-semibold">연차별 관련 파일 ({year}년차)</h3>
-      {files.length === 0 && !isEditMode && <div className="text-sm text-gray-500">등록된 파일 없음</div>}
+      <h3 className="mb-4 text-lg font-semibold">
+        연차별 관련 파일 ({year}년차)
+      </h3>
+      {files.length === 0 && !isEditMode && (
+        <div className="text-sm text-gray-500">등록된 파일 없음</div>
+      )}
       {files.map((f) => (
-        <div key={f.fileId} className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
+        <div
+          key={f.fileId}
+          className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
+        >
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-gray-500" />
             <span>{f.fileName}</span>
-            <span className="text-sm text-gray-400">{Math.round(f.size / 1024)} KB</span>
+            <span className="text-sm text-gray-400">
+              {Math.round(f.size / 1024)} KB
+            </span>
           </div>
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" onClick={() => handleDownload(f)}>
               <Download className="h-4 w-4 text-blue-600" />
             </Button>
             {isEditMode && (
-              <Button variant="ghost" size="sm" onClick={() => handleDelete(f.fileId)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleDelete(f.fileId)}
+              >
                 <Trash2 className="h-4 w-4 text-red-600" />
               </Button>
             )}
@@ -168,8 +185,17 @@ export default function YearlyFileSection({
       ))}
       {isEditMode && (
         <>
-          <input ref={inputRef} type="file" multiple className="hidden" onChange={handleAddFiles} />
-          <Button className="mt-3 bg-blue-600 text-white" onClick={() => inputRef.current?.click()}>
+          <input
+            ref={inputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={handleAddFiles}
+          />
+          <Button
+            className="mt-3 bg-blue-600 text-white"
+            onClick={() => inputRef.current?.click()}
+          >
             파일 추가
           </Button>
         </>

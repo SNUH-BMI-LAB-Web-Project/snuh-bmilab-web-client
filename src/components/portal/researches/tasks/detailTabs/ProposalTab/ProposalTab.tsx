@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import ProposalDeadlineSection from './ProposalDeadlineSection';
 import ProposalResearchersSection from './ProposalResearchersSection';
 import ProposalContactsSection from './ProposalContactsSection';
@@ -33,12 +34,15 @@ export default function ProposalTab({ taskInfo }: { taskInfo?: any }) {
     try {
       const raw = localStorage.getItem('auth-storage');
       if (!raw) return null;
+
       const parsed = JSON.parse(raw);
+
       if (typeof parsed.state === 'string') {
         try {
           parsed.state = JSON.parse(parsed.state);
         } catch {}
       }
+
       return (
         parsed.state?.auth?.accessToken ||
         parsed.state?.accessToken ||
@@ -59,13 +63,18 @@ export default function ProposalTab({ taskInfo }: { taskInfo?: any }) {
       const res = await fetch(`${API_BASE}/tasks/${taskId}/proposal`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       const text = await res.text();
       if (!res.ok) throw new Error(`GET 실패 (${res.status})`);
+
       const data = JSON.parse(text);
+
       setProposalData(data);
       setEditData(data);
     } catch (err: any) {
-      setErrorMessage(err.message || '데이터 조회 실패');
+      const msg = err.message || '데이터 조회 실패';
+      setErrorMessage(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -99,13 +108,15 @@ export default function ProposalTab({ taskInfo }: { taskInfo?: any }) {
         },
         body: JSON.stringify(payload),
       });
+
       const respText = await res.text();
       if (!res.ok) throw new Error(`PATCH 실패 (${res.status})`);
+
       await fetchProposal();
       setIsEditMode(false);
-      alert('저장되었습니다.');
+      toast.success('저장되었습니다.');
     } catch (err: any) {
-      alert(`저장 실패: ${err.message}`);
+      toast.error(`저장 실패: ${err.message}`);
     }
   };
 
@@ -117,6 +128,7 @@ export default function ProposalTab({ taskInfo }: { taskInfo?: any }) {
     return (
       <div className="py-10 text-center text-gray-500">불러오는 중...</div>
     );
+
   if (errorMessage)
     return <div className="py-10 text-center text-red-600">{errorMessage}</div>;
 
@@ -151,21 +163,27 @@ export default function ProposalTab({ taskInfo }: { taskInfo?: any }) {
       <ProposalDeadlineSection
         {...{ isEditMode, editData, setEditData, taskInfo: proposalData }}
       />
+
       <ProposalResearchersSection
         {...{ isEditMode, editData, setEditData, taskInfo: proposalData }}
       />
+
       <ProposalContactsSection
         {...{ isEditMode, editData, setEditData, taskInfo: proposalData }}
       />
+
       <ProposalFinalFilesSection
         {...{ isEditMode, editData, setEditData, taskId }}
       />
+
       <ProposalFileListSection
         {...{ isEditMode, editData, setEditData, taskId }}
       />
+
       <ProposalMeetingSection
         {...{ isEditMode, editData, setEditData, taskId }}
       />
+
       <ProposalDiagramSection
         {...{ isEditMode, editData, setEditData, taskId }}
       />

@@ -21,13 +21,13 @@ interface Props {
 }
 
 export default function MidtermReportSection({
-                                               isEditMode,
-                                               year,
-                                               files = [],
-                                               taskId,
-                                               periodId,
-                                               onChange,
-                                             }: Props) {
+  isEditMode,
+  year,
+  files = [],
+  taskId,
+  periodId,
+  onChange,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -36,7 +36,8 @@ export default function MidtermReportSection({
       const raw = localStorage.getItem('auth-storage');
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      if (typeof parsed.state === 'string') parsed.state = JSON.parse(parsed.state);
+      if (typeof parsed.state === 'string')
+        parsed.state = JSON.parse(parsed.state);
       return (
         parsed.state?.auth?.accessToken ||
         parsed.state?.accessToken ||
@@ -61,7 +62,7 @@ export default function MidtermReportSection({
         // presigned URL 요청
         const pres = await fetch(
           `${API_BASE}/files/presigned-url?fileName=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { headers: { Authorization: `Bearer ${token}` } },
         );
         const json = await pres.json();
         const uuid = json.uuid ?? json.fileId ?? json.id;
@@ -111,7 +112,9 @@ export default function MidtermReportSection({
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ interimReportFileIds: allFiles.map((f) => f.fileId) }),
+        body: JSON.stringify({
+          interimReportFileIds: allFiles.map((f) => f.fileId),
+        }),
       });
 
       // 상태 업데이트
@@ -139,7 +142,9 @@ export default function MidtermReportSection({
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ interimReportFileIds: updated.map((f) => f.fileId) }),
+      body: JSON.stringify({
+        interimReportFileIds: updated.map((f) => f.fileId),
+      }),
     });
 
     onChange?.(updated);
@@ -172,14 +177,24 @@ export default function MidtermReportSection({
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-gray-500" />
             <span>{file.fileName}</span>
-            <span className="text-sm text-gray-400">{Math.round(file.size / 1024)} KB</span>
+            <span className="text-sm text-gray-400">
+              {Math.round(file.size / 1024)} KB
+            </span>
           </div>
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={() => handleDownload(file)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleDownload(file)}
+            >
               <Download className="h-4 w-4 text-blue-600" />
             </Button>
             {isEditMode && (
-              <Button variant="ghost" size="sm" onClick={() => handleDelete(file.fileId)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleDelete(file.fileId)}
+              >
                 <Trash2 className="h-4 w-4 text-red-600" />
               </Button>
             )}
