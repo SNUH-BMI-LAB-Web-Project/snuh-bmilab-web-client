@@ -12,9 +12,9 @@ import AnnualReportSection from './AnnualReportSection';
 export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [taskId, setTaskId] = useState<number | null>(null);
-  const [yearTabs, setYearTabs] = useState<
-    { year: number; periodId: number }[]
-  >([]);
+  const [yearTabs, setYearTabs] = useState<{ year: number; periodId: number }[]>(
+    [],
+  );
   const [yearlyData, setYearlyData] = useState<Record<number, any>>({});
 
   const getToken = () => {
@@ -53,6 +53,7 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
         year: Number(p.yearNumber),
         periodId: Number(p.id),
       }));
+
       setYearTabs(tabs);
 
       const fetched: Record<number, any> = {};
@@ -64,8 +65,9 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
         const detail = await dRes.json();
         fetched[p.year] = detail;
       }
+
       setYearlyData(fetched);
-    } catch {}
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -93,9 +95,11 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
         const periodFileIds = Array.isArray(period.periodFiles)
           ? period.periodFiles.map((f: any) => f.fileId)
           : [];
+
         const interimReportFileIds = Array.isArray(period.interimReportFiles)
           ? period.interimReportFiles.map((f: any) => f.fileId)
           : [];
+
         const annualReportFileIds = Array.isArray(period.annualReportFiles)
           ? period.annualReportFiles.map((f: any) => f.fileId)
           : [];
@@ -129,7 +133,6 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
 
       await fetchPeriods();
       setIsEditMode(false);
-
       toast.success('저장 완료');
     } catch {
       toast.error('저장 실패');
@@ -142,6 +145,7 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
         과제 정보를 불러오는 중입니다...
       </div>
     );
+
   if (yearTabs.length === 0)
     return (
       <div className="py-10 text-center text-gray-500">
