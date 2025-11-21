@@ -19,11 +19,11 @@ interface Props {
 }
 
 export default function AnnouncementFilesSection({
-  isEditMode,
-  editData,
-  setEditData,
-  taskId,
-}: Props) {
+                                                   isEditMode,
+                                                   editData,
+                                                   setEditData,
+                                                   taskId,
+                                                 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -46,6 +46,28 @@ export default function AnnouncementFilesSection({
     }
   };
 
+  // -----------------------------
+  // 🔥 다운로드 (uploadUrl GET 방식)
+  // -----------------------------
+  const handleDownload = async (file: FileMeta) => {
+    try {
+      const res = await fetch(file.uploadUrl);
+      const blob = await res.blob();
+
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = file.fileName;
+      a.click();
+
+      URL.revokeObjectURL(a.href);
+    } catch (e) {
+      console.error('다운로드 실패:', e);
+    }
+  };
+
+  // -----------------------------
+  // 파일 업로드
+  // -----------------------------
   const handleAddFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = e.target;
     if (!files?.length) return;
@@ -123,6 +145,9 @@ export default function AnnouncementFilesSection({
     }
   };
 
+  // -----------------------------
+  // 파일 삭제
+  // -----------------------------
   const handleDelete = async (fileId: string) => {
     const token = getToken();
     if (!token) return;
@@ -159,10 +184,17 @@ export default function AnnouncementFilesSection({
             <FileText className="h-4 w-4 text-gray-500" />
             <span>{file.fileName}</span>
           </div>
+
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm">
+            {/* 다운로드 적용 */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleDownload(file)}
+            >
               <Download className="h-4 w-4 text-blue-600" />
             </Button>
+
             {isEditMode && (
               <Button
                 variant="ghost"

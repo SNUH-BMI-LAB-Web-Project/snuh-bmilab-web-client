@@ -19,11 +19,11 @@ interface Props {
 }
 
 export default function RfpFilesSection({
-  isEditMode,
-  editData,
-  setEditData,
-  taskId,
-}: Props) {
+                                          isEditMode,
+                                          editData,
+                                          setEditData,
+                                          taskId,
+                                        }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -46,6 +46,28 @@ export default function RfpFilesSection({
     }
   };
 
+  // ------------------------------------------
+  // 🔥 업로드 URL 직접 GET 방식으로 다운로드
+  // ------------------------------------------
+  const handleDownload = async (file: FileMeta) => {
+    try {
+      const res = await fetch(file.uploadUrl);
+      const blob = await res.blob();
+
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = file.fileName;
+      a.click();
+
+      URL.revokeObjectURL(a.href);
+    } catch (e) {
+      console.error('다운로드 실패:', e);
+    }
+  };
+
+  // ------------------------------------------
+  // 파일 업로드
+  // ------------------------------------------
   const handleAddFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = e.target;
     if (!files?.length) return;
@@ -54,50 +76,51 @@ export default function RfpFilesSection({
     if (!token) return;
 
     try {
-      const uploadTasks = Array.from(files).map(async (file) => {
-        const pres = await fetch(
-          `${API_BASE}/files/presigned-url?fileName=${encodeURIComponent(
-            file.name,
-          )}&contentType=${encodeURIComponent(file.type)}`,
-          { headers: { Authorization: `Bearer ${token}` } },
-        );
+      const uploaded = await Promise.all(
+        Array.from(files).map(async (file) => {
+          const pres = await fetch(
+            `${API_BASE}/files/presigned-url?fileName=${encodeURIComponent(
+              file.name,
+            )}&contentType=${encodeURIComponent(file.type)}`,
+            { headers: { Authorization: `Bearer ${token}` } },
+          );
 
-        const json = await pres.json();
-        const { uuid } = json;
-        const { presignedUrl } = json;
+          const json = await pres.json();
+          const uuid = json.uuid;
+          const presignedUrl = json.presignedUrl;
 
-        await fetch(presignedUrl, {
-          method: 'PUT',
-          body: file,
-          headers: { 'Content-Type': file.type },
-        });
+          await fetch(presignedUrl, {
+            method: 'PUT',
+            body: file,
+            headers: { 'Content-Type': file.type },
+          });
 
-        const save = await fetch(`${API_BASE}/files`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            uuid,
-            fileName: file.name,
-            extension: (file.name.split('.').pop() || '').toLowerCase(),
-            size: file.size,
-            taskId,
-          }),
-        });
+          const save = await fetch(`${API_BASE}/files`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              uuid,
+              fileName: file.name,
+              extension: (file.name.split('.').pop() || '').toLowerCase(),
+              size: file.size,
+              taskId,
+            }),
+          });
 
-        const saved = await save.json();
+          const saved = await save.json();
 
-        return {
-          fileId: saved.fileId,
-          fileName: saved.fileName,
-          size: saved.size,
-          uploadUrl: saved.uploadUrl,
-        } as FileMeta;
-      });
-
-      const uploaded = await Promise.all(uploadTasks);
+          // 🔥 여기서 백엔드가 반환하는 uploadUrl을 그대로 저장
+          return {
+            fileId: saved.fileId,
+            fileName: saved.fileName,
+            size: saved.size,
+            uploadUrl: saved.uploadUrl,
+          } as FileMeta;
+        }),
+      );
 
       const before = editData.rfpFiles || [];
       const allIds = [
@@ -105,6 +128,7 @@ export default function RfpFilesSection({
         ...uploaded.map((f) => f.fileId),
       ];
 
+      // 연결 PATCH
       await fetch(`${API_BASE}/tasks/${taskId}/basic-info`, {
         method: 'PATCH',
         headers: {
@@ -123,6 +147,9 @@ export default function RfpFilesSection({
     }
   };
 
+  // ------------------------------------------
+  // 파일 삭제
+  // ------------------------------------------
   const handleDelete = async (fileId: string) => {
     const token = getToken();
     if (!token) return;
@@ -138,6 +165,7 @@ export default function RfpFilesSection({
     }));
   };
 
+  // ------------------------------------------
   const files = editData.rfpFiles || [];
 
   return (
@@ -157,10 +185,16 @@ export default function RfpFilesSection({
             <FileText className="h-4 w-4 text-gray-500" />
             <span>{file.fileName}</span>
           </div>
+
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleDownload(file)}
+            >
               <Download className="h-4 w-4 text-blue-600" />
             </Button>
+
             {isEditMode && (
               <Button
                 variant="ghost"
