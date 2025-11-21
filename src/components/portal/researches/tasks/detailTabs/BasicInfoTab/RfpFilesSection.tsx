@@ -19,11 +19,11 @@ interface Props {
 }
 
 export default function RfpFilesSection({
-                                          isEditMode,
-                                          editData,
-                                          setEditData,
-                                          taskId,
-                                        }: Props) {
+  isEditMode,
+  editData,
+  setEditData,
+  taskId,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -86,8 +86,8 @@ export default function RfpFilesSection({
           );
 
           const json = await pres.json();
-          const uuid = json.uuid;
-          const presignedUrl = json.presignedUrl;
+          const { uuid } = json;
+          const { presignedUrl } = json;
 
           await fetch(presignedUrl, {
             method: 'PUT',

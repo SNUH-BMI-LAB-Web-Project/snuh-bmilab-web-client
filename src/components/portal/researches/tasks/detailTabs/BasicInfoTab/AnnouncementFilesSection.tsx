@@ -20,11 +20,11 @@ interface Props {
 }
 
 export default function AnnouncementFilesSection({
-                                                   isEditMode,
-                                                   editData,
-                                                   setEditData,
-                                                   taskId,
-                                                 }: Props) {
+  isEditMode,
+  editData,
+  setEditData,
+  taskId,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -198,7 +198,11 @@ export default function AnnouncementFilesSection({
           </div>
 
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={() => handleDownload(file)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleDownload(file)}
+            >
               <Download className="h-4 w-4 text-blue-600" />
             </Button>
 
@@ -243,7 +247,7 @@ export default function AnnouncementFilesSection({
             href={announcementLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 underline break-all"
+            className="break-all text-blue-600 underline"
           >
             {announcementLink || '링크 없음'}
           </a>
