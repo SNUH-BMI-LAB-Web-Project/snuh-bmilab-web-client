@@ -7,7 +7,8 @@ import { toast } from 'sonner';
 
 import BasicSection from './BasicSection';
 import BusinessContactsSection from './BusinessContactsSection';
-import RelatedFilesSection from './RelatedFilesSection';
+import RfpFilesSection from './RfpFilesSection';
+import AnnouncementFilesSection from './AnnouncementFilesSection';
 import ProjectPeriodSection from './ProjectPeriodSection';
 
 export default function BasicInfoTab({ taskInfo }: { taskInfo?: any }) {
@@ -23,6 +24,17 @@ export default function BasicInfoTab({ taskInfo }: { taskInfo?: any }) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+  const normalizeFileData = (data: any) => {
+    return {
+      ...data,
+      rfpFiles: data.rfpFiles ?? [],
+      announcementFiles: data.announcementFiles ?? [],
+      rfpFileIds: data.rfpFiles?.map((f: any) => f.fileId) ?? [],
+      announcementFileIds:
+        data.announcementFiles?.map((f: any) => f.fileId) ?? [],
+    };
+  };
 
   const fetchBasicInfo = async () => {
     try {
@@ -48,8 +60,11 @@ export default function BasicInfoTab({ taskInfo }: { taskInfo?: any }) {
       if (!res.ok) throw new Error(`서버 오류 (${res.status})`);
 
       const data = JSON.parse(text);
-      setBasicInfoData(data);
-      setEditData(data);
+
+      const normalized = normalizeFileData(data);
+
+      setBasicInfoData(normalized);
+      setEditData(normalized);
     } catch (err: any) {
       setErrorMessage(err.message || '기본정보 조회 실패');
     } finally {
@@ -75,6 +90,11 @@ export default function BasicInfoTab({ taskInfo }: { taskInfo?: any }) {
         businessContactPhone: editData.businessContactPhone ?? '',
         announcementLink: editData.announcementLink ?? '',
         threeFiveRule: editData.threeFiveRule ?? false,
+
+        // 파일 저장용
+        rfpFileIds: editData.rfpFiles?.map((f: any) => f.fileId) ?? [],
+        announcementFileIds:
+          editData.announcementFiles?.map((f: any) => f.fileId) ?? [],
       };
 
       const res = await fetch(`${API_BASE}/tasks/${taskId}/basic-info`, {
@@ -161,19 +181,19 @@ export default function BasicInfoTab({ taskInfo }: { taskInfo?: any }) {
         taskInfo={basicInfoData}
       />
 
-      <RelatedFilesSection
+      {/* RFP */}
+      <RfpFilesSection
         isEditMode={isEditMode}
         editData={editData}
         setEditData={setEditData}
-        fileType="rfpFiles"
         taskId={taskId}
       />
 
-      <RelatedFilesSection
+      {/* 공고서류 전체 정보 */}
+      <AnnouncementFilesSection
         isEditMode={isEditMode}
         editData={editData}
         setEditData={setEditData}
-        fileType="announcementFiles"
         taskId={taskId}
       />
 
