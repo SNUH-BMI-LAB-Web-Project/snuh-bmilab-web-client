@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import PresentationResearchersSection from './PresentationResearchersSection';
 import PresentationDeadlineSection from './PresentationDeadlineSection';
 import PresentationFilesSection from './PresentationFilesSection';
@@ -28,47 +29,61 @@ export default function PresentationTab({ taskInfo }: { taskInfo?: any }) {
     try {
       const authRaw = localStorage.getItem('auth-storage');
       const token = authRaw ? JSON.parse(authRaw)?.state?.accessToken : null;
+
       if (!token || !taskId) return;
+
       const res = await fetch(
         `${API_BASE}/tasks/${taskId}/presentation?t=${Date.now()}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
+
       const text = await res.text();
       if (!res.ok) throw new Error(`서버 오류 (${res.status})`);
+
       const data = JSON.parse(text);
+
       let deadlineDate = '';
       let deadlineTime = '';
+
       if (data.presentationDeadline) {
         const [date, timePart] = data.presentationDeadline.split('T');
         deadlineDate = date;
         deadlineTime = timePart?.slice(0, 5) ?? '';
       }
+
       setPresentationData({ ...data, deadlineDate, deadlineTime });
       setEditData({ presentation: { ...data, deadlineDate, deadlineTime } });
-    } catch {}
+    } catch {
+      toast.error('발표 정보를 불러오는 데 실패했습니다.');
+    }
   };
 
   const handleSave = async () => {
     try {
       const authRaw = localStorage.getItem('auth-storage');
       const token = authRaw ? JSON.parse(authRaw)?.state?.accessToken : null;
+
       if (!token || !taskId) throw new Error('taskId 또는 토큰 누락');
+
       const merged = { ...(editData?.presentation ?? {}), ...(editData ?? {}) };
+
       const presentationDeadline =
         merged.presentationDeadline ||
         (merged.deadlineDate && merged.deadlineTime
           ? `${merged.deadlineDate}T${merged.deadlineTime}:00`
           : '');
+
       const presentationMakerIds =
         merged.presentationMakers
           ?.map((r: any) => r.userId)
           ?.filter((v: any) => !!v) ?? [];
+
       const finalPresentationFileIds =
         merged.finalPresentationFiles?.map((f: any) => f.fileId) ?? [];
+
       const draftPresentationFileIds =
         merged.draftPresentationFiles?.map((f: any) => f.fileId) ?? [];
+
       const payload = {
         presentationDeadline,
         presentationMakerIds,
@@ -80,6 +95,7 @@ export default function PresentationTab({ taskInfo }: { taskInfo?: any }) {
         finalPresentationFileIds,
         draftPresentationFileIds,
       };
+
       const res = await fetch(`${API_BASE}/tasks/${taskId}/presentation`, {
         method: 'PATCH',
         headers: {
@@ -88,10 +104,15 @@ export default function PresentationTab({ taskInfo }: { taskInfo?: any }) {
         },
         body: JSON.stringify(payload),
       });
+
       if (!res.ok) throw new Error(`PATCH 실패 (${res.status})`);
+
       setIsEditMode(false);
       await fetchPresentation();
-    } catch {}
+      toast.success('저장 완료');
+    } catch {
+      toast.error('저장 실패');
+    }
   };
 
   useEffect(() => {
@@ -139,12 +160,14 @@ export default function PresentationTab({ taskInfo }: { taskInfo?: any }) {
         setEditData={setEditData}
         taskInfo={presentationData}
       />
+
       <PresentationDeadlineSection
         isEditMode={isEditMode}
         deadlineDate={presentationData.deadlineDate}
         deadlineTime={presentationData.deadlineTime}
         setEditData={setEditData}
       />
+
       <PresentationFilesSection
         isEditMode={isEditMode}
         editData={editData}
@@ -152,6 +175,7 @@ export default function PresentationTab({ taskInfo }: { taskInfo?: any }) {
         fileType="finalPresentationFiles"
         taskId={taskId}
       />
+
       <PresentationDraftSection
         isEditMode={isEditMode}
         editData={editData}
@@ -159,6 +183,7 @@ export default function PresentationTab({ taskInfo }: { taskInfo?: any }) {
         fileType="draftPresentationFiles"
         taskId={taskId}
       />
+
       <PresentationEvaluationSection
         isEditMode={isEditMode}
         evaluation={editData?.presentation ?? {}}

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+
 import BasicSection from './BasicSection';
 import BusinessContactsSection from './BusinessContactsSection';
 import RelatedFilesSection from './RelatedFilesSection';
@@ -26,9 +28,11 @@ export default function BasicInfoTab({ taskInfo }: { taskInfo?: any }) {
     try {
       setLoading(true);
       setErrorMessage(null);
+
       const authRaw = localStorage.getItem('auth-storage');
       const token = authRaw ? JSON.parse(authRaw)?.state?.accessToken : null;
       if (!token) throw new Error('토큰이 없습니다.');
+
       const res = await fetch(
         `${API_BASE}/tasks/${taskId}/basic-info?t=${Date.now()}`,
         {
@@ -39,8 +43,10 @@ export default function BasicInfoTab({ taskInfo }: { taskInfo?: any }) {
           },
         },
       );
+
       const text = await res.text();
       if (!res.ok) throw new Error(`서버 오류 (${res.status})`);
+
       const data = JSON.parse(text);
       setBasicInfoData(data);
       setEditData(data);
@@ -56,6 +62,7 @@ export default function BasicInfoTab({ taskInfo }: { taskInfo?: any }) {
       const authRaw = localStorage.getItem('auth-storage');
       const token = authRaw ? JSON.parse(authRaw)?.state?.accessToken : null;
       if (!token || !taskId) throw new Error('taskId 또는 토큰 누락');
+
       const payload = {
         ministry: editData.ministry ?? '',
         specializedAgency: editData.specializedAgency ?? '',
@@ -69,6 +76,7 @@ export default function BasicInfoTab({ taskInfo }: { taskInfo?: any }) {
         announcementLink: editData.announcementLink ?? '',
         threeFiveRule: editData.threeFiveRule ?? false,
       };
+
       const res = await fetch(`${API_BASE}/tasks/${taskId}/basic-info`, {
         method: 'PATCH',
         headers: {
@@ -77,12 +85,15 @@ export default function BasicInfoTab({ taskInfo }: { taskInfo?: any }) {
         },
         body: JSON.stringify(payload),
       });
+
       if (!res.ok) throw new Error(`PATCH 실패 (${res.status})`);
-      alert('기본정보가 성공적으로 저장되었습니다.');
+
+      toast.success('기본정보가 성공적으로 저장되었습니다.');
+
       setIsEditMode(false);
       await fetchBasicInfo();
     } catch (err: any) {
-      alert(`저장 실패: ${err.message || '알 수 없는 오류'}`);
+      toast.error(`저장 실패: ${err.message || '알 수 없는 오류'}`);
     }
   };
 
@@ -97,10 +108,10 @@ export default function BasicInfoTab({ taskInfo }: { taskInfo?: any }) {
         기본정보를 불러오는 중입니다...
       </div>
     );
+
   if (errorMessage)
-    return (
-      <div className="py-10 text-center text-red-600">⚠️ {errorMessage}</div>
-    );
+    return <div className="py-10 text-center text-red-600">{errorMessage}</div>;
+
   if (!basicInfoData)
     return (
       <div className="py-10 text-center text-gray-500">
@@ -142,12 +153,14 @@ export default function BasicInfoTab({ taskInfo }: { taskInfo?: any }) {
         setEditData={setEditData}
         taskInfo={basicInfoData}
       />
+
       <BusinessContactsSection
         isEditMode={isEditMode}
         editData={editData}
         setEditData={setEditData}
         taskInfo={basicInfoData}
       />
+
       <RelatedFilesSection
         isEditMode={isEditMode}
         editData={editData}
@@ -155,6 +168,7 @@ export default function BasicInfoTab({ taskInfo }: { taskInfo?: any }) {
         fileType="rfpFiles"
         taskId={taskId}
       />
+
       <RelatedFilesSection
         isEditMode={isEditMode}
         editData={editData}
@@ -162,6 +176,7 @@ export default function BasicInfoTab({ taskInfo }: { taskInfo?: any }) {
         fileType="announcementFiles"
         taskId={taskId}
       />
+
       <ProjectPeriodSection taskInfo={basicInfoData} />
     </div>
   );

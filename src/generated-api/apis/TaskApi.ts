@@ -1398,6 +1398,61 @@ export class TaskApi extends runtime.BaseAPI {
         await this.updateTaskPeriodRaw(requestParameters, initOverrides);
     }
 
+    /**
+     * 과제 ID로 전체 Task 정보를 조회하는 GET API
+     * Task 상세 조회
+     */
+    async getTaskRaw(
+      requestParameters: { taskId: number },
+      initOverrides?: RequestInit | runtime.InitOverrideFunction
+    ): Promise<runtime.ApiResponse<TaskBasicInfoResponse>> {
+        if (requestParameters['taskId'] == null) {
+            throw new runtime.RequiredError(
+              'taskId',
+              'Required parameter "taskId" was null or undefined when calling getTask().'
+            );
+        }
+
+        const queryParameters: any = {};
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        const response = await this.request({
+            path: `/tasks/{taskId}`.replace(
+              `{${"taskId"}}`,
+              encodeURIComponent(String(requestParameters['taskId']))
+            ),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(
+          response,
+          (jsonValue) => TaskBasicInfoResponseFromJSON(jsonValue)
+        );
+    }
+
+    /**
+     * 과제 ID로 전체 Task 정보를 조회하는 GET API
+     * Task 상세 조회
+     */
+    async getTask(
+      requestParameters: { taskId: number },
+      initOverrides?: RequestInit | runtime.InitOverrideFunction
+    ): Promise<TaskBasicInfoResponse> {
+        const response = await this.getTaskRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
 }
 
 /**
