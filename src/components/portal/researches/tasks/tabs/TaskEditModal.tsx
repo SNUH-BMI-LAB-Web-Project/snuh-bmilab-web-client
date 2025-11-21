@@ -226,12 +226,12 @@ export default function TaskEditModal({
               startDate?: string;
               endDate?: string;
             }) => ({
-                year: p.yearNumber,
-          periodId: p.id,
-          startDate: p.startDate || '',
-          endDate: p.endDate || '',
-      }),
-      ) ?? [];
+              year: p.yearNumber,
+              periodId: p.id,
+              startDate: p.startDate || '',
+              endDate: p.endDate || '',
+            }),
+          ) ?? [];
 
         setFormData({
           researchNumber: task.researchTaskNumber ?? '',
@@ -342,20 +342,12 @@ export default function TaskEditModal({
       snuhPi: snuhPIs.map((p) => p.name).join(', '),
 
       professorRole: professorRoleMap[formData.kimKwangSooRole],
-      practicalManagerId, // null 불가
+      practicalManagerId,
 
       participatingInstitutions: formData.participatingInstitutions.join(', '),
 
       status: statusMap[formData.progressStage],
     };
-
-    console.log("==========[TaskEditModal] 전송 데이터 확인 ==========");
-    console.log("taskId:", taskId);
-    console.log("periods(raw):", formData.yearlyPeriods);
-    console.log("periods(보내는 형식):", periods);
-    console.log("payload:", payload);
-    console.log("=====================================================");
-
     try {
       setSubmitting(true);
 
@@ -387,10 +379,10 @@ export default function TaskEditModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="relative bg-background max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-xl p-8 shadow-xl">
+      <div className="bg-background relative max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-xl p-8 shadow-xl">
         <button
           onClick={onClose}
-          className="absolute right-8 top-8 text-gray-500 hover:text-black"
+          className="absolute top-8 right-8 text-gray-500 hover:text-black"
         >
           <X className="h-6 w-6" />
         </button>
@@ -517,8 +509,8 @@ export default function TaskEditModal({
                               <CalendarIcon className="mr-2 h-4 w-4" />
                               {p.startDate
                                 ? format(parseISO(p.startDate), 'yyyy.MM.dd', {
-                                  locale: ko,
-                                })
+                                    locale: ko,
+                                  })
                                 : '시작일 선택'}
                             </Button>
                           </PopoverTrigger>
@@ -548,8 +540,8 @@ export default function TaskEditModal({
                               <CalendarIcon className="mr-2 h-4 w-4" />
                               {p.endDate
                                 ? format(parseISO(p.endDate), 'yyyy.MM.dd', {
-                                  locale: ko,
-                                })
+                                    locale: ko,
+                                  })
                                 : '종료일 선택'}
                             </Button>
                           </PopoverTrigger>
