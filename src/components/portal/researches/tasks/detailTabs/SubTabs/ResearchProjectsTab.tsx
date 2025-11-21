@@ -214,7 +214,7 @@ export default function ResearchProjectsTab() {
                   searchResults.map((p) => (
                     <div
                       key={p.projectId}
-                      className="flex items-center justify-between rounded-lg border border-gray-200 p-4 bg-white"
+                      className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4"
                     >
                       <div className="max-w-[80%] truncate">
                         <div className="truncate font-medium text-gray-900">
