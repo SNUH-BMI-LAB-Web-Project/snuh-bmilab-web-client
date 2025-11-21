@@ -3,6 +3,7 @@
 import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { FileText, Trash2, Download } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface FileMeta {
   fileId: string;
@@ -19,11 +20,11 @@ interface Props {
 }
 
 export default function AnnouncementFilesSection({
-                                                   isEditMode,
-                                                   editData,
-                                                   setEditData,
-                                                   taskId,
-                                                 }: Props) {
+  isEditMode,
+  editData,
+  setEditData,
+  taskId,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -47,7 +48,7 @@ export default function AnnouncementFilesSection({
   };
 
   // -----------------------------
-  // 🔥 다운로드 (uploadUrl GET 방식)
+  // 🔥 다운로드
   // -----------------------------
   const handleDownload = async (file: FileMeta) => {
     try {
@@ -66,7 +67,7 @@ export default function AnnouncementFilesSection({
   };
 
   // -----------------------------
-  // 파일 업로드
+  // 업로드
   // -----------------------------
   const handleAddFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = e.target;
@@ -85,8 +86,7 @@ export default function AnnouncementFilesSection({
         );
 
         const json = await pres.json();
-        const { uuid } = json;
-        const { presignedUrl } = json;
+        const { uuid, presignedUrl } = json;
 
         await fetch(presignedUrl, {
           method: 'PUT',
@@ -146,7 +146,7 @@ export default function AnnouncementFilesSection({
   };
 
   // -----------------------------
-  // 파일 삭제
+  // 삭제
   // -----------------------------
   const handleDelete = async (fileId: string) => {
     const token = getToken();
@@ -165,12 +165,24 @@ export default function AnnouncementFilesSection({
     }));
   };
 
+  // -----------------------------
+  // 공고 링크 업데이트
+  // -----------------------------
+  const updateAnnouncementLink = (value: string) => {
+    setEditData((prev: any) => ({
+      ...prev,
+      announcementLink: value,
+    }));
+  };
+
   const files = editData.announcementFiles || [];
+  const announcementLink = editData.announcementLink || '';
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6">
       <h3 className="mb-4 text-lg font-semibold">공고서류 전체 정보</h3>
 
+      {/* 파일 리스트 */}
       {files.length === 0 && !isEditMode && (
         <div className="text-sm text-gray-500">등록된 파일 없음</div>
       )}
@@ -186,7 +198,6 @@ export default function AnnouncementFilesSection({
           </div>
 
           <div className="flex gap-2">
-            {/* 다운로드 적용 */}
             <Button
               variant="ghost"
               size="sm"
@@ -208,6 +219,7 @@ export default function AnnouncementFilesSection({
         </div>
       ))}
 
+      {/* 업로드 버튼 */}
       {isEditMode && (
         <>
           <input
@@ -225,6 +237,28 @@ export default function AnnouncementFilesSection({
           </Button>
         </>
       )}
+
+      {/* 공고 링크 */}
+      <div className="mt-8">
+        <div className="mb-2 text-sm font-medium text-gray-700">공고 링크</div>
+
+        {!isEditMode ? (
+          <a
+            href={announcementLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="break-all text-blue-600 underline"
+          >
+            {announcementLink || '링크 없음'}
+          </a>
+        ) : (
+          <Input
+            value={announcementLink}
+            placeholder="https://example.com/announcement"
+            onChange={(e) => updateAnnouncementLink(e.target.value)}
+          />
+        )}
+      </div>
     </div>
   );
 }
