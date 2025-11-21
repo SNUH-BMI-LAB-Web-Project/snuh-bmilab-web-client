@@ -50,6 +50,7 @@ interface YearlyPeriod {
   year: number;
   startDate: string;
   endDate: string;
+  periodId?: number;
 }
 
 export default function TaskEditModal({
@@ -108,7 +109,7 @@ export default function TaskEditModal({
     projectName: '',
     client: '',
     totalYears: '',
-    yearlyPeriods: [] as YearlyPeriod[],
+    yearlyPeriods: [] as (YearlyPeriod & { periodId?: number })[],
     researchType: '',
     hostInstitution: '',
     hostProfessor: '',
@@ -220,15 +221,17 @@ export default function TaskEditModal({
         const periods =
           task.periods?.map(
             (p: {
+              id: number;
               yearNumber: number;
               startDate?: string;
               endDate?: string;
             }) => ({
-              year: p.yearNumber,
-              startDate: p.startDate || '',
-              endDate: p.endDate || '',
-            }),
-          ) ?? [];
+                year: p.yearNumber,
+          periodId: p.id,
+          startDate: p.startDate || '',
+          endDate: p.endDate || '',
+      }),
+      ) ?? [];
 
         setFormData({
           researchNumber: task.researchTaskNumber ?? '',
@@ -346,6 +349,13 @@ export default function TaskEditModal({
       status: statusMap[formData.progressStage],
     };
 
+    console.log("==========[TaskEditModal] 전송 데이터 확인 ==========");
+    console.log("taskId:", taskId);
+    console.log("periods(raw):", formData.yearlyPeriods);
+    console.log("periods(보내는 형식):", periods);
+    console.log("payload:", payload);
+    console.log("=====================================================");
+
     try {
       setSubmitting(true);
 
@@ -377,22 +387,22 @@ export default function TaskEditModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-background max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-xl p-8 shadow-xl">
-        {/* ---------------- UI 원본 유지 ---------------- */}
+      <div className="relative bg-background max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-xl p-8 shadow-xl">
+        <button
+          onClick={onClose}
+          className="absolute right-8 top-8 text-gray-500 hover:text-black"
+        >
+          <X className="h-6 w-6" />
+        </button>
         <form onSubmit={handleSubmit}>
-          <Card className="border-gray-200 py-8 shadow-none">
+          <Card className="border-0 py-8 shadow-none">
             <CardContent className="space-y-12">
               <div className="space-y-8">
                 <div className="flex items-center gap-4">
-                  <Button variant="ghost" onClick={onClose} className="p-2">
-                    <ArrowLeft className="h-4 w-4" />
-                  </Button>
                   <h1 className="text-foreground text-3xl font-bold">
                     과제 수정
                   </h1>
                 </div>
-
-                {/* ------ 이하 UI 모두 동일 유지 ------ */}
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div className="space-y-2">
                     <Label>연구과제번호 *</Label>
@@ -507,8 +517,8 @@ export default function TaskEditModal({
                               <CalendarIcon className="mr-2 h-4 w-4" />
                               {p.startDate
                                 ? format(parseISO(p.startDate), 'yyyy.MM.dd', {
-                                    locale: ko,
-                                  })
+                                  locale: ko,
+                                })
                                 : '시작일 선택'}
                             </Button>
                           </PopoverTrigger>
@@ -538,8 +548,8 @@ export default function TaskEditModal({
                               <CalendarIcon className="mr-2 h-4 w-4" />
                               {p.endDate
                                 ? format(parseISO(p.endDate), 'yyyy.MM.dd', {
-                                    locale: ko,
-                                  })
+                                  locale: ko,
+                                })
                                 : '종료일 선택'}
                             </Button>
                           </PopoverTrigger>
@@ -823,6 +833,15 @@ export default function TaskEditModal({
           </Card>
 
           <div className="flex justify-end gap-4 pt-8">
+            <Button
+              type="button"
+              variant="outline"
+              className="px-10"
+              onClick={onClose}
+            >
+              취소
+            </Button>
+
             <Button type="submit" className="px-10" disabled={submitting}>
               {submitting ? '수정 중…' : '저장'}
             </Button>
