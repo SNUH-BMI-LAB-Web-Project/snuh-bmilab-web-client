@@ -12,6 +12,7 @@ import React, { useEffect, useState } from 'react';
 import { ProjectApi, ProjectDetail } from '@/generated-api';
 import { downloadFileFromUrl } from '@/utils/download-file';
 import { getApiConfig } from '@/lib/config';
+import ProjectReportTimelineCard from '@/components/portal/researches/projects/project-report-card';
 
 interface ProjectInfoFormProps {
   id: string;
@@ -97,7 +98,11 @@ export default function ProjectInfoForm({
           </Card>
         </div>
 
+        {/* 타임라인 */}
         <TimelineCard projectId={id} canEdit={canEdit} />
+
+        {/* 일일 업무 보고 타임라인 */}
+        <ProjectReportTimelineCard projectId={id} />
       </div>
 
       <div className="flex flex-col gap-8 xl:col-span-1">

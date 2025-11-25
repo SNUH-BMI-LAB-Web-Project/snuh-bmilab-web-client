@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 export default function AcknowledgmentTab() {
   const pathname = usePathname();
@@ -84,11 +85,12 @@ export default function AcknowledgmentTab() {
       });
 
       if (!res.ok) throw new Error(`저장 실패 (${res.status})`);
+
       setIsEditMode(false);
-      alert('사사표기가 성공적으로 저장되었습니다.');
+      toast.success('사사표기가 성공적으로 저장되었습니다.');
       await fetchAcknowledgement();
     } catch (err: any) {
-      alert(err.message || '저장 실패');
+      toast.error(err.message || '저장 실패');
     }
   };
 

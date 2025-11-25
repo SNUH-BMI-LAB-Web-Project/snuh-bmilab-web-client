@@ -22,7 +22,7 @@ export default function TaskSubTabs() {
           value="research-projects"
           className="font-medium text-gray-700 transition-colors duration-150 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
         >
-          관련연구과제
+          관련연구프로젝트
         </TabsTrigger>
         <TabsTrigger
           value="papers"

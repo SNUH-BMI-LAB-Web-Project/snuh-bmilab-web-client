@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import ContractProposalFileSection from './ContractProposalFileSection';
 import ContractSubmissionFileSection from './ContractSubmissionFileSection';
 import ContractDateSection from './ContractDateSection';
@@ -36,25 +37,30 @@ export default function ContractTab({ taskInfo }: { taskInfo?: any }) {
     try {
       const token = getToken();
       if (!token || !taskId) return;
+
       const res = await fetch(
         `${API_BASE}/tasks/${taskId}/agreement?t=${Date.now()}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
+
+      if (!res.ok) throw new Error(`GET 실패 (${res.status})`);
+
       const data = await res.json();
       setEditData({
         agreementDate: data.agreementDate ?? '',
         agreementFinalProposalFiles: data.agreementFinalProposalFiles ?? [],
         agreementFinalSubmissionFiles: data.agreementFinalSubmissionFiles ?? [],
       });
-    } catch {}
+    } catch {
+      toast.error('협약 정보를 불러오지 못했습니다.');
+    }
   };
 
   const handleSave = async () => {
     try {
       const token = getToken();
       if (!token || !taskId) return;
+
       const payload = {
         agreementDate: editData?.agreementDate ?? '',
         agreementFinalProposalFileIds:
@@ -64,7 +70,8 @@ export default function ContractTab({ taskInfo }: { taskInfo?: any }) {
           editData?.agreementFinalSubmissionFiles?.map((f: any) => f.fileId) ??
           [],
       };
-      await fetch(`${API_BASE}/tasks/${taskId}/agreement`, {
+
+      const res = await fetch(`${API_BASE}/tasks/${taskId}/agreement`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -72,10 +79,14 @@ export default function ContractTab({ taskInfo }: { taskInfo?: any }) {
         },
         body: JSON.stringify(payload),
       });
+
+      if (!res.ok) throw new Error();
+
       await fetchContract();
       setIsEditMode(false);
+      toast.success('저장 완료');
     } catch {
-      /* empty */
+      toast.error('저장 실패');
     }
   };
 
@@ -125,6 +136,7 @@ export default function ContractTab({ taskInfo }: { taskInfo?: any }) {
           setEditData((p: any) => ({ ...p, agreementDate: v }))
         }
       />
+
       <ContractProposalFileSection
         isEditMode={isEditMode}
         editData={editData}
@@ -132,6 +144,7 @@ export default function ContractTab({ taskInfo }: { taskInfo?: any }) {
         fileType="agreementFinalProposalFiles"
         taskId={taskId}
       />
+
       <ContractSubmissionFileSection
         isEditMode={isEditMode}
         editData={editData}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
 import YearlyTaskSection from './YearlyTaskSection';
 import YearlyFileSection from './YearlyFileSection';
 import MidtermReportSection from './MidtermReportSection';
@@ -11,7 +12,9 @@ import AnnualReportSection from './AnnualReportSection';
 export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [taskId, setTaskId] = useState<number | null>(null);
-  const [yearTabs, setYearTabs] = useState<{ year: number; periodId: number }[]>([]);
+  const [yearTabs, setYearTabs] = useState<
+    { year: number; periodId: number }[]
+  >([]);
   const [yearlyData, setYearlyData] = useState<Record<number, any>>({});
 
   const getToken = () => {
@@ -22,7 +25,9 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
   useEffect(() => {
     if (taskInfo?.id) setTaskId(Number(taskInfo.id));
     else if (typeof window !== 'undefined') {
-      const id = Number(window.location.pathname.split('/').filter(Boolean).pop());
+      const id = Number(
+        window.location.pathname.split('/').filter(Boolean).pop(),
+      );
       if (!Number.isNaN(id)) setTaskId(id);
     }
   }, [taskInfo]);
@@ -32,11 +37,15 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
     if (!taskId || !token) return;
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/tasks/${taskId}/basic-info`, {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: 'no-store',
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/tasks/${taskId}/basic-info`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: 'no-store',
+        },
+      );
       if (!res.ok) throw new Error(`GET 실패 (${res.status})`);
+
       const data = await res.json();
       const periods = Array.isArray(data?.periods) ? data.periods : [];
 
@@ -44,6 +53,7 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
         year: Number(p.yearNumber),
         periodId: Number(p.id),
       }));
+
       setYearTabs(tabs);
 
       const fetched: Record<number, any> = {};
@@ -55,8 +65,9 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
         const detail = await dRes.json();
         fetched[p.year] = detail;
       }
+
       setYearlyData(fetched);
-    } catch {}
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -84,9 +95,11 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
         const periodFileIds = Array.isArray(period.periodFiles)
           ? period.periodFiles.map((f: any) => f.fileId)
           : [];
+
         const interimReportFileIds = Array.isArray(period.interimReportFiles)
           ? period.interimReportFiles.map((f: any) => f.fileId)
           : [];
+
         const annualReportFileIds = Array.isArray(period.annualReportFiles)
           ? period.annualReportFiles.map((f: any) => f.fileId)
           : [];
@@ -120,22 +133,34 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
 
       await fetchPeriods();
       setIsEditMode(false);
-      alert('저장 완료');
+      toast.success('저장 완료');
     } catch {
-      alert('저장 실패');
+      toast.error('저장 실패');
     }
   };
 
   if (!taskId)
-    return <div className="py-10 text-center text-gray-500">과제 정보를 불러오는 중입니다...</div>;
+    return (
+      <div className="py-10 text-center text-gray-500">
+        과제 정보를 불러오는 중입니다...
+      </div>
+    );
+
   if (yearTabs.length === 0)
-    return <div className="py-10 text-center text-gray-500">표시할 연차 정보가 없습니다.</div>;
+    return (
+      <div className="py-10 text-center text-gray-500">
+        표시할 연차 정보가 없습니다.
+      </div>
+    );
 
   return (
     <div className="space-y-6">
       <div className="mb-4 flex justify-end gap-2">
         {!isEditMode ? (
-          <Button onClick={() => setIsEditMode(true)} className="bg-blue-600 text-white">
+          <Button
+            onClick={() => setIsEditMode(true)}
+            className="bg-blue-600 text-white"
+          >
             수정
           </Button>
         ) : (
@@ -175,7 +200,6 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
           return (
             <TabsContent key={year} value={`year-${year}`}>
               <div className="space-y-6">
-                {/* 과제 담당자 및 참여자 */}
                 <YearlyTaskSection
                   isEditMode={isEditMode}
                   year={year}
@@ -188,11 +212,14 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
                   }
                 />
 
-                {/* 연차별 관련 파일 */}
                 <YearlyFileSection
                   isEditMode={isEditMode}
                   year={year}
-                  files={Array.isArray(periodData?.periodFiles) ? periodData.periodFiles : []}
+                  files={
+                    Array.isArray(periodData?.periodFiles)
+                      ? periodData.periodFiles
+                      : []
+                  }
                   taskId={taskId}
                   periodId={periodId}
                   onChange={(updated) =>
@@ -203,11 +230,14 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
                   }
                 />
 
-                {/* 중간보고서 */}
                 <MidtermReportSection
                   isEditMode={isEditMode}
                   year={year}
-                  files={Array.isArray(periodData?.interimReportFiles) ? periodData.interimReportFiles : []}
+                  files={
+                    Array.isArray(periodData?.interimReportFiles)
+                      ? periodData.interimReportFiles
+                      : []
+                  }
                   taskId={taskId}
                   periodId={periodId}
                   onChange={(updated) =>
@@ -218,17 +248,23 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
                   }
                 />
 
-                {/* 연차보고서 */}
                 <AnnualReportSection
                   isEditMode={isEditMode}
                   year={year}
-                  files={Array.isArray(periodData?.annualReportFiles) ? periodData.annualReportFiles : []}
+                  files={
+                    Array.isArray(periodData?.annualReportFiles)
+                      ? periodData.annualReportFiles
+                      : []
+                  }
                   taskId={taskId}
                   periodId={periodId}
                   onChange={(updated) =>
                     setYearlyData((prev) => ({
                       ...prev,
-                      [year]: { ...prev[year], annualReportFiles: updated.files ?? [] },
+                      [year]: {
+                        ...prev[year],
+                        annualReportFiles: updated.files ?? [],
+                      },
                     }))
                   }
                 />
