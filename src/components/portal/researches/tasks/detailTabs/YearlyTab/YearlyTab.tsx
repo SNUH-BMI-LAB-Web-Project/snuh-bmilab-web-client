@@ -12,9 +12,9 @@ import AnnualReportSection from './AnnualReportSection';
 export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [taskId, setTaskId] = useState<number | null>(null);
-  const [yearTabs, setYearTabs] = useState<{ year: number; periodId: number }[]>(
-    [],
-  );
+  const [yearTabs, setYearTabs] = useState<
+    { year: number; periodId: number }[]
+  >([]);
   const [yearlyData, setYearlyData] = useState<Record<number, any>>({});
 
   const getToken = () => {

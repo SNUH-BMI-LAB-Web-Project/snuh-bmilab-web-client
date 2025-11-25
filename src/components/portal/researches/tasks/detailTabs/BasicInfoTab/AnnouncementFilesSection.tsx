@@ -3,6 +3,7 @@
 import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { FileText, Trash2, Download } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface FileMeta {
   fileId: string;
@@ -11,35 +12,30 @@ interface FileMeta {
   uploadUrl: string;
 }
 
-interface RelatedFiles {
-  [key: string]: FileMeta[];
-}
-
 interface Props {
   isEditMode: boolean;
-  editData: RelatedFiles;
-  setEditData: (updater: (prev: RelatedFiles) => RelatedFiles) => void;
-  fileType: string;
+  editData: any;
+  setEditData: (updater: (prev: any) => any) => void;
   taskId: number;
 }
 
-export default function RelatedFilesSection({
+export default function AnnouncementFilesSection({
   isEditMode,
   editData,
   setEditData,
-  fileType,
   taskId,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  const getToken = (): string | null => {
+  const getToken = () => {
     try {
       const raw = localStorage.getItem('auth-storage');
       if (!raw) return null;
       const parsed = JSON.parse(raw);
       if (typeof parsed.state === 'string')
         parsed.state = JSON.parse(parsed.state);
+
       return (
         parsed.state?.auth?.accessToken ||
         parsed.state?.accessToken ||
@@ -51,32 +47,52 @@ export default function RelatedFilesSection({
     }
   };
 
-  const handleAddFiles = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ): Promise<void> => {
+  // -----------------------------
+  // 🔥 다운로드
+  // -----------------------------
+  const handleDownload = async (file: FileMeta) => {
+    try {
+      const res = await fetch(file.uploadUrl);
+      const blob = await res.blob();
+
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = file.fileName;
+      a.click();
+
+      URL.revokeObjectURL(a.href);
+    } catch (e) {
+      console.error('다운로드 실패:', e);
+    }
+  };
+
+  // -----------------------------
+  // 업로드
+  // -----------------------------
+  const handleAddFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = e.target;
     if (!files?.length) return;
+
     const token = getToken();
     if (!token) return;
 
     try {
       const uploadTasks = Array.from(files).map(async (file) => {
         const pres = await fetch(
-          `${API_BASE}/files/presigned-url?fileName=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`,
+          `${API_BASE}/files/presigned-url?fileName=${encodeURIComponent(
+            file.name,
+          )}&contentType=${encodeURIComponent(file.type)}`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
-        if (!pres.ok) throw new Error('Presigned URL 요청 실패');
-        const json = await pres.json();
-        const uuid = json.uuid ?? json.fileId ?? json.id;
-        const presignedUrl = json.presignedUrl ?? json.url;
-        if (!uuid || !presignedUrl) throw new Error('Presigned 응답 오류');
 
-        const s3 = await fetch(presignedUrl, {
+        const json = await pres.json();
+        const { uuid, presignedUrl } = json;
+
+        await fetch(presignedUrl, {
           method: 'PUT',
           body: file,
           headers: { 'Content-Type': file.type },
         });
-        if (!s3.ok) throw new Error('S3 업로드 실패');
 
         const save = await fetch(`${API_BASE}/files`, {
           method: 'POST',
@@ -92,87 +108,95 @@ export default function RelatedFilesSection({
             taskId,
           }),
         });
-        if (!save.ok) throw new Error('파일 저장 실패');
+
         const saved = await save.json();
 
         return {
-          fileId: saved.fileId ?? saved.id ?? saved.uuid,
-          fileName: saved.fileName ?? file.name,
-          size: saved.size ?? file.size,
-          uploadUrl: saved.uploadUrl ?? saved.url,
+          fileId: saved.fileId,
+          fileName: saved.fileName,
+          size: saved.size,
+          uploadUrl: saved.uploadUrl,
         } as FileMeta;
       });
 
-      const uploadedResults = await Promise.all(uploadTasks);
+      const uploaded = await Promise.all(uploadTasks);
 
-      const beforeIds = editData?.[fileType]?.map((f) => f.fileId) ?? [];
-      const allIds = [...beforeIds, ...uploadedResults.map((f) => f.fileId)];
+      const before = editData.announcementFiles || [];
+      const allIds = [
+        ...before.map((f: FileMeta) => f.fileId),
+        ...uploaded.map((f) => f.fileId),
+      ];
 
-      const patch = await fetch(`${API_BASE}/tasks/${taskId}/basic-info`, {
+      await fetch(`${API_BASE}/tasks/${taskId}/basic-info`, {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ [fileType]: allIds }),
+        body: JSON.stringify({ announcementFileIds: allIds }),
       });
-      if (!patch.ok) throw new Error('파일 연결 실패');
 
       setEditData((prev) => ({
         ...prev,
-        [fileType]: [...(prev[fileType] || []), ...uploadedResults],
+        announcementFiles: [...before, ...uploaded],
       }));
     } finally {
       e.target.value = '';
     }
   };
 
-  const handleDelete = async (fileId: string): Promise<void> => {
+  // -----------------------------
+  // 삭제
+  // -----------------------------
+  const handleDelete = async (fileId: string) => {
     const token = getToken();
     if (!token) return;
+
     await fetch(`${API_BASE}/files/${fileId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     });
+
     setEditData((prev) => ({
       ...prev,
-      [fileType]: (prev[fileType] || []).filter((f) => f.fileId !== fileId),
+      announcementFiles: prev.announcementFiles.filter(
+        (f: FileMeta) => f.fileId !== fileId,
+      ),
     }));
   };
 
-  const handleDownload = async (file: FileMeta): Promise<void> => {
-    const res = await fetch(file.uploadUrl);
-    if (!res.ok) return;
-    const blob = await res.blob();
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = file.fileName;
-    a.click();
-    URL.revokeObjectURL(a.href);
+  // -----------------------------
+  // 공고 링크 업데이트
+  // -----------------------------
+  const updateAnnouncementLink = (value: string) => {
+    setEditData((prev: any) => ({
+      ...prev,
+      announcementLink: value,
+    }));
   };
 
-  const files: FileMeta[] = editData?.[fileType] || [];
+  const files = editData.announcementFiles || [];
+  const announcementLink = editData.announcementLink || '';
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6">
-      <h3 className="mb-4 text-lg font-semibold">관련 파일</h3>
+      <h3 className="mb-4 text-lg font-semibold">공고서류 전체 정보</h3>
 
+      {/* 파일 리스트 */}
       {files.length === 0 && !isEditMode && (
         <div className="text-sm text-gray-500">등록된 파일 없음</div>
       )}
 
-      {files.map((file) => (
+      {files.map((file: FileMeta) => (
         <div
           key={file.fileId}
-          className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
+          className="mb-2 flex items-center justify-between rounded-lg bg-gray-50 p-3"
         >
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-gray-500" />
             <span>{file.fileName}</span>
-            <span className="text-sm text-gray-400">
-              {Math.round(file.size / 1024)} KB
-            </span>
           </div>
+
           <div className="flex gap-2">
             <Button
               variant="ghost"
@@ -181,6 +205,7 @@ export default function RelatedFilesSection({
             >
               <Download className="h-4 w-4 text-blue-600" />
             </Button>
+
             {isEditMode && (
               <Button
                 variant="ghost"
@@ -194,6 +219,7 @@ export default function RelatedFilesSection({
         </div>
       ))}
 
+      {/* 업로드 버튼 */}
       {isEditMode && (
         <>
           <input
@@ -211,6 +237,28 @@ export default function RelatedFilesSection({
           </Button>
         </>
       )}
+
+      {/* 공고 링크 */}
+      <div className="mt-8">
+        <div className="mb-2 text-sm font-medium text-gray-700">공고 링크</div>
+
+        {!isEditMode ? (
+          <a
+            href={announcementLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="break-all text-blue-600 underline"
+          >
+            {announcementLink || '링크 없음'}
+          </a>
+        ) : (
+          <Input
+            value={announcementLink}
+            placeholder="https://example.com/announcement"
+            onChange={(e) => updateAnnouncementLink(e.target.value)}
+          />
+        )}
+      </div>
     </div>
   );
 }

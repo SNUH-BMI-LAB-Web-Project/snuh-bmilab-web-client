@@ -119,10 +119,6 @@ export default function TaskHeaderCard() {
     const raw = localStorage.getItem('auth-storage');
     return raw ? JSON.parse(raw)?.state?.accessToken : null;
   };
-
-  /* ======================
-     단일 조회 API 적용
-  ====================== */
   const fetchTaskDetail = async () => {
     const token = getToken();
     if (!token) return;
