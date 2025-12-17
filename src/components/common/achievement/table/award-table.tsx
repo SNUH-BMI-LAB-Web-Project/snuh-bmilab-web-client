@@ -120,7 +120,7 @@ export function AwardTable({ data, onEdit, onDelete }: AwardTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-[60px] text-center">No</TableHead>
+              <TableHead className="w-[60px] text-center">No</TableHead>
               <TableHead className="text-center">날짜</TableHead>
               <TableHead>이름</TableHead>
               <TableHead>주최기관/학회주최</TableHead>
