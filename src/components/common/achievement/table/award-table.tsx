@@ -129,7 +129,7 @@ export function AwardTable({ data, onEdit, onDelete }: AwardTableProps) {
               <TableHead>발표 제목</TableHead>
               <TableHead>연계 프로젝트</TableHead>
               <TableHead>연계 과제</TableHead>
-              <TableHead className="text-center">작업</TableHead>
+              <TableHead className="text-center" />
             </TableRow>
           </TableHeader>
           <TableBody>

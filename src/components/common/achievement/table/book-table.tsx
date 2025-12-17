@@ -129,7 +129,7 @@ export function BookTable({ data, onEdit, onDelete }: BookTableProps) {
               <TableHead>출판물명</TableHead>
               <TableHead>제목</TableHead>
               <TableHead>ISBN</TableHead>
-              <TableHead className="text-center">작업</TableHead>
+              <TableHead className="text-center" />
             </TableRow>
           </TableHeader>
           <TableBody>

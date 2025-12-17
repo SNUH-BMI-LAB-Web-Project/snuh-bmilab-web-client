@@ -139,7 +139,7 @@ export function ConferenceTable({
               <TableHead>이름</TableHead>
               <TableHead>연계 프로젝트</TableHead>
               <TableHead>연계 과제</TableHead>
-              <TableHead className="text-center">작업</TableHead>
+              <TableHead className="text-center" />
             </TableRow>
           </TableHeader>
           <TableBody>
