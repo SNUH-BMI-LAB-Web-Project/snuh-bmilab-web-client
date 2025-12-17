@@ -194,7 +194,7 @@ export function ConferenceTable({
                       {item.presentationTitle}
                     </div>
                   </TableCell>
-                  <TableCell className="max-w-[120px] font-medium">
+                  <TableCell className="max-w-[120px]">
                     <div className="truncate" title={item.name}>
                       {item.name}
                     </div>
