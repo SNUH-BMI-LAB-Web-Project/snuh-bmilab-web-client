@@ -154,7 +154,7 @@ export function AwardTable({ data, onEdit, onDelete }: AwardTableProps) {
                       {item.date}
                     </div>
                   </TableCell>
-                  <TableCell className="max-w-[120px] font-medium">
+                  <TableCell className="max-w-[120px]">
                     <div className="truncate" title={item.name}>
                       {item.name}
                     </div>

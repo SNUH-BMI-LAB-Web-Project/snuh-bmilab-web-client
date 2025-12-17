@@ -276,7 +276,7 @@ export function PaperTable({
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="max-w-[300px] font-medium">
+                    <TableCell className="max-w-[300px]">
                       <div className="truncate" title={item.paperTitle}>
                         {item.paperTitle}
                       </div>
