@@ -154,7 +154,7 @@ export function PaperTable({
                 <TableHead className="text-center">Publish Date</TableHead>
                 <TableHead className="text-center">Accept Date</TableHead>
                 <TableHead>저널명</TableHead>
-                <TableHead>논문제목</TableHead>
+                <TableHead>논문 제목</TableHead>
                 <TableHead>전체 저자</TableHead>
                 {!isUserView && <TableHead>저자수</TableHead>}
                 {!isUserView && <TableHead>연구실 내 인원</TableHead>}
@@ -170,7 +170,7 @@ export function PaperTable({
                   <TableHead className="text-center">교수님 역할</TableHead>
                 )}
                 {!isUserView && (
-                  <TableHead className="text-center">대표실적</TableHead>
+                  <TableHead className="text-center">대표 실적</TableHead>
                 )}
                 <TableHead className="text-center" />
               </TableRow>

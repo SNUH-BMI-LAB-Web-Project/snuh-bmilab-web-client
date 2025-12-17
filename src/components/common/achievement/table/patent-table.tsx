@@ -135,8 +135,8 @@ export function PatentTable({ data, onEdit, onDelete }: PatentTableProps) {
               <TableHead>출원인(전체)</TableHead>
               <TableHead>출원인(연구실)</TableHead>
               <TableHead>비고</TableHead>
-              <TableHead>연계 과제</TableHead>
               <TableHead>연계 프로젝트</TableHead>
+              <TableHead>연계 과제</TableHead>
               <TableHead className="text-center">첨부파일</TableHead>
               <TableHead className="text-center" />
             </TableRow>
@@ -191,17 +191,17 @@ export function PatentTable({ data, onEdit, onDelete }: PatentTableProps) {
                       {item.notes}
                     </div>
                   </TableCell>
-                  <TableCell className="max-w-[150px]">
-                    <div className="truncate" title={item.relatedTask || '-'}>
-                      {item.relatedTask || '-'}
-                    </div>
-                  </TableCell>
                   <TableCell className="max-w-[200px]">
                     <div
                       className="truncate"
                       title={item.relatedProject || '-'}
                     >
                       {item.relatedProject || '-'}
+                    </div>
+                  </TableCell>
+                  <TableCell className="max-w-[150px]">
+                    <div className="truncate" title={item.relatedTask || '-'}>
+                      {item.relatedTask || '-'}
                     </div>
                   </TableCell>
                   <TableCell className="max-w-[100px] text-center">
