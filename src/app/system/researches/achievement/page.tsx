@@ -1,9 +1,9 @@
 import ResearchManagementSystem from '@/components/common/achievement/achievement-management-system';
 
-export default function UserAchievementPage() {
+export default function AdminAchievementPage() {
   return (
     <main className="bg-background min-h-screen">
-      <ResearchManagementSystem isUserView />
+      <ResearchManagementSystem isUserView={false} />
     </main>
   );
 }
