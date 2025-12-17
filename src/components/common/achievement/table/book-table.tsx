@@ -120,7 +120,7 @@ export function BookTable({ data, onEdit, onDelete }: BookTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[60px] text-center">No</TableHead>
+              <TableHead className="min-w-[60px] text-center">No</TableHead>
               <TableHead className="text-center">출판일</TableHead>
               <TableHead>이름</TableHead>
               <TableHead>구분</TableHead>
