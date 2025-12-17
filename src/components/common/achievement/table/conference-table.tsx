@@ -132,7 +132,7 @@ export function ConferenceTable({
               <TableHead className="text-center">학회 시작일</TableHead>
               <TableHead className="text-center">학회 종료일</TableHead>
               <TableHead>학회 장소</TableHead>
-              <TableHead>학회주최</TableHead>
+              <TableHead>학회 주최</TableHead>
               <TableHead>학회명</TableHead>
               <TableHead>발표 Type</TableHead>
               <TableHead>발표 제목</TableHead>
