@@ -32,6 +32,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { Paper } from '@/lib/types';
+import { Badge } from '@/components/ui/badge';
 
 interface PaperTableProps {
   data: Paper[];
@@ -156,9 +157,9 @@ export function PaperTable({
                 <TableHead>저널명</TableHead>
                 <TableHead>논문 제목</TableHead>
                 <TableHead>전체 저자</TableHead>
+                <TableHead>교신저자</TableHead>
                 {!isUserView && <TableHead>저자수</TableHead>}
                 {!isUserView && <TableHead>연구실 내 인원</TableHead>}
-                <TableHead>교신저자</TableHead>
                 <TableHead className="text-center">Vol</TableHead>
                 <TableHead className="text-center">Page</TableHead>
                 <TableHead className="text-center">논문 링크</TableHead>
@@ -308,6 +309,14 @@ export function PaperTable({
                         })()}
                       </div>
                     </TableCell>
+                    <TableCell className="max-w-[120px]">
+                      <div
+                        className="truncate"
+                        title={item.correspondingAuthor}
+                      >
+                        {item.correspondingAuthor}
+                      </div>
+                    </TableCell>
                     {!isUserView && (
                       <TableCell className="max-w-[100px] text-center">
                         {item.authorCount}명
@@ -323,14 +332,6 @@ export function PaperTable({
                         </div>
                       </TableCell>
                     )}
-                    <TableCell className="max-w-[120px]">
-                      <div
-                        className="truncate"
-                        title={item.correspondingAuthor}
-                      >
-                        {item.correspondingAuthor}
-                      </div>
-                    </TableCell>
                     <TableCell className="max-w-[80px] text-center">
                       <div className="truncate" title={item.vol}>
                         {item.vol}
@@ -398,13 +399,15 @@ export function PaperTable({
                       {item.citationCount}
                     </TableCell>
                     {!isUserView && (
-                      <TableCell className="max-w-[120px] text-center">
+                      <TableCell className="max-w-[150px] text-center">
                         <span>{item.professorRole}</span>
                       </TableCell>
                     )}
                     {!isUserView && (
                       <TableCell className="max-w-[100px] text-center">
-                        {item.isRepresentative && <span>대표</span>}
+                        {item.isRepresentative && (
+                          <Badge variant="outline">대표</Badge>
+                        )}
                       </TableCell>
                     )}
                     <TableCell className="text-center">
