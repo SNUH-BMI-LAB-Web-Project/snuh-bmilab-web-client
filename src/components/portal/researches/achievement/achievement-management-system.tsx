@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Plus, Download } from 'lucide-react';
+import { Plus, FileDown } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -543,7 +543,7 @@ export default function ResearchManagementSystem({
           </TabsList>
           <div className="flex gap-2">
             <Button onClick={handleExportToExcel} variant="outline">
-              <Download className="mr-2 h-4 w-4" />
+              <FileDown className="h-4 w-4" />
               엑셀 파일 다운로드
             </Button>
             <Button onClick={handleAdd}>
