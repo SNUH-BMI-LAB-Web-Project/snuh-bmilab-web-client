@@ -1,4 +1,4 @@
-import ResearchManagementSystem from '@/components/common/achievement/achievement-management-system';
+import ResearchManagementSystem from '@/components/portal/researches/achievement/achievement-management-system';
 
 export default function UserAchievementPage() {
   return (

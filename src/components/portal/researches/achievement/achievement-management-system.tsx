@@ -14,17 +14,17 @@ import {
 
 import type { Book, Conference, Award, Paper, Patent } from '@/lib/types';
 
-import { AwardForm } from '@/components/common/achievement/form/award-form';
-import { ConferenceForm } from '@/components/common/achievement/form/conference-form';
-import { PatentForm } from '@/components/common/achievement/form/patent-form';
-import { PaperForm } from '@/components/common/achievement/form/paper-form';
-import { BookForm } from '@/components/common/achievement/form/book-form';
+import { AwardForm } from '@/components/portal/researches/achievement/form/award-form';
+import { ConferenceForm } from '@/components/portal/researches/achievement/form/conference-form';
+import { PatentForm } from '@/components/portal/researches/achievement/form/patent-form';
+import { PaperForm } from '@/components/portal/researches/achievement/form/paper-form';
+import { BookForm } from '@/components/portal/researches/achievement/form/book-form';
 
-import { BookTable } from '@/components/common/achievement/table/book-table';
-import { ConferenceTable } from '@/components/common/achievement/table/conference-table';
-import { AwardTable } from '@/components/common/achievement/table/award-table';
-import { PaperTable } from '@/components/common/achievement/table/paper-table';
-import { PatentTable } from '@/components/common/achievement/table/patent-table';
+import { BookTable } from '@/components/portal/researches/achievement/table/book-table';
+import { ConferenceTable } from '@/components/portal/researches/achievement/table/conference-table';
+import { AwardTable } from '@/components/portal/researches/achievement/table/award-table';
+import { PaperTable } from '@/components/portal/researches/achievement/table/paper-table';
+import { PatentTable } from '@/components/portal/researches/achievement/table/patent-table';
 
 interface ResearchManagementSystemProps {
   isUserView?: boolean;
