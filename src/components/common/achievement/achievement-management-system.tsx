@@ -533,7 +533,7 @@ export default function ResearchManagementSystem({
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2 md:flex-col md:items-end lg:flex-row">
           <TabsList className="grid w-full max-w-2xl grid-cols-5">
             <TabsTrigger value="book">저서</TabsTrigger>
             <TabsTrigger value="conference">학회 발표</TabsTrigger>
