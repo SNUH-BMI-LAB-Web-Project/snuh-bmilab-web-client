@@ -109,10 +109,14 @@ export function PaperTable({
               <SelectItem value="acceptDate">Accept Date</SelectItem>
               <SelectItem value="publishDate">Publish Date</SelectItem>
               <SelectItem value="journalName">저널명</SelectItem>
-              <SelectItem value="paperTitle">논문제목</SelectItem>
+              <SelectItem value="paperTitle">논문 제목</SelectItem>
               <SelectItem value="allAuthors">전체 저자</SelectItem>
-              <SelectItem value="authorCount">저자수</SelectItem>
-              <SelectItem value="labMembers">연구실 내 인원</SelectItem>
+              {!isUserView && (
+                <SelectItem value="authorCount">저자수</SelectItem>
+              )}
+              {!isUserView && (
+                <SelectItem value="labMembers">연구실 내 인원</SelectItem>
+              )}
               <SelectItem value="correspondingAuthor">교신저자</SelectItem>
               <SelectItem value="vol">Vol</SelectItem>
               <SelectItem value="page">Page</SelectItem>
@@ -120,8 +124,12 @@ export function PaperTable({
               <SelectItem value="doi">DOI</SelectItem>
               <SelectItem value="pmid">PMID</SelectItem>
               <SelectItem value="citationCount">Citation Count</SelectItem>
-              <SelectItem value="professorRole">교수님 역할</SelectItem>
-              <SelectItem value="isRepresentative">대표실적</SelectItem>
+              {!isUserView && (
+                <SelectItem value="professorRole">교수님 역할</SelectItem>
+              )}
+              {!isUserView && (
+                <SelectItem value="isRepresentative">대표 실적</SelectItem>
+              )}
             </SelectContent>
           </Select>
           <div className="relative flex-1">
