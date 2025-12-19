@@ -57,6 +57,7 @@ export function UserTagInputStrict({
     };
 
     const t = setTimeout(fetch, 300);
+    // eslint-disable-next-line consistent-return
     return () => clearTimeout(t);
   }, [input, accessToken, isDropdownOpen]);
 
@@ -191,6 +192,7 @@ export function UserTagInputStrict({
       <div className="flex flex-wrap gap-2">
         {value.map((name, index) => (
           <Badge
+            /* eslint-disable-next-line react/no-array-index-key */
             key={`${name}-${index}`}
             variant="secondary"
             className="flex items-center gap-1 rounded-full px-3 py-1 text-xs"
