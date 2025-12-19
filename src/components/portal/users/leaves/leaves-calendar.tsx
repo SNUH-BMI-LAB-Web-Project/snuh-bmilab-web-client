@@ -819,7 +819,7 @@ export default function LeavesCalendar() {
                         시작일
                         <span className="text-destructive text-xs">*</span>
                       </Label>
-                      <Popover>
+                      <Popover modal>
                         <PopoverTrigger asChild>
                           <Button
                             id="startDate"
@@ -869,7 +869,7 @@ export default function LeavesCalendar() {
                     <div className="space-y-2">
                       <Label htmlFor="endDate">종료일</Label>
 
-                      <Popover>
+                      <Popover modal>
                         <PopoverTrigger asChild>
                           <Button
                             id="endDate"

@@ -16,6 +16,7 @@ interface SingleUserSelectInputProps {
   onUserSelected?: (user: UserSummary | null) => void; // 선택/해제 콜백(ID 필요시 사용)
   placeholder?: string;
   required?: boolean;
+  disabledUserIds?: number[];
 }
 
 export default function SingleUserSelectInput({
@@ -24,6 +25,7 @@ export default function SingleUserSelectInput({
   onUserSelected,
   placeholder = '이름/부서/이메일로 검색',
   required,
+  disabledUserIds,
 }: SingleUserSelectInputProps) {
   const [input, setInput] = useState(value);
   const [debounced, setDebounced] = useState(value);
@@ -112,7 +114,11 @@ export default function SingleUserSelectInput({
       setHi((p) => (p > 0 ? p - 1 : list.length - 1));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (hi >= 0) selectUser(list[hi]);
+      if (hi >= 0) {
+        const u = list[hi];
+        const isDisabled = disabledUserIds?.includes(u.userId ?? -1);
+        if (!isDisabled) selectUser(u);
+      }
     } else if (e.key === 'Escape') {
       setOpen(false);
     }
@@ -159,11 +165,20 @@ export default function SingleUserSelectInput({
             list.map((u, idx) => {
               const isHl = hi === idx;
               const isSelected = value && value === u.name;
+              const isDisabled = disabledUserIds?.includes(u.userId ?? -1);
+
               let cls =
                 'flex w-full flex-col items-start px-3 py-1.5 text-left text-sm transition ';
-              if (isHl) cls += 'bg-muted';
-              else if (isSelected) cls += 'bg-muted/50';
-              else cls += 'hover:bg-muted';
+
+              if (isDisabled) {
+                cls += 'opacity-50 cursor-not-allowed';
+              } else if (isHl) {
+                cls += 'bg-muted';
+              } else if (isSelected) {
+                cls += 'bg-muted/50';
+              } else {
+                cls += 'hover:bg-muted';
+              }
 
               return (
                 <button
@@ -172,8 +187,12 @@ export default function SingleUserSelectInput({
                     itemRefs.current[idx] = el;
                   }}
                   type="button"
+                  disabled={isDisabled}
                   className={cls}
-                  onClick={() => selectUser(u)}
+                  onClick={() => {
+                    if (isDisabled) return;
+                    selectUser(u);
+                  }}
                 >
                   <div className="flex w-full flex-row items-center justify-between py-2">
                     <div className="flex flex-row items-center gap-2">
