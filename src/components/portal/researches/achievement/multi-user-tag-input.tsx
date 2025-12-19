@@ -18,6 +18,7 @@ interface UserTagInputStringProps {
   placeholder?: string;
 }
 
+// 기존 유저 + 새로운 유저도 추가할 수 있는 컴포넌트
 export function UserTagInputString({
   value,
   onChange,
