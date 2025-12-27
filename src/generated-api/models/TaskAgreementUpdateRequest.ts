@@ -25,6 +25,18 @@ export interface TaskAgreementUpdateRequest {
      * @memberof TaskAgreementUpdateRequest
      */
     agreementDate?: Date;
+    /**
+     * 협약 최종 제안서 파일 ID 목록
+     * @type {Array<string>}
+     * @memberof TaskAgreementUpdateRequest
+     */
+    agreementFinalProposalFileIds?: Array<string>;
+    /**
+     * 협약 최종 제출본 파일 ID 목록
+     * @type {Array<string>}
+     * @memberof TaskAgreementUpdateRequest
+     */
+    agreementFinalSubmissionFileIds?: Array<string>;
 }
 
 /**
@@ -45,6 +57,8 @@ export function TaskAgreementUpdateRequestFromJSONTyped(json: any, ignoreDiscrim
     return {
         
         'agreementDate': json['agreementDate'] == null ? undefined : (new Date(json['agreementDate'])),
+        'agreementFinalProposalFileIds': json['agreementFinalProposalFileIds'] == null ? undefined : json['agreementFinalProposalFileIds'],
+        'agreementFinalSubmissionFileIds': json['agreementFinalSubmissionFileIds'] == null ? undefined : json['agreementFinalSubmissionFileIds'],
     };
 }
 
@@ -60,6 +74,8 @@ export function TaskAgreementUpdateRequestToJSONTyped(value?: TaskAgreementUpdat
     return {
         
         'agreementDate': value['agreementDate'] == null ? undefined : ((value['agreementDate']).toISOString().substring(0,10)),
+        'agreementFinalProposalFileIds': value['agreementFinalProposalFileIds'],
+        'agreementFinalSubmissionFileIds': value['agreementFinalSubmissionFileIds'],
     };
 }
 
