@@ -90,6 +90,18 @@ export interface PatentResponse {
     projectName?: string;
     /**
      * 
+     * @type {number}
+     * @memberof PatentResponse
+     */
+    taskId?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof PatentResponse
+     */
+    taskName?: string;
+    /**
+     * 
      * @type {Array<FileSummary>}
      * @memberof PatentResponse
      */
@@ -122,6 +134,8 @@ export function PatentResponseFromJSONTyped(json: any, ignoreDiscriminator: bool
         'remarks': json['remarks'] == null ? undefined : json['remarks'],
         'projectId': json['projectId'] == null ? undefined : json['projectId'],
         'projectName': json['projectName'] == null ? undefined : json['projectName'],
+        'taskId': json['taskId'] == null ? undefined : json['taskId'],
+        'taskName': json['taskName'] == null ? undefined : json['taskName'],
         'files': json['files'] == null ? undefined : ((json['files'] as Array<any>).map(FileSummaryFromJSON)),
     };
 }
@@ -146,6 +160,8 @@ export function PatentResponseToJSONTyped(value?: PatentResponse | null, ignoreD
         'remarks': value['remarks'],
         'projectId': value['projectId'],
         'projectName': value['projectName'],
+        'taskId': value['taskId'],
+        'taskName': value['taskName'],
         'files': value['files'] == null ? undefined : ((value['files'] as Array<any>).map(FileSummaryToJSON)),
     };
 }

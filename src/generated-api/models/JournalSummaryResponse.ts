@@ -44,17 +44,41 @@ export interface JournalSummaryResponse {
      */
     publisher?: string;
     /**
+     * 출판 국가
+     * @type {string}
+     * @memberof JournalSummaryResponse
+     */
+    publishCountry?: string;
+    /**
+     * ISBN
+     * @type {string}
+     * @memberof JournalSummaryResponse
+     */
+    isbn?: string;
+    /**
      * ISSN
      * @type {string}
      * @memberof JournalSummaryResponse
      */
     issn?: string;
     /**
+     * eISSN
+     * @type {string}
+     * @memberof JournalSummaryResponse
+     */
+    eissn?: string;
+    /**
      * JIF (Journal Impact Factor)
      * @type {string}
      * @memberof JournalSummaryResponse
      */
     jif?: string;
+    /**
+     * JCR Rank
+     * @type {string}
+     * @memberof JournalSummaryResponse
+     */
+    jcrRank?: string;
 }
 
 
@@ -91,8 +115,12 @@ export function JournalSummaryResponseFromJSONTyped(json: any, ignoreDiscriminat
         'journalName': json['journalName'] == null ? undefined : json['journalName'],
         'category': json['category'] == null ? undefined : json['category'],
         'publisher': json['publisher'] == null ? undefined : json['publisher'],
+        'publishCountry': json['publishCountry'] == null ? undefined : json['publishCountry'],
+        'isbn': json['isbn'] == null ? undefined : json['isbn'],
         'issn': json['issn'] == null ? undefined : json['issn'],
+        'eissn': json['eissn'] == null ? undefined : json['eissn'],
         'jif': json['jif'] == null ? undefined : json['jif'],
+        'jcrRank': json['jcrRank'] == null ? undefined : json['jcrRank'],
     };
 }
 
@@ -111,8 +139,12 @@ export function JournalSummaryResponseToJSONTyped(value?: JournalSummaryResponse
         'journalName': value['journalName'],
         'category': value['category'],
         'publisher': value['publisher'],
+        'publishCountry': value['publishCountry'],
+        'isbn': value['isbn'],
         'issn': value['issn'],
+        'eissn': value['eissn'],
         'jif': value['jif'],
+        'jcrRank': value['jcrRank'],
     };
 }
 

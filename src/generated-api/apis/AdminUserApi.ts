@@ -49,10 +49,6 @@ export interface RegisterNewUserRequest {
     registerUserRequest: RegisterUserRequest;
 }
 
-export interface ResignUserRequest {
-    userId: number;
-}
-
 export interface SendAccountEmailRequest {
     userId: number;
     userAccountEmailRequest: UserAccountEmailRequest;
@@ -204,48 +200,6 @@ export class AdminUserApi extends runtime.BaseAPI {
     }
 
     /**
-     * 사용자를 퇴사 처리하는 PATCH API. 퇴사 처리된 사용자는 로그인할 수 없습니다.
-     * 사용자 퇴사 처리
-     */
-    async resignUserRaw(requestParameters: ResignUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters['userId'] == null) {
-            throw new runtime.RequiredError(
-                'userId',
-                'Required parameter "userId" was null or undefined when calling resignUser().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("JWT", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/admin/users/{userId}/resign`.replace(`{${"userId"}}`, encodeURIComponent(String(requestParameters['userId']))),
-            method: 'PATCH',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     * 사용자를 퇴사 처리하는 PATCH API. 퇴사 처리된 사용자는 로그인할 수 없습니다.
-     * 사용자 퇴사 처리
-     */
-    async resignUser(requestParameters: ResignUserRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.resignUserRaw(requestParameters, initOverrides);
-    }
-
-    /**
      * 사용자에게 계정 생성 알림 이메일을 보내는 POST API
      * 사용자 계정 생성 이메일 보내기
      */
@@ -350,7 +304,7 @@ export class AdminUserApi extends runtime.BaseAPI {
     }
 
     /**
-     * 사용자의 상태(재직/휴직/퇴사)를 변경하는 PATCH API
+     * 사용자의 상태(재직/휴직/퇴사)를 변경하는 PATCH API. 퇴사 처리된 사용자는 로그인할 수 없습니다.
      * 사용자 상태 변경
      */
     async updateUserStatusRaw(requestParameters: UpdateUserStatusOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
@@ -394,7 +348,7 @@ export class AdminUserApi extends runtime.BaseAPI {
     }
 
     /**
-     * 사용자의 상태(재직/휴직/퇴사)를 변경하는 PATCH API
+     * 사용자의 상태(재직/휴직/퇴사)를 변경하는 PATCH API. 퇴사 처리된 사용자는 로그인할 수 없습니다.
      * 사용자 상태 변경
      */
     async updateUserStatus(requestParameters: UpdateUserStatusOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {

@@ -13,6 +13,35 @@
  */
 
 import { mapValues } from '../runtime';
+import type { JournalResponse } from './JournalResponse';
+import {
+    JournalResponseFromJSON,
+    JournalResponseFromJSONTyped,
+    JournalResponseToJSON,
+    JournalResponseToJSONTyped,
+} from './JournalResponse';
+import type { FileSummary } from './FileSummary';
+import {
+    FileSummaryFromJSON,
+    FileSummaryFromJSONTyped,
+    FileSummaryToJSON,
+    FileSummaryToJSONTyped,
+} from './FileSummary';
+import type { PaperAuthorResponse } from './PaperAuthorResponse';
+import {
+    PaperAuthorResponseFromJSON,
+    PaperAuthorResponseFromJSONTyped,
+    PaperAuthorResponseToJSON,
+    PaperAuthorResponseToJSONTyped,
+} from './PaperAuthorResponse';
+import type { PaperCorrespondingAuthorResponse } from './PaperCorrespondingAuthorResponse';
+import {
+    PaperCorrespondingAuthorResponseFromJSON,
+    PaperCorrespondingAuthorResponseFromJSONTyped,
+    PaperCorrespondingAuthorResponseToJSON,
+    PaperCorrespondingAuthorResponseToJSONTyped,
+} from './PaperCorrespondingAuthorResponse';
+
 /**
  * 
  * @export
@@ -20,41 +49,125 @@ import { mapValues } from '../runtime';
  */
 export interface PaperSummaryResponse {
     /**
-     * 
+     * 논문 ID
      * @type {number}
      * @memberof PaperSummaryResponse
      */
     id?: number;
     /**
-     * 
-     * @type {string}
-     * @memberof PaperSummaryResponse
-     */
-    paperTitle?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof PaperSummaryResponse
-     */
-    journalName?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof PaperSummaryResponse
-     */
-    allAuthors?: string;
-    /**
-     * 
+     * Accept 날짜
      * @type {Date}
      * @memberof PaperSummaryResponse
      */
     acceptDate?: Date;
     /**
-     * 
+     * Publish 날짜
      * @type {Date}
      * @memberof PaperSummaryResponse
      */
     publishDate?: Date;
+    /**
+     * 저널 정보
+     * @type {JournalResponse}
+     * @memberof PaperSummaryResponse
+     */
+    journal?: JournalResponse;
+    /**
+     * 논문 제목
+     * @type {string}
+     * @memberof PaperSummaryResponse
+     */
+    paperTitle?: string;
+    /**
+     * 전체 저자
+     * @type {string}
+     * @memberof PaperSummaryResponse
+     */
+    allAuthors?: string;
+    /**
+     * 저자 수
+     * @type {number}
+     * @memberof PaperSummaryResponse
+     */
+    authorCount?: number;
+    /**
+     * 제1저자
+     * @type {string}
+     * @memberof PaperSummaryResponse
+     */
+    firstAuthor?: string;
+    /**
+     * 공동저자
+     * @type {string}
+     * @memberof PaperSummaryResponse
+     */
+    coAuthors?: string;
+    /**
+     * 교신저자 목록 (외부 교수)
+     * @type {Array<PaperCorrespondingAuthorResponse>}
+     * @memberof PaperSummaryResponse
+     */
+    correspondingAuthors?: Array<PaperCorrespondingAuthorResponse>;
+    /**
+     * 연구실 내 저자 목록
+     * @type {Array<PaperAuthorResponse>}
+     * @memberof PaperSummaryResponse
+     */
+    paperAuthors?: Array<PaperAuthorResponse>;
+    /**
+     * Vol
+     * @type {string}
+     * @memberof PaperSummaryResponse
+     */
+    vol?: string;
+    /**
+     * Page
+     * @type {string}
+     * @memberof PaperSummaryResponse
+     */
+    page?: string;
+    /**
+     * 논문 링크
+     * @type {string}
+     * @memberof PaperSummaryResponse
+     */
+    paperLink?: string;
+    /**
+     * DOI
+     * @type {string}
+     * @memberof PaperSummaryResponse
+     */
+    doi?: string;
+    /**
+     * PMID
+     * @type {string}
+     * @memberof PaperSummaryResponse
+     */
+    pmid?: string;
+    /**
+     * 인용 횟수
+     * @type {number}
+     * @memberof PaperSummaryResponse
+     */
+    citations?: number;
+    /**
+     * 김광수 교수님 역할
+     * @type {string}
+     * @memberof PaperSummaryResponse
+     */
+    professorRole?: string;
+    /**
+     * 대표 실적 여부
+     * @type {boolean}
+     * @memberof PaperSummaryResponse
+     */
+    isRepresentative?: boolean;
+    /**
+     * 첨부 파일 목록
+     * @type {Array<FileSummary>}
+     * @memberof PaperSummaryResponse
+     */
+    files?: Array<FileSummary>;
 }
 
 /**
@@ -75,11 +188,25 @@ export function PaperSummaryResponseFromJSONTyped(json: any, ignoreDiscriminator
     return {
         
         'id': json['id'] == null ? undefined : json['id'],
-        'paperTitle': json['paperTitle'] == null ? undefined : json['paperTitle'],
-        'journalName': json['journalName'] == null ? undefined : json['journalName'],
-        'allAuthors': json['allAuthors'] == null ? undefined : json['allAuthors'],
         'acceptDate': json['acceptDate'] == null ? undefined : (new Date(json['acceptDate'])),
         'publishDate': json['publishDate'] == null ? undefined : (new Date(json['publishDate'])),
+        'journal': json['journal'] == null ? undefined : JournalResponseFromJSON(json['journal']),
+        'paperTitle': json['paperTitle'] == null ? undefined : json['paperTitle'],
+        'allAuthors': json['allAuthors'] == null ? undefined : json['allAuthors'],
+        'authorCount': json['authorCount'] == null ? undefined : json['authorCount'],
+        'firstAuthor': json['firstAuthor'] == null ? undefined : json['firstAuthor'],
+        'coAuthors': json['coAuthors'] == null ? undefined : json['coAuthors'],
+        'correspondingAuthors': json['correspondingAuthors'] == null ? undefined : ((json['correspondingAuthors'] as Array<any>).map(PaperCorrespondingAuthorResponseFromJSON)),
+        'paperAuthors': json['paperAuthors'] == null ? undefined : ((json['paperAuthors'] as Array<any>).map(PaperAuthorResponseFromJSON)),
+        'vol': json['vol'] == null ? undefined : json['vol'],
+        'page': json['page'] == null ? undefined : json['page'],
+        'paperLink': json['paperLink'] == null ? undefined : json['paperLink'],
+        'doi': json['doi'] == null ? undefined : json['doi'],
+        'pmid': json['pmid'] == null ? undefined : json['pmid'],
+        'citations': json['citations'] == null ? undefined : json['citations'],
+        'professorRole': json['professorRole'] == null ? undefined : json['professorRole'],
+        'isRepresentative': json['isRepresentative'] == null ? undefined : json['isRepresentative'],
+        'files': json['files'] == null ? undefined : ((json['files'] as Array<any>).map(FileSummaryFromJSON)),
     };
 }
 
@@ -95,11 +222,25 @@ export function PaperSummaryResponseToJSONTyped(value?: PaperSummaryResponse | n
     return {
         
         'id': value['id'],
-        'paperTitle': value['paperTitle'],
-        'journalName': value['journalName'],
-        'allAuthors': value['allAuthors'],
         'acceptDate': value['acceptDate'] == null ? undefined : ((value['acceptDate']).toISOString().substring(0,10)),
         'publishDate': value['publishDate'] == null ? undefined : ((value['publishDate']).toISOString().substring(0,10)),
+        'journal': JournalResponseToJSON(value['journal']),
+        'paperTitle': value['paperTitle'],
+        'allAuthors': value['allAuthors'],
+        'authorCount': value['authorCount'],
+        'firstAuthor': value['firstAuthor'],
+        'coAuthors': value['coAuthors'],
+        'correspondingAuthors': value['correspondingAuthors'] == null ? undefined : ((value['correspondingAuthors'] as Array<any>).map(PaperCorrespondingAuthorResponseToJSON)),
+        'paperAuthors': value['paperAuthors'] == null ? undefined : ((value['paperAuthors'] as Array<any>).map(PaperAuthorResponseToJSON)),
+        'vol': value['vol'],
+        'page': value['page'],
+        'paperLink': value['paperLink'],
+        'doi': value['doi'],
+        'pmid': value['pmid'],
+        'citations': value['citations'],
+        'professorRole': value['professorRole'],
+        'isRepresentative': value['isRepresentative'],
+        'files': value['files'] == null ? undefined : ((value['files'] as Array<any>).map(FileSummaryToJSON)),
     };
 }
 

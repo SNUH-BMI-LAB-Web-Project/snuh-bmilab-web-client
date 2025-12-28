@@ -20,36 +20,71 @@ import { mapValues } from '../runtime';
  */
 export interface AuthorSummaryResponse {
     /**
-     * 
+     * 저서 ID
      * @type {number}
      * @memberof AuthorSummaryResponse
      */
     id?: number;
     /**
-     * 
-     * @type {string}
-     * @memberof AuthorSummaryResponse
-     */
-    publicationName?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AuthorSummaryResponse
-     */
-    title?: string;
-    /**
-     * 
+     * 저자 목록
      * @type {string}
      * @memberof AuthorSummaryResponse
      */
     authors?: string;
     /**
-     * 
+     * 구분
+     * @type {string}
+     * @memberof AuthorSummaryResponse
+     */
+    authorType?: AuthorSummaryResponseAuthorTypeEnum;
+    /**
+     * 출판일
      * @type {Date}
      * @memberof AuthorSummaryResponse
      */
     publicationDate?: Date;
+    /**
+     * 발행처
+     * @type {string}
+     * @memberof AuthorSummaryResponse
+     */
+    publicationHouse?: string;
+    /**
+     * 출판사
+     * @type {string}
+     * @memberof AuthorSummaryResponse
+     */
+    publisher?: string;
+    /**
+     * 출판물명
+     * @type {string}
+     * @memberof AuthorSummaryResponse
+     */
+    publicationName?: string;
+    /**
+     * 제목
+     * @type {string}
+     * @memberof AuthorSummaryResponse
+     */
+    title?: string;
+    /**
+     * ISBN
+     * @type {string}
+     * @memberof AuthorSummaryResponse
+     */
+    isbn?: string;
 }
+
+
+/**
+ * @export
+ */
+export const AuthorSummaryResponseAuthorTypeEnum = {
+    Contribution: 'CONTRIBUTION',
+    Book: 'BOOK'
+} as const;
+export type AuthorSummaryResponseAuthorTypeEnum = typeof AuthorSummaryResponseAuthorTypeEnum[keyof typeof AuthorSummaryResponseAuthorTypeEnum];
+
 
 /**
  * Check if a given object implements the AuthorSummaryResponse interface.
@@ -69,10 +104,14 @@ export function AuthorSummaryResponseFromJSONTyped(json: any, ignoreDiscriminato
     return {
         
         'id': json['id'] == null ? undefined : json['id'],
+        'authors': json['authors'] == null ? undefined : json['authors'],
+        'authorType': json['authorType'] == null ? undefined : json['authorType'],
+        'publicationDate': json['publicationDate'] == null ? undefined : (new Date(json['publicationDate'])),
+        'publicationHouse': json['publicationHouse'] == null ? undefined : json['publicationHouse'],
+        'publisher': json['publisher'] == null ? undefined : json['publisher'],
         'publicationName': json['publicationName'] == null ? undefined : json['publicationName'],
         'title': json['title'] == null ? undefined : json['title'],
-        'authors': json['authors'] == null ? undefined : json['authors'],
-        'publicationDate': json['publicationDate'] == null ? undefined : (new Date(json['publicationDate'])),
+        'isbn': json['isbn'] == null ? undefined : json['isbn'],
     };
 }
 
@@ -88,10 +127,14 @@ export function AuthorSummaryResponseToJSONTyped(value?: AuthorSummaryResponse |
     return {
         
         'id': value['id'],
+        'authors': value['authors'],
+        'authorType': value['authorType'],
+        'publicationDate': value['publicationDate'] == null ? undefined : ((value['publicationDate']).toISOString().substring(0,10)),
+        'publicationHouse': value['publicationHouse'],
+        'publisher': value['publisher'],
         'publicationName': value['publicationName'],
         'title': value['title'],
-        'authors': value['authors'],
-        'publicationDate': value['publicationDate'] == null ? undefined : ((value['publicationDate']).toISOString().substring(0,10)),
+        'isbn': value['isbn'],
     };
 }
 

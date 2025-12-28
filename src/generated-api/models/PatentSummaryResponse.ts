@@ -13,6 +13,21 @@
  */
 
 import { mapValues } from '../runtime';
+import type { PatentAuthorResponse } from './PatentAuthorResponse';
+import {
+    PatentAuthorResponseFromJSON,
+    PatentAuthorResponseFromJSONTyped,
+    PatentAuthorResponseToJSON,
+    PatentAuthorResponseToJSONTyped,
+} from './PatentAuthorResponse';
+import type { FileSummary } from './FileSummary';
+import {
+    FileSummaryFromJSON,
+    FileSummaryFromJSONTyped,
+    FileSummaryToJSON,
+    FileSummaryToJSONTyped,
+} from './FileSummary';
+
 /**
  * 
  * @export
@@ -20,35 +35,77 @@ import { mapValues } from '../runtime';
  */
 export interface PatentSummaryResponse {
     /**
-     * 
+     * 특허 ID
      * @type {number}
      * @memberof PatentSummaryResponse
      */
     id?: number;
     /**
-     * 
-     * @type {string}
+     * 출원일자
+     * @type {Date}
      * @memberof PatentSummaryResponse
      */
-    patentName?: string;
+    applicationDate?: Date;
     /**
-     * 
+     * 출원번호
      * @type {string}
      * @memberof PatentSummaryResponse
      */
     applicationNumber?: string;
     /**
-     * 
+     * 출원명
+     * @type {string}
+     * @memberof PatentSummaryResponse
+     */
+    patentName?: string;
+    /**
+     * 출원인(전체)
      * @type {string}
      * @memberof PatentSummaryResponse
      */
     applicantsAll?: string;
     /**
-     * 
-     * @type {Date}
+     * 출원인(연구실)
+     * @type {Array<PatentAuthorResponse>}
      * @memberof PatentSummaryResponse
      */
-    applicationDate?: Date;
+    patentAuthors?: Array<PatentAuthorResponse>;
+    /**
+     * 비고
+     * @type {string}
+     * @memberof PatentSummaryResponse
+     */
+    remarks?: string;
+    /**
+     * 연계 프로젝트 ID
+     * @type {number}
+     * @memberof PatentSummaryResponse
+     */
+    projectId?: number;
+    /**
+     * 연계 프로젝트명
+     * @type {string}
+     * @memberof PatentSummaryResponse
+     */
+    projectName?: string;
+    /**
+     * 연계 과제 ID
+     * @type {number}
+     * @memberof PatentSummaryResponse
+     */
+    taskId?: number;
+    /**
+     * 연계 과제명
+     * @type {string}
+     * @memberof PatentSummaryResponse
+     */
+    taskName?: string;
+    /**
+     * 첨부 파일 목록
+     * @type {Array<FileSummary>}
+     * @memberof PatentSummaryResponse
+     */
+    files?: Array<FileSummary>;
 }
 
 /**
@@ -69,10 +126,17 @@ export function PatentSummaryResponseFromJSONTyped(json: any, ignoreDiscriminato
     return {
         
         'id': json['id'] == null ? undefined : json['id'],
-        'patentName': json['patentName'] == null ? undefined : json['patentName'],
-        'applicationNumber': json['applicationNumber'] == null ? undefined : json['applicationNumber'],
-        'applicantsAll': json['applicantsAll'] == null ? undefined : json['applicantsAll'],
         'applicationDate': json['applicationDate'] == null ? undefined : (new Date(json['applicationDate'])),
+        'applicationNumber': json['applicationNumber'] == null ? undefined : json['applicationNumber'],
+        'patentName': json['patentName'] == null ? undefined : json['patentName'],
+        'applicantsAll': json['applicantsAll'] == null ? undefined : json['applicantsAll'],
+        'patentAuthors': json['patentAuthors'] == null ? undefined : ((json['patentAuthors'] as Array<any>).map(PatentAuthorResponseFromJSON)),
+        'remarks': json['remarks'] == null ? undefined : json['remarks'],
+        'projectId': json['projectId'] == null ? undefined : json['projectId'],
+        'projectName': json['projectName'] == null ? undefined : json['projectName'],
+        'taskId': json['taskId'] == null ? undefined : json['taskId'],
+        'taskName': json['taskName'] == null ? undefined : json['taskName'],
+        'files': json['files'] == null ? undefined : ((json['files'] as Array<any>).map(FileSummaryFromJSON)),
     };
 }
 
@@ -88,10 +152,17 @@ export function PatentSummaryResponseToJSONTyped(value?: PatentSummaryResponse |
     return {
         
         'id': value['id'],
-        'patentName': value['patentName'],
-        'applicationNumber': value['applicationNumber'],
-        'applicantsAll': value['applicantsAll'],
         'applicationDate': value['applicationDate'] == null ? undefined : ((value['applicationDate']).toISOString().substring(0,10)),
+        'applicationNumber': value['applicationNumber'],
+        'patentName': value['patentName'],
+        'applicantsAll': value['applicantsAll'],
+        'patentAuthors': value['patentAuthors'] == null ? undefined : ((value['patentAuthors'] as Array<any>).map(PatentAuthorResponseToJSON)),
+        'remarks': value['remarks'],
+        'projectId': value['projectId'],
+        'projectName': value['projectName'],
+        'taskId': value['taskId'],
+        'taskName': value['taskName'],
+        'files': value['files'] == null ? undefined : ((value['files'] as Array<any>).map(FileSummaryToJSON)),
     };
 }
 

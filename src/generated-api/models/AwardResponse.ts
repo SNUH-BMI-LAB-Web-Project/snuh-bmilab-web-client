@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { AwardRecipientResponse } from './AwardRecipientResponse';
+import {
+    AwardRecipientResponseFromJSON,
+    AwardRecipientResponseFromJSONTyped,
+    AwardRecipientResponseToJSON,
+    AwardRecipientResponseToJSONTyped,
+} from './AwardRecipientResponse';
+
 /**
  * 
  * @export
@@ -26,11 +34,17 @@ export interface AwardResponse {
      */
     id?: number;
     /**
-     * 수상자 목록
+     * 수상자 목록 (텍스트)
      * @type {string}
      * @memberof AwardResponse
      */
     recipients?: string;
+    /**
+     * 연구실 내 수상자 목록
+     * @type {Array<AwardRecipientResponse>}
+     * @memberof AwardResponse
+     */
+    awardRecipients?: Array<AwardRecipientResponse>;
     /**
      * 수상 날짜
      * @type {Date}
@@ -73,6 +87,18 @@ export interface AwardResponse {
      * @memberof AwardResponse
      */
     projectName?: string;
+    /**
+     * 연계 과제 ID
+     * @type {number}
+     * @memberof AwardResponse
+     */
+    taskId?: number;
+    /**
+     * 연계 과제명
+     * @type {string}
+     * @memberof AwardResponse
+     */
+    taskName?: string;
 }
 
 /**
@@ -94,6 +120,7 @@ export function AwardResponseFromJSONTyped(json: any, ignoreDiscriminator: boole
         
         'id': json['id'] == null ? undefined : json['id'],
         'recipients': json['recipients'] == null ? undefined : json['recipients'],
+        'awardRecipients': json['awardRecipients'] == null ? undefined : ((json['awardRecipients'] as Array<any>).map(AwardRecipientResponseFromJSON)),
         'awardDate': json['awardDate'] == null ? undefined : (new Date(json['awardDate'])),
         'hostInstitution': json['hostInstitution'] == null ? undefined : json['hostInstitution'],
         'competitionName': json['competitionName'] == null ? undefined : json['competitionName'],
@@ -101,6 +128,8 @@ export function AwardResponseFromJSONTyped(json: any, ignoreDiscriminator: boole
         'presentationTitle': json['presentationTitle'] == null ? undefined : json['presentationTitle'],
         'projectId': json['projectId'] == null ? undefined : json['projectId'],
         'projectName': json['projectName'] == null ? undefined : json['projectName'],
+        'taskId': json['taskId'] == null ? undefined : json['taskId'],
+        'taskName': json['taskName'] == null ? undefined : json['taskName'],
     };
 }
 
@@ -117,6 +146,7 @@ export function AwardResponseToJSONTyped(value?: AwardResponse | null, ignoreDis
         
         'id': value['id'],
         'recipients': value['recipients'],
+        'awardRecipients': value['awardRecipients'] == null ? undefined : ((value['awardRecipients'] as Array<any>).map(AwardRecipientResponseToJSON)),
         'awardDate': value['awardDate'] == null ? undefined : ((value['awardDate']).toISOString().substring(0,10)),
         'hostInstitution': value['hostInstitution'],
         'competitionName': value['competitionName'],
@@ -124,6 +154,8 @@ export function AwardResponseToJSONTyped(value?: AwardResponse | null, ignoreDis
         'presentationTitle': value['presentationTitle'],
         'projectId': value['projectId'],
         'projectName': value['projectName'],
+        'taskId': value['taskId'],
+        'taskName': value['taskName'],
     };
 }
 

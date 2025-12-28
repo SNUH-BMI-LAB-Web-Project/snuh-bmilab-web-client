@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { AwardRecipientResponse } from './AwardRecipientResponse';
+import {
+    AwardRecipientResponseFromJSON,
+    AwardRecipientResponseFromJSONTyped,
+    AwardRecipientResponseToJSON,
+    AwardRecipientResponseToJSONTyped,
+} from './AwardRecipientResponse';
+
 /**
  * 
  * @export
@@ -20,35 +28,77 @@ import { mapValues } from '../runtime';
  */
 export interface AwardSummaryResponse {
     /**
-     * 
+     * 수상 ID
      * @type {number}
      * @memberof AwardSummaryResponse
      */
     id?: number;
     /**
-     * 
-     * @type {string}
-     * @memberof AwardSummaryResponse
-     */
-    awardName?: string;
-    /**
-     * 
+     * 수상자 목록 (텍스트)
      * @type {string}
      * @memberof AwardSummaryResponse
      */
     recipients?: string;
     /**
-     * 
+     * 연구실 내 수상자 목록
+     * @type {Array<AwardRecipientResponse>}
+     * @memberof AwardSummaryResponse
+     */
+    awardRecipients?: Array<AwardRecipientResponse>;
+    /**
+     * 수상 날짜
+     * @type {Date}
+     * @memberof AwardSummaryResponse
+     */
+    awardDate?: Date;
+    /**
+     * 주최 기관
+     * @type {string}
+     * @memberof AwardSummaryResponse
+     */
+    hostInstitution?: string;
+    /**
+     * 대회명
      * @type {string}
      * @memberof AwardSummaryResponse
      */
     competitionName?: string;
     /**
-     * 
-     * @type {Date}
+     * 수상명
+     * @type {string}
      * @memberof AwardSummaryResponse
      */
-    awardDate?: Date;
+    awardName?: string;
+    /**
+     * 발표 제목
+     * @type {string}
+     * @memberof AwardSummaryResponse
+     */
+    presentationTitle?: string;
+    /**
+     * 연계 프로젝트 ID
+     * @type {number}
+     * @memberof AwardSummaryResponse
+     */
+    projectId?: number;
+    /**
+     * 연계 프로젝트명
+     * @type {string}
+     * @memberof AwardSummaryResponse
+     */
+    projectName?: string;
+    /**
+     * 연계 과제 ID
+     * @type {number}
+     * @memberof AwardSummaryResponse
+     */
+    taskId?: number;
+    /**
+     * 연계 과제명
+     * @type {string}
+     * @memberof AwardSummaryResponse
+     */
+    taskName?: string;
 }
 
 /**
@@ -69,10 +119,17 @@ export function AwardSummaryResponseFromJSONTyped(json: any, ignoreDiscriminator
     return {
         
         'id': json['id'] == null ? undefined : json['id'],
-        'awardName': json['awardName'] == null ? undefined : json['awardName'],
         'recipients': json['recipients'] == null ? undefined : json['recipients'],
-        'competitionName': json['competitionName'] == null ? undefined : json['competitionName'],
+        'awardRecipients': json['awardRecipients'] == null ? undefined : ((json['awardRecipients'] as Array<any>).map(AwardRecipientResponseFromJSON)),
         'awardDate': json['awardDate'] == null ? undefined : (new Date(json['awardDate'])),
+        'hostInstitution': json['hostInstitution'] == null ? undefined : json['hostInstitution'],
+        'competitionName': json['competitionName'] == null ? undefined : json['competitionName'],
+        'awardName': json['awardName'] == null ? undefined : json['awardName'],
+        'presentationTitle': json['presentationTitle'] == null ? undefined : json['presentationTitle'],
+        'projectId': json['projectId'] == null ? undefined : json['projectId'],
+        'projectName': json['projectName'] == null ? undefined : json['projectName'],
+        'taskId': json['taskId'] == null ? undefined : json['taskId'],
+        'taskName': json['taskName'] == null ? undefined : json['taskName'],
     };
 }
 
@@ -88,10 +145,17 @@ export function AwardSummaryResponseToJSONTyped(value?: AwardSummaryResponse | n
     return {
         
         'id': value['id'],
-        'awardName': value['awardName'],
         'recipients': value['recipients'],
-        'competitionName': value['competitionName'],
+        'awardRecipients': value['awardRecipients'] == null ? undefined : ((value['awardRecipients'] as Array<any>).map(AwardRecipientResponseToJSON)),
         'awardDate': value['awardDate'] == null ? undefined : ((value['awardDate']).toISOString().substring(0,10)),
+        'hostInstitution': value['hostInstitution'],
+        'competitionName': value['competitionName'],
+        'awardName': value['awardName'],
+        'presentationTitle': value['presentationTitle'],
+        'projectId': value['projectId'],
+        'projectName': value['projectName'],
+        'taskId': value['taskId'],
+        'taskName': value['taskName'],
     };
 }
 

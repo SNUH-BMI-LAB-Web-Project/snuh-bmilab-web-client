@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { AcademicPresentationAuthorResponse } from './AcademicPresentationAuthorResponse';
+import {
+    AcademicPresentationAuthorResponseFromJSON,
+    AcademicPresentationAuthorResponseFromJSONTyped,
+    AcademicPresentationAuthorResponseToJSON,
+    AcademicPresentationAuthorResponseToJSONTyped,
+} from './AcademicPresentationAuthorResponse';
+
 /**
  * 
  * @export
@@ -31,6 +39,12 @@ export interface AcademicPresentationResponse {
      * @memberof AcademicPresentationResponse
      */
     authors?: string;
+    /**
+     * 연구실 내 발표자 목록
+     * @type {Array<AcademicPresentationAuthorResponse>}
+     * @memberof AcademicPresentationResponse
+     */
+    academicPresentationAuthors?: Array<AcademicPresentationAuthorResponse>;
     /**
      * 학회 시작일
      * @type {Date}
@@ -118,6 +132,7 @@ export function AcademicPresentationResponseFromJSONTyped(json: any, ignoreDiscr
         
         'id': json['id'] == null ? undefined : json['id'],
         'authors': json['authors'] == null ? undefined : json['authors'],
+        'academicPresentationAuthors': json['academicPresentationAuthors'] == null ? undefined : ((json['academicPresentationAuthors'] as Array<any>).map(AcademicPresentationAuthorResponseFromJSON)),
         'conferenceStartDate': json['conferenceStartDate'] == null ? undefined : (new Date(json['conferenceStartDate'])),
         'conferenceEndDate': json['conferenceEndDate'] == null ? undefined : (new Date(json['conferenceEndDate'])),
         'conferenceLocation': json['conferenceLocation'] == null ? undefined : json['conferenceLocation'],
@@ -145,6 +160,7 @@ export function AcademicPresentationResponseToJSONTyped(value?: AcademicPresenta
         
         'id': value['id'],
         'authors': value['authors'],
+        'academicPresentationAuthors': value['academicPresentationAuthors'] == null ? undefined : ((value['academicPresentationAuthors'] as Array<any>).map(AcademicPresentationAuthorResponseToJSON)),
         'conferenceStartDate': value['conferenceStartDate'] == null ? undefined : ((value['conferenceStartDate']).toISOString().substring(0,10)),
         'conferenceEndDate': value['conferenceEndDate'] == null ? undefined : ((value['conferenceEndDate']).toISOString().substring(0,10)),
         'conferenceLocation': value['conferenceLocation'],

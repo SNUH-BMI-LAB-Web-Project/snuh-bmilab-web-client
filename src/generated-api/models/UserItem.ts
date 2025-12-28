@@ -99,6 +99,12 @@ export interface UserItem {
      * @memberof UserItem
      */
     joinedAt?: Date;
+    /**
+     * 상태
+     * @type {string}
+     * @memberof UserItem
+     */
+    status?: UserItemStatusEnum;
 }
 
 
@@ -116,6 +122,16 @@ export const UserItemPositionEnum = {
     AdministrativeStaff: 'ADMINISTRATIVE_STAFF'
 } as const;
 export type UserItemPositionEnum = typeof UserItemPositionEnum[keyof typeof UserItemPositionEnum];
+
+/**
+ * @export
+ */
+export const UserItemStatusEnum = {
+    Active: 'ACTIVE',
+    OnLeave: 'ON_LEAVE',
+    Resigned: 'RESIGNED'
+} as const;
+export type UserItemStatusEnum = typeof UserItemStatusEnum[keyof typeof UserItemStatusEnum];
 
 
 /**
@@ -147,6 +163,7 @@ export function UserItemFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
         'education': json['education'] == null ? undefined : json['education'],
         'joinedAt': json['joinedAt'] == null ? undefined : (new Date(json['joinedAt'])),
+        'status': json['status'] == null ? undefined : json['status'],
     };
 }
 
@@ -173,6 +190,7 @@ export function UserItemToJSONTyped(value?: UserItem | null, ignoreDiscriminator
         'phoneNumber': value['phoneNumber'],
         'education': value['education'],
         'joinedAt': value['joinedAt'] == null ? undefined : ((value['joinedAt']).toISOString().substring(0,10)),
+        'status': value['status'],
     };
 }
 

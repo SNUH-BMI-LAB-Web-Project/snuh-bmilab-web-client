@@ -143,6 +143,12 @@ export interface UserDetail {
      * @memberof UserDetail
      */
     joinedAt?: Date;
+    /**
+     * 상태
+     * @type {string}
+     * @memberof UserDetail
+     */
+    status?: UserDetailStatusEnum;
 }
 
 
@@ -169,6 +175,16 @@ export const UserDetailRoleEnum = {
     Admin: 'ADMIN'
 } as const;
 export type UserDetailRoleEnum = typeof UserDetailRoleEnum[keyof typeof UserDetailRoleEnum];
+
+/**
+ * @export
+ */
+export const UserDetailStatusEnum = {
+    Active: 'ACTIVE',
+    OnLeave: 'ON_LEAVE',
+    Resigned: 'RESIGNED'
+} as const;
+export type UserDetailStatusEnum = typeof UserDetailStatusEnum[keyof typeof UserDetailStatusEnum];
 
 
 /**
@@ -205,6 +221,7 @@ export function UserDetailFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'educations': json['educations'] == null ? undefined : ((json['educations'] as Array<any>).map(UserEducationSummaryFromJSON)),
         'comment': json['comment'] == null ? undefined : json['comment'],
         'joinedAt': json['joinedAt'] == null ? undefined : (new Date(json['joinedAt'])),
+        'status': json['status'] == null ? undefined : json['status'],
     };
 }
 
@@ -236,6 +253,7 @@ export function UserDetailToJSONTyped(value?: UserDetail | null, ignoreDiscrimin
         'educations': value['educations'] == null ? undefined : ((value['educations'] as Array<any>).map(UserEducationSummaryToJSON)),
         'comment': value['comment'],
         'joinedAt': value['joinedAt'] == null ? undefined : ((value['joinedAt']).toISOString().substring(0,10)),
+        'status': value['status'],
     };
 }
 

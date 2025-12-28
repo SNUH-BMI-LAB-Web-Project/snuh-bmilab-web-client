@@ -16,41 +16,41 @@ import { mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface PaperAuthorResponse
+ * @interface AwardRecipientResponse
  */
-export interface PaperAuthorResponse {
+export interface AwardRecipientResponse {
     /**
      * 사용자 ID
      * @type {number}
-     * @memberof PaperAuthorResponse
+     * @memberof AwardRecipientResponse
      */
     userId?: number;
     /**
-     * 사용자명
+     * 사용자 이름
      * @type {string}
-     * @memberof PaperAuthorResponse
+     * @memberof AwardRecipientResponse
      */
     userName?: string;
     /**
      * 역할
      * @type {string}
-     * @memberof PaperAuthorResponse
+     * @memberof AwardRecipientResponse
      */
     role?: string;
 }
 
 /**
- * Check if a given object implements the PaperAuthorResponse interface.
+ * Check if a given object implements the AwardRecipientResponse interface.
  */
-export function instanceOfPaperAuthorResponse(value: object): value is PaperAuthorResponse {
+export function instanceOfAwardRecipientResponse(value: object): value is AwardRecipientResponse {
     return true;
 }
 
-export function PaperAuthorResponseFromJSON(json: any): PaperAuthorResponse {
-    return PaperAuthorResponseFromJSONTyped(json, false);
+export function AwardRecipientResponseFromJSON(json: any): AwardRecipientResponse {
+    return AwardRecipientResponseFromJSONTyped(json, false);
 }
 
-export function PaperAuthorResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): PaperAuthorResponse {
+export function AwardRecipientResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): AwardRecipientResponse {
     if (json == null) {
         return json;
     }
@@ -62,11 +62,11 @@ export function PaperAuthorResponseFromJSONTyped(json: any, ignoreDiscriminator:
     };
 }
 
-export function PaperAuthorResponseToJSON(json: any): PaperAuthorResponse {
-    return PaperAuthorResponseToJSONTyped(json, false);
+export function AwardRecipientResponseToJSON(json: any): AwardRecipientResponse {
+    return AwardRecipientResponseToJSONTyped(json, false);
 }
 
-export function PaperAuthorResponseToJSONTyped(value?: PaperAuthorResponse | null, ignoreDiscriminator: boolean = false): any {
+export function AwardRecipientResponseToJSONTyped(value?: AwardRecipientResponse | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }

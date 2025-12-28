@@ -58,6 +58,7 @@ export interface GetAllUsersRequest {
     pageNo?: number;
     size?: number;
     criteria?: string;
+    status?: GetAllUsersStatusEnum;
 }
 
 export interface SearchUsersRequest {
@@ -198,6 +199,10 @@ export class UserApi extends runtime.BaseAPI {
 
         if (requestParameters['criteria'] != null) {
             queryParameters['criteria'] = requestParameters['criteria'];
+        }
+
+        if (requestParameters['status'] != null) {
+            queryParameters['status'] = requestParameters['status'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -463,3 +468,13 @@ export class UserApi extends runtime.BaseAPI {
     }
 
 }
+
+/**
+ * @export
+ */
+export const GetAllUsersStatusEnum = {
+    Active: 'ACTIVE',
+    OnLeave: 'ON_LEAVE',
+    Resigned: 'RESIGNED'
+} as const;
+export type GetAllUsersStatusEnum = typeof GetAllUsersStatusEnum[keyof typeof GetAllUsersStatusEnum];

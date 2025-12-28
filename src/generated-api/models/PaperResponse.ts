@@ -34,6 +34,13 @@ import {
     PaperAuthorResponseToJSON,
     PaperAuthorResponseToJSONTyped,
 } from './PaperAuthorResponse';
+import type { PaperCorrespondingAuthorResponse } from './PaperCorrespondingAuthorResponse';
+import {
+    PaperCorrespondingAuthorResponseFromJSON,
+    PaperCorrespondingAuthorResponseFromJSONTyped,
+    PaperCorrespondingAuthorResponseToJSON,
+    PaperCorrespondingAuthorResponseToJSONTyped,
+} from './PaperCorrespondingAuthorResponse';
 
 /**
  * 
@@ -42,115 +49,121 @@ import {
  */
 export interface PaperResponse {
     /**
-     * 
+     * 논문 ID
      * @type {number}
      * @memberof PaperResponse
      */
     id?: number;
     /**
-     * 
+     * Accept 날짜
      * @type {Date}
      * @memberof PaperResponse
      */
     acceptDate?: Date;
     /**
-     * 
+     * Publish 날짜
      * @type {Date}
      * @memberof PaperResponse
      */
     publishDate?: Date;
     /**
-     * 
+     * 저널 정보
      * @type {JournalResponse}
      * @memberof PaperResponse
      */
     journal?: JournalResponse;
     /**
-     * 
+     * 논문 제목
      * @type {string}
      * @memberof PaperResponse
      */
     paperTitle?: string;
     /**
-     * 
+     * 전체 저자
      * @type {string}
      * @memberof PaperResponse
      */
     allAuthors?: string;
     /**
-     * 
+     * 저자 수
      * @type {number}
      * @memberof PaperResponse
      */
     authorCount?: number;
     /**
-     * 
+     * 제1저자
      * @type {string}
      * @memberof PaperResponse
      */
     firstAuthor?: string;
     /**
-     * 
+     * 공동저자
      * @type {string}
      * @memberof PaperResponse
      */
     coAuthors?: string;
     /**
-     * 
+     * 교신저자 목록 (외부 교수)
+     * @type {Array<PaperCorrespondingAuthorResponse>}
+     * @memberof PaperResponse
+     */
+    correspondingAuthors?: Array<PaperCorrespondingAuthorResponse>;
+    /**
+     * 연구실 내 저자 목록
      * @type {Array<PaperAuthorResponse>}
      * @memberof PaperResponse
      */
     paperAuthors?: Array<PaperAuthorResponse>;
     /**
-     * 
+     * Vol
      * @type {string}
      * @memberof PaperResponse
      */
     vol?: string;
     /**
-     * 
+     * Page
      * @type {string}
      * @memberof PaperResponse
      */
     page?: string;
     /**
-     * 
+     * 논문 링크
      * @type {string}
      * @memberof PaperResponse
      */
     paperLink?: string;
     /**
-     * 
+     * DOI
      * @type {string}
      * @memberof PaperResponse
      */
     doi?: string;
     /**
-     * 
+     * PMID
      * @type {string}
      * @memberof PaperResponse
      */
     pmid?: string;
     /**
-     * 
+     * 인용 횟수
      * @type {number}
      * @memberof PaperResponse
      */
     citations?: number;
     /**
-     * 
+     * 김광수 교수님 역할
      * @type {string}
      * @memberof PaperResponse
      */
     professorRole?: string;
     /**
-     * 
+     * 대표 실적 여부
      * @type {boolean}
      * @memberof PaperResponse
      */
     isRepresentative?: boolean;
     /**
-     * 
+     * 첨부 파일 목록
      * @type {Array<FileSummary>}
      * @memberof PaperResponse
      */
@@ -183,6 +196,7 @@ export function PaperResponseFromJSONTyped(json: any, ignoreDiscriminator: boole
         'authorCount': json['authorCount'] == null ? undefined : json['authorCount'],
         'firstAuthor': json['firstAuthor'] == null ? undefined : json['firstAuthor'],
         'coAuthors': json['coAuthors'] == null ? undefined : json['coAuthors'],
+        'correspondingAuthors': json['correspondingAuthors'] == null ? undefined : ((json['correspondingAuthors'] as Array<any>).map(PaperCorrespondingAuthorResponseFromJSON)),
         'paperAuthors': json['paperAuthors'] == null ? undefined : ((json['paperAuthors'] as Array<any>).map(PaperAuthorResponseFromJSON)),
         'vol': json['vol'] == null ? undefined : json['vol'],
         'page': json['page'] == null ? undefined : json['page'],
@@ -216,6 +230,7 @@ export function PaperResponseToJSONTyped(value?: PaperResponse | null, ignoreDis
         'authorCount': value['authorCount'],
         'firstAuthor': value['firstAuthor'],
         'coAuthors': value['coAuthors'],
+        'correspondingAuthors': value['correspondingAuthors'] == null ? undefined : ((value['correspondingAuthors'] as Array<any>).map(PaperCorrespondingAuthorResponseToJSON)),
         'paperAuthors': value['paperAuthors'] == null ? undefined : ((value['paperAuthors'] as Array<any>).map(PaperAuthorResponseToJSON)),
         'vol': value['vol'],
         'page': value['page'],

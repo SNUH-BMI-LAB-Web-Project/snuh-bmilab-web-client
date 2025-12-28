@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { AcademicPresentationAuthorResponse } from './AcademicPresentationAuthorResponse';
+import {
+    AcademicPresentationAuthorResponseFromJSON,
+    AcademicPresentationAuthorResponseFromJSONTyped,
+    AcademicPresentationAuthorResponseToJSON,
+    AcademicPresentationAuthorResponseToJSONTyped,
+} from './AcademicPresentationAuthorResponse';
+
 /**
  * 
  * @export
@@ -20,41 +28,89 @@ import { mapValues } from '../runtime';
  */
 export interface AcademicPresentationSummaryResponse {
     /**
-     * 
+     * 학회 발표 ID
      * @type {number}
      * @memberof AcademicPresentationSummaryResponse
      */
     id?: number;
     /**
-     * 
-     * @type {string}
-     * @memberof AcademicPresentationSummaryResponse
-     */
-    academicPresentationName?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AcademicPresentationSummaryResponse
-     */
-    presentationTitle?: string;
-    /**
-     * 
+     * 발표자 목록 (텍스트)
      * @type {string}
      * @memberof AcademicPresentationSummaryResponse
      */
     authors?: string;
     /**
-     * 
+     * 연구실 내 발표자 목록
+     * @type {Array<AcademicPresentationAuthorResponse>}
+     * @memberof AcademicPresentationSummaryResponse
+     */
+    academicPresentationAuthors?: Array<AcademicPresentationAuthorResponse>;
+    /**
+     * 학회 시작일
      * @type {Date}
      * @memberof AcademicPresentationSummaryResponse
      */
     academicPresentationStartDate?: Date;
     /**
-     * 
+     * 학회 종료일
      * @type {Date}
      * @memberof AcademicPresentationSummaryResponse
      */
     academicPresentationEndDate?: Date;
+    /**
+     * 학회 장소
+     * @type {string}
+     * @memberof AcademicPresentationSummaryResponse
+     */
+    academicPresentationLocation?: string;
+    /**
+     * 학회 주최
+     * @type {string}
+     * @memberof AcademicPresentationSummaryResponse
+     */
+    academicPresentationHost?: string;
+    /**
+     * 학회명
+     * @type {string}
+     * @memberof AcademicPresentationSummaryResponse
+     */
+    academicPresentationName?: string;
+    /**
+     * 발표 타입
+     * @type {string}
+     * @memberof AcademicPresentationSummaryResponse
+     */
+    presentationType?: string;
+    /**
+     * 발표 제목
+     * @type {string}
+     * @memberof AcademicPresentationSummaryResponse
+     */
+    presentationTitle?: string;
+    /**
+     * 연계 프로젝트 ID
+     * @type {number}
+     * @memberof AcademicPresentationSummaryResponse
+     */
+    projectId?: number;
+    /**
+     * 연계 프로젝트명
+     * @type {string}
+     * @memberof AcademicPresentationSummaryResponse
+     */
+    projectName?: string;
+    /**
+     * 연계 과제 ID
+     * @type {number}
+     * @memberof AcademicPresentationSummaryResponse
+     */
+    taskId?: number;
+    /**
+     * 연계 과제명
+     * @type {string}
+     * @memberof AcademicPresentationSummaryResponse
+     */
+    taskName?: string;
 }
 
 /**
@@ -75,11 +131,19 @@ export function AcademicPresentationSummaryResponseFromJSONTyped(json: any, igno
     return {
         
         'id': json['id'] == null ? undefined : json['id'],
-        'academicPresentationName': json['academicPresentationName'] == null ? undefined : json['academicPresentationName'],
-        'presentationTitle': json['presentationTitle'] == null ? undefined : json['presentationTitle'],
         'authors': json['authors'] == null ? undefined : json['authors'],
+        'academicPresentationAuthors': json['academicPresentationAuthors'] == null ? undefined : ((json['academicPresentationAuthors'] as Array<any>).map(AcademicPresentationAuthorResponseFromJSON)),
         'academicPresentationStartDate': json['academicPresentationStartDate'] == null ? undefined : (new Date(json['academicPresentationStartDate'])),
         'academicPresentationEndDate': json['academicPresentationEndDate'] == null ? undefined : (new Date(json['academicPresentationEndDate'])),
+        'academicPresentationLocation': json['academicPresentationLocation'] == null ? undefined : json['academicPresentationLocation'],
+        'academicPresentationHost': json['academicPresentationHost'] == null ? undefined : json['academicPresentationHost'],
+        'academicPresentationName': json['academicPresentationName'] == null ? undefined : json['academicPresentationName'],
+        'presentationType': json['presentationType'] == null ? undefined : json['presentationType'],
+        'presentationTitle': json['presentationTitle'] == null ? undefined : json['presentationTitle'],
+        'projectId': json['projectId'] == null ? undefined : json['projectId'],
+        'projectName': json['projectName'] == null ? undefined : json['projectName'],
+        'taskId': json['taskId'] == null ? undefined : json['taskId'],
+        'taskName': json['taskName'] == null ? undefined : json['taskName'],
     };
 }
 
@@ -95,11 +159,19 @@ export function AcademicPresentationSummaryResponseToJSONTyped(value?: AcademicP
     return {
         
         'id': value['id'],
-        'academicPresentationName': value['academicPresentationName'],
-        'presentationTitle': value['presentationTitle'],
         'authors': value['authors'],
+        'academicPresentationAuthors': value['academicPresentationAuthors'] == null ? undefined : ((value['academicPresentationAuthors'] as Array<any>).map(AcademicPresentationAuthorResponseToJSON)),
         'academicPresentationStartDate': value['academicPresentationStartDate'] == null ? undefined : ((value['academicPresentationStartDate']).toISOString().substring(0,10)),
         'academicPresentationEndDate': value['academicPresentationEndDate'] == null ? undefined : ((value['academicPresentationEndDate']).toISOString().substring(0,10)),
+        'academicPresentationLocation': value['academicPresentationLocation'],
+        'academicPresentationHost': value['academicPresentationHost'],
+        'academicPresentationName': value['academicPresentationName'],
+        'presentationType': value['presentationType'],
+        'presentationTitle': value['presentationTitle'],
+        'projectId': value['projectId'],
+        'projectName': value['projectName'],
+        'taskId': value['taskId'],
+        'taskName': value['taskName'],
     };
 }
 

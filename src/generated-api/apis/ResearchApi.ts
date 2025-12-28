@@ -15,8 +15,11 @@
 
 import * as runtime from '../runtime';
 import type {
+  AcademicPresentationFindAllResponse,
   AcademicPresentationResponse,
+  AuthorFindAllResponse,
   AuthorResponse,
+  AwardFindAllResponse,
   AwardResponse,
   CreateAcademicPresentationRequest,
   CreateAuthorRequest,
@@ -25,14 +28,11 @@ import type {
   CreatePaperRequest,
   CreatePatentRequest,
   ErrorResponse,
+  JournalFindAllResponse,
   JournalResponse,
-  PageAcademicPresentationSummaryResponse,
-  PageAuthorSummaryResponse,
-  PageAwardSummaryResponse,
-  PageJournalSummaryResponse,
-  PagePaperSummaryResponse,
-  PagePatentSummaryResponse,
+  PaperFindAllResponse,
   PaperResponse,
+  PatentFindAllResponse,
   PatentResponse,
   UpdateAcademicPresentationRequest,
   UpdateAuthorRequest,
@@ -42,10 +42,16 @@ import type {
   UpdatePatentRequest,
 } from '../models/index';
 import {
+    AcademicPresentationFindAllResponseFromJSON,
+    AcademicPresentationFindAllResponseToJSON,
     AcademicPresentationResponseFromJSON,
     AcademicPresentationResponseToJSON,
+    AuthorFindAllResponseFromJSON,
+    AuthorFindAllResponseToJSON,
     AuthorResponseFromJSON,
     AuthorResponseToJSON,
+    AwardFindAllResponseFromJSON,
+    AwardFindAllResponseToJSON,
     AwardResponseFromJSON,
     AwardResponseToJSON,
     CreateAcademicPresentationRequestFromJSON,
@@ -62,22 +68,16 @@ import {
     CreatePatentRequestToJSON,
     ErrorResponseFromJSON,
     ErrorResponseToJSON,
+    JournalFindAllResponseFromJSON,
+    JournalFindAllResponseToJSON,
     JournalResponseFromJSON,
     JournalResponseToJSON,
-    PageAcademicPresentationSummaryResponseFromJSON,
-    PageAcademicPresentationSummaryResponseToJSON,
-    PageAuthorSummaryResponseFromJSON,
-    PageAuthorSummaryResponseToJSON,
-    PageAwardSummaryResponseFromJSON,
-    PageAwardSummaryResponseToJSON,
-    PageJournalSummaryResponseFromJSON,
-    PageJournalSummaryResponseToJSON,
-    PagePaperSummaryResponseFromJSON,
-    PagePaperSummaryResponseToJSON,
-    PagePatentSummaryResponseFromJSON,
-    PagePatentSummaryResponseToJSON,
+    PaperFindAllResponseFromJSON,
+    PaperFindAllResponseToJSON,
     PaperResponseFromJSON,
     PaperResponseToJSON,
+    PatentFindAllResponseFromJSON,
+    PatentFindAllResponseToJSON,
     PatentResponseFromJSON,
     PatentResponseToJSON,
     UpdateAcademicPresentationRequestFromJSON,
@@ -124,6 +124,10 @@ export interface DeleteAcademicPresentationRequest {
 
 export interface DeleteAwardRequest {
     awardId: number;
+}
+
+export interface DeleteJournalRequest {
+    journalId: number;
 }
 
 export interface DeletePaperRequest {
@@ -600,6 +604,48 @@ export class ResearchApi extends runtime.BaseAPI {
     }
 
     /**
+     * 저널을 삭제하는 DELETE API (관리자 전용)
+     * 저널 삭제
+     */
+    async deleteJournalRaw(requestParameters: DeleteJournalRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['journalId'] == null) {
+            throw new runtime.RequiredError(
+                'journalId',
+                'Required parameter "journalId" was null or undefined when calling deleteJournal().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/research/journals/{journalId}`.replace(`{${"journalId"}}`, encodeURIComponent(String(requestParameters['journalId']))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * 저널을 삭제하는 DELETE API (관리자 전용)
+     * 저널 삭제
+     */
+    async deleteJournal(requestParameters: DeleteJournalRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteJournalRaw(requestParameters, initOverrides);
+    }
+
+    /**
      * 논문을 삭제하는 DELETE API (관리자 전용)
      * 논문 삭제
      */
@@ -972,7 +1018,7 @@ export class ResearchApi extends runtime.BaseAPI {
      * 검색어와 함께 학회발표 목록을 조회하는 GET API
      * 학회발표 목록 조회
      */
-    async getAcademicPresentationsRaw(requestParameters: GetAcademicPresentationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageAcademicPresentationSummaryResponse>> {
+    async getAcademicPresentationsRaw(requestParameters: GetAcademicPresentationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AcademicPresentationFindAllResponse>> {
         const queryParameters: any = {};
 
         if (requestParameters['keyword'] != null) {
@@ -1008,14 +1054,14 @@ export class ResearchApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => PageAcademicPresentationSummaryResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => AcademicPresentationFindAllResponseFromJSON(jsonValue));
     }
 
     /**
      * 검색어와 함께 학회발표 목록을 조회하는 GET API
      * 학회발표 목록 조회
      */
-    async getAcademicPresentations(requestParameters: GetAcademicPresentationsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageAcademicPresentationSummaryResponse> {
+    async getAcademicPresentations(requestParameters: GetAcademicPresentationsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AcademicPresentationFindAllResponse> {
         const response = await this.getAcademicPresentationsRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -1067,7 +1113,7 @@ export class ResearchApi extends runtime.BaseAPI {
      * 검색어와 함께 수상 목록을 조회하는 GET API
      * 수상 목록 조회
      */
-    async getAwardsRaw(requestParameters: GetAwardsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageAwardSummaryResponse>> {
+    async getAwardsRaw(requestParameters: GetAwardsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AwardFindAllResponse>> {
         const queryParameters: any = {};
 
         if (requestParameters['keyword'] != null) {
@@ -1103,14 +1149,14 @@ export class ResearchApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => PageAwardSummaryResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => AwardFindAllResponseFromJSON(jsonValue));
     }
 
     /**
      * 검색어와 함께 수상 목록을 조회하는 GET API
      * 수상 목록 조회
      */
-    async getAwards(requestParameters: GetAwardsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageAwardSummaryResponse> {
+    async getAwards(requestParameters: GetAwardsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AwardFindAllResponse> {
         const response = await this.getAwardsRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -1162,7 +1208,7 @@ export class ResearchApi extends runtime.BaseAPI {
      * 검색어(저널명, 출판사, ISSN)와 함께 저널 목록을 조회하는 GET API
      * 저널 목록 조회
      */
-    async getJournalsRaw(requestParameters: GetJournalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageJournalSummaryResponse>> {
+    async getJournalsRaw(requestParameters: GetJournalsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<JournalFindAllResponse>> {
         const queryParameters: any = {};
 
         if (requestParameters['keyword'] != null) {
@@ -1198,14 +1244,14 @@ export class ResearchApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => PageJournalSummaryResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => JournalFindAllResponseFromJSON(jsonValue));
     }
 
     /**
      * 검색어(저널명, 출판사, ISSN)와 함께 저널 목록을 조회하는 GET API
      * 저널 목록 조회
      */
-    async getJournals(requestParameters: GetJournalsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageJournalSummaryResponse> {
+    async getJournals(requestParameters: GetJournalsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<JournalFindAllResponse> {
         const response = await this.getJournalsRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -1257,7 +1303,7 @@ export class ResearchApi extends runtime.BaseAPI {
      * 검색어와 함께 논문 목록을 조회하는 GET API
      * 논문 목록 조회
      */
-    async getPapersRaw(requestParameters: GetPapersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PagePaperSummaryResponse>> {
+    async getPapersRaw(requestParameters: GetPapersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PaperFindAllResponse>> {
         const queryParameters: any = {};
 
         if (requestParameters['keyword'] != null) {
@@ -1293,14 +1339,14 @@ export class ResearchApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => PagePaperSummaryResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => PaperFindAllResponseFromJSON(jsonValue));
     }
 
     /**
      * 검색어와 함께 논문 목록을 조회하는 GET API
      * 논문 목록 조회
      */
-    async getPapers(requestParameters: GetPapersRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PagePaperSummaryResponse> {
+    async getPapers(requestParameters: GetPapersRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PaperFindAllResponse> {
         const response = await this.getPapersRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -1352,7 +1398,7 @@ export class ResearchApi extends runtime.BaseAPI {
      * 검색어와 함께 특허 목록을 조회하는 GET API
      * 특허 목록 조회
      */
-    async getPatentsRaw(requestParameters: GetPatentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PagePatentSummaryResponse>> {
+    async getPatentsRaw(requestParameters: GetPatentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PatentFindAllResponse>> {
         const queryParameters: any = {};
 
         if (requestParameters['keyword'] != null) {
@@ -1388,14 +1434,14 @@ export class ResearchApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => PagePatentSummaryResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => PatentFindAllResponseFromJSON(jsonValue));
     }
 
     /**
      * 검색어와 함께 특허 목록을 조회하는 GET API
      * 특허 목록 조회
      */
-    async getPatents(requestParameters: GetPatentsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PagePatentSummaryResponse> {
+    async getPatents(requestParameters: GetPatentsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PatentFindAllResponse> {
         const response = await this.getPatentsRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -1447,7 +1493,7 @@ export class ResearchApi extends runtime.BaseAPI {
      * 검색어와 함께 저서 목록을 조회하는 GET API
      * 저서 목록 조회
      */
-    async getPublicationsRaw(requestParameters: GetPublicationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PageAuthorSummaryResponse>> {
+    async getPublicationsRaw(requestParameters: GetPublicationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthorFindAllResponse>> {
         const queryParameters: any = {};
 
         if (requestParameters['keyword'] != null) {
@@ -1483,14 +1529,14 @@ export class ResearchApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => PageAuthorSummaryResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => AuthorFindAllResponseFromJSON(jsonValue));
     }
 
     /**
      * 검색어와 함께 저서 목록을 조회하는 GET API
      * 저서 목록 조회
      */
-    async getPublications(requestParameters: GetPublicationsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PageAuthorSummaryResponse> {
+    async getPublications(requestParameters: GetPublicationsRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthorFindAllResponse> {
         const response = await this.getPublicationsRaw(requestParameters, initOverrides);
         return await response.value();
     }
