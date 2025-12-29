@@ -49,7 +49,7 @@ export default function UserInfoCard({ user }: { user: UserItem }) {
         {(user.status === 'ON_LEAVE' || user.status === 'RESIGNED') && (
           <span
             className={`text-xs font-medium ${
-              user.status === 'ON_LEAVE' ? 'text-amber-600' : 'text-red-600'
+              user.status === 'ON_LEAVE' ? 'text-primary' : 'text-destructive'
             }`}
           >
             {statusLabelMap[user.status]}
