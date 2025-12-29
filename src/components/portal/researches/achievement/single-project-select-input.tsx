@@ -13,35 +13,29 @@ const projectApi = new ProjectApi(getApiConfig());
 interface SingleProjectSelectInputProps {
   value: string;
   onValueChange: (v: string) => void;
-  onProjectSelected?: (project: ProjectSummary | null) => void;
+  onProjectSelected?: (p: ProjectSummary | null) => void;
   placeholder?: string;
   required?: boolean;
 }
 
 export function SingleProjectSelectInput({
-  value,
-  onValueChange,
-  onProjectSelected,
-  placeholder = '프로젝트 검색',
-  required,
-}: SingleProjectSelectInputProps) {
+                                           value,
+                                           onValueChange,
+                                           onProjectSelected,
+                                           placeholder = '프로젝트 검색',
+                                           required,
+                                         }: SingleProjectSelectInputProps) {
   const [input, setInput] = useState(value);
-  const [debounced, setDebounced] = useState(value);
   const [open, setOpen] = useState(false);
   const [list, setList] = useState<ProjectSummary[]>([]);
-  const [hi, setHi] = useState(-1);
 
   const accessToken = useAuthStore((s) => s.accessToken);
   const inputRef = useRef<HTMLInputElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
-  const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
-
-  useEffect(() => setInput(value), [value]);
 
   useEffect(() => {
-    const t = setTimeout(() => setDebounced(input), 250);
-    return () => clearTimeout(t);
-  }, [input]);
+    setInput(value);
+  }, [value]);
 
   useEffect(() => {
     if (!open || !accessToken) return;
@@ -49,51 +43,29 @@ export function SingleProjectSelectInput({
     (async () => {
       try {
         const res = await projectApi.getAllProjects({
-          search: debounced.trim() || undefined,
+          search: input.trim() || undefined,
           page: 0,
           size: 20,
         });
         setList(res.projects ?? []);
-        setHi(-1);
       } catch {
         setList([]);
       }
     })();
-  }, [debounced, open, accessToken]);
-
-  useEffect(() => {
-    if (hi >= 0) itemRefs.current[hi]?.scrollIntoView({ block: 'nearest' });
-  }, [hi]);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      const t = e.target as Node;
-      if (
-        inputRef.current &&
-        !inputRef.current.contains(t) &&
-        popRef.current &&
-        !popRef.current.contains(t)
-      ) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
+  }, [input, open, accessToken]);
 
   const selectProject = (p: ProjectSummary) => {
     const title = p.title ?? '';
+    setInput(title);
     onValueChange(title);
     onProjectSelected?.(p);
-    setInput(title);
     setOpen(false);
   };
 
   const clear = () => {
+    setInput('');
     onValueChange('');
     onProjectSelected?.(null);
-    setInput('');
-    setList([]);
     setOpen(true);
     inputRef.current?.focus();
   };
@@ -110,7 +82,6 @@ export function SingleProjectSelectInput({
         onChange={(e) => {
           setInput(e.target.value);
           onValueChange(e.target.value);
-          if (!open) setOpen(true);
         }}
       />
 
@@ -130,17 +101,12 @@ export function SingleProjectSelectInput({
           className="bg-background absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border shadow"
         >
           {list.length > 0 ? (
-            list.map((p, idx) => (
+            list.map((p) => (
               <button
                 key={p.projectId}
-                ref={(el) => {
-                  itemRefs.current[idx] = el;
-                }}
                 type="button"
                 onClick={() => selectProject(p)}
-                className={`flex w-full items-center justify-between px-3 py-2 text-sm ${
-                  hi === idx ? 'bg-muted' : 'hover:bg-muted'
-                }`}
+                className="hover:bg-muted flex w-full items-center justify-between px-3 py-2 text-sm"
               >
                 <span className="truncate">{p.title}</span>
                 {value === p.title && (

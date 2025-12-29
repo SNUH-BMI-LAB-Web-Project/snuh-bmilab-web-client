@@ -25,25 +25,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Book } from '@/lib/types';
 
-interface BookTableProps {
-  data: Book[];
-  onEdit: (item: Book) => void;
-  onRefresh: () => void;
+import type { Journal } from '@/lib/types';
+
+interface JournalTableProps {
+  data: Journal[];
+  onEdit: (item: Journal, type: 'journal') => void;
+  onDelete: (id: string, type: 'journal') => void;
 }
 
 type SortOrder = 'asc' | 'desc';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-const getToken = () => {
-  const raw = localStorage.getItem('auth-storage');
-  return raw ? JSON.parse(raw)?.state?.accessToken : null;
-};
-
-export function BookTable({ data, onEdit, onRefresh }: BookTableProps) {
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+export function JournalTable({ data, onEdit, onDelete }: JournalTableProps) {
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchColumn, setSearchColumn] = useState<string>('all');
 
@@ -53,45 +47,32 @@ export function BookTable({ data, onEdit, onRefresh }: BookTableProps) {
 
     if (searchColumn === 'all') {
       return (
-        item.publicationDate?.toLowerCase().includes(q) ||
-        item.authors?.toLowerCase().includes(q) ||
+        item.journalName?.toLowerCase().includes(q) ||
         item.publisher?.toLowerCase().includes(q) ||
-        item.publicationHouse?.toLowerCase().includes(q) ||
-        item.publicationName?.toLowerCase().includes(q) ||
-        item.title?.toLowerCase().includes(q) ||
-        item.isbn?.toLowerCase().includes(q)
+        item.publishCountry?.toLowerCase().includes(q) ||
+        item.issn?.toLowerCase().includes(q) ||
+        item.eissn?.toLowerCase().includes(q) ||
+        item.category?.toLowerCase().includes(q) ||
+        item.jcrRank?.toLowerCase().includes(q)
       );
     }
 
-    return String(item[searchColumn as keyof Book] ?? '')
+    return String(item[searchColumn as keyof Journal] ?? '')
       .toLowerCase()
       .includes(q);
   });
 
   const sortedData = [...filteredData].sort((a, b) => {
-    const aValue = a.publicationDate ?? '';
-    const bValue = b.publicationDate ?? '';
+    const aValue = a.journalName ?? '';
+    const bValue = b.journalName ?? '';
     return sortOrder === 'asc'
       ? aValue.localeCompare(bValue)
       : bValue.localeCompare(aValue);
   });
 
-  const handleDelete = async (id: number) => {
-    const token = getToken();
-    if (!token) return;
-
-    await fetch(`${API_BASE}/research/authors/${id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    onRefresh();
-  };
-
   return (
     <div className="space-y-4">
+      {/* 검색 / 정렬 영역 */}
       <div className="flex items-center gap-2">
         <Select value={searchColumn} onValueChange={setSearchColumn}>
           <SelectTrigger className="w-[180px]">
@@ -99,13 +80,13 @@ export function BookTable({ data, onEdit, onRefresh }: BookTableProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">전체</SelectItem>
-            <SelectItem value="publicationDate">출판일</SelectItem>
-            <SelectItem value="authors">저자</SelectItem>
-            <SelectItem value="publisher">발행처</SelectItem>
-            <SelectItem value="publicationHouse">출판사</SelectItem>
-            <SelectItem value="publicationName">출판물명</SelectItem>
-            <SelectItem value="title">제목</SelectItem>
-            <SelectItem value="isbn">ISBN</SelectItem>
+            <SelectItem value="journalName">저널명</SelectItem>
+            <SelectItem value="category">구분</SelectItem>
+            <SelectItem value="publisher">출판사</SelectItem>
+            <SelectItem value="publishCountry">국가</SelectItem>
+            <SelectItem value="issn">ISSN</SelectItem>
+            <SelectItem value="eissn">E-ISSN</SelectItem>
+            <SelectItem value="jcrRank">JCR Rank</SelectItem>
           </SelectContent>
         </Select>
 
@@ -124,31 +105,37 @@ export function BookTable({ data, onEdit, onRefresh }: BookTableProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="desc">최신순</SelectItem>
-            <SelectItem value="asc">오래된순</SelectItem>
+            <SelectItem value="asc">가나다순</SelectItem>
+            <SelectItem value="desc">역순</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
+      {/* 테이블 */}
       <div className="border rounded-lg bg-card">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="text-center">No</TableHead>
-              <TableHead className="text-center">출판일</TableHead>
-              <TableHead>저자</TableHead>
-              <TableHead>발행처</TableHead>
+              <TableHead>저널명</TableHead>
+              <TableHead className="text-center">구분</TableHead>
               <TableHead>출판사</TableHead>
-              <TableHead>출판물명</TableHead>
-              <TableHead>제목</TableHead>
-              <TableHead>ISBN</TableHead>
+              <TableHead className="text-center">국가</TableHead>
+              <TableHead className="text-center">ISSN</TableHead>
+              <TableHead className="text-center">E-ISSN</TableHead>
+              <TableHead className="text-center">JIF</TableHead>
+              <TableHead className="text-center">JCR Rank</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
+
           <TableBody>
             {sortedData.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={10}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   데이터가 없습니다.
                 </TableCell>
               </TableRow>
@@ -156,13 +143,24 @@ export function BookTable({ data, onEdit, onRefresh }: BookTableProps) {
               sortedData.map((item, idx) => (
                 <TableRow key={item.id}>
                   <TableCell className="text-center">{idx + 1}</TableCell>
-                  <TableCell className="text-center">{item.publicationDate}</TableCell>
-                  <TableCell>{item.authors}</TableCell>
+                  <TableCell>{item.journalName}</TableCell>
+                  <TableCell className="text-center">{item.category}</TableCell>
                   <TableCell>{item.publisher}</TableCell>
-                  <TableCell>{item.publicationHouse}</TableCell>
-                  <TableCell>{item.publicationName}</TableCell>
-                  <TableCell>{item.title}</TableCell>
-                  <TableCell>{item.isbn}</TableCell>
+                  <TableCell className="text-center">
+                    {item.publishCountry}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {item.issn || '-'}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {item.eissn || '-'}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {item.jif || '-'}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {item.jcrRank || '-'}
+                  </TableCell>
                   <TableCell className="text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -171,12 +169,16 @@ export function BookTable({ data, onEdit, onRefresh }: BookTableProps) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(item)}>
+                        <DropdownMenuItem
+                          onClick={() => onEdit(item, 'journal')}
+                        >
                           <Pencil className="mr-2 h-4 w-4" /> 수정
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          variant="destructive"
-                          onClick={() => handleDelete(item.id)}
+                          className="text-destructive"
+                          onClick={() =>
+                            onDelete(String(item.id), 'journal')
+                          }
                         >
                           <Trash2 className="mr-2 h-4 w-4" /> 삭제
                         </DropdownMenuItem>

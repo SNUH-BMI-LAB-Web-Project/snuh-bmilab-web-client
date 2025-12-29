@@ -12,15 +12,17 @@ interface SingleTaskSelectInputProps {
   value: string;
   onValueChange: (v: string) => void;
   onTaskSelected?: (task: TaskSummaryResponse | null) => void;
+  onTaskIdChange?: (id: number | null) => void; // 추가
   placeholder?: string;
 }
 
 export function SingleTaskSelectInput({
-  value,
-  onValueChange,
-  onTaskSelected,
-  placeholder = '과제 검색',
-}: SingleTaskSelectInputProps) {
+                                        value,
+                                        onValueChange,
+                                        onTaskSelected,
+                                        onTaskIdChange,
+                                        placeholder = '과제 검색',
+                                      }: SingleTaskSelectInputProps) {
   const [input, setInput] = useState(value);
   const [open, setOpen] = useState(false);
   const [list, setList] = useState<TaskSummaryResponse[]>([]);
@@ -30,6 +32,7 @@ export function SingleTaskSelectInput({
 
   useEffect(() => setInput(value), [value]);
 
+  // 검색 로직: 원본 그대로
   useEffect(() => {
     if (!open) return;
     (async () => {
@@ -50,6 +53,7 @@ export function SingleTaskSelectInput({
     const title = t.title ?? '';
     onValueChange(title);
     onTaskSelected?.(t);
+    onTaskIdChange?.(t.id ?? null); // ID 전달
     setInput(title);
     setOpen(false);
   };
@@ -57,6 +61,7 @@ export function SingleTaskSelectInput({
   const clear = () => {
     onValueChange('');
     onTaskSelected?.(null);
+    onTaskIdChange?.(null); // ID 초기화
     setInput('');
     setOpen(true);
     inputRef.current?.focus();

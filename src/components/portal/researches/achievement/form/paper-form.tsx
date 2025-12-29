@@ -29,6 +29,13 @@ import {
   LabMemberSelect,
 } from '@/components/portal/researches/achievement/lab-member-select';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+const getToken = () => {
+  const raw = localStorage.getItem('auth-storage');
+  return raw ? JSON.parse(raw)?.state?.accessToken ?? null : null;
+};
+
 interface PaperFormProps {
   initialData?: Paper;
   onSave: (data: Omit<Paper, 'id'>) => void;
@@ -70,11 +77,17 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
     isRepresentative: initialData?.isRepresentative || false,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (correspondingProfessors.length === 0) {
       toast('교신저자를 1명 이상 선택하세요.');
+      return;
+    }
+
+    const token = getToken();
+    if (!token) {
+      toast.error('토큰이 없습니다.');
       return;
     }
 
@@ -95,17 +108,91 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
     const allAuthors = [...firstAuthorsList, ...coAuthorsList].join(', ');
     const authorCount = firstAuthorsList.length + coAuthorsList.length;
 
-    onSave({
-      ...formData,
-      correspondingAuthor: correspondingProfessors
-        .map((p) => p.name)
-        .filter(Boolean)
-        .join(', '),
+    /* ===========================
+       서버 전송용 payload (매핑만)
+       ※ 프론트 필드/의미 변경 없음
+       =========================== */
+    const apiPayload = {
+      acceptDate: formData.acceptDate,
+      publishDate: formData.publishDate,
+      journalId: Number(formData.journalName),
+      paperTitle: formData.paperTitle,
       allAuthors,
-      authorCount,
-      labMembers: labMembersString,
-      attachmentFileIds: files.map((f) => f.fileId!),
-    } as any);
+      firstAuthor: firstAuthorsList[0] ?? '',
+      coAuthors: formData.coAuthors,
+      correspondingAuthors: correspondingProfessors.map((p) => ({
+        externalProfessorId: p.id!,
+        role: 'CORRESPONDING_AUTHOR',
+      })),
+      paperAuthors: labMembers.map((m) => ({
+        userId: m.userId,
+        role: m.role,
+      })),
+      vol: formData.vol,
+      page: formData.page,
+      paperLink: formData.paperLink,
+      doi: formData.doi,
+      pmid: formData.pmid,
+      citations: Number(formData.citationCount),
+      professorRole:
+        formData.professorRole === '제1저자'
+          ? 'FIRST_AUTHOR'
+          : formData.professorRole === '공저자'
+            ? 'CO_AUTHOR'
+            : 'CORRESPONDING_AUTHOR',
+      isRepresentative: formData.isRepresentative,
+      fileIds: files.map((f) => f.fileId),
+    };
+
+    /* ===========================
+       로그 (요청 전/후)
+       =========================== */
+    console.log('[PaperForm] submit formData:', formData);
+    console.log('[PaperForm] submit labMembers:', labMembers);
+    console.log('[PaperForm] submit files:', files);
+    console.log('[PaperForm] API payload:', apiPayload);
+
+    try {
+      const res = await fetch(`${API_BASE}/research/papers`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiPayload),
+      });
+
+      console.log('[PaperForm] API response status:', res.status);
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error('[PaperForm] API error body:', text);
+        throw new Error(`논문 저장 실패 (${res.status})`);
+      }
+
+      const result = await res.json();
+      console.log('[PaperForm] API success response:', result);
+
+      /* ===========================
+         프론트 저장 흐름 그대로 유지
+         =========================== */
+      onSave({
+        ...formData,
+        correspondingAuthor: correspondingProfessors
+          .map((p) => p.name)
+          .filter(Boolean)
+          .join(', '),
+        allAuthors,
+        authorCount,
+        labMembers: labMembersString,
+        attachmentFileIds: files.map((f) => f.fileId!),
+      } as any);
+
+      toast.success('논문이 저장되었습니다.');
+    } catch (err: any) {
+      console.error('[PaperForm] submit error:', err);
+      toast.error(err.message || '저장 중 오류 발생');
+    }
   };
 
   return (
@@ -198,7 +285,6 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
         <Label htmlFor="correspondingAuthor">
           교신저자 <span className="text-destructive">*</span>
         </Label>
-        {/* 추가 버튼 */}
         <Button
           type="button"
           variant="outline"
@@ -209,7 +295,6 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
           교신저자 추가
         </Button>
 
-        {/* 선택된 교신저자 목록 */}
         {correspondingProfessors.length > 0 && (
           <div className="bg-muted/50 mt-2 space-y-3 rounded-xl p-4">
             {correspondingProfessors.map((prof, index) => {
