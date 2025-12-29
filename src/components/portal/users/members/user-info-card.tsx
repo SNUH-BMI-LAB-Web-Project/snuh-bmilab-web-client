@@ -10,7 +10,7 @@ import { formatSeatNumber } from '@/utils/user-utils';
 
 const statusLabelMap: Record<string, string> = {
   ON_LEAVE: '휴직자',
-  RESIGNED: '퇴직자',
+  RESIGNED: '퇴사자',
 };
 
 export default function UserInfoCard({ user }: { user: UserItem }) {
