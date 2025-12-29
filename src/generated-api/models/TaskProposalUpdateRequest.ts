@@ -79,6 +79,36 @@ export interface TaskProposalUpdateRequest {
      * @memberof TaskProposalUpdateRequest
      */
     internalContactPhone?: string;
+    /**
+     * 최종 제안서 파일 ID 목록
+     * @type {Array<string>}
+     * @memberof TaskProposalUpdateRequest
+     */
+    finalProposalFileIds?: Array<string>;
+    /**
+     * 최종 제출본 파일 ID 목록
+     * @type {Array<string>}
+     * @memberof TaskProposalUpdateRequest
+     */
+    finalSubmissionFileIds?: Array<string>;
+    /**
+     * 관련자료 파일 ID 목록
+     * @type {Array<string>}
+     * @memberof TaskProposalUpdateRequest
+     */
+    relatedFileIds?: Array<string>;
+    /**
+     * 회의록 파일 ID 목록
+     * @type {Array<string>}
+     * @memberof TaskProposalUpdateRequest
+     */
+    meetingNotesFileIds?: Array<string>;
+    /**
+     * 참여 기관 구조도 파일 ID 목록
+     * @type {Array<string>}
+     * @memberof TaskProposalUpdateRequest
+     */
+    structureDiagramFileIds?: Array<string>;
 }
 
 /**
@@ -108,6 +138,11 @@ export function TaskProposalUpdateRequestFromJSONTyped(json: any, ignoreDiscrimi
         'internalContactDepartment': json['internalContactDepartment'] == null ? undefined : json['internalContactDepartment'],
         'internalContactEmail': json['internalContactEmail'] == null ? undefined : json['internalContactEmail'],
         'internalContactPhone': json['internalContactPhone'] == null ? undefined : json['internalContactPhone'],
+        'finalProposalFileIds': json['finalProposalFileIds'] == null ? undefined : json['finalProposalFileIds'],
+        'finalSubmissionFileIds': json['finalSubmissionFileIds'] == null ? undefined : json['finalSubmissionFileIds'],
+        'relatedFileIds': json['relatedFileIds'] == null ? undefined : json['relatedFileIds'],
+        'meetingNotesFileIds': json['meetingNotesFileIds'] == null ? undefined : json['meetingNotesFileIds'],
+        'structureDiagramFileIds': json['structureDiagramFileIds'] == null ? undefined : json['structureDiagramFileIds'],
     };
 }
 
@@ -132,6 +167,11 @@ export function TaskProposalUpdateRequestToJSONTyped(value?: TaskProposalUpdateR
         'internalContactDepartment': value['internalContactDepartment'],
         'internalContactEmail': value['internalContactEmail'],
         'internalContactPhone': value['internalContactPhone'],
+        'finalProposalFileIds': value['finalProposalFileIds'],
+        'finalSubmissionFileIds': value['finalSubmissionFileIds'],
+        'relatedFileIds': value['relatedFileIds'],
+        'meetingNotesFileIds': value['meetingNotesFileIds'],
+        'structureDiagramFileIds': value['structureDiagramFileIds'],
     };
 }
 

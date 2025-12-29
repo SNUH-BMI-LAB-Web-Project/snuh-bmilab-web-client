@@ -43,6 +43,24 @@ export interface TaskPeriodUpdateRequest {
      * @memberof TaskPeriodUpdateRequest
      */
     memberIds?: Array<number>;
+    /**
+     * 연차별 관련 파일 ID 목록
+     * @type {Array<string>}
+     * @memberof TaskPeriodUpdateRequest
+     */
+    periodFileIds?: Array<string>;
+    /**
+     * 중간보고 파일 ID 목록
+     * @type {Array<string>}
+     * @memberof TaskPeriodUpdateRequest
+     */
+    interimReportFileIds?: Array<string>;
+    /**
+     * 연차보고 파일 ID 목록
+     * @type {Array<string>}
+     * @memberof TaskPeriodUpdateRequest
+     */
+    annualReportFileIds?: Array<string>;
 }
 
 /**
@@ -66,6 +84,9 @@ export function TaskPeriodUpdateRequestFromJSONTyped(json: any, ignoreDiscrimina
         'endDate': json['endDate'] == null ? undefined : (new Date(json['endDate'])),
         'managerId': json['managerId'] == null ? undefined : json['managerId'],
         'memberIds': json['memberIds'] == null ? undefined : json['memberIds'],
+        'periodFileIds': json['periodFileIds'] == null ? undefined : json['periodFileIds'],
+        'interimReportFileIds': json['interimReportFileIds'] == null ? undefined : json['interimReportFileIds'],
+        'annualReportFileIds': json['annualReportFileIds'] == null ? undefined : json['annualReportFileIds'],
     };
 }
 
@@ -84,6 +105,9 @@ export function TaskPeriodUpdateRequestToJSONTyped(value?: TaskPeriodUpdateReque
         'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString().substring(0,10)),
         'managerId': value['managerId'],
         'memberIds': value['memberIds'],
+        'periodFileIds': value['periodFileIds'],
+        'interimReportFileIds': value['interimReportFileIds'],
+        'annualReportFileIds': value['annualReportFileIds'],
     };
 }
 

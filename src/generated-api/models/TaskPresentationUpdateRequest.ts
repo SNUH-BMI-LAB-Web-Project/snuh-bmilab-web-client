@@ -61,6 +61,18 @@ export interface TaskPresentationUpdateRequest {
      * @memberof TaskPresentationUpdateRequest
      */
     presentationLocation?: string;
+    /**
+     * 최종 발표자료 파일 ID 목록
+     * @type {Array<string>}
+     * @memberof TaskPresentationUpdateRequest
+     */
+    finalPresentationFileIds?: Array<string>;
+    /**
+     * 발표자료 초안 파일 ID 목록
+     * @type {Array<string>}
+     * @memberof TaskPresentationUpdateRequest
+     */
+    draftPresentationFileIds?: Array<string>;
 }
 
 /**
@@ -87,6 +99,8 @@ export function TaskPresentationUpdateRequestFromJSONTyped(json: any, ignoreDisc
         'attendeeLimit': json['attendeeLimit'] == null ? undefined : json['attendeeLimit'],
         'attendees': json['attendees'] == null ? undefined : json['attendees'],
         'presentationLocation': json['presentationLocation'] == null ? undefined : json['presentationLocation'],
+        'finalPresentationFileIds': json['finalPresentationFileIds'] == null ? undefined : json['finalPresentationFileIds'],
+        'draftPresentationFileIds': json['draftPresentationFileIds'] == null ? undefined : json['draftPresentationFileIds'],
     };
 }
 
@@ -108,6 +122,8 @@ export function TaskPresentationUpdateRequestToJSONTyped(value?: TaskPresentatio
         'attendeeLimit': value['attendeeLimit'],
         'attendees': value['attendees'],
         'presentationLocation': value['presentationLocation'],
+        'finalPresentationFileIds': value['finalPresentationFileIds'],
+        'draftPresentationFileIds': value['draftPresentationFileIds'],
     };
 }
 
