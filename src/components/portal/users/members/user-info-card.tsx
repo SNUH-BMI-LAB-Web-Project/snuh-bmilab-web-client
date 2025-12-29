@@ -8,6 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { positionLabelMap } from '@/constants/position-enum';
 import { formatSeatNumber } from '@/utils/user-utils';
 
+const statusLabelMap: Record<string, string> = {
+  ON_LEAVE: '휴직자',
+  RESIGNED: '퇴직자',
+};
+
 export default function UserInfoCard({ user }: { user: UserItem }) {
   const router = useRouter();
 
@@ -26,17 +31,30 @@ export default function UserInfoCard({ user }: { user: UserItem }) {
       className="text-foreground hover:bg-muted/50 flex min-h-[180px] w-full max-w-3xl cursor-pointer items-start gap-6 rounded-lg border bg-white p-6 shadow-sm transition hover:shadow-md"
     >
       {/* 프로필 이미지 */}
-      <div className="relative aspect-square h-16 w-16 shrink-0 rounded-full border-1 shadow-sm">
-        <Image
-          src={
-            user.profileImageUrl?.trim()
-              ? user.profileImageUrl
-              : '/default-profile-image.svg'
-          }
-          alt={`${user.name} 프로필`}
-          fill
-          className="rounded-full object-cover"
-        />
+      <div className="relative flex shrink-0 flex-col items-center gap-1">
+        <div className="relative aspect-square h-16 w-16 shrink-0 rounded-full border-1 shadow-sm">
+          <Image
+            src={
+              user.profileImageUrl?.trim()
+                ? user.profileImageUrl
+                : '/default-profile-image.svg'
+            }
+            alt={`${user.name} 프로필`}
+            fill
+            className="rounded-full object-cover"
+          />
+        </div>
+
+        {/* 휴직 / 퇴직 상태 표시 */}
+        {(user.status === 'ON_LEAVE' || user.status === 'RESIGNED') && (
+          <span
+            className={`text-xs font-medium ${
+              user.status === 'ON_LEAVE' ? 'text-amber-600' : 'text-red-600'
+            }`}
+          >
+            {statusLabelMap[user.status]}
+          </span>
+        )}
       </div>
 
       {/* 정보 영역 */}
