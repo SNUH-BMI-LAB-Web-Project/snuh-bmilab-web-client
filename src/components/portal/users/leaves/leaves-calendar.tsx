@@ -541,14 +541,15 @@ function Sidebar({
  * ======================= */
 export default function LeavesCalendar() {
   const role = useAuthStore((s) => s.role);
+  const today = useMemo(() => new Date(), []);
   const [currentDate, setCurrentDate] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
   const [vacations, setVacations] = useState<LeaveDetail[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(today);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [formData, setFormData] = useState<{
     type: '' | ApplyLeaveRequestTypeEnum;
     startDate: string;
@@ -560,8 +561,6 @@ export default function LeavesCalendar() {
     endDate: '',
     reason: '',
   });
-
-  const today = useMemo(() => new Date(), []);
 
   const days = useMemo(() => generateCalendarDays(currentDate), [currentDate]);
 
