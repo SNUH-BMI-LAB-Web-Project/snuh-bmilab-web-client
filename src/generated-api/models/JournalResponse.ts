@@ -79,6 +79,12 @@ export interface JournalResponse {
      * @memberof JournalResponse
      */
     jcrRank?: string;
+    /**
+     * Issue
+     * @type {string}
+     * @memberof JournalResponse
+     */
+    issue?: string;
 }
 
 
@@ -121,6 +127,7 @@ export function JournalResponseFromJSONTyped(json: any, ignoreDiscriminator: boo
         'eissn': json['eissn'] == null ? undefined : json['eissn'],
         'jif': json['jif'] == null ? undefined : json['jif'],
         'jcrRank': json['jcrRank'] == null ? undefined : json['jcrRank'],
+        'issue': json['issue'] == null ? undefined : json['issue'],
     };
 }
 
@@ -145,6 +152,7 @@ export function JournalResponseToJSONTyped(value?: JournalResponse | null, ignor
         'eissn': value['eissn'],
         'jif': value['jif'],
         'jcrRank': value['jcrRank'],
+        'issue': value['issue'],
     };
 }
 

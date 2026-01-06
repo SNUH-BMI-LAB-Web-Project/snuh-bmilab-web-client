@@ -73,6 +73,12 @@ export interface UpdateJournalRequest {
      * @memberof UpdateJournalRequest
      */
     jcrRank: string;
+    /**
+     * Issue
+     * @type {string}
+     * @memberof UpdateJournalRequest
+     */
+    issue?: string;
 }
 
 
@@ -121,6 +127,7 @@ export function UpdateJournalRequestFromJSONTyped(json: any, ignoreDiscriminator
         'eissn': json['eissn'] == null ? undefined : json['eissn'],
         'jif': json['jif'],
         'jcrRank': json['jcrRank'],
+        'issue': json['issue'] == null ? undefined : json['issue'],
     };
 }
 
@@ -144,6 +151,7 @@ export function UpdateJournalRequestToJSONTyped(value?: UpdateJournalRequest | n
         'eissn': value['eissn'],
         'jif': value['jif'],
         'jcrRank': value['jcrRank'],
+        'issue': value['issue'],
     };
 }
 

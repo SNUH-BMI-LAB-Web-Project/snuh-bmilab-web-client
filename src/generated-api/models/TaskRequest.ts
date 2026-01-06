@@ -135,6 +135,12 @@ export interface TaskRequest {
      * @memberof TaskRequest
      */
     status?: TaskRequestStatusEnum;
+    /**
+     * 원내과제 여부
+     * @type {boolean}
+     * @memberof TaskRequest
+     */
+    isInternal: boolean;
 }
 
 
@@ -197,6 +203,7 @@ export function instanceOfTaskRequest(value: object): value is TaskRequest {
     if (!('professorRole' in value) || value['professorRole'] === undefined) return false;
     if (!('practicalManagerId' in value) || value['practicalManagerId'] === undefined) return false;
     if (!('participatingInstitutions' in value) || value['participatingInstitutions'] === undefined) return false;
+    if (!('isInternal' in value) || value['isInternal'] === undefined) return false;
     return true;
 }
 
@@ -228,6 +235,7 @@ export function TaskRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'practicalManagerId': json['practicalManagerId'],
         'participatingInstitutions': json['participatingInstitutions'],
         'status': json['status'] == null ? undefined : json['status'],
+        'isInternal': json['isInternal'],
     };
 }
 
@@ -260,6 +268,7 @@ export function TaskRequestToJSONTyped(value?: TaskRequest | null, ignoreDiscrim
         'practicalManagerId': value['practicalManagerId'],
         'participatingInstitutions': value['participatingInstitutions'],
         'status': value['status'],
+        'isInternal': value['isInternal'],
     };
 }
 
