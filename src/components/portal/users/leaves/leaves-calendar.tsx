@@ -414,19 +414,24 @@ export function StartPill({ meta, v }: { meta: VacationMeta; v: LeaveDetail }) {
 export function MiddlePill({
   meta,
   v,
+  showText = false,
 }: {
   meta: VacationMeta;
   v: LeaveDetail;
+  showText?: boolean;
 }) {
+  const name = v.user?.name ?? '';
+  const label = meta.name;
+
   return (
     <BasePill
       color={meta.color}
-      name={v.user!.name!}
-      label={meta.name}
-      hideText
-      ariaLabel={`${v.user!.name!} ${meta.name}`}
-      className="-mx-px rounded-none px-0"
-      title={`${v.user!.name!} - ${meta.name}${v.reason ? ` (${v.reason})` : ''}`}
+      name={name}
+      label={label}
+      hideText={!showText} // 기본은 숨김, showText면 표시
+      ariaLabel={`${name} ${label}`}
+      className="-mx-px rounded-none"
+      title={`${name} - ${label}${v.reason ? ` (${v.reason})` : ''}`}
     />
   );
 }
@@ -1031,27 +1036,60 @@ export default function LeavesCalendar() {
                   {/* 휴가 리스트: 위부터 쌓임 */}
                   <div className="flex flex-col justify-start gap-1">
                     {displayVacations.map((v) => {
+                      const isWeekStart = (d: Date) => d.getDay() === 0; // 일요일
+
                       const meta = VACATION_TYPES[v.type!];
                       const kind = getVacationSegmentKind(v, day);
-                      if (!kind) return null;
+
+                      const start = v.startDate ? new Date(v.startDate) : null;
+
+                      const showNameAgain = Boolean(
+                        kind === 'middle' &&
+                          start &&
+                          isWeekStart(day) &&
+                          day > start,
+                      );
 
                       switch (kind) {
                         case 'single':
                           return (
-                            <SingleDayPill key={v.leaveId} meta={meta} v={v} />
+                            <SingleDayPill
+                              key={`${v.leaveId}-${toYmd(day)}`}
+                              meta={meta}
+                              v={v}
+                            />
                           );
+
                         case 'start':
                           return (
-                            <StartPill key={v.leaveId} meta={meta} v={v} />
+                            <StartPill
+                              key={`${v.leaveId}-${toYmd(day)}`}
+                              meta={meta}
+                              v={v}
+                            />
                           );
+
                         case 'end':
-                          return <EndPill key={v.leaveId} meta={meta} v={v} />;
+                          return (
+                            <EndPill
+                              key={`${v.leaveId}-${toYmd(day)}`}
+                              meta={meta}
+                              v={v}
+                            />
+                          );
+
                         default:
                           return (
-                            <MiddlePill key={v.leaveId} meta={meta} v={v} />
+                            <MiddlePill
+                              key={`${v.leaveId}-${toYmd(day)}`}
+                              meta={meta}
+                              v={v}
+                              showText={showNameAgain}
+                            />
                           );
                       }
                     })}
+
                     {hasMore && (
                       <div className="bg-border/70 text-muted-foreground mx-1 rounded px-2 py-1 text-center text-xs">
                         + {sortedDayVacations.length - 3}명
