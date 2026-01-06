@@ -827,7 +827,9 @@ export default function TaskEditModal({
                   </div>
 
                   <div className="space-y-2">
-                    <Label>현재 진행 과정 *</Label>
+                    <Label>
+                      현재 진행 과정 <span className="text-destructive">*</span>
+                    </Label>
                     <Select
                       value={formData.progressStage}
                       onValueChange={(v) =>
