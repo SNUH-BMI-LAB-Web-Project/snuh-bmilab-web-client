@@ -46,11 +46,11 @@ const mapPresentationType = (value?: string): PresentationType => {
 };
 
 export function ConferenceForm({
-                                 initialData,
-                                 onSave,
-                                 onCancel,
-                                 onDeleted,
-                               }: ConferenceFormProps) {
+  initialData,
+  onSave,
+  onCancel,
+  onDeleted,
+}: ConferenceFormProps) {
   const [authorNames, setAuthorNames] = useState<string[]>([]);
   const [authorUserIds, setAuthorUserIds] = useState<number[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -77,8 +77,7 @@ export function ConferenceForm({
     );
 
     setAuthorUserIds(
-      initialData.academicPresentationAuthors?.map((a: any) => a.userId) ??
-      [],
+      initialData.academicPresentationAuthors?.map((a: any) => a.userId) ?? [],
     );
 
     setFormData({
@@ -161,15 +160,11 @@ export function ConferenceForm({
       <div className="grid grid-cols-2 gap-4">
         <DatePicker
           value={formData.startDate}
-          onChange={(v) =>
-            setFormData((p) => ({ ...p, startDate: v }))
-          }
+          onChange={(v) => setFormData((p) => ({ ...p, startDate: v }))}
         />
         <DatePicker
           value={formData.endDate}
-          onChange={(v) =>
-            setFormData((p) => ({ ...p, endDate: v }))
-          }
+          onChange={(v) => setFormData((p) => ({ ...p, endDate: v }))}
         />
       </div>
 
@@ -248,7 +243,6 @@ export function ConferenceForm({
         }
       />
 
-
       <SingleTaskSelectInput
         value={formData.relatedTask.name}
         onValueChange={(name) =>
@@ -283,7 +277,7 @@ export function ConferenceForm({
           </Button>
         )}
 
-        <div className="flex gap-2 ml-auto">
+        <div className="ml-auto flex gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>
             취소
           </Button>

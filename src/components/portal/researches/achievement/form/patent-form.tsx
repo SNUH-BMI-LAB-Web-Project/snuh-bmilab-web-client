@@ -23,7 +23,7 @@ interface IdName {
 }
 
 interface PatentFormProps {
-  initialData?: any;   // GET /research/patents/{id} 응답
+  initialData?: any; // GET /research/patents/{id} 응답
   onCancel: () => void;
 }
 
@@ -91,9 +91,6 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
     );
   }, [initialData]);
 
-  /* ===============================
-     POST / PUT 공용 submit
-  =============================== */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -111,9 +108,7 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
     }
 
     const authRaw = localStorage.getItem('auth-storage');
-    const token = authRaw
-      ? JSON.parse(authRaw)?.state?.accessToken
-      : null;
+    const token = authRaw ? JSON.parse(authRaw)?.state?.accessToken : null;
 
     if (!token) {
       toast.error('인증 토큰이 없습니다.');
@@ -160,7 +155,9 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
         throw new Error(`서버 오류 (${res.status}) ${text}`);
       }
 
-      toast.success(isEdit ? '특허가 수정되었습니다.' : '특허가 등록되었습니다.');
+      toast.success(
+        isEdit ? '특허가 수정되었습니다.' : '특허가 등록되었습니다.',
+      );
       onCancel();
     } catch (err: any) {
       console.error('[PatentForm] error', err);
@@ -174,13 +171,22 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
       <DatePicker value={applicationDate} onChange={setApplicationDate} />
 
       <Label>출원번호 *</Label>
-      <Input value={applicationNumber} onChange={(e) => setApplicationNumber(e.target.value)} />
+      <Input
+        value={applicationNumber}
+        onChange={(e) => setApplicationNumber(e.target.value)}
+      />
 
       <Label>특허명 *</Label>
-      <Input value={patentName} onChange={(e) => setPatentName(e.target.value)} />
+      <Input
+        value={patentName}
+        onChange={(e) => setPatentName(e.target.value)}
+      />
 
       <Label>출원인(전체) *</Label>
-      <Textarea value={applicantsAll} onChange={(e) => setApplicantsAll(e.target.value)} />
+      <Textarea
+        value={applicantsAll}
+        onChange={(e) => setApplicantsAll(e.target.value)}
+      />
 
       <Label>발명자 *</Label>
       <UserTagInputString
@@ -197,7 +203,11 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
         value={relatedProject.name}
         onValueChange={(name) => setRelatedProject((p) => ({ ...p, name }))}
         onProjectSelected={(p) =>
-          setRelatedProject(p ? { id: p.projectId, name: p.title ?? '' } : { id: null, name: '' })
+          setRelatedProject(
+            p
+              ? { id: p.projectId ?? null, name: p.title ?? '' }
+              : { id: null, name: '' },
+          )
         }
       />
 
@@ -206,7 +216,11 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
         value={relatedTask.name}
         onValueChange={(name) => setRelatedTask((t) => ({ ...t, name }))}
         onTaskSelected={(t) =>
-          setRelatedTask(t ? { id: t.id, name: t.title ?? '' } : { id: null, name: '' })
+          setRelatedTask(
+            t
+              ? { id: t.id ?? null, name: t.title ?? '' }
+              : { id: null, name: '' },
+          )
         }
       />
 

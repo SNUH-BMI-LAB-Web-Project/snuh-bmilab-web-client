@@ -25,22 +25,61 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Paper } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 
+// 제공된 JSON 양식에 맞춘 내부 타입 정의
+interface PaperData {
+  id: number;
+  acceptDate: string;
+  publishDate: string;
+  journal: {
+    id: number;
+    journalName: string;
+    category: string;
+    publisher: string;
+    publishCountry: string;
+  };
+  paperTitle: string;
+  allAuthors: string;
+  authorCount: number;
+  correspondingAuthors: Array<{
+    externalProfessorId: number;
+    externalProfessorName: string;
+    role: string;
+  }>;
+  paperAuthors: Array<{
+    userId: number;
+    userName: string;
+    role: string;
+  }>;
+  vol: string;
+  page: string;
+  paperLink: string;
+  doi: string;
+  pmid: string;
+  citations: number;
+  professorRole: string;
+  isRepresentative: boolean;
+  files: Array<{
+    fileId: string;
+    fileName: string;
+    uploadUrl: string;
+  }>;
+}
+
 interface PaperTableProps {
-  data: Paper[];
-  onEdit: (item: Paper, type: string) => void;
+  data: PaperData[];
+  onEdit: (item: PaperData, type: string) => void;
   onDelete: (id: string, type: string) => void;
   isUserView?: boolean;
 }
 
 export function PaperTable({
-                             data,
-                             onEdit,
-                             onDelete,
-                             isUserView = false,
-                           }: PaperTableProps) {
+  data,
+  onEdit,
+  onDelete,
+  isUserView = false,
+}: PaperTableProps) {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchColumn, setSearchColumn] = useState<string>('all');
@@ -50,9 +89,9 @@ export function PaperTable({
     const q = searchQuery.toLowerCase();
 
     const correspondingNames =
-      item.correspondingAuthors?.map((a) => a.externalProfessorName).join(', ') ??
-      '';
-
+      item.correspondingAuthors
+        ?.map((a) => a.externalProfessorName)
+        .join(', ') ?? '';
     const labMemberNames =
       item.paperAuthors?.map((a) => a.userName).join(', ') ?? '';
 
@@ -68,7 +107,6 @@ export function PaperTable({
         item.doi?.toLowerCase().includes(q)
       );
     }
-
     return false;
   });
 
@@ -91,9 +129,9 @@ export function PaperTable({
         </Select>
 
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
-            placeholder="검색..."
+            placeholder="논문 검색..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -106,7 +144,7 @@ export function PaperTable({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="desc">최신순</SelectItem>
-            <SelectItem value="asc">오래된순</SelectItem>
+            <SelectItem value="asc">과거순</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -115,24 +153,19 @@ export function PaperTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>No</TableHead>
-              <TableHead>Publish</TableHead>
-              <TableHead>Accept</TableHead>
+              <TableHead className="w-[50px]">No</TableHead>
+              <TableHead>Publish/Accept</TableHead>
               <TableHead>저널명</TableHead>
-              <TableHead>논문 제목</TableHead>
+              <TableHead className="min-w-[200px]">논문 제목</TableHead>
               <TableHead>전체 저자</TableHead>
               <TableHead>교신저자</TableHead>
-              {!isUserView && <TableHead>저자수</TableHead>}
-              {!isUserView && <TableHead>연구실 내 인원</TableHead>}
-              <TableHead>Vol</TableHead>
-              <TableHead>Page</TableHead>
-              <TableHead>링크</TableHead>
-              <TableHead>DOI</TableHead>
-              <TableHead>PMID</TableHead>
-              <TableHead>첨부</TableHead>
-              <TableHead>Citation</TableHead>
-              {!isUserView && <TableHead>교수님 역할</TableHead>}
-              {!isUserView && <TableHead>대표</TableHead>}
+              {!isUserView && <TableHead>인원</TableHead>}
+              <TableHead>Vol/Page</TableHead>
+              <TableHead>DOI/PMID</TableHead>
+              <TableHead className="text-center">첨부</TableHead>
+              {!isUserView && (
+                <TableHead className="text-center">대표</TableHead>
+              )}
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -142,57 +175,69 @@ export function PaperTable({
               const correspondingNames =
                 item.correspondingAuthors
                   ?.map((a) => a.externalProfessorName)
-                  .join(', ') ?? '';
-
+                  .join(', ') ?? '-';
               const labMembers =
                 item.paperAuthors
                   ?.map((a) => `${a.userName}(${a.role})`)
-                  .join(', ') ?? '';
+                  .join(', ') ?? '-';
 
               return (
                 <TableRow key={item.id}>
-                  <TableCell>{idx + 1}</TableCell>
-                  <TableCell>{item.publishDate}</TableCell>
-                  <TableCell>{item.acceptDate}</TableCell>
+                  <TableCell className="text-center">{idx + 1}</TableCell>
+                  <TableCell className="text-xs">
+                    P: {item.publishDate}
+                    <br />
+                    A: {item.acceptDate}
+                  </TableCell>
                   <TableCell>{item.journal?.journalName}</TableCell>
-                  <TableCell>{item.paperTitle}</TableCell>
-                  <TableCell>{item.allAuthors}</TableCell>
-                  <TableCell>{correspondingNames}</TableCell>
+                  <TableCell>
+                    <div className="font-medium">{item.paperTitle}</div>
+                    {/* 링크 노출 및 말줄임 처리 */}
+                    {item.paperLink && (
+                      <div className="max-w-[250px] truncate">
+                        <a
+                          href={item.paperLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary text-xs underline"
+                          title={item.paperLink}
+                        >
+                          {item.paperLink}
+                        </a>
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="max-w-[150px] truncate text-xs">
+                    {item.allAuthors}
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    {correspondingNames}
+                  </TableCell>
 
                   {!isUserView && (
-                    <TableCell className="text-center">
-                      {item.authorCount}
+                    <TableCell className="text-xs">
+                      총 {item.authorCount}명<br />
+                      <span className="text-muted-foreground">
+                        {labMembers}
+                      </span>
                     </TableCell>
                   )}
 
-                  {!isUserView && <TableCell>{labMembers}</TableCell>}
-
-                  <TableCell>{item.vol}</TableCell>
-                  <TableCell>{item.page}</TableCell>
-
-                  <TableCell>
-                    {item.paperLink && (
-                      <a
-                        href={item.paperLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary underline"
-                      >
-                        링크
-                      </a>
-                    )}
+                  <TableCell className="text-xs">
+                    {item.vol || '-'}/{item.page || '-'}
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    D: {item.doi || '-'}
+                    <br />
+                    P: {item.pmid || '-'}
                   </TableCell>
 
-                  <TableCell>{item.doi}</TableCell>
-                  <TableCell>{item.pmid}</TableCell>
-
-                  <TableCell>
-                    {item.files?.length > 0 && (
+                  <TableCell className="text-center">
+                    {(item.files?.length ?? 0) > 0 && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button size="sm" variant="ghost">
-                            <Download className="mr-1 h-4 w-4" />
-                            {item.files.length}
+                            <Download className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
@@ -209,21 +254,14 @@ export function PaperTable({
                     )}
                   </TableCell>
 
-                  <TableCell className="text-center">
-                    {item.citations}
-                  </TableCell>
-
-                  {!isUserView && (
-                    <TableCell className="text-center">
-                      {item.professorRole}
-                    </TableCell>
-                  )}
-
                   {!isUserView && (
                     <TableCell className="text-center">
                       {item.isRepresentative && (
-                        <Badge variant="outline">대표</Badge>
+                        <Badge variant="default">대표</Badge>
                       )}
+                      <div className="mt-1 text-[10px]">
+                        {item.professorRole}
+                      </div>
                     </TableCell>
                   )}
 
@@ -235,18 +273,14 @@ export function PaperTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => onEdit(item, 'paper')}
-                        >
-                          <Pencil className="mr-2 h-4 w-4" />
-                          수정
+                        <DropdownMenuItem onClick={() => onEdit(item, 'paper')}>
+                          <Pencil className="mr-2 h-4 w-4" /> 수정
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => onDelete(String(item.id), 'paper')}
                           className="text-destructive"
                         >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          삭제
+                          <Trash2 className="mr-2 h-4 w-4" /> 삭제
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

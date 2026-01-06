@@ -64,12 +64,12 @@ const UPDATE_ENDPOINT_MAP: Record<ResearchType, string> = {
 };
 
 export function ResearchAchievementModal({
-                                           open,
-                                           type,
-                                           editingItem,
-                                           onClose,
-                                           onSave,
-                                         }: ResearchAchievementModalProps) {
+  open,
+  type,
+  editingItem,
+  onClose,
+  onSave,
+}: ResearchAchievementModalProps) {
   const handleSubmit = async (data: any) => {
     console.log('[SUBMIT]');
     console.log('type:', type);

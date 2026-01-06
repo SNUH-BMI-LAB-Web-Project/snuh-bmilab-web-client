@@ -41,7 +41,6 @@ interface Award {
 interface AwardTableProps {
   data: Award[];
   onEdit: (item: Award, type: string) => void;
-  onRefresh: () => void;
 }
 
 type SortOrder = 'asc' | 'desc';
@@ -53,7 +52,7 @@ const getToken = () => {
   return raw ? JSON.parse(raw)?.state?.accessToken : null;
 };
 
-export function AwardTable({ data, onEdit, onRefresh }: AwardTableProps) {
+export function AwardTable({ data, onEdit }: AwardTableProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchColumn, setSearchColumn] = useState<string>('all');
@@ -125,7 +124,6 @@ export function AwardTable({ data, onEdit, onRefresh }: AwardTableProps) {
       }
 
       console.log('[AWARD DELETE] 삭제 성공');
-      onRefresh();
     } catch (e) {
       console.error('[AWARD DELETE] fetch 에러:', e);
     }
@@ -150,7 +148,7 @@ export function AwardTable({ data, onEdit, onRefresh }: AwardTableProps) {
         </Select>
 
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
             placeholder="검색..."
             value={searchQuery}
@@ -173,7 +171,7 @@ export function AwardTable({ data, onEdit, onRefresh }: AwardTableProps) {
         </Select>
       </div>
 
-      <div className="rounded-lg border bg-card">
+      <div className="bg-card rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -190,7 +188,10 @@ export function AwardTable({ data, onEdit, onRefresh }: AwardTableProps) {
           <TableBody>
             {sortedData.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={8}
+                  className="text-muted-foreground h-24 text-center"
+                >
                   데이터가 없습니다.
                 </TableCell>
               </TableRow>
@@ -198,7 +199,9 @@ export function AwardTable({ data, onEdit, onRefresh }: AwardTableProps) {
               sortedData.map((item, index) => (
                 <TableRow key={item.id}>
                   <TableCell className="text-center">{index + 1}</TableCell>
-                  <TableCell className="text-center">{item.awardDate}</TableCell>
+                  <TableCell className="text-center">
+                    {item.awardDate}
+                  </TableCell>
                   <TableCell>{item.recipients}</TableCell>
                   <TableCell>{item.awardName}</TableCell>
                   <TableCell>{item.competitionName}</TableCell>

@@ -43,7 +43,6 @@ interface Conference {
 interface ConferenceTableProps {
   data: Conference[];
   onEdit: (item: Conference, type: string) => void;
-  onRefresh: () => void;
 }
 
 type SortOrder = 'asc' | 'desc';
@@ -55,11 +54,7 @@ const getToken = () => {
   return raw ? JSON.parse(raw)?.state?.accessToken : null;
 };
 
-export function ConferenceTable({
-                                  data,
-                                  onEdit,
-                                  onRefresh,
-                                }: ConferenceTableProps) {
+export function ConferenceTable({ data, onEdit }: ConferenceTableProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchColumn, setSearchColumn] = useState<string>('all');
@@ -100,17 +95,12 @@ export function ConferenceTable({
     const token = getToken();
     if (!token) return;
 
-    await fetch(
-      `${API_BASE}/research/academic-presentations/${id}`,
-      {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    await fetch(`${API_BASE}/research/academic-presentations/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
-    );
-
-    onRefresh();
+    });
   };
 
   return (
@@ -122,9 +112,15 @@ export function ConferenceTable({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">전체</SelectItem>
-            <SelectItem value="academicPresentationStartDate">학회 시작일</SelectItem>
-            <SelectItem value="academicPresentationEndDate">학회 종료일</SelectItem>
-            <SelectItem value="academicPresentationLocation">학회 장소</SelectItem>
+            <SelectItem value="academicPresentationStartDate">
+              학회 시작일
+            </SelectItem>
+            <SelectItem value="academicPresentationEndDate">
+              학회 종료일
+            </SelectItem>
+            <SelectItem value="academicPresentationLocation">
+              학회 장소
+            </SelectItem>
             <SelectItem value="academicPresentationHost">학회 주최</SelectItem>
             <SelectItem value="academicPresentationName">학회명</SelectItem>
             <SelectItem value="presentationType">발표 Type</SelectItem>
@@ -134,7 +130,7 @@ export function ConferenceTable({
         </Select>
 
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
             placeholder="검색..."
             value={searchQuery}
@@ -157,7 +153,7 @@ export function ConferenceTable({
         </Select>
       </div>
 
-      <div className="rounded-lg border bg-card">
+      <div className="bg-card rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -176,7 +172,10 @@ export function ConferenceTable({
           <TableBody>
             {sortedData.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={10}
+                  className="text-muted-foreground h-24 text-center"
+                >
                   데이터가 없습니다.
                 </TableCell>
               </TableRow>
@@ -184,8 +183,12 @@ export function ConferenceTable({
               sortedData.map((item, index) => (
                 <TableRow key={item.id}>
                   <TableCell className="text-center">{index + 1}</TableCell>
-                  <TableCell className="text-center">{item.academicPresentationStartDate}</TableCell>
-                  <TableCell className="text-center">{item.academicPresentationEndDate}</TableCell>
+                  <TableCell className="text-center">
+                    {item.academicPresentationStartDate}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {item.academicPresentationEndDate}
+                  </TableCell>
                   <TableCell>{item.academicPresentationLocation}</TableCell>
                   <TableCell>{item.academicPresentationHost}</TableCell>
                   <TableCell>{item.academicPresentationName}</TableCell>
@@ -200,7 +203,9 @@ export function ConferenceTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(item, 'conference')}>
+                        <DropdownMenuItem
+                          onClick={() => onEdit(item, 'conference')}
+                        >
                           <Pencil className="mr-2 h-4 w-4" />
                           수정
                         </DropdownMenuItem>

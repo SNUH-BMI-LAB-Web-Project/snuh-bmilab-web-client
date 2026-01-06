@@ -33,6 +33,9 @@ interface PaperFormProps {
   onCancel: () => void;
 }
 
+// 서버 Enum 타입 정의
+type ProfessorRole = 'FIRST_AUTHOR' | 'CO_AUTHOR' | 'CORRESPONDING_AUTHOR';
+
 export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
   const [showCorrespondingModal, setShowCorrespondingModal] = useState(false);
   const [correspondingProfessors, setCorrespondingProfessors] = useState<
@@ -55,22 +58,17 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
     doi: '',
     pmid: '',
     citationCount: '',
-    professorRole: '제1저자' as '제1저자' | '공저자' | '교신저자',
+    professorRole: 'FIRST_AUTHOR' as ProfessorRole,
     isRepresentative: false,
   });
 
-  /* ===============================
-     GET /research/papers/{id} → 수정 주입
-     =============================== */
   useEffect(() => {
     if (!initialData) return;
 
     setFormData({
       acceptDate: initialData.acceptDate ?? '',
       publishDate: initialData.publishDate ?? '',
-      journalName: initialData.journal?.id
-        ? String(initialData.journal.id)
-        : '',
+      journalName: initialData.journalName ?? '',
       paperTitle: initialData.paperTitle ?? '',
       firstAuthors: initialData.firstAuthors ?? '',
       coAuthors: initialData.coAuthors ?? '',
@@ -79,11 +77,15 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
       paperLink: initialData.paperLink ?? '',
       doi: initialData.doi ?? '',
       pmid: initialData.pmid ?? '',
-      citationCount: String(initialData.citations ?? ''),
-      professorRole: initialData.professorRole ?? '제1저자',
-
+      citationCount: String(
+        initialData.citations ?? initialData.citationCount ?? '',
+      ),
+      professorRole:
+        (initialData.professorRole as ProfessorRole) ?? 'FIRST_AUTHOR',
       isRepresentative: initialData.isRepresentative ?? false,
     });
+
+    // 첨부파일이나 연구실 멤버 등 추가 데이터 복구 로직이 필요할 경우 여기에 추가
   }, [initialData]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -110,20 +112,23 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
       acceptDate: formData.acceptDate,
       publishDate: formData.publishDate,
       journal: formData.journalName
-        ? { id: Number(formData.journalName) }
+        ? { id: Number(formData.journalName) || 0 } // ID가 숫자인 경우 처리
         : undefined,
+      journalName: formData.journalName,
       paperTitle: formData.paperTitle,
       allAuthors,
-      firstAuthor: firstAuthorsList[0] ?? '',
+      firstAuthors: formData.firstAuthors,
       coAuthors: formData.coAuthors,
       correspondingAuthor: correspondingProfessors[0]?.name ?? '',
       labMembers: labMembers.map((m) => m.name),
+      authorCount: firstAuthorsList.length + coAuthorsList.length,
       vol: formData.vol,
       page: formData.page,
       paperLink: formData.paperLink,
       doi: formData.doi,
       pmid: formData.pmid,
-      citations: Number(formData.citationCount),
+      citations: Number(formData.citationCount) || 0,
+      citationCount: formData.citationCount,
       professorRole: formData.professorRole,
       isRepresentative: formData.isRepresentative,
       attachments: files
@@ -170,7 +175,7 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
           onChange={(e) =>
             setFormData({ ...formData, journalName: e.target.value })
           }
-          placeholder="저널 선택"
+          placeholder="저널 입력"
           required
         />
       </div>
@@ -376,7 +381,7 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
         </Label>
         <Select
           value={formData.professorRole}
-          onValueChange={(value: '제1저자' | '공저자' | '교신저자') =>
+          onValueChange={(value: ProfessorRole) =>
             setFormData({ ...formData, professorRole: value })
           }
         >
@@ -384,9 +389,9 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="제1저자">제1저자</SelectItem>
-            <SelectItem value="공저자">공저자</SelectItem>
-            <SelectItem value="교신저자">교신저자</SelectItem>
+            <SelectItem value="FIRST_AUTHOR">제1저자</SelectItem>
+            <SelectItem value="CO_AUTHOR">공저자</SelectItem>
+            <SelectItem value="CORRESPONDING_AUTHOR">교신저자</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -107,7 +107,7 @@ export interface Paper {
   citationCount: string;
   citations?: number;
 
-  professorRole: '제1저자' | '공저자' | '교신저자';
+  professorRole: 'FIRST_AUTHOR' | 'CO_AUTHOR' | 'CORRESPONDING_AUTHOR';
   isRepresentative: boolean;
 }
 

@@ -25,11 +25,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Patent } from '@/lib/types';
+
+// 실제 API 응답 양식에 맞춘 타입 정의
+interface PatentData {
+  id: number;
+  applicationDate: string;
+  applicationNumber: string;
+  patentName: string;
+  applicantsAll: string;
+  patentAuthors: Array<{
+    userId: number;
+    userName: string;
+    role: string;
+  }>;
+  remarks: string;
+  projectId: number;
+  projectName: string;
+  taskId: number;
+  taskName: string;
+  files: Array<{
+    fileId: string;
+    fileName: string;
+    uploadUrl: string;
+  }>;
+}
 
 interface PatentTableProps {
-  data: Patent[];
-  onEdit: (item: Patent, type: string) => void;
+  data: PatentData[];
+  onEdit: (item: PatentData, type: string) => void;
   onDelete: (id: number, type: string) => void;
 }
 
@@ -38,79 +61,52 @@ type SortOrder = 'asc' | 'desc';
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const getToken = () => {
+  if (typeof window === 'undefined') return null;
   const raw = localStorage.getItem('auth-storage');
   return raw ? JSON.parse(raw)?.state?.accessToken : null;
 };
 
-export function PatentTable({ data, onEdit }: PatentTableProps) {
+export function PatentTable({ data, onEdit, onDelete }: PatentTableProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchColumn, setSearchColumn] = useState<string>('all');
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('정말 삭제하시겠습니까?')) return;
-
-    const token = getToken();
-    if (!token) return;
-
-    const res = await fetch(`${API_BASE}/research/patents/${id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!res.ok) {
-      console.error('[PATENT DELETE FAILED]', await res.text());
-      return;
-    }
-
-    window.location.reload();
-  };
-
-  // JSX는 그대로 두기 위해 props onDelete를 로컬에서 덮어씀
-  const onDelete = handleDelete;
-
   const filteredData = data.filter((item) => {
     if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
 
-    const searchLower = searchQuery.toLowerCase();
+    const labApplicants =
+      item.patentAuthors?.map((a) => a.userName).join(', ') ?? '';
 
     if (searchColumn === 'all') {
       return (
-        item.applicationDate?.toLowerCase().includes(searchLower) ||
-        item.applicationNumber?.toLowerCase().includes(searchLower) ||
-        item.applicationName?.toLowerCase().includes(searchLower) ||
-        item.allApplicants?.toLowerCase().includes(searchLower) ||
-        item.labApplicants?.some((applicant) =>
-          applicant.toLowerCase().includes(searchLower),
-        ) ||
-        item.notes?.toLowerCase().includes(searchLower) ||
-        item.relatedTask?.toLowerCase().includes(searchLower) ||
-        item.relatedProject?.toLowerCase().includes(searchLower)
+        item.applicationDate?.toLowerCase().includes(q) ||
+        item.applicationNumber?.toLowerCase().includes(q) ||
+        item.patentName?.toLowerCase().includes(q) ||
+        item.applicantsAll?.toLowerCase().includes(q) ||
+        labApplicants.toLowerCase().includes(q) ||
+        item.remarks?.toLowerCase().includes(q) ||
+        item.projectName?.toLowerCase().includes(q) ||
+        item.taskName?.toLowerCase().includes(q)
       );
     }
 
-    if (searchColumn === 'labApplicants') {
-      return item.labApplicants?.some((applicant) =>
-        applicant.toLowerCase().includes(searchLower),
-      );
+    if (searchColumn === 'patentAuthors') {
+      return labApplicants.toLowerCase().includes(q);
     }
 
-    return item[searchColumn as keyof Patent]
-      ?.toString()
+    const value = item[searchColumn as keyof PatentData];
+    return String(value ?? '')
       .toLowerCase()
-      .includes(searchLower);
+      .includes(q);
   });
 
   const sortedData = [...filteredData].sort((a, b) => {
     const aValue = a.applicationDate || '';
     const bValue = b.applicationDate || '';
-
-    if (sortOrder === 'asc') {
-      return aValue > bValue ? 1 : -1;
-    }
-    return aValue < bValue ? 1 : -1;
+    return sortOrder === 'asc'
+      ? aValue.localeCompare(bValue)
+      : bValue.localeCompare(aValue);
   });
 
   return (
@@ -124,18 +120,18 @@ export function PatentTable({ data, onEdit }: PatentTableProps) {
             <SelectItem value="all">전체</SelectItem>
             <SelectItem value="applicationDate">출원일자</SelectItem>
             <SelectItem value="applicationNumber">출원번호</SelectItem>
-            <SelectItem value="applicationName">출원명</SelectItem>
-            <SelectItem value="allApplicants">출원인(전체)</SelectItem>
-            <SelectItem value="labApplicants">출원인(연구실)</SelectItem>
-            <SelectItem value="notes">비고</SelectItem>
-            <SelectItem value="relatedTask">연계 과제</SelectItem>
-            <SelectItem value="relatedProject">연계 프로젝트</SelectItem>
+            <SelectItem value="patentName">출원명</SelectItem>
+            <SelectItem value="applicantsAll">출원인(전체)</SelectItem>
+            <SelectItem value="patentAuthors">출원인(연구실)</SelectItem>
+            <SelectItem value="remarks">비고</SelectItem>
+            <SelectItem value="projectName">연계 프로젝트</SelectItem>
+            <SelectItem value="taskName">연계 과제</SelectItem>
           </SelectContent>
         </Select>
         <div className="relative flex-1">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
-            placeholder="검색..."
+            placeholder="특허 검색..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -155,99 +151,78 @@ export function PatentTable({ data, onEdit }: PatentTableProps) {
         </Select>
       </div>
 
-      <div className="bg-card rounded-lg border">
+      <div className="bg-card overflow-x-auto rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-[60px] text-center">No</TableHead>
-              <TableHead className="text-center">출원일자</TableHead>
+              <TableHead className="w-[50px] text-center">No</TableHead>
+              <TableHead className="w-[120px] text-center">출원일자</TableHead>
               <TableHead>출원번호</TableHead>
-              <TableHead>출원명</TableHead>
+              <TableHead className="min-w-[200px]">출원명</TableHead>
               <TableHead>출원인(전체)</TableHead>
               <TableHead>출원인(연구실)</TableHead>
               <TableHead>비고</TableHead>
-              <TableHead>연계 프로젝트</TableHead>
-              <TableHead>연계 과제</TableHead>
-              <TableHead className="text-center">첨부파일</TableHead>
-              <TableHead className="text-center" />
+              <TableHead>연계 프로젝트/과제</TableHead>
+              <TableHead className="text-center">첨부</TableHead>
+              <TableHead className="w-[50px]" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {sortedData.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={10}
+                  className="text-muted-foreground h-24 text-center"
+                >
                   데이터가 없습니다.
                 </TableCell>
               </TableRow>
             ) : (
               sortedData.map((item, index) => {
                 const labApplicants =
-                  item.patentAuthors?.map((a) => a.userName).join(', ') ?? '';
+                  item.patentAuthors?.map((a) => a.userName).join(', ') ?? '-';
 
                 return (
-                  <TableRow key={item.id} className="hover:bg-primary/10">
+                  <TableRow key={item.id} className="hover:bg-muted/50">
                     <TableCell className="text-center">{index + 1}</TableCell>
-
                     <TableCell className="text-center">
-                      <div className="truncate" title={item.applicationDate}>
-                        {item.applicationDate}
-                      </div>
+                      {item.applicationDate}
                     </TableCell>
-
-                    <TableCell>
-                      <div className="truncate" title={item.applicationNumber}>
-                        {item.applicationNumber}
-                      </div>
+                    <TableCell className="text-xs">
+                      {item.applicationNumber}
                     </TableCell>
-
-                    <TableCell>
-                      <div className="truncate" title={item.patentName}>
-                        {item.patentName}
-                      </div>
+                    <TableCell className="font-medium">
+                      {item.patentName}
                     </TableCell>
-
-                    <TableCell>
-                      <div className="truncate" title={item.applicantsAll}>
-                        {item.applicantsAll}
-                      </div>
+                    <TableCell className="text-xs">
+                      {item.applicantsAll}
                     </TableCell>
-
-                    <TableCell>
-                      <div className="truncate" title={labApplicants}>
-                        {labApplicants || '-'}
-                      </div>
+                    <TableCell className="text-xs">{labApplicants}</TableCell>
+                    <TableCell className="text-xs">
+                      {item.remarks || '-'}
                     </TableCell>
-
-                    <TableCell>
-                      <div className="truncate" title={item.remarks}>
-                        {item.remarks || '-'}
-                      </div>
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="truncate" title={item.projectName}>
+                    <TableCell className="text-xs">
+                      <div className="text-primary font-medium">
                         {item.projectName || '-'}
                       </div>
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="truncate" title={item.taskName}>
+                      <div className="text-muted-foreground">
                         {item.taskName || '-'}
                       </div>
                     </TableCell>
-
                     <TableCell className="text-center">
-                      {item.files?.length > 0 && (
+                      {(item.files?.length ?? 0) > 0 && (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="gap-1">
+                            <Button variant="ghost" size="sm" className="h-8">
                               <Download className="h-4 w-4" />
-                              <span>{item.files.length}개</span>
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             {item.files.map((f) => (
-                              <DropdownMenuItem key={f.fileId}>
+                              <DropdownMenuItem
+                                key={f.fileId}
+                                onClick={() => window.open(f.uploadUrl)}
+                              >
                                 <Download className="mr-2 h-4 w-4" />
                                 {f.fileName}
                               </DropdownMenuItem>
@@ -256,7 +231,6 @@ export function PatentTable({ data, onEdit }: PatentTableProps) {
                         </DropdownMenu>
                       )}
                     </TableCell>
-
                     <TableCell className="text-center">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -265,16 +239,16 @@ export function PatentTable({ data, onEdit }: PatentTableProps) {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onEdit(item, 'patent')}>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            수정
+                          <DropdownMenuItem
+                            onClick={() => onEdit(item, 'patent')}
+                          >
+                            <Pencil className="mr-2 h-4 w-4" /> 수정
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => onDelete(item.id, 'patent')}
                             className="text-destructive"
                           >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            삭제
+                            <Trash2 className="mr-2 h-4 w-4" /> 삭제
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

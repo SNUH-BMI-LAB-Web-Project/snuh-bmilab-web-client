@@ -17,12 +17,12 @@ interface SingleTaskSelectInputProps {
 }
 
 export function SingleTaskSelectInput({
-                                        value,
-                                        onValueChange,
-                                        onTaskSelected,
-                                        onTaskIdChange,
-                                        placeholder = '과제 검색',
-                                      }: SingleTaskSelectInputProps) {
+  value,
+  onValueChange,
+  onTaskSelected,
+  onTaskIdChange,
+  placeholder = '과제 검색',
+}: SingleTaskSelectInputProps) {
   const [input, setInput] = useState(value);
   const [open, setOpen] = useState(false);
   const [list, setList] = useState<TaskSummaryResponse[]>([]);
@@ -70,8 +70,7 @@ export function SingleTaskSelectInput({
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () =>
-      document.removeEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [open]);
 
   const selectTask = (t: TaskSummaryResponse) => {

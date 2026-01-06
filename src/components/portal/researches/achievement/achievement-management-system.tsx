@@ -36,7 +36,9 @@ interface ResearchManagementSystemProps {
   isUserView?: boolean;
 }
 
-export default function ResearchManagementSystem({ isUserView }: ResearchManagementSystemProps) {
+export default function ResearchManagementSystem({
+  isUserView,
+}: ResearchManagementSystemProps) {
   const [activeTab, setActiveTab] = useState<ResearchType>('book');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -120,11 +122,10 @@ export default function ResearchManagementSystem({ isUserView }: ResearchManagem
   /* 저장 후 목록 반영 */
   const handleSave = (savedItem: any, type: ResearchType) => {
     const updater =
-      (setter: React.Dispatch<React.SetStateAction<any[]>>) =>
-        (prev: any[]) =>
-          editingItem
-            ? prev.map((i) => (i.id === savedItem.id ? savedItem : i))
-            : [...prev, savedItem];
+      (setter: React.Dispatch<React.SetStateAction<any[]>>) => (prev: any[]) =>
+        editingItem
+          ? prev.map((i) => (i.id === savedItem.id ? savedItem : i))
+          : [...prev, savedItem];
 
     switch (type) {
       case 'book':
@@ -186,8 +187,7 @@ export default function ResearchManagementSystem({ isUserView }: ResearchManagem
               handleEditDefault(item, type);
             }
           }}
-          onDelete={(id, type) => {
-          }}
+          onDelete={(id, type) => {}}
         />
       </Tabs>
 

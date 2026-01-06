@@ -17,6 +17,7 @@ import {
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const getToken = () => {
+  if (typeof window === 'undefined') return null;
   const raw = localStorage.getItem('auth-storage');
   return raw ? JSON.parse(raw)?.state?.accessToken : null;
 };
@@ -40,10 +41,10 @@ interface JournalFormProps {
 }
 
 export function JournalForm({
-                              initialData,
-                              onCancel,
-                              onSaved,
-                            }: JournalFormProps) {
+  initialData,
+  onCancel,
+  onSaved,
+}: JournalFormProps) {
   const [formData, setFormData] = useState({
     journalName: '',
     category: '',
@@ -107,23 +108,28 @@ export function JournalForm({
 
     const method = isEdit ? 'PUT' : 'POST';
 
-    const res = await fetch(url, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
 
-    if (!res.ok) {
-      throw new Error(
-        `저널 ${isEdit ? '수정' : '생성'} 실패 (${res.status})`,
-      );
+      if (!res.ok) {
+        throw new Error(
+          `저널 ${isEdit ? '수정' : '생성'} 실패 (${res.status})`,
+        );
+      }
+
+      onSaved?.();
+      onCancel();
+    } catch (error) {
+      console.error(error);
+      alert('저장 중 오류가 발생했습니다.');
     }
-
-    onSaved?.();
-    onCancel();
   };
 
   return (
@@ -143,9 +149,7 @@ export function JournalForm({
         <Label>구분 *</Label>
         <Select
           value={formData.category}
-          onValueChange={(v) =>
-            setFormData((p) => ({ ...p, category: v }))
-          }
+          onValueChange={(v) => setFormData((p) => ({ ...p, category: v }))}
         >
           <SelectTrigger>
             <SelectValue placeholder="구분 선택" />
@@ -187,9 +191,7 @@ export function JournalForm({
         <Label>ISBN</Label>
         <Input
           value={formData.isbn}
-          onChange={(e) =>
-            setFormData((p) => ({ ...p, isbn: e.target.value }))
-          }
+          onChange={(e) => setFormData((p) => ({ ...p, isbn: e.target.value }))}
         />
       </div>
 
@@ -197,9 +199,7 @@ export function JournalForm({
         <Label>ISSN</Label>
         <Input
           value={formData.issn}
-          onChange={(e) =>
-            setFormData((p) => ({ ...p, issn: e.target.value }))
-          }
+          onChange={(e) => setFormData((p) => ({ ...p, issn: e.target.value }))}
         />
       </div>
 
@@ -217,9 +217,7 @@ export function JournalForm({
         <Label>JIF</Label>
         <Input
           value={formData.jif}
-          onChange={(e) =>
-            setFormData((p) => ({ ...p, jif: e.target.value }))
-          }
+          onChange={(e) => setFormData((p) => ({ ...p, jif: e.target.value }))}
         />
       </div>
 
@@ -247,9 +245,7 @@ export function JournalForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           취소
         </Button>
-        <Button type="submit">
-          {initialData ? '수정' : '저장'}
-        </Button>
+        <Button type="submit">{initialData ? '수정' : '저장'}</Button>
       </div>
     </form>
   );

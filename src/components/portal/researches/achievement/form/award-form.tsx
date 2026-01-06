@@ -112,9 +112,7 @@ export function AwardForm({ initialData, onSave, onCancel }: AwardFormProps) {
 
       <DatePicker
         value={formData.awardDate}
-        onChange={(v) =>
-          setFormData((prev) => ({ ...prev, awardDate: v }))
-        }
+        onChange={(v) => setFormData((prev) => ({ ...prev, awardDate: v }))}
       />
 
       <Input

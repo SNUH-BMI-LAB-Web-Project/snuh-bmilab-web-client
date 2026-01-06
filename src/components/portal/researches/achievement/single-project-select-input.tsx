@@ -19,12 +19,12 @@ interface SingleProjectSelectInputProps {
 }
 
 export function SingleProjectSelectInput({
-                                           value,
-                                           onValueChange,
-                                           onProjectSelected,
-                                           placeholder = '프로젝트 검색',
-                                           required,
-                                         }: SingleProjectSelectInputProps) {
+  value,
+  onValueChange,
+  onProjectSelected,
+  placeholder = '프로젝트 검색',
+  required,
+}: SingleProjectSelectInputProps) {
   const [input, setInput] = useState(value);
   const [open, setOpen] = useState(false);
   const [list, setList] = useState<ProjectSummary[]>([]);
@@ -71,8 +71,7 @@ export function SingleProjectSelectInput({
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () =>
-      document.removeEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [open]);
 
   const selectProject = (p: ProjectSummary) => {
