@@ -3,6 +3,10 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
+  eslint: {
+    // CI/production builds should not fail on lint rules; run `yarn lint` separately.
+    ignoreDuringBuilds: true,
+  },
   webpack: (config) => {
     config.module.rules.push({
       test: /\.svg$/i,
