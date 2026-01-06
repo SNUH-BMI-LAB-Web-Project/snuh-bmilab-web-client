@@ -40,15 +40,17 @@ export default function UsersPage() {
   const itemsPerPageOptions = [5, 10, 20, 50];
 
   // 탭 상태: 전체/재직/휴직/퇴직
-  const [selectedStatus, setSelectedStatus] = useState<StatusTabValue>('ALL');
+  const [selectedStatus, setSelectedStatus] = useState<StatusTabValue>(
+    GetAllUsersStatusEnum.Active,
+  );
 
   // 탭 라벨 매핑
   const statusTabs = useMemo(
     () => [
-      { label: '전체', value: 'ALL' as const },
       { label: '재직자', value: GetAllUsersStatusEnum.Active },
       { label: '휴직자', value: GetAllUsersStatusEnum.OnLeave },
       { label: '퇴사자', value: GetAllUsersStatusEnum.Resigned },
+      { label: '전체', value: 'ALL' as const },
     ],
     [],
   );
