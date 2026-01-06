@@ -992,17 +992,13 @@ export default function LeavesCalendar() {
                 const bIsAll = String(b.type) === 'ALL';
                 if (aIsAll !== bIsAll) return aIsAll ? -1 : 1;
 
-                const kindA = getVacationSegmentKind(a, day);
-                const kindB = getVacationSegmentKind(b, day);
-                const kindOrder = {
-                  start: 0,
-                  middle: 1,
-                  end: 2,
-                  single: 3,
-                } as const;
-                const orderA = kindOrder[kindA] ?? 99;
-                const orderB = kindOrder[kindB] ?? 99;
-                if (orderA !== orderB) return orderA - orderB;
+                const aStart = a.startDate
+                  ? new Date(a.startDate).getTime()
+                  : 0;
+                const bStart = b.startDate
+                  ? new Date(b.startDate).getTime()
+                  : 0;
+                if (aStart !== bStart) return aStart - bStart;
 
                 return (a.leaveId ?? 0) - (b.leaveId ?? 0);
               });
