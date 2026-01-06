@@ -29,7 +29,9 @@ const baseNav = [
     icon: FolderSearch,
     items: [
       // { title: 'RSS 공고', url: '/system/researches/rss' },
+      { title: '과제', url: '/system/researches/assignment' },
       { title: '연구 & 프로젝트', url: '/system/researches/projects' },
+      { title: '연구 성과', url: '/system/researches/achievement' },
     ],
   },
   {

@@ -45,6 +45,11 @@ const userApi = new UserApi(getApiConfig());
 
 const adminApi = new AdminUserApi(getApiConfig());
 
+const userStatusSuffixMap: Record<string, string> = {
+  ON_LEAVE: '휴직자',
+  RESIGNED: '퇴사자',
+};
+
 const getUserColumns = (
   currentPage: number,
   itemsPerPage: number,
@@ -74,7 +79,21 @@ const getUserColumns = (
         href={`/system/users/members/${row.userId}`}
         className="hover:underline"
       >
-        <div className="font-medium">{row.name}</div>
+        <div className="flex items-center gap-1 font-medium">
+          <span>{row.name}</span>
+
+          {/* 휴직 / 퇴직 상태 표시 */}
+          {(row.status === 'ON_LEAVE' || row.status === 'RESIGNED') && (
+            <span
+              className={`text-sm font-normal ${
+                row.status === 'ON_LEAVE' ? 'text-primary' : 'text-destructive'
+              }`}
+            >
+              ({userStatusSuffixMap[row.status]})
+            </span>
+          )}
+        </div>
+
         <div className="w-[220px] truncate overflow-hidden text-sm whitespace-nowrap text-gray-500">
           {row.email}
         </div>
