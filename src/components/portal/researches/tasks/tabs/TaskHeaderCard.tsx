@@ -8,6 +8,8 @@ import {
   MapPin,
   Users,
   MoreHorizontal,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -233,14 +235,16 @@ export default function TaskHeaderCard() {
 
               <DropdownMenuContent align="end" className="w-32">
                 <DropdownMenuItem onClick={() => setOpenModal(true)}>
-                  수정하기
+                  <Pencil className="mr-2 h-4 w-4" />
+                  수정
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
                   onClick={handleDelete}
-                  className="text-red-600"
+                  className="text-destructive focus:text-destructive"
                 >
-                  삭제하기
+                  <Trash2 className="text-destructive mr-2 h-4 w-4" />
+                  삭제
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
