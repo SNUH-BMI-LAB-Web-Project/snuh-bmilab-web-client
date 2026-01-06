@@ -20,13 +20,6 @@ import {
     TaskMemberSummaryToJSON,
     TaskMemberSummaryToJSONTyped,
 } from './TaskMemberSummary';
-import type { FileSummary } from './FileSummary';
-import {
-    FileSummaryFromJSON,
-    FileSummaryFromJSONTyped,
-    FileSummaryToJSON,
-    FileSummaryToJSONTyped,
-} from './FileSummary';
 
 /**
  * 
@@ -76,24 +69,6 @@ export interface TaskPeriodResponse {
      * @memberof TaskPeriodResponse
      */
     members?: Array<TaskMemberSummary>;
-    /**
-     * 연차별 관련 파일 목록
-     * @type {Array<FileSummary>}
-     * @memberof TaskPeriodResponse
-     */
-    periodFiles?: Array<FileSummary>;
-    /**
-     * 중간보고 파일 목록
-     * @type {Array<FileSummary>}
-     * @memberof TaskPeriodResponse
-     */
-    interimReportFiles?: Array<FileSummary>;
-    /**
-     * 연차보고 파일 목록
-     * @type {Array<FileSummary>}
-     * @memberof TaskPeriodResponse
-     */
-    annualReportFiles?: Array<FileSummary>;
 }
 
 /**
@@ -120,9 +95,6 @@ export function TaskPeriodResponseFromJSONTyped(json: any, ignoreDiscriminator: 
         'managerId': json['managerId'] == null ? undefined : json['managerId'],
         'managerName': json['managerName'] == null ? undefined : json['managerName'],
         'members': json['members'] == null ? undefined : ((json['members'] as Array<any>).map(TaskMemberSummaryFromJSON)),
-        'periodFiles': json['periodFiles'] == null ? undefined : ((json['periodFiles'] as Array<any>).map(FileSummaryFromJSON)),
-        'interimReportFiles': json['interimReportFiles'] == null ? undefined : ((json['interimReportFiles'] as Array<any>).map(FileSummaryFromJSON)),
-        'annualReportFiles': json['annualReportFiles'] == null ? undefined : ((json['annualReportFiles'] as Array<any>).map(FileSummaryFromJSON)),
     };
 }
 
@@ -144,9 +116,6 @@ export function TaskPeriodResponseToJSONTyped(value?: TaskPeriodResponse | null,
         'managerId': value['managerId'],
         'managerName': value['managerName'],
         'members': value['members'] == null ? undefined : ((value['members'] as Array<any>).map(TaskMemberSummaryToJSON)),
-        'periodFiles': value['periodFiles'] == null ? undefined : ((value['periodFiles'] as Array<any>).map(FileSummaryToJSON)),
-        'interimReportFiles': value['interimReportFiles'] == null ? undefined : ((value['interimReportFiles'] as Array<any>).map(FileSummaryToJSON)),
-        'annualReportFiles': value['annualReportFiles'] == null ? undefined : ((value['annualReportFiles'] as Array<any>).map(FileSummaryToJSON)),
     };
 }
 
