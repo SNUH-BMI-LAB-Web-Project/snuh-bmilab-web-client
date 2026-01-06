@@ -17,13 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import {
-  ArrowLeft,
-  X,
-  Minus,
-  Plus,
-  Calendar as CalendarIcon,
-} from 'lucide-react';
+import { X, Minus, Plus, Calendar as CalendarIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -32,13 +26,15 @@ import ExternalProfessorSelectModal from '@/components/portal/researches/project
 
 import {
   ExternalProfessorItem,
+  TaskApi,
   TaskPeriodRequest,
   TaskRequest,
 } from '@/generated-api';
 import { getProfessorKey } from '@/utils/external-professor-utils';
-import { format, parseISO } from 'date-fns';
+import { format, isDate, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { getApiConfig } from '@/lib/config';
 
 interface TaskEditModalProps {
   open: boolean;
@@ -53,16 +49,15 @@ interface YearlyPeriod {
   periodId?: number;
 }
 
+type InternalLabel = '원내과제' | '원외과제';
+
+const taskApi = new TaskApi(getApiConfig());
+
 export default function TaskEditModal({
   open,
   onClose,
   taskId,
 }: TaskEditModalProps) {
-  if (!open) return null;
-
-  const raw = localStorage.getItem('auth-storage');
-  const token = raw ? JSON.parse(raw)?.state?.accessToken : null;
-
   const supportTypeMap: Record<string, TaskRequest['supportType']> = {
     총괄: 'TOTAL',
     '1주관': 'FIRST_LEAD',
@@ -94,10 +89,20 @@ export default function TaskEditModal({
     과제종료: 'COMPLETED',
   };
 
+  const normalizeYMD = (v?: string | Date) => {
+    if (!v) return '';
+    if (isDate(v)) return format(v, 'yyyy-MM-dd');
+    return v; // 이미 '2025-03-01' 같은 string이면 그대로
+  };
+
   const parseCurrentYear = (label: string) => {
     const m = label.match(/^(\d+)년차$/);
     return m ? Number(m[1]) : 0;
   };
+
+  const boolToLabel = (v: boolean): InternalLabel =>
+    v ? '원내과제' : '원외과제';
+  const labelToBool = (v: InternalLabel): boolean => v === '원내과제';
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -119,6 +124,7 @@ export default function TaskEditModal({
     participatingInstitutions: [] as string[],
     includesThreeToFive: '',
     progressStage: '',
+    isInternal: '원외과제' as InternalLabel,
   });
 
   const [institutionInput, setInstitutionInput] = useState('');
@@ -174,8 +180,7 @@ export default function TaskEditModal({
   const handleTotalYearsChange = (value: string) => {
     const years = Number(value);
     const list: YearlyPeriod[] = [];
-
-    for (let i = 1; i <= years; i++) {
+    for (let i = 1; i <= years; i += 1) {
       list.push({ year: i, startDate: '', endDate: '' });
     }
 
@@ -204,34 +209,16 @@ export default function TaskEditModal({
 
     (async () => {
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/tasks/${taskId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
+        const task = await taskApi.getTask({ taskId });
 
-        if (!res.ok) {
-          toast.error('과제 정보를 불러오지 못했습니다.');
-          return;
-        }
-
-        const task = await res.json();
-
-        const periods =
-          task.periods?.map(
-            (p: {
-              id: number;
-              yearNumber: number;
-              startDate?: string;
-              endDate?: string;
-            }) => ({
-              year: p.yearNumber,
-              periodId: p.id,
-              startDate: p.startDate || '',
-              endDate: p.endDate || '',
-            }),
-          ) ?? [];
+        const periods: YearlyPeriod[] = (task.periods ?? [])
+          .filter((p) => typeof p.yearNumber === 'number') // year undefined 제거
+          .map((p) => ({
+            year: p.yearNumber as number,
+            periodId: p.id,
+            startDate: normalizeYMD(p.startDate),
+            endDate: normalizeYMD(p.endDate),
+          }));
 
         setFormData({
           researchNumber: task.researchTaskNumber ?? '',
@@ -255,40 +242,51 @@ export default function TaskEditModal({
             ) || '',
           practicalManager: task.practicalManagerName ?? '',
           participatingInstitutions: task.participatingInstitutions
-            ? task.participatingInstitutions
+            ? String(task.participatingInstitutions)
                 .split(',')
-                .map((s: string) => s.trim())
+                .map((s) => s.trim())
+                .filter(Boolean)
             : [],
           includesThreeToFive: task.threeFiveRule ? '포함' : '불포함',
           progressStage:
             Object.keys(statusMap).find((k) => statusMap[k] === task.status) ||
             '',
+          isInternal: boolToLabel(task.isInternal ?? true),
         });
 
-        if (task.leadProfessor) {
-          setHostProfessor({
-            name: task.leadProfessor,
-            organization: '',
-            department: '',
-            position: '',
-          });
-        }
+        setPracticalManagerId(null); // 상세 응답에 id가 없어서 초기화
 
-        if (task.snuhPi) {
-          setSnuhPIs(
-            task.snuhPi.split(',').map((n: string) => ({
-              name: n.trim(),
-              organization: '',
-              department: '',
-              position: '',
-            })),
-          );
-        }
+        setHostProfessor(
+          task.leadProfessor
+            ? {
+                name: task.leadProfessor,
+                organization: '',
+                department: '',
+                position: '',
+              }
+            : null,
+        );
+
+        setSnuhPIs(
+          task.snuhPi
+            ? String(task.snuhPi)
+                .split(',')
+                .map((n) => n.trim())
+                .filter(Boolean)
+                .map((name) => ({
+                  name,
+                  organization: '',
+                  department: '',
+                  position: '',
+                }))
+            : [],
+        );
       } catch {
         toast.error('과제 정보를 불러오지 못했습니다.');
       }
     })();
   }, [open, taskId]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting) return;
@@ -347,45 +345,40 @@ export default function TaskEditModal({
       participatingInstitutions: formData.participatingInstitutions.join(', '),
 
       status: statusMap[formData.progressStage],
+
+      isInternal: labelToBool(formData.isInternal),
     };
+
     try {
       setSubmitting(true);
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/tasks/${taskId}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        },
-      );
+      await taskApi.updateTask({
+        taskId,
+        taskRequest: payload,
+      });
 
-      if (!res.ok) {
-        toast.error('수정 중 오류가 발생했습니다.');
-        return;
-      }
-
-      toast.success('과제가 수정되었습니다.');
+      toast.success('과제가 성공적으로 수정되었습니다.');
       onClose();
     } catch (error) {
-      toast.error('수정 중 오류가 발생했습니다.');
+      console.error(error);
     } finally {
       setSubmitting(false);
     }
   };
 
+  if (!open) return null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="bg-background relative max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-xl p-8 shadow-xl">
         <button
+          type="button"
           onClick={onClose}
           className="absolute top-8 right-8 text-gray-500 hover:text-black"
         >
           <X className="h-6 w-6" />
         </button>
+
         <form onSubmit={handleSubmit}>
           <Card className="border-0 py-8 shadow-none">
             <CardContent className="space-y-12">
@@ -395,9 +388,12 @@ export default function TaskEditModal({
                     과제 수정
                   </h1>
                 </div>
+
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>연구과제번호 *</Label>
+                    <Label>
+                      연구과제번호 <span className="text-destructive">*</span>
+                    </Label>
                     <Input
                       value={formData.researchNumber}
                       onChange={(e) =>
@@ -408,7 +404,9 @@ export default function TaskEditModal({
                   </div>
 
                   <div className="space-y-2">
-                    <Label>과제명 *</Label>
+                    <Label>
+                      과제명 <span className="text-destructive">*</span>
+                    </Label>
                     <Input
                       value={formData.taskName}
                       onChange={(e) =>
@@ -421,7 +419,9 @@ export default function TaskEditModal({
 
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>RFP번호 *</Label>
+                    <Label>
+                      RFP번호 <span className="text-destructive">*</span>
+                    </Label>
                     <Input
                       value={formData.rfpNumber}
                       onChange={(e) =>
@@ -432,7 +432,9 @@ export default function TaskEditModal({
                   </div>
 
                   <div className="space-y-2">
-                    <Label>RFP명 *</Label>
+                    <Label>
+                      RFP명 <span className="text-destructive">*</span>
+                    </Label>
                     <Input
                       value={formData.rfpName}
                       onChange={(e) =>
@@ -445,7 +447,9 @@ export default function TaskEditModal({
 
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>사업명 *</Label>
+                    <Label>
+                      사업명 <span className="text-destructive">*</span>
+                    </Label>
                     <Input
                       value={formData.projectName}
                       onChange={(e) =>
@@ -456,7 +460,9 @@ export default function TaskEditModal({
                   </div>
 
                   <div className="space-y-2">
-                    <Label>발주처 *</Label>
+                    <Label>
+                      발주처 <span className="text-destructive">*</span>
+                    </Label>
                     <Input
                       value={formData.client}
                       onChange={(e) =>
@@ -470,7 +476,9 @@ export default function TaskEditModal({
                 <Separator />
 
                 <div className="space-y-2">
-                  <Label>총 연차 *</Label>
+                  <Label>
+                    총 연차 <span className="text-destructive">*</span>
+                  </Label>
                   <Select
                     value={formData.totalYears}
                     onValueChange={handleTotalYearsChange}
@@ -481,6 +489,7 @@ export default function TaskEditModal({
                     </SelectTrigger>
                     <SelectContent>
                       {Array.from({ length: 10 }).map((_, i) => (
+                        // eslint-disable-next-line react/no-array-index-key
                         <SelectItem key={i + 1} value={String(i + 1)}>
                           {i + 1}년
                         </SelectItem>
@@ -503,8 +512,9 @@ export default function TaskEditModal({
                         <Popover>
                           <PopoverTrigger asChild>
                             <Button
+                              type="button"
                               variant="outline"
-                              className="w-full justify-start bg-white"
+                              className="w-full justify-start bg-white lg:col-span-2"
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
                               {p.startDate
@@ -514,7 +524,7 @@ export default function TaskEditModal({
                                 : '시작일 선택'}
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent align="start" className="p-0">
+                          <PopoverContent align="start" className="w-auto p-0">
                             <Calendar
                               mode="single"
                               selected={
@@ -534,8 +544,9 @@ export default function TaskEditModal({
                         <Popover>
                           <PopoverTrigger asChild>
                             <Button
+                              type="button"
                               variant="outline"
-                              className="w-full justify-start bg-white"
+                              className="w-full justify-start bg-white lg:col-span-2"
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
                               {p.endDate
@@ -545,7 +556,7 @@ export default function TaskEditModal({
                                 : '종료일 선택'}
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent align="start" className="p-0">
+                          <PopoverContent align="start" className="w-auto p-0">
                             <Calendar
                               mode="single"
                               selected={
@@ -570,7 +581,9 @@ export default function TaskEditModal({
 
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>연구과제지원 *</Label>
+                    <Label>
+                      연구과제지원 <span className="text-destructive">*</span>
+                    </Label>
                     <Select
                       value={formData.researchType}
                       onValueChange={(v) =>
@@ -578,7 +591,7 @@ export default function TaskEditModal({
                       }
                       required
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="연구과제지원 선택" />
                       </SelectTrigger>
                       <SelectContent>
@@ -592,7 +605,9 @@ export default function TaskEditModal({
                   </div>
 
                   <div className="space-y-2">
-                    <Label>주관기관 *</Label>
+                    <Label>
+                      주관기관 <span className="text-destructive">*</span>
+                    </Label>
                     <Input
                       value={formData.hostInstitution}
                       onChange={(e) =>
@@ -604,7 +619,9 @@ export default function TaskEditModal({
                 </div>
 
                 <div className="space-y-2">
-                  <Label>담당교수 *</Label>
+                  <Label>
+                    담당교수 <span className="text-destructive">*</span>
+                  </Label>
 
                   {!hostProfessor && (
                     <Button
@@ -655,7 +672,9 @@ export default function TaskEditModal({
                 </div>
 
                 <div className="space-y-2">
-                  <Label>SNUH PI *</Label>
+                  <Label>
+                    SNUH PI <span className="text-destructive">*</span>
+                  </Label>
 
                   <Button
                     type="button"
@@ -669,6 +688,7 @@ export default function TaskEditModal({
                   {snuhPIs.length > 0 && (
                     <div className="bg-muted/50 mt-2 space-y-3 rounded-xl p-4">
                       {snuhPIs.map((p, index) => (
+                        // eslint-disable-next-line react/no-array-index-key
                         <div key={index} className="flex gap-2">
                           <Input disabled value={p.name} className="bg-white" />
                           <Input
@@ -706,7 +726,9 @@ export default function TaskEditModal({
 
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>김광수교수님 *</Label>
+                    <Label>
+                      김광수교수님 <span className="text-destructive">*</span>
+                    </Label>
                     <Select
                       value={formData.kimKwangSooRole}
                       onValueChange={(v) =>
@@ -714,7 +736,7 @@ export default function TaskEditModal({
                       }
                       required
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="역할 선택" />
                       </SelectTrigger>
                       <SelectContent>
@@ -728,7 +750,9 @@ export default function TaskEditModal({
                   </div>
 
                   <div className="space-y-2">
-                    <Label>실무 책임자 *</Label>
+                    <Label>
+                      실무 책임자 <span className="text-destructive">*</span>
+                    </Label>
                     <SingleUserSelectInput
                       value={formData.practicalManager}
                       onValueChange={(v) =>
@@ -744,7 +768,9 @@ export default function TaskEditModal({
                 </div>
 
                 <div className="space-y-2">
-                  <Label>참여기관 *</Label>
+                  <Label>
+                    참여기관 <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     placeholder="참여기관 입력 후 Enter"
                     value={institutionInput}
@@ -780,7 +806,9 @@ export default function TaskEditModal({
 
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>3책5공 *</Label>
+                    <Label>
+                      3책5공 <span className="text-destructive">*</span>
+                    </Label>
                     <Select
                       value={formData.includesThreeToFive}
                       onValueChange={(v) =>
@@ -788,7 +816,7 @@ export default function TaskEditModal({
                       }
                       required
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="선택" />
                       </SelectTrigger>
                       <SelectContent>
@@ -807,7 +835,7 @@ export default function TaskEditModal({
                       }
                       required
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="선택" />
                       </SelectTrigger>
                       <SelectContent>
@@ -819,6 +847,30 @@ export default function TaskEditModal({
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>
+                      원내과제 여부 <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={formData.isInternal}
+                      onValueChange={(v) =>
+                        handleInputChange('isInternal', v as InternalLabel)
+                      }
+                      required
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="선택" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="원내과제">원내과제</SelectItem>
+                        <SelectItem value="원외과제">원외과제</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div />
                 </div>
               </div>
             </CardContent>
