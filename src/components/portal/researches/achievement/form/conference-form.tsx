@@ -229,41 +229,61 @@ export function ConferenceForm({
 
       <SingleProjectSelectInput
         value={formData.relatedProject.name}
+        onValueChange={(name) =>
+          setFormData((prev) => ({
+            ...prev,
+            relatedProject: {
+              ...prev.relatedProject,
+              name,
+            },
+          }))
+        }
         onProjectSelected={(p) =>
           setFormData((prev) => ({
             ...prev,
             relatedProject: p
-              ? { id: p.projectId, name: p.title ?? '' }
+              ? { id: p.projectId ?? null, name: p.title ?? '' }
               : { id: null, name: '' },
           }))
         }
       />
 
+
       <SingleTaskSelectInput
         value={formData.relatedTask.name}
+        onValueChange={(name) =>
+          setFormData((prev) => ({
+            ...prev,
+            relatedTask: {
+              ...prev.relatedTask,
+              name,
+            },
+          }))
+        }
         onTaskSelected={(t) =>
           setFormData((prev) => ({
             ...prev,
             relatedTask: t
-              ? { id: t.id, name: t.title ?? '' }
+              ? { id: t.id ?? null, name: t.title ?? '' }
               : { id: null, name: '' },
           }))
         }
       />
 
-      <div className="flex justify-between pt-4">
+      <div className="flex pt-4">
         {initialData?.id && (
           <Button
             type="button"
             variant="destructive"
             onClick={handleDelete}
             disabled={isDeleting}
+            className="mr-auto"
           >
             삭제
           </Button>
         )}
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 ml-auto">
           <Button type="button" variant="outline" onClick={onCancel}>
             취소
           </Button>

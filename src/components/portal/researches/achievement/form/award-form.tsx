@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,6 +16,7 @@ interface IdName {
 }
 
 interface AwardFormProps {
+  initialData?: any;
   onSave: (payload: {
     recipients: string;
     awardRecipients: {
@@ -33,7 +34,7 @@ interface AwardFormProps {
   onCancel: () => void;
 }
 
-export function AwardForm({ onSave, onCancel }: AwardFormProps) {
+export function AwardForm({ initialData, onSave, onCancel }: AwardFormProps) {
   const [recipientNames, setRecipientNames] = useState<string[]>([]);
   const [recipientUserIds, setRecipientUserIds] = useState<number[]>([]);
 
@@ -47,6 +48,37 @@ export function AwardForm({ onSave, onCancel }: AwardFormProps) {
     relatedTask: { id: null, name: '' } as IdName,
   });
 
+  /* ===== 단건조회 응답 주입 ===== */
+  useEffect(() => {
+    if (!initialData) return;
+
+    setRecipientNames(
+      initialData.recipients
+        ? initialData.recipients.split(',').map((v: string) => v.trim())
+        : [],
+    );
+
+    setRecipientUserIds(
+      initialData.awardRecipients?.map((r: any) => r.userId) ?? [],
+    );
+
+    setFormData({
+      awardDate: initialData.awardDate ?? '',
+      hostInstitution: initialData.hostInstitution ?? '',
+      competitionName: initialData.competitionName ?? '',
+      awardName: initialData.awardName ?? '',
+      presentationTitle: initialData.presentationTitle ?? '',
+      relatedProject: {
+        id: initialData.projectId ?? null,
+        name: initialData.projectName ?? '',
+      },
+      relatedTask: {
+        id: initialData.taskId ?? null,
+        name: initialData.taskName ?? '',
+      },
+    });
+  }, [initialData]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -54,166 +86,107 @@ export function AwardForm({ onSave, onCancel }: AwardFormProps) {
     if (!formData.relatedProject.id) return;
     if (!formData.relatedTask.id) return;
 
-    const payload = {
+    onSave({
       recipients: recipientNames.join(', '),
-
       awardRecipients: recipientUserIds.map((id) => ({
         userId: id,
         role: '대표 수상자',
       })),
-
       awardDate: formData.awardDate,
       hostInstitution: formData.hostInstitution,
       competitionName: formData.competitionName,
       awardName: formData.awardName,
       presentationTitle: formData.presentationTitle,
-
       projectId: formData.relatedProject.id,
       taskId: formData.relatedTask.id,
-    };
-
-    onSave(payload);
+    });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label>
-          수상자 <span className="text-destructive">*</span>
-        </Label>
-        <UserTagInputString
-          value={recipientNames}
-          onChange={setRecipientNames}
-          onUserSelectedIds={setRecipientUserIds}
-          placeholder="이름을 입력하거나 검색하세요"
-        />
-      </div>
+      <UserTagInputString
+        value={recipientNames}
+        onChange={setRecipientNames}
+        onUserSelectedIds={setRecipientUserIds}
+      />
 
-      <div className="space-y-2">
-        <Label>
-          수상일 <span className="text-destructive">*</span>
-        </Label>
-        <DatePicker
-          value={formData.awardDate}
-          onChange={(v) =>
-            setFormData((prev) => ({ ...prev, awardDate: v }))
-          }
-          placeholder="날짜 선택"
-        />
-      </div>
+      <DatePicker
+        value={formData.awardDate}
+        onChange={(v) =>
+          setFormData((prev) => ({ ...prev, awardDate: v }))
+        }
+      />
 
-      <div className="space-y-2">
-        <Label>
-          주최기관 <span className="text-destructive">*</span>
-        </Label>
-        <Input
-          value={formData.hostInstitution}
-          onChange={(e) =>
-            setFormData((prev) => ({
-              ...prev,
-              hostInstitution: e.target.value,
-            }))
-          }
-          placeholder="예: 대한의료정보학회"
-          required
-        />
-      </div>
+      <Input
+        placeholder="주최기관"
+        value={formData.hostInstitution}
+        onChange={(e) =>
+          setFormData((p) => ({ ...p, hostInstitution: e.target.value }))
+        }
+      />
 
-      <div className="space-y-2">
-        <Label>
-          대회명 / 학회명 <span className="text-destructive">*</span>
-        </Label>
-        <Input
-          value={formData.competitionName}
-          onChange={(e) =>
-            setFormData((prev) => ({
-              ...prev,
-              competitionName: e.target.value,
-            }))
-          }
-          placeholder="예: 2025년 대한의료정보학회 추계학술대회"
-          required
-        />
-      </div>
+      <Input
+        placeholder="대회명 / 학회명"
+        value={formData.competitionName}
+        onChange={(e) =>
+          setFormData((p) => ({ ...p, competitionName: e.target.value }))
+        }
+      />
 
-      <div className="space-y-2">
-        <Label>
-          수상명 <span className="text-destructive">*</span>
-        </Label>
-        <Input
-          value={formData.awardName}
-          onChange={(e) =>
-            setFormData((prev) => ({
-              ...prev,
-              awardName: e.target.value,
-            }))
-          }
-          required
-        />
-      </div>
+      <Input
+        placeholder="수상명"
+        value={formData.awardName}
+        onChange={(e) =>
+          setFormData((p) => ({ ...p, awardName: e.target.value }))
+        }
+      />
 
-      <div className="space-y-2">
-        <Label>
-          발표 제목 <span className="text-destructive">*</span>
-        </Label>
-        <Input
-          value={formData.presentationTitle}
-          onChange={(e) =>
-            setFormData((prev) => ({
-              ...prev,
-              presentationTitle: e.target.value,
-            }))
-          }
-          required
-        />
-      </div>
+      <Input
+        placeholder="발표 제목"
+        value={formData.presentationTitle}
+        onChange={(e) =>
+          setFormData((p) => ({
+            ...p,
+            presentationTitle: e.target.value,
+          }))
+        }
+      />
 
-      <div className="space-y-2">
-        <Label>
-          연계 프로젝트 <span className="text-destructive">*</span>
-        </Label>
-        <SingleProjectSelectInput
-          value={formData.relatedProject.name}
-          onValueChange={(name) =>
-            setFormData((prev) => ({
-              ...prev,
-              relatedProject: { ...prev.relatedProject, name },
-            }))
-          }
-          onProjectSelected={(p) =>
-            setFormData((prev) => ({
-              ...prev,
-              relatedProject: p
-                ? { id: p.projectId, name: p.title ?? '' }
-                : { id: null, name: '' },
-            }))
-          }
-          required
-        />
-      </div>
+      <SingleProjectSelectInput
+        value={formData.relatedProject.name}
+        onValueChange={(name) =>
+          setFormData((p) => ({
+            ...p,
+            relatedProject: { ...p.relatedProject, name },
+          }))
+        }
+        onProjectSelected={(p) =>
+          setFormData((prev) => ({
+            ...prev,
+            relatedProject: p
+              ? { id: p.projectId ?? null, name: p.title ?? '' }
+              : { id: null, name: '' },
+          }))
+        }
+      />
 
-      <div className="space-y-2">
-        <Label>
-          연계 과제 <span className="text-destructive">*</span>
-        </Label>
-        <SingleTaskSelectInput
-          value={formData.relatedTask.name}
-          onValueChange={(name) =>
-            setFormData((prev) => ({
-              ...prev,
-              relatedTask: { ...prev.relatedTask, name },
-            }))
-          }
-          onTaskSelected={(t) =>
-            setFormData((prev) => ({
-              ...prev,
-              relatedTask: t
-                ? { id: t.id, name: t.title ?? '' }
-                : { id: null, name: '' },
-            }))
-          }
-        />
-      </div>
+      <SingleTaskSelectInput
+        value={formData.relatedTask.name}
+        onValueChange={(name) =>
+          setFormData((p) => ({
+            ...p,
+            relatedTask: { ...p.relatedTask, name },
+          }))
+        }
+        onTaskSelected={(t) =>
+          setFormData((prev) => ({
+            ...prev,
+            relatedTask: t
+              ? { id: t.id ?? null, name: t.title ?? '' }
+              : { id: null, name: '' },
+          }))
+        }
+      />
 
       <div className="flex justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>

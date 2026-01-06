@@ -36,7 +36,13 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const getToken = () => {
   const raw = localStorage.getItem('auth-storage');
-  return raw ? JSON.parse(raw)?.state?.accessToken : null;
+  const token = raw ? JSON.parse(raw)?.state?.accessToken : null;
+
+  console.log('[AUTH]');
+  console.log('raw auth-storage:', raw);
+  console.log('accessToken:', token);
+
+  return token;
 };
 
 const CREATE_ENDPOINT_MAP: Record<ResearchType, string> = {
@@ -65,44 +71,69 @@ export function ResearchAchievementModal({
                                            onSave,
                                          }: ResearchAchievementModalProps) {
   const handleSubmit = async (data: any) => {
+    console.log('[SUBMIT]');
+    console.log('type:', type);
+    console.log('editingItem:', editingItem);
+    console.log('payload:', data);
+
     const token = getToken();
-    if (!token) return;
+    if (!token) {
+      console.error('[AUTH ERROR] accessToken is null');
+      return;
+    }
+
+    let url = '';
+    let method: 'POST' | 'PUT' = 'POST';
+
+    if (editingItem) {
+      method = 'PUT';
+      url = `${API_BASE}${UPDATE_ENDPOINT_MAP[type]}/${editingItem.id}`;
+    } else {
+      method = 'POST';
+      url = `${API_BASE}${CREATE_ENDPOINT_MAP[type]}`;
+    }
+
+    console.log('[API REQUEST]');
+    console.log('METHOD:', method);
+    console.log('URL:', url);
+    console.log('HEADERS:', {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    });
+    console.log('BODY:', JSON.stringify(data));
 
     let response: Response;
 
-    if (editingItem) {
-      response = await fetch(
-        `${API_BASE}${UPDATE_ENDPOINT_MAP[type]}/${editingItem.id}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(data),
+    try {
+      response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-      );
-    } else {
-      response = await fetch(
-        `${API_BASE}${CREATE_ENDPOINT_MAP[type]}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(data),
-        },
-      );
+        body: JSON.stringify(data),
+      });
+    } catch (networkError) {
+      console.error('[NETWORK ERROR]');
+      console.error(networkError);
+      throw networkError;
+    }
+
+    let responseBody: any = null;
+    try {
+      responseBody = await response.json();
+      console.log('response body:', responseBody);
+    } catch (parseError) {
+      console.warn('[RESPONSE PARSE WARNING] JSON parse failed');
     }
 
     if (!response.ok) {
-      const err = await response.json();
-      throw err;
+      console.error('[API ERROR]');
+      console.error(responseBody);
+      throw responseBody;
     }
 
-    const savedItem = await response.json();
-    onSave(savedItem, type);
+    onSave(responseBody, type);
     onClose();
   };
 
@@ -127,6 +158,7 @@ export function ResearchAchievementModal({
       case 'journal':
         return <JournalForm {...commonProps} />;
       default:
+        console.error('[RENDER ERROR] invalid research type:', type);
         return null;
     }
   };

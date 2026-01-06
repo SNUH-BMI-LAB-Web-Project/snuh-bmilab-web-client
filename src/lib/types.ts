@@ -1,3 +1,27 @@
+export interface Journal {
+  id: number;
+
+  paperTitle: string;
+  journalName: string;
+
+  publishDate: string;
+  acceptDate?: string;
+
+  allAuthors: string;
+  firstAuthor?: string;
+  coAuthors?: string;
+
+  vol?: string;
+  page?: string;
+
+  doi?: string;
+  pmid?: string;
+  paperLink?: string;
+
+  projectId?: number;
+  taskId?: number;
+}
+
 export interface Book {
   id: string;
   name: string;
@@ -50,24 +74,39 @@ export interface JournalInfo {
 
 export interface Paper {
   id: string;
+
   acceptDate: string;
   publishDate: string;
+
   journalName: string;
-  journalInfo?: JournalInfo; // 저널 정보 추가
+  journalInfo?: JournalInfo;
+  journal?: {
+    id: number;
+    name?: string;
+  };
+
   paperTitle: string;
-  firstAuthors: string; // 제1저자 (필수)
-  coAuthors: string; // 공동저자
-  allAuthors: string; // 표시용 (자동 생성)
-  authorCount: number;
-  labMembers: string[];
+
+  firstAuthors: string;
+  coAuthors: string;
+  allAuthors: string;
   correspondingAuthor: string;
+  labMembers: string[];
+
+  authorCount: number;
+
   vol: string;
   page: string;
+
   paperLink: string;
   doi: string;
   pmid: string;
+
   attachments: string[];
+
   citationCount: string;
+  citations?: number;
+
   professorRole: '제1저자' | '공저자' | '교신저자';
   isRepresentative: boolean;
 }

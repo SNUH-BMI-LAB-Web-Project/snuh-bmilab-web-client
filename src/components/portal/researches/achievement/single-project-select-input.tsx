@@ -33,10 +33,12 @@ export function SingleProjectSelectInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
 
+  /* 외부 value 동기화 */
   useEffect(() => {
     setInput(value);
   }, [value]);
 
+  /* 프로젝트 검색 */
   useEffect(() => {
     if (!open || !accessToken) return;
 
@@ -54,12 +56,31 @@ export function SingleProjectSelectInput({
     })();
   }, [input, open, accessToken]);
 
+  useEffect(() => {
+    if (!open) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (
+        inputRef.current?.contains(target) ||
+        popRef.current?.contains(target)
+      ) {
+        return;
+      }
+      setOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () =>
+      document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
   const selectProject = (p: ProjectSummary) => {
     const title = p.title ?? '';
     setInput(title);
     onValueChange(title);
     onProjectSelected?.(p);
-    setOpen(false);
+    setOpen(false); // 선택 후 닫기
   };
 
   const clear = () => {
@@ -82,6 +103,7 @@ export function SingleProjectSelectInput({
         onChange={(e) => {
           setInput(e.target.value);
           onValueChange(e.target.value);
+          setOpen(true);
         }}
       />
 

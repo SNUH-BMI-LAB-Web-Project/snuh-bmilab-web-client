@@ -94,33 +94,36 @@ export function ResearchAchievementTables({
         const patentJson = await patentRes.json();
         const journalJson = await journalRes.json();
 
-        setBooks(
-          Array.isArray(bookJson.authors) ? bookJson.authors : [],
-        );
+        const books = Array.isArray(bookJson.authors)
+          ? bookJson.authors
+          : [];
 
-        setConferences(
-          Array.isArray(confJson.presentations)
-            ? confJson.presentations
-            : [],
-        );
+        const conferences = Array.isArray(confJson.presentations)
+          ? confJson.presentations
+          : [];
 
-        setAwards(
-          Array.isArray(awardJson.awards) ? awardJson.awards : [],
-        );
+        const awards = Array.isArray(awardJson.awards)
+          ? awardJson.awards
+          : [];
 
-        setPapers(
-          Array.isArray(paperJson.papers) ? paperJson.papers : [],
-        );
+        const papers = Array.isArray(paperJson.papers)
+          ? paperJson.papers
+          : [];
 
-        setPatents(
-          Array.isArray(patentJson.patents) ? patentJson.patents : [],
-        );
+        const patents = Array.isArray(patentJson.patents)
+          ? patentJson.patents
+          : [];
 
-        setJournals(
-          Array.isArray(journalJson.journals)
-            ? journalJson.journals
-            : [],
-        );
+        const journals = Array.isArray(journalJson.journals)
+          ? journalJson.journals
+          : [];
+
+        setBooks(books);
+        setConferences(conferences);
+        setAwards(awards);
+        setPapers(papers);
+        setPatents(patents);
+        setJournals(journals);
       } catch (e) {
         console.error('[ResearchAchievementTables] 조회 실패', e);
       }
@@ -155,7 +158,7 @@ export function ResearchAchievementTables({
         <PaperTable
           data={papers}
           onEdit={onEdit}
-          onDelete={onDelete}
+          onRefresh={() => setPapers((prev) => [...prev])}
           isUserView={isUserView}
         />
       </TabsContent>
@@ -164,7 +167,9 @@ export function ResearchAchievementTables({
         <PatentTable
           data={patents}
           onEdit={onEdit}
-          onDelete={onDelete}
+          onRefresh={() => {
+            setJournals((prev) => [...prev]);
+          }}
         />
       </TabsContent>
 
@@ -172,7 +177,9 @@ export function ResearchAchievementTables({
         <JournalTable
           data={journals}
           onEdit={onEdit}
-          onDelete={onDelete}
+          onRefresh={() => {
+            setJournals((prev) => [...prev]);
+          }}
         />
       </TabsContent>
     </>

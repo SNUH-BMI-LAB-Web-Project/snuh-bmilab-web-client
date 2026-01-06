@@ -30,15 +30,46 @@ import type { Patent } from '@/lib/types';
 interface PatentTableProps {
   data: Patent[];
   onEdit: (item: Patent, type: string) => void;
-  onDelete: (id: string, type: string) => void;
+  onDelete: (id: number, type: string) => void;
 }
 
 type SortOrder = 'asc' | 'desc';
 
-export function PatentTable({ data, onEdit, onDelete }: PatentTableProps) {
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+const getToken = () => {
+  const raw = localStorage.getItem('auth-storage');
+  return raw ? JSON.parse(raw)?.state?.accessToken : null;
+};
+
+export function PatentTable({ data, onEdit }: PatentTableProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchColumn, setSearchColumn] = useState<string>('all');
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('정말 삭제하시겠습니까?')) return;
+
+    const token = getToken();
+    if (!token) return;
+
+    const res = await fetch(`${API_BASE}/research/patents/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      console.error('[PATENT DELETE FAILED]', await res.text());
+      return;
+    }
+
+    window.location.reload();
+  };
+
+  // JSX는 그대로 두기 위해 props onDelete를 로컬에서 덮어씀
+  const onDelete = handleDelete;
 
   const filteredData = data.filter((item) => {
     if (!searchQuery) return true;
@@ -144,122 +175,113 @@ export function PatentTable({ data, onEdit, onDelete }: PatentTableProps) {
           <TableBody>
             {sortedData.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={11}
-                  className="text-muted-foreground h-24 text-center"
-                >
+                <TableCell colSpan={11} className="h-24 text-center text-muted-foreground">
                   데이터가 없습니다.
                 </TableCell>
               </TableRow>
             ) : (
-              sortedData.map((item, index) => (
-                <TableRow
-                  key={item.id}
-                  className="hover:bg-primary/10 transition-colors"
-                >
-                  <TableCell className="text-center">{index + 1}</TableCell>
-                  <TableCell className="max-w-[120px] text-center">
-                    <div className="truncate" title={item.applicationDate}>
-                      {item.applicationDate}
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[150px]">
-                    <div className="truncate" title={item.applicationNumber}>
-                      {item.applicationNumber}
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[250px]">
-                    <div className="truncate" title={item.applicationName}>
-                      {item.applicationName}
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[200px]">
-                    <div className="truncate" title={item.allApplicants}>
-                      {item.allApplicants}
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[150px]">
-                    <div
-                      className="truncate"
-                      title={item.labApplicants.join(', ')}
-                    >
-                      {item.labApplicants.join(', ')}
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[200px]">
-                    <div className="truncate" title={item.notes}>
-                      {item.notes}
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[200px]">
-                    <div
-                      className="truncate"
-                      title={item.relatedProject || '-'}
-                    >
-                      {item.relatedProject || '-'}
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[150px]">
-                    <div className="truncate" title={item.relatedTask || '-'}>
-                      {item.relatedTask || '-'}
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[100px] text-center">
-                    {item.attachments && item.attachments.length > 0 && (
+              sortedData.map((item, index) => {
+                const labApplicants =
+                  item.patentAuthors?.map((a) => a.userName).join(', ') ?? '';
+
+                return (
+                  <TableRow key={item.id} className="hover:bg-primary/10">
+                    <TableCell className="text-center">{index + 1}</TableCell>
+
+                    <TableCell className="text-center">
+                      <div className="truncate" title={item.applicationDate}>
+                        {item.applicationDate}
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="truncate" title={item.applicationNumber}>
+                        {item.applicationNumber}
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="truncate" title={item.patentName}>
+                        {item.patentName}
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="truncate" title={item.applicantsAll}>
+                        {item.applicantsAll}
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="truncate" title={labApplicants}>
+                        {labApplicants || '-'}
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="truncate" title={item.remarks}>
+                        {item.remarks || '-'}
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="truncate" title={item.projectName}>
+                        {item.projectName || '-'}
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="truncate" title={item.taskName}>
+                        {item.taskName || '-'}
+                      </div>
+                    </TableCell>
+
+                    <TableCell className="text-center">
+                      {item.files?.length > 0 && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="gap-1">
+                              <Download className="h-4 w-4" />
+                              <span>{item.files.length}개</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {item.files.map((f) => (
+                              <DropdownMenuItem key={f.fileId}>
+                                <Download className="mr-2 h-4 w-4" />
+                                {f.fileName}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </TableCell>
+
+                    <TableCell className="text-center">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 gap-1"
-                          >
-                            <Download className="h-4 w-4" />
-                            <span>{item.attachments.length}개</span>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          {item.attachments.map((file, idx) => (
-                            <DropdownMenuItem
-                              /* eslint-disable-next-line react/no-array-index-key */
-                              key={idx}
-                              onClick={() => {
-                                console.log('[v0] Downloading file:', file);
-                              }}
-                            >
-                              <Download className="mr-2 h-4 w-4" />
-                              {file}
-                            </DropdownMenuItem>
-                          ))}
+                          <DropdownMenuItem onClick={() => onEdit(item, 'patent')}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            수정
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => onDelete(item.id, 'patent')}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            삭제
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => onEdit(item, 'patent')}
-                        >
-                          <Pencil className="mr-2 h-4 w-4" />
-                          수정
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => onDelete(item.id, 'patent')}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="text-destructive mr-2 h-4 w-4" />
-                          삭제
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
