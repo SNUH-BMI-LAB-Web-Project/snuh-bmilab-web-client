@@ -25,24 +25,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Book } from '@/lib/types';
+
+// API 응답 양식에 맞춘 내부 타입 정의 (또는 lib/types.ts 수정)
+interface BookData {
+  id: number;
+  authors: string;
+  authorType: string;
+  publicationDate: string;
+  publicationHouse: string;
+  publisher: string;
+  publicationName: string;
+  title: string;
+  isbn: string;
+}
 
 interface BookTableProps {
-  data: Book[];
-  onEdit: (item: Book) => void;
-  onRefresh: () => void;
+  data: BookData[];
+  onEdit: (item: BookData) => void;
+  onDelete?: (id: string) => void;
 }
 
 type SortOrder = 'asc' | 'desc';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-const getToken = () => {
-  const raw = localStorage.getItem('auth-storage');
-  return raw ? JSON.parse(raw)?.state?.accessToken : null;
-};
-
-export function BookTable({ data, onEdit, onRefresh }: BookTableProps) {
+export function BookTable({ data, onEdit, onDelete }: BookTableProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchColumn, setSearchColumn] = useState<string>('all');
@@ -63,7 +68,8 @@ export function BookTable({ data, onEdit, onRefresh }: BookTableProps) {
       );
     }
 
-    return String(item[searchColumn as keyof Book] ?? '')
+    const value = item[searchColumn as keyof BookData];
+    return String(value ?? '')
       .toLowerCase()
       .includes(q);
   });
@@ -75,20 +81,6 @@ export function BookTable({ data, onEdit, onRefresh }: BookTableProps) {
       ? aValue.localeCompare(bValue)
       : bValue.localeCompare(aValue);
   });
-
-  const handleDelete = async (id: number) => {
-    const token = getToken();
-    if (!token) return;
-
-    await fetch(`${API_BASE}/research/authors/${id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    onRefresh();
-  };
 
   return (
     <div className="space-y-4">
@@ -110,7 +102,7 @@ export function BookTable({ data, onEdit, onRefresh }: BookTableProps) {
         </Select>
 
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
             placeholder="검색..."
             value={searchQuery}
@@ -119,7 +111,10 @@ export function BookTable({ data, onEdit, onRefresh }: BookTableProps) {
           />
         </div>
 
-        <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as SortOrder)}>
+        <Select
+          value={sortOrder}
+          onValueChange={(v) => setSortOrder(v as SortOrder)}
+        >
           <SelectTrigger className="w-[140px]">
             <SelectValue />
           </SelectTrigger>
@@ -130,11 +125,11 @@ export function BookTable({ data, onEdit, onRefresh }: BookTableProps) {
         </Select>
       </div>
 
-      <div className="border rounded-lg bg-card">
+      <div className="bg-card rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-center">No</TableHead>
+              <TableHead className="w-[50px] text-center">No</TableHead>
               <TableHead className="text-center">출판일</TableHead>
               <TableHead>저자</TableHead>
               <TableHead>발행처</TableHead>
@@ -142,13 +137,16 @@ export function BookTable({ data, onEdit, onRefresh }: BookTableProps) {
               <TableHead>출판물명</TableHead>
               <TableHead>제목</TableHead>
               <TableHead>ISBN</TableHead>
-              <TableHead />
+              <TableHead className="w-[50px]" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {sortedData.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={9}
+                  className="text-muted-foreground h-24 text-center"
+                >
                   데이터가 없습니다.
                 </TableCell>
               </TableRow>
@@ -156,7 +154,9 @@ export function BookTable({ data, onEdit, onRefresh }: BookTableProps) {
               sortedData.map((item, idx) => (
                 <TableRow key={item.id}>
                   <TableCell className="text-center">{idx + 1}</TableCell>
-                  <TableCell className="text-center">{item.publicationDate}</TableCell>
+                  <TableCell className="text-center">
+                    {item.publicationDate}
+                  </TableCell>
                   <TableCell>{item.authors}</TableCell>
                   <TableCell>{item.publisher}</TableCell>
                   <TableCell>{item.publicationHouse}</TableCell>
@@ -174,12 +174,14 @@ export function BookTable({ data, onEdit, onRefresh }: BookTableProps) {
                         <DropdownMenuItem onClick={() => onEdit(item)}>
                           <Pencil className="mr-2 h-4 w-4" /> 수정
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          variant="destructive"
-                          onClick={() => handleDelete(item.id)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" /> 삭제
-                        </DropdownMenuItem>
+                        {onDelete && (
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => onDelete(String(item.id))}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" /> 삭제
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

@@ -62,8 +62,7 @@ export function BookForm({ initialData, onSave, onCancel }: BookFormProps) {
     );
 
     setFormData({
-      category:
-        initialData.authorType === 'CONTRIBUTION' ? '기고' : '저서',
+      category: initialData.authorType === 'CONTRIBUTION' ? '기고' : '저서',
       publicationDate: initialData.publicationDate ?? '',
       publisher: initialData.publisher ?? '',
       publicationHouse: initialData.publicationHouse ?? '',
@@ -78,8 +77,7 @@ export function BookForm({ initialData, onSave, onCancel }: BookFormProps) {
 
     onSave({
       authors: names.join(', '),
-      authorType:
-        formData.category === '저서' ? 'BOOK' : 'CONTRIBUTION',
+      authorType: formData.category === '저서' ? 'BOOK' : 'CONTRIBUTION',
       publicationDate: formData.publicationDate,
       publisher: formData.publisher,
       publicationHouse: formData.publicationHouse,

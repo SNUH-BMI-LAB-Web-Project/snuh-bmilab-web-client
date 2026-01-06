@@ -26,20 +26,64 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import type { Journal } from '@/lib/types';
+// 실제 API 응답 양식에 맞춘 내부 타입 정의
+interface JournalData {
+  id: number;
+  journalName: string;
+  category: string;
+  publisher: string;
+  publishCountry: string;
+  isbn: string;
+  issn: string;
+  eissn: string;
+  jif: string;
+  jcrRank: string;
+  issue: string;
+}
 
 interface JournalTableProps {
-  data: Journal[];
-  onEdit: (item: Journal, type: 'journal') => void;
-  onDelete: (id: string, type: 'journal') => void;
+  data: JournalData[];
+  onEdit: (item: JournalData, type: 'journal') => void;
+  onDelete?: (id: string, type: 'journal') => void;
 }
 
 type SortOrder = 'asc' | 'desc';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+const getToken = () => {
+  if (typeof window === 'undefined') return null;
+  const raw = localStorage.getItem('auth-storage');
+  return raw ? JSON.parse(raw)?.state?.accessToken : null;
+};
 
 export function JournalTable({ data, onEdit, onDelete }: JournalTableProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchColumn, setSearchColumn] = useState<string>('all');
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('정말 삭제하시겠습니까?')) return;
+
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/research/journals/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error('삭제 실패');
+
+      if (onDelete) onDelete(String(id), 'journal');
+    } catch (error) {
+      console.error(error);
+      alert('삭제 중 오류가 발생했습니다.');
+    }
+  };
 
   const filteredData = data.filter((item) => {
     if (!searchQuery) return true;
@@ -52,12 +96,11 @@ export function JournalTable({ data, onEdit, onDelete }: JournalTableProps) {
         item.publishCountry?.toLowerCase().includes(q) ||
         item.issn?.toLowerCase().includes(q) ||
         item.eissn?.toLowerCase().includes(q) ||
-        item.category?.toLowerCase().includes(q) ||
-        item.jcrRank?.toLowerCase().includes(q)
+        item.category?.toLowerCase().includes(q)
       );
     }
 
-    return String(item[searchColumn as keyof Journal] ?? '')
+    return String(item[searchColumn as keyof JournalData] ?? '')
       .toLowerCase()
       .includes(q);
   });
@@ -72,7 +115,6 @@ export function JournalTable({ data, onEdit, onDelete }: JournalTableProps) {
 
   return (
     <div className="space-y-4">
-      {/* 검색 / 정렬 영역 */}
       <div className="flex items-center gap-2">
         <Select value={searchColumn} onValueChange={setSearchColumn}>
           <SelectTrigger className="w-[180px]">
@@ -85,47 +127,45 @@ export function JournalTable({ data, onEdit, onDelete }: JournalTableProps) {
             <SelectItem value="publisher">출판사</SelectItem>
             <SelectItem value="publishCountry">국가</SelectItem>
             <SelectItem value="issn">ISSN</SelectItem>
-            <SelectItem value="eissn">E-ISSN</SelectItem>
-            <SelectItem value="jcrRank">JCR Rank</SelectItem>
           </SelectContent>
         </Select>
 
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
-            placeholder="검색..."
+            placeholder="학술지 검색..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
           />
         </div>
 
-        <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as SortOrder)}>
+        <Select
+          value={sortOrder}
+          onValueChange={(v) => setSortOrder(v as SortOrder)}
+        >
           <SelectTrigger className="w-[140px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="asc">가나다순</SelectItem>
+            <SelectItem value="asc">이름순</SelectItem>
             <SelectItem value="desc">역순</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* 테이블 */}
-      <div className="border rounded-lg bg-card">
+      <div className="bg-card rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-center">No</TableHead>
+              <TableHead className="w-[50px] text-center">No</TableHead>
               <TableHead>저널명</TableHead>
               <TableHead className="text-center">구분</TableHead>
               <TableHead>출판사</TableHead>
               <TableHead className="text-center">국가</TableHead>
-              <TableHead className="text-center">ISSN</TableHead>
-              <TableHead className="text-center">E-ISSN</TableHead>
-              <TableHead className="text-center">JIF</TableHead>
-              <TableHead className="text-center">JCR Rank</TableHead>
-              <TableHead />
+              <TableHead className="text-center">ISSN / E-ISSN</TableHead>
+              <TableHead className="text-center">JIF / Rank</TableHead>
+              <TableHead className="w-[50px]" />
             </TableRow>
           </TableHeader>
 
@@ -133,8 +173,8 @@ export function JournalTable({ data, onEdit, onDelete }: JournalTableProps) {
             {sortedData.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={10}
-                  className="h-24 text-center text-muted-foreground"
+                  colSpan={8}
+                  className="text-muted-foreground h-24 text-center"
                 >
                   데이터가 없습니다.
                 </TableCell>
@@ -143,23 +183,24 @@ export function JournalTable({ data, onEdit, onDelete }: JournalTableProps) {
               sortedData.map((item, idx) => (
                 <TableRow key={item.id}>
                   <TableCell className="text-center">{idx + 1}</TableCell>
-                  <TableCell>{item.journalName}</TableCell>
+                  <TableCell className="font-medium">
+                    {item.journalName}
+                  </TableCell>
                   <TableCell className="text-center">{item.category}</TableCell>
                   <TableCell>{item.publisher}</TableCell>
                   <TableCell className="text-center">
                     {item.publishCountry}
                   </TableCell>
-                  <TableCell className="text-center">
+                  <TableCell className="text-center text-xs">
                     {item.issn || '-'}
-                  </TableCell>
-                  <TableCell className="text-center">
+                    <br />
                     {item.eissn || '-'}
                   </TableCell>
                   <TableCell className="text-center">
-                    {item.jif || '-'}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {item.jcrRank || '-'}
+                    <span className="font-bold">{item.jif || '-'}</span>
+                    <div className="text-muted-foreground text-[10px]">
+                      {item.jcrRank}
+                    </div>
                   </TableCell>
                   <TableCell className="text-center">
                     <DropdownMenu>
@@ -176,9 +217,7 @@ export function JournalTable({ data, onEdit, onDelete }: JournalTableProps) {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive"
-                          onClick={() =>
-                            onDelete(String(item.id), 'journal')
-                          }
+                          onClick={() => handleDelete(item.id)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" /> 삭제
                         </DropdownMenuItem>

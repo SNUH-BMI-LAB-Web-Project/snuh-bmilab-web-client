@@ -25,20 +25,53 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import type { Paper } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 
+// 제공된 JSON 양식에 맞춘 내부 타입 정의
+interface PaperData {
+  id: number;
+  acceptDate: string;
+  publishDate: string;
+  journal: {
+    id: number;
+    journalName: string;
+    category: string;
+    publisher: string;
+    publishCountry: string;
+  };
+  paperTitle: string;
+  allAuthors: string;
+  authorCount: number;
+  correspondingAuthors: Array<{
+    externalProfessorId: number;
+    externalProfessorName: string;
+    role: string;
+  }>;
+  paperAuthors: Array<{
+    userId: number;
+    userName: string;
+    role: string;
+  }>;
+  vol: string;
+  page: string;
+  paperLink: string;
+  doi: string;
+  pmid: string;
+  citations: number;
+  professorRole: string;
+  isRepresentative: boolean;
+  files: Array<{
+    fileId: string;
+    fileName: string;
+    uploadUrl: string;
+  }>;
+}
+
 interface PaperTableProps {
-  data: Paper[];
-  onEdit: (item: Paper, type: string) => void;
+  data: PaperData[];
+  onEdit: (item: PaperData, type: string) => void;
   onDelete: (id: string, type: string) => void;
-  isUserView?: boolean; // mode prop 추가
+  isUserView?: boolean;
 }
 
 export function PaperTable({
@@ -53,402 +86,211 @@ export function PaperTable({
 
   const filteredData = data.filter((item) => {
     if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
 
-    const searchLower = searchQuery.toLowerCase();
+    const correspondingNames =
+      item.correspondingAuthors
+        ?.map((a) => a.externalProfessorName)
+        .join(', ') ?? '';
+    const labMemberNames =
+      item.paperAuthors?.map((a) => a.userName).join(', ') ?? '';
 
     if (searchColumn === 'all') {
       return (
-        item.acceptDate?.toLowerCase().includes(searchLower) ||
-        item.publishDate?.toLowerCase().includes(searchLower) ||
-        item.journalName?.toLowerCase().includes(searchLower) ||
-        item.paperTitle?.toLowerCase().includes(searchLower) ||
-        item.allAuthors?.toLowerCase().includes(searchLower) ||
-        item.labMembers?.some((member) =>
-          member.toLowerCase().includes(searchLower),
-        ) ||
-        item.correspondingAuthor?.toLowerCase().includes(searchLower) ||
-        item.vol?.toLowerCase().includes(searchLower) ||
-        item.page?.toLowerCase().includes(searchLower) ||
-        item.doi?.toLowerCase().includes(searchLower) ||
-        item.paperLink?.toLowerCase().includes(searchLower)
+        item.acceptDate?.includes(q) ||
+        item.publishDate?.includes(q) ||
+        item.journal?.journalName?.toLowerCase().includes(q) ||
+        item.paperTitle?.toLowerCase().includes(q) ||
+        item.allAuthors?.toLowerCase().includes(q) ||
+        correspondingNames.toLowerCase().includes(q) ||
+        labMemberNames.toLowerCase().includes(q) ||
+        item.doi?.toLowerCase().includes(q)
       );
     }
-
-    if (searchColumn === 'labMembers') {
-      return item.labMembers?.some((member) =>
-        member.toLowerCase().includes(searchLower),
-      );
-    }
-
-    return item[searchColumn as keyof Paper]
-      ?.toString()
-      .toLowerCase()
-      .includes(searchLower);
+    return false;
   });
 
   const sortedData = [...filteredData].sort((a, b) => {
-    const aValue = a.publishDate || '';
-    const bValue = b.publishDate || '';
-
-    if (sortOrder === 'asc') {
-      return aValue > bValue ? 1 : -1;
-    }
-    return aValue < bValue ? 1 : -1;
+    const av = a.publishDate ?? '';
+    const bv = b.publishDate ?? '';
+    return sortOrder === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
   });
 
   return (
-    <TooltipProvider>
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Select value={searchColumn} onValueChange={setSearchColumn}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="검색 컬럼" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">전체</SelectItem>
-              <SelectItem value="acceptDate">Accept Date</SelectItem>
-              <SelectItem value="publishDate">Publish Date</SelectItem>
-              <SelectItem value="journalName">저널명</SelectItem>
-              <SelectItem value="paperTitle">논문 제목</SelectItem>
-              <SelectItem value="allAuthors">전체 저자</SelectItem>
-              {!isUserView && (
-                <SelectItem value="authorCount">저자수</SelectItem>
-              )}
-              {!isUserView && (
-                <SelectItem value="labMembers">연구실 내 인원</SelectItem>
-              )}
-              <SelectItem value="correspondingAuthor">교신저자</SelectItem>
-              <SelectItem value="vol">Vol</SelectItem>
-              <SelectItem value="page">Page</SelectItem>
-              <SelectItem value="paperLink">논문 링크</SelectItem>
-              <SelectItem value="doi">DOI</SelectItem>
-              <SelectItem value="pmid">PMID</SelectItem>
-              <SelectItem value="citationCount">Citation Count</SelectItem>
-              {!isUserView && (
-                <SelectItem value="professorRole">교수님 역할</SelectItem>
-              )}
-              {!isUserView && (
-                <SelectItem value="isRepresentative">대표 실적</SelectItem>
-              )}
-            </SelectContent>
-          </Select>
-          <div className="relative flex-1">
-            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-            <Input
-              placeholder="검색..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <Select
-            value={sortOrder}
-            onValueChange={(value) => setSortOrder(value as 'asc' | 'desc')}
-          >
-            <SelectTrigger className="w-[140px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="desc">최신순</SelectItem>
-              <SelectItem value="asc">오래된순</SelectItem>
-            </SelectContent>
-          </Select>
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <Select value={searchColumn} onValueChange={setSearchColumn}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="검색 컬럼" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">전체</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <div className="relative flex-1">
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+          <Input
+            placeholder="논문 검색..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
         </div>
 
-        <div className="bg-card overflow-x-auto rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="min-w-[60px] text-center">No</TableHead>
-                <TableHead className="text-center">Publish Date</TableHead>
-                <TableHead className="text-center">Accept Date</TableHead>
-                <TableHead>저널명</TableHead>
-                <TableHead>논문 제목</TableHead>
-                <TableHead>전체 저자</TableHead>
-                <TableHead>교신저자</TableHead>
-                {!isUserView && <TableHead>저자수</TableHead>}
-                {!isUserView && <TableHead>연구실 내 인원</TableHead>}
-                <TableHead className="text-center">Vol</TableHead>
-                <TableHead className="text-center">Page</TableHead>
-                <TableHead className="text-center">논문 링크</TableHead>
-                <TableHead>DOI</TableHead>
-                <TableHead>PMID</TableHead>
-                <TableHead className="text-center">첨부파일</TableHead>
-                <TableHead className="text-center">Citation</TableHead>
-                {!isUserView && (
-                  <TableHead className="text-center">교수님 역할</TableHead>
-                )}
-                {!isUserView && (
-                  <TableHead className="text-center">대표 실적</TableHead>
-                )}
-                <TableHead className="text-center" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedData.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={!isUserView ? 19 : 15}
-                    className="text-muted-foreground h-24 text-center"
-                  >
-                    데이터가 없습니다.
+        <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as any)}>
+          <SelectTrigger className="w-[120px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="desc">최신순</SelectItem>
+            <SelectItem value="asc">과거순</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="overflow-x-auto rounded-lg border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[50px]">No</TableHead>
+              <TableHead>Publish/Accept</TableHead>
+              <TableHead>저널명</TableHead>
+              <TableHead className="min-w-[200px]">논문 제목</TableHead>
+              <TableHead>전체 저자</TableHead>
+              <TableHead>교신저자</TableHead>
+              {!isUserView && <TableHead>인원</TableHead>}
+              <TableHead>Vol/Page</TableHead>
+              <TableHead>DOI/PMID</TableHead>
+              <TableHead className="text-center">첨부</TableHead>
+              {!isUserView && (
+                <TableHead className="text-center">대표</TableHead>
+              )}
+              <TableHead />
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {sortedData.map((item, idx) => {
+              const correspondingNames =
+                item.correspondingAuthors
+                  ?.map((a) => a.externalProfessorName)
+                  .join(', ') ?? '-';
+              const labMembers =
+                item.paperAuthors
+                  ?.map((a) => `${a.userName}(${a.role})`)
+                  .join(', ') ?? '-';
+
+              return (
+                <TableRow key={item.id}>
+                  <TableCell className="text-center">{idx + 1}</TableCell>
+                  <TableCell className="text-xs">
+                    P: {item.publishDate}
+                    <br />
+                    A: {item.acceptDate}
                   </TableCell>
-                </TableRow>
-              ) : (
-                sortedData.map((item, index) => (
-                  <TableRow
-                    key={item.id}
-                    className="hover:bg-primary/10 transition-colors"
-                  >
-                    <TableCell className="text-center">{index + 1}</TableCell>
-                    <TableCell className="max-w-[120px] text-center">
-                      <div className="truncate" title={item.publishDate}>
-                        {item.publishDate}
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-[120px] text-center">
-                      <div className="truncate" title={item.acceptDate}>
-                        {item.acceptDate}
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-[200px]">
-                      {item.journalInfo ? (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              {/* eslint-disable-next-line react/button-has-type */}
-                              <button className="text-primary w-full cursor-help truncate text-left hover:underline">
-                                {item.journalName}
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent
-                              className="text-foreground max-w-md border bg-white p-4 shadow-lg"
-                              sideOffset={5}
-                            >
-                              <div className="space-y-2">
-                                <div className="text-base font-semibold">
-                                  {item.journalInfo.name}
-                                </div>
-                                <div className="grid grid-cols-2 gap-2 text-sm">
-                                  <div>
-                                    <span className="text-muted-foreground">
-                                      분류:
-                                    </span>
-                                    <span className="ml-2">
-                                      {item.journalInfo.category}
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <span className="text-muted-foreground">
-                                      출판사:
-                                    </span>{' '}
-                                    {item.journalInfo.publisher}
-                                  </div>
-                                  <div>
-                                    <span className="text-muted-foreground">
-                                      국가:
-                                    </span>{' '}
-                                    {item.journalInfo.country}
-                                  </div>
-                                  <div>
-                                    <span className="text-muted-foreground">
-                                      JIF:
-                                    </span>{' '}
-                                    {item.journalInfo.jif}
-                                  </div>
-                                  <div>
-                                    <span className="text-muted-foreground">
-                                      ISSN:
-                                    </span>{' '}
-                                    {item.journalInfo.issn}
-                                  </div>
-                                  <div>
-                                    <span className="text-muted-foreground">
-                                      eISSN:
-                                    </span>{' '}
-                                    {item.journalInfo.eissn}
-                                  </div>
-                                  <div className="col-span-2">
-                                    <span className="text-muted-foreground">
-                                      JCR Rank:
-                                    </span>{' '}
-                                    {item.journalInfo.jcrRank}
-                                  </div>
-                                </div>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      ) : (
-                        <div className="truncate" title={item.journalName}>
-                          {item.journalName}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="max-w-[300px]">
-                      <div className="truncate" title={item.paperTitle}>
-                        {item.paperTitle}
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-[200px]">
-                      <div className="truncate" title={item.allAuthors}>
-                        {(() => {
-                          const firstAuthorsList =
-                            item.firstAuthors
-                              ?.split(',')
-                              .map((s) => s.trim())
-                              .filter(Boolean) || [];
-                          const coAuthorsList =
-                            item.coAuthors
-                              ?.split(',')
-                              .map((s) => s.trim())
-                              .filter(Boolean) || [];
-
-                          if (firstAuthorsList.length === 0)
-                            return item.allAuthors;
-
-                          const displayAuthors = firstAuthorsList.join(', ');
-                          const coAuthorCount = coAuthorsList.length;
-
-                          if (coAuthorCount > 0) {
-                            return `${displayAuthors} 외 ${coAuthorCount}명`;
-                          }
-                          return displayAuthors;
-                        })()}
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-[120px]">
-                      <div
-                        className="truncate"
-                        title={item.correspondingAuthor}
-                      >
-                        {item.correspondingAuthor}
-                      </div>
-                    </TableCell>
-                    {!isUserView && (
-                      <TableCell className="max-w-[100px] text-center">
-                        {item.authorCount}명
-                      </TableCell>
-                    )}
-                    {!isUserView && (
-                      <TableCell className="max-w-[150px]">
-                        <div
-                          className="truncate"
-                          title={item.labMembers.join(', ')}
-                        >
-                          {item.labMembers.join(', ')}
-                        </div>
-                      </TableCell>
-                    )}
-                    <TableCell className="max-w-[80px] text-center">
-                      <div className="truncate" title={item.vol}>
-                        {item.vol}
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-[100px] text-center">
-                      <div className="truncate" title={item.page}>
-                        {item.page}
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-[80px] text-center">
-                      {item.paperLink && (
+                  <TableCell>{item.journal?.journalName}</TableCell>
+                  <TableCell>
+                    <div className="font-medium">{item.paperTitle}</div>
+                    {/* 링크 노출 및 말줄임 처리 */}
+                    {item.paperLink && (
+                      <div className="max-w-[250px] truncate">
                         <a
                           href={item.paperLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-primary hover:underline"
+                          className="text-primary text-xs underline"
                           title={item.paperLink}
                         >
-                          링크
+                          {item.paperLink}
                         </a>
-                      )}
-                    </TableCell>
-                    <TableCell className="max-w-[200px]">
-                      <div className="truncate" title={item.doi}>
-                        {item.doi}
                       </div>
-                    </TableCell>
-                    <TableCell className="max-w-[100px]">
-                      <div className="truncate" title={item.pmid}>
-                        {item.pmid}
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-[100px] text-center">
-                      {item.attachments && item.attachments.length > 0 && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 gap-1"
-                            >
-                              <Download className="h-4 w-4" />
-                              <span>{item.attachments.length}개</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            {item.attachments.map((file, idx) => (
-                              <DropdownMenuItem
-                                // eslint-disable-next-line react/no-array-index-key
-                                key={idx}
-                                onClick={() => {
-                                  console.log('[v0] Downloading file:', file);
-                                }}
-                              >
-                                <Download className="mr-2 h-4 w-4" />
-                                {file}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </TableCell>
-                    <TableCell className="max-w-[80px] text-center">
-                      {item.citationCount}
-                    </TableCell>
-                    {!isUserView && (
-                      <TableCell className="max-w-[150px] text-center">
-                        <span>{item.professorRole}</span>
-                      </TableCell>
                     )}
-                    {!isUserView && (
-                      <TableCell className="max-w-[100px] text-center">
-                        {item.isRepresentative && (
-                          <Badge variant="outline">대표</Badge>
-                        )}
-                      </TableCell>
-                    )}
-                    <TableCell className="text-center">
+                  </TableCell>
+                  <TableCell className="max-w-[150px] truncate text-xs">
+                    {item.allAuthors}
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    {correspondingNames}
+                  </TableCell>
+
+                  {!isUserView && (
+                    <TableCell className="text-xs">
+                      총 {item.authorCount}명<br />
+                      <span className="text-muted-foreground">
+                        {labMembers}
+                      </span>
+                    </TableCell>
+                  )}
+
+                  <TableCell className="text-xs">
+                    {item.vol || '-'}/{item.page || '-'}
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    D: {item.doi || '-'}
+                    <br />
+                    P: {item.pmid || '-'}
+                  </TableCell>
+
+                  <TableCell className="text-center">
+                    {(item.files?.length ?? 0) > 0 && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-4 w-4" />
+                          <Button size="sm" variant="ghost">
+                            <Download className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => onEdit(item, 'paper')}
-                          >
-                            <Pencil className="mr-2 h-4 w-4" />
-                            수정
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => onDelete(item.id, 'paper')}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="text-destructive mr-2 h-4 w-4" />
-                            삭제
-                          </DropdownMenuItem>
+                        <DropdownMenuContent>
+                          {item.files.map((f) => (
+                            <DropdownMenuItem
+                              key={f.fileId}
+                              onClick={() => window.open(f.uploadUrl)}
+                            >
+                              {f.fileName}
+                            </DropdownMenuItem>
+                          ))}
                         </DropdownMenuContent>
                       </DropdownMenu>
+                    )}
+                  </TableCell>
+
+                  {!isUserView && (
+                    <TableCell className="text-center">
+                      {item.isRepresentative && (
+                        <Badge variant="default">대표</Badge>
+                      )}
+                      <div className="mt-1 text-[10px]">
+                        {item.professorRole}
+                      </div>
                     </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                  )}
+
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="icon" variant="ghost">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onEdit(item, 'paper')}>
+                          <Pencil className="mr-2 h-4 w-4" /> 수정
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => onDelete(String(item.id), 'paper')}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" /> 삭제
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       </div>
-    </TooltipProvider>
+    </div>
   );
 }

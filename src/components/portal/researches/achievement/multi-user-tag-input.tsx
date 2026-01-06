@@ -20,11 +20,11 @@ interface UserTagInputStringProps {
 }
 
 export function UserTagInputString({
-                                     value,
-                                     onChange,
-                                     onUserSelectedIds,
-                                     placeholder,
-                                   }: UserTagInputStringProps) {
+  value,
+  onChange,
+  onUserSelectedIds,
+  placeholder,
+}: UserTagInputStringProps) {
   const [input, setInput] = useState('');
   const [searchResults, setSearchResults] = useState<UserSummary[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -103,9 +103,7 @@ export function UserTagInputString({
 
     const user = searchResults.find((u) => u.name === removedName);
     if (user?.userId != null) {
-      setSelectedUserIds((prev) =>
-        prev.filter((id) => id !== user.userId),
-      );
+      setSelectedUserIds((prev) => prev.filter((id) => id !== user.userId));
     }
   };
 
@@ -137,7 +135,10 @@ export function UserTagInputString({
       if (!keyword) return;
 
       if (highlightedIndex >= 0 && searchResults[highlightedIndex]) {
-        addUser(searchResults[highlightedIndex], searchResults[highlightedIndex].name ?? '');
+        addUser(
+          searchResults[highlightedIndex],
+          searchResults[highlightedIndex].name ?? '',
+        );
       } else {
         addUser(null, keyword);
       }

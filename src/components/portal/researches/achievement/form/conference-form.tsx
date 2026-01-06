@@ -46,11 +46,11 @@ const mapPresentationType = (value?: string): PresentationType => {
 };
 
 export function ConferenceForm({
-                                 initialData,
-                                 onSave,
-                                 onCancel,
-                                 onDeleted,
-                               }: ConferenceFormProps) {
+  initialData,
+  onSave,
+  onCancel,
+  onDeleted,
+}: ConferenceFormProps) {
   const [authorNames, setAuthorNames] = useState<string[]>([]);
   const [authorUserIds, setAuthorUserIds] = useState<number[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -77,8 +77,7 @@ export function ConferenceForm({
     );
 
     setAuthorUserIds(
-      initialData.academicPresentationAuthors?.map((a: any) => a.userId) ??
-      [],
+      initialData.academicPresentationAuthors?.map((a: any) => a.userId) ?? [],
     );
 
     setFormData({
@@ -161,15 +160,11 @@ export function ConferenceForm({
       <div className="grid grid-cols-2 gap-4">
         <DatePicker
           value={formData.startDate}
-          onChange={(v) =>
-            setFormData((p) => ({ ...p, startDate: v }))
-          }
+          onChange={(v) => setFormData((p) => ({ ...p, startDate: v }))}
         />
         <DatePicker
           value={formData.endDate}
-          onChange={(v) =>
-            setFormData((p) => ({ ...p, endDate: v }))
-          }
+          onChange={(v) => setFormData((p) => ({ ...p, endDate: v }))}
         />
       </div>
 
@@ -229,11 +224,20 @@ export function ConferenceForm({
 
       <SingleProjectSelectInput
         value={formData.relatedProject.name}
+        onValueChange={(name) =>
+          setFormData((prev) => ({
+            ...prev,
+            relatedProject: {
+              ...prev.relatedProject,
+              name,
+            },
+          }))
+        }
         onProjectSelected={(p) =>
           setFormData((prev) => ({
             ...prev,
             relatedProject: p
-              ? { id: p.projectId, name: p.title ?? '' }
+              ? { id: p.projectId ?? null, name: p.title ?? '' }
               : { id: null, name: '' },
           }))
         }
@@ -241,29 +245,39 @@ export function ConferenceForm({
 
       <SingleTaskSelectInput
         value={formData.relatedTask.name}
+        onValueChange={(name) =>
+          setFormData((prev) => ({
+            ...prev,
+            relatedTask: {
+              ...prev.relatedTask,
+              name,
+            },
+          }))
+        }
         onTaskSelected={(t) =>
           setFormData((prev) => ({
             ...prev,
             relatedTask: t
-              ? { id: t.id, name: t.title ?? '' }
+              ? { id: t.id ?? null, name: t.title ?? '' }
               : { id: null, name: '' },
           }))
         }
       />
 
-      <div className="flex justify-between pt-4">
+      <div className="flex pt-4">
         {initialData?.id && (
           <Button
             type="button"
             variant="destructive"
             onClick={handleDelete}
             disabled={isDeleting}
+            className="mr-auto"
           >
             삭제
           </Button>
         )}
 
-        <div className="flex gap-2">
+        <div className="ml-auto flex gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>
             취소
           </Button>

@@ -1,8 +1,7 @@
 'use client';
 
 import type React from 'react';
-
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,22 +24,17 @@ import { getProfessorKey } from '@/utils/external-professor-utils';
 import { toast } from 'sonner';
 import {
   LabMember,
-  LabMemberRole,
   LabMemberSelect,
 } from '@/components/portal/researches/achievement/lab-member-select';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-const getToken = () => {
-  const raw = localStorage.getItem('auth-storage');
-  return raw ? JSON.parse(raw)?.state?.accessToken ?? null : null;
-};
 
 interface PaperFormProps {
   initialData?: Paper;
   onSave: (data: Omit<Paper, 'id'>) => void;
   onCancel: () => void;
 }
+
+// 서버 Enum 타입 정의
+type ProfessorRole = 'FIRST_AUTHOR' | 'CO_AUTHOR' | 'CORRESPONDING_AUTHOR';
 
 export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
   const [showCorrespondingModal, setShowCorrespondingModal] = useState(false);
@@ -49,45 +43,56 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
   >([]);
 
   const [labMembers, setLabMembers] = useState<LabMember[]>([]);
-  const LAB_ROLE_LABEL: Record<LabMemberRole, string> = {
-    FIRST: '제1저자',
-    CO_FIRST: '공동1저자',
-    CO_AUTHOR: '공동저자',
-  };
-
   const [files, setFiles] = useState<ProjectFileSummary[]>([]);
 
   const [formData, setFormData] = useState({
-    acceptDate: initialData?.acceptDate || '',
-    publishDate: initialData?.publishDate || '',
-    journalName: initialData?.journalName || '',
-    paperTitle: initialData?.paperTitle || '',
-    firstAuthors: initialData?.firstAuthors || '',
-    coAuthors: initialData?.coAuthors || '',
-    labMembers: initialData?.labMembers?.join(', ') || '',
-    correspondingAuthor: initialData?.correspondingAuthor || '',
-    vol: initialData?.vol || '',
-    page: initialData?.page || '',
-    paperLink: initialData?.paperLink || '',
-    doi: initialData?.doi || '',
-    pmid: initialData?.pmid || '',
-    attachments: initialData?.attachments || [],
-    citationCount: initialData?.citationCount || '',
-    professorRole: initialData?.professorRole || '제1저자',
-    isRepresentative: initialData?.isRepresentative || false,
+    acceptDate: '',
+    publishDate: '',
+    journalName: '',
+    paperTitle: '',
+    firstAuthors: '',
+    coAuthors: '',
+    vol: '',
+    page: '',
+    paperLink: '',
+    doi: '',
+    pmid: '',
+    citationCount: '',
+    professorRole: 'FIRST_AUTHOR' as ProfessorRole,
+    isRepresentative: false,
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!initialData) return;
+
+    setFormData({
+      acceptDate: initialData.acceptDate ?? '',
+      publishDate: initialData.publishDate ?? '',
+      journalName: initialData.journalName ?? '',
+      paperTitle: initialData.paperTitle ?? '',
+      firstAuthors: initialData.firstAuthors ?? '',
+      coAuthors: initialData.coAuthors ?? '',
+      vol: initialData.vol ?? '',
+      page: initialData.page ?? '',
+      paperLink: initialData.paperLink ?? '',
+      doi: initialData.doi ?? '',
+      pmid: initialData.pmid ?? '',
+      citationCount: String(
+        initialData.citations ?? initialData.citationCount ?? '',
+      ),
+      professorRole:
+        (initialData.professorRole as ProfessorRole) ?? 'FIRST_AUTHOR',
+      isRepresentative: initialData.isRepresentative ?? false,
+    });
+
+    // 첨부파일이나 연구실 멤버 등 추가 데이터 복구 로직이 필요할 경우 여기에 추가
+  }, [initialData]);
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (correspondingProfessors.length === 0) {
       toast('교신저자를 1명 이상 선택하세요.');
-      return;
-    }
-
-    const token = getToken();
-    if (!token) {
-      toast.error('토큰이 없습니다.');
       return;
     }
 
@@ -101,98 +106,35 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    const labMembersString = labMembers
-      .map((m) => `${m.name}(${LAB_ROLE_LABEL[m.role]})`)
-      .join(', ');
-
     const allAuthors = [...firstAuthorsList, ...coAuthorsList].join(', ');
-    const authorCount = firstAuthorsList.length + coAuthorsList.length;
 
-    /* ===========================
-       서버 전송용 payload (매핑만)
-       ※ 프론트 필드/의미 변경 없음
-       =========================== */
-    const apiPayload = {
+    onSave({
       acceptDate: formData.acceptDate,
       publishDate: formData.publishDate,
-      journalId: Number(formData.journalName),
+      journal: formData.journalName
+        ? { id: Number(formData.journalName) || 0 } // ID가 숫자인 경우 처리
+        : undefined,
+      journalName: formData.journalName,
       paperTitle: formData.paperTitle,
       allAuthors,
-      firstAuthor: firstAuthorsList[0] ?? '',
+      firstAuthors: formData.firstAuthors,
       coAuthors: formData.coAuthors,
-      correspondingAuthors: correspondingProfessors.map((p) => ({
-        externalProfessorId: p.id!,
-        role: 'CORRESPONDING_AUTHOR',
-      })),
-      paperAuthors: labMembers.map((m) => ({
-        userId: m.userId,
-        role: m.role,
-      })),
+      correspondingAuthor: correspondingProfessors[0]?.name ?? '',
+      labMembers: labMembers.map((m) => m.name),
+      authorCount: firstAuthorsList.length + coAuthorsList.length,
       vol: formData.vol,
       page: formData.page,
       paperLink: formData.paperLink,
       doi: formData.doi,
       pmid: formData.pmid,
-      citations: Number(formData.citationCount),
-      professorRole:
-        formData.professorRole === '제1저자'
-          ? 'FIRST_AUTHOR'
-          : formData.professorRole === '공저자'
-            ? 'CO_AUTHOR'
-            : 'CORRESPONDING_AUTHOR',
+      citations: Number(formData.citationCount) || 0,
+      citationCount: formData.citationCount,
+      professorRole: formData.professorRole,
       isRepresentative: formData.isRepresentative,
-      fileIds: files.map((f) => f.fileId),
-    };
-
-    /* ===========================
-       로그 (요청 전/후)
-       =========================== */
-    console.log('[PaperForm] submit formData:', formData);
-    console.log('[PaperForm] submit labMembers:', labMembers);
-    console.log('[PaperForm] submit files:', files);
-    console.log('[PaperForm] API payload:', apiPayload);
-
-    try {
-      const res = await fetch(`${API_BASE}/research/papers`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(apiPayload),
-      });
-
-      console.log('[PaperForm] API response status:', res.status);
-
-      if (!res.ok) {
-        const text = await res.text();
-        console.error('[PaperForm] API error body:', text);
-        throw new Error(`논문 저장 실패 (${res.status})`);
-      }
-
-      const result = await res.json();
-      console.log('[PaperForm] API success response:', result);
-
-      /* ===========================
-         프론트 저장 흐름 그대로 유지
-         =========================== */
-      onSave({
-        ...formData,
-        correspondingAuthor: correspondingProfessors
-          .map((p) => p.name)
-          .filter(Boolean)
-          .join(', '),
-        allAuthors,
-        authorCount,
-        labMembers: labMembersString,
-        attachmentFileIds: files.map((f) => f.fileId!),
-      } as any);
-
-      toast.success('논문이 저장되었습니다.');
-    } catch (err: any) {
-      console.error('[PaperForm] submit error:', err);
-      toast.error(err.message || '저장 중 오류 발생');
-    }
+      attachments: files
+        .map((f) => f.fileId)
+        .filter((id): id is string => Boolean(id)),
+    });
   };
 
   return (
@@ -233,7 +175,7 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
           onChange={(e) =>
             setFormData({ ...formData, journalName: e.target.value })
           }
-          placeholder="저널 선택"
+          placeholder="저널 입력"
           required
         />
       </div>
@@ -439,7 +381,7 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
         </Label>
         <Select
           value={formData.professorRole}
-          onValueChange={(value: '제1저자' | '공저자' | '교신저자') =>
+          onValueChange={(value: ProfessorRole) =>
             setFormData({ ...formData, professorRole: value })
           }
         >
@@ -447,9 +389,9 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="제1저자">제1저자</SelectItem>
-            <SelectItem value="공저자">공저자</SelectItem>
-            <SelectItem value="교신저자">교신저자</SelectItem>
+            <SelectItem value="FIRST_AUTHOR">제1저자</SelectItem>
+            <SelectItem value="CO_AUTHOR">공저자</SelectItem>
+            <SelectItem value="CORRESPONDING_AUTHOR">교신저자</SelectItem>
           </SelectContent>
         </Select>
       </div>

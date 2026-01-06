@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Plus, FileDown } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 import type {
   Book,
@@ -16,10 +16,6 @@ import type {
 
 import { ResearchAchievementModal } from '@/components/portal/researches/achievement/ResearchAchievementModal';
 import { ResearchAchievementTables } from '@/components/portal/researches/achievement/ResearchAchievementTables';
-
-interface ResearchManagementSystemProps {
-  isUserView?: boolean;
-}
 
 type ResearchType =
   | 'book'
@@ -36,18 +32,13 @@ const getToken = () => {
   return raw ? JSON.parse(raw)?.state?.accessToken : null;
 };
 
-const EXCEL_ENDPOINT_MAP: Record<ResearchType, string> = {
-  book: '/research/authors/excel',
-  conference: '/research/academic-presentations/excel',
-  award: '/research/awards/excel',
-  paper: '/research/papers/excel',
-  patent: '/research/patents/excel',
-  journal: '/research/journals/excel',
-};
+interface ResearchManagementSystemProps {
+  isUserView?: boolean;
+}
 
 export default function ResearchManagementSystem({
-                                                   isUserView = false,
-                                                 }: ResearchManagementSystemProps) {
+  isUserView,
+}: ResearchManagementSystemProps) {
   const [activeTab, setActiveTab] = useState<ResearchType>('book');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -59,58 +50,82 @@ export default function ResearchManagementSystem({
   const [patents, setPatents] = useState<Patent[]>([]);
   const [journals, setJournals] = useState<Journal[]>([]);
 
+  /* 신규 등록 */
   const handleAdd = () => {
     setEditingItem(null);
     setIsDialogOpen(true);
   };
 
-  const handleEdit = (item: any, type: ResearchType) => {
+  /* ===============================
+     학회 발표 수정 (단건조회)
+     =============================== */
+  const handleEditConference = async (id: number) => {
+    const token = getToken();
+    if (!token) return;
+
+    const res = await fetch(
+      `${API_BASE}/research/academic-presentations/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    if (!res.ok) {
+      throw new Error('CONFERENCE DETAIL FETCH FAILED');
+    }
+
+    const detail = await res.json();
+
+    setEditingItem({
+      ...detail,
+      type: 'conference',
+    });
+
+    setIsDialogOpen(true);
+  };
+
+  /* ===============================
+     수상 수정 (단건조회)
+     =============================== */
+  const handleEditAward = async (id: number) => {
+    const token = getToken();
+    if (!token) return;
+
+    const res = await fetch(`${API_BASE}/research/awards/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error('AWARD DETAIL FETCH FAILED');
+    }
+
+    const detail = await res.json();
+
+    setEditingItem({
+      ...detail,
+      type: 'award',
+    });
+
+    setIsDialogOpen(true);
+  };
+
+  /* 기타 타입: 기존 로직 유지 */
+  const handleEditDefault = (item: any, type: ResearchType) => {
     setEditingItem({ ...item, type });
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: string, type: ResearchType) => {
-    if (!window.confirm('정말 삭제하시겠습니까?')) return;
-
-    const remove =
-      (setter: React.Dispatch<React.SetStateAction<any[]>>) =>
-        (prev: any[]) =>
-          prev.filter((item) => String(item.id) !== id);
-
-    switch (type) {
-      case 'book':
-        setBooks(remove(setBooks));
-        break;
-      case 'conference':
-        setConferences(remove(setConferences));
-        break;
-      case 'award':
-        setAwards(remove(setAwards));
-        break;
-      case 'paper':
-        setPapers(remove(setPapers));
-        break;
-      case 'patent':
-        setPatents(remove(setPatents));
-        break;
-      case 'journal':
-        setJournals(remove(setJournals));
-        break;
-    }
-  };
-
-  const handleSave = (data: any, type: ResearchType) => {
-    const newItem = {
-      ...data,
-      id: editingItem?.id ?? `${type}-${Date.now()}`,
-    };
-
+  /* 저장 후 목록 반영 */
+  const handleSave = (savedItem: any, type: ResearchType) => {
     const updater =
-      (setter: React.Dispatch<React.SetStateAction<any[]>>) =>
-        (prev: any[]) =>
-          editingItem
-            ? prev.map((i) => (i.id === editingItem.id ? newItem : i))
-            : [...prev, newItem];
+      (setter: React.Dispatch<React.SetStateAction<any[]>>) => (prev: any[]) =>
+        editingItem
+          ? prev.map((i) => (i.id === savedItem.id ? savedItem : i))
+          : [...prev, savedItem];
 
     switch (type) {
       case 'book':
@@ -137,34 +152,6 @@ export default function ResearchManagementSystem({
     setEditingItem(null);
   };
 
-  const handleExportToExcel = async () => {
-    const token = getToken();
-    if (!token) return;
-
-    const endpoint = EXCEL_ENDPOINT_MAP[activeTab];
-    const res = await fetch(`${API_BASE}${endpoint}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!res.ok) return;
-
-    const blob = await res.blob();
-    if (!blob.size) return;
-
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-
-    link.href = url;
-    link.download = `${activeTab}.xlsx`;
-    document.body.appendChild(link);
-    link.click();
-
-    link.remove();
-    window.URL.revokeObjectURL(url);
-  };
-
   return (
     <div className="container mx-auto">
       <h1 className="mb-8 text-3xl font-bold">연구 성과</h1>
@@ -183,28 +170,24 @@ export default function ResearchManagementSystem({
             <TabsTrigger value="journal">저널</TabsTrigger>
           </TabsList>
 
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleExportToExcel}>
-              <FileDown className="h-4 w-4" />
-              엑셀 다운로드
-            </Button>
-            <Button onClick={handleAdd}>
-              <Plus className="mr-2 h-4 w-4" />
-              연구 성과 등록
-            </Button>
-          </div>
+          <Button onClick={handleAdd}>
+            <Plus className="mr-2 h-4 w-4" />
+            연구 성과 등록
+          </Button>
         </div>
 
         <ResearchAchievementTables
-          books={books}
-          conferences={conferences}
-          awards={awards}
-          papers={papers}
-          patents={patents}
-          journals={journals}
           isUserView={isUserView}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onEdit={(item, type) => {
+            if (type === 'conference') {
+              handleEditConference(item.id);
+            } else if (type === 'award') {
+              handleEditAward(item.id);
+            } else {
+              handleEditDefault(item, type);
+            }
+          }}
+          onDelete={(id, type) => {}}
         />
       </Tabs>
 
