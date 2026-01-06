@@ -1,17 +1,9 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-// import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
@@ -23,19 +15,9 @@ import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import type { DateRange } from 'react-day-picker';
-import {
-  ProjectApi,
-  SearchProjectItem,
-  UserApi,
-  UserSummary,
-} from '@/generated-api';
 import { Input } from '@/components/ui/input';
-import { getApiConfig } from '@/lib/config';
 import { SingleProjectSelectInput } from '@/components/portal/researches/achievement/single-project-select-input';
-
-const projectApi = new ProjectApi(getApiConfig());
-
-const userApi = new UserApi(getApiConfig());
+import SingleUserSelectInput from '@/components/portal/researches/assignment/single-user-select-input';
 
 interface RawFilter {
   user: string;
@@ -59,48 +41,30 @@ export function FilterControls({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   showSearchFilter = true,
 }: FilterControlsProps) {
-  const [user, setUser] = useState('');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [userId, setUserId] = useState(''); // 실제 필터 값 (id)
+  const [userName, setUserName] = useState(''); // 입력/표시 값 (name)
 
   const [projectId, setProjectId] = useState(''); // 실제 필터 값 (id)
   const [projectTitle, setProjectTitle] = useState(''); // 입력/표시 값 (title)
 
-  // 유저 목록
-  const [users, setUsers] = useState<UserSummary[]>([]);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await userApi.searchUsers();
-        setUsers(
-          res.users?.map((u) => ({
-            userId: u.userId,
-            name: u.name,
-          })) ?? [],
-        );
-      } catch (error) {
-        console.error('유저 목록 불러오기 실패:', error);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
   // 검색 실행
   const handleSearch = useCallback(() => {
     const filters = {
-      user: user || '',
+      user: userId || '',
       project: projectId || '',
       dateRange: dateRange || undefined,
       searchQuery: searchQuery || '',
     };
     onFilter(filters);
-  }, [user, projectId, dateRange, searchQuery, onFilter]);
+  }, [userId, projectId, dateRange, searchQuery, onFilter]);
 
   // 초기화
   const handleReset = useCallback(() => {
-    setUser('');
+    setUserId('');
+    setUserName('');
     setProjectId('');
     setProjectTitle('');
     setDateRange(undefined);
@@ -166,26 +130,24 @@ export function FilterControls({
           {showUserFilter && (
             <div className="space-y-2">
               <Label htmlFor="user">사용자</Label>
-              <Select
-                value={user || 'all'}
-                onValueChange={(value) => setUser(value === 'all' ? '' : value)}
-              >
-                <SelectTrigger id="user" className="w-full cursor-pointer">
-                  <SelectValue placeholder="모든 사용자" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">모든 사용자</SelectItem>
-                  {users.map((userItem) => (
-                    <SelectItem
-                      key={userItem.userId}
-                      value={String(userItem.userId)}
-                      className="cursor-pointer"
-                    >
-                      {userItem.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+              <SingleUserSelectInput
+                value={userName}
+                onValueChange={(v) => {
+                  setUserName(v);
+                  if (v.trim() === '') setUserId(''); // 비우면 전체
+                }}
+                onUserSelected={(u) => {
+                  if (!u) {
+                    setUserId('');
+                    setUserName('');
+                    return;
+                  }
+                  setUserId(String(u.userId));
+                  setUserName(u.name ?? '');
+                }}
+                placeholder="사용자 검색"
+              />
             </div>
           )}
 
