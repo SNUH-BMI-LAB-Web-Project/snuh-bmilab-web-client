@@ -13,21 +13,6 @@
  */
 
 import { mapValues } from '../runtime';
-import type { PatentAuthorResponse } from './PatentAuthorResponse';
-import {
-    PatentAuthorResponseFromJSON,
-    PatentAuthorResponseFromJSONTyped,
-    PatentAuthorResponseToJSON,
-    PatentAuthorResponseToJSONTyped,
-} from './PatentAuthorResponse';
-import type { FileSummary } from './FileSummary';
-import {
-    FileSummaryFromJSON,
-    FileSummaryFromJSONTyped,
-    FileSummaryToJSON,
-    FileSummaryToJSONTyped,
-} from './FileSummary';
-
 /**
  * 
  * @export
@@ -35,77 +20,29 @@ import {
  */
 export interface PatentResponse {
     /**
-     * 
+     * 특허 ID
      * @type {number}
      * @memberof PatentResponse
      */
     id?: number;
     /**
-     * 
+     * 특허명
+     * @type {string}
+     * @memberof PatentResponse
+     */
+    patentTitle?: string;
+    /**
+     * 특허 번호
+     * @type {string}
+     * @memberof PatentResponse
+     */
+    patentNumber?: string;
+    /**
+     * 출원일
      * @type {Date}
      * @memberof PatentResponse
      */
     applicationDate?: Date;
-    /**
-     * 
-     * @type {string}
-     * @memberof PatentResponse
-     */
-    applicationNumber?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof PatentResponse
-     */
-    patentName?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof PatentResponse
-     */
-    applicantsAll?: string;
-    /**
-     * 
-     * @type {Array<PatentAuthorResponse>}
-     * @memberof PatentResponse
-     */
-    patentAuthors?: Array<PatentAuthorResponse>;
-    /**
-     * 
-     * @type {string}
-     * @memberof PatentResponse
-     */
-    remarks?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof PatentResponse
-     */
-    projectId?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof PatentResponse
-     */
-    projectName?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof PatentResponse
-     */
-    taskId?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof PatentResponse
-     */
-    taskName?: string;
-    /**
-     * 
-     * @type {Array<FileSummary>}
-     * @memberof PatentResponse
-     */
-    files?: Array<FileSummary>;
 }
 
 /**
@@ -126,17 +63,9 @@ export function PatentResponseFromJSONTyped(json: any, ignoreDiscriminator: bool
     return {
         
         'id': json['id'] == null ? undefined : json['id'],
+        'patentTitle': json['patentTitle'] == null ? undefined : json['patentTitle'],
+        'patentNumber': json['patentNumber'] == null ? undefined : json['patentNumber'],
         'applicationDate': json['applicationDate'] == null ? undefined : (new Date(json['applicationDate'])),
-        'applicationNumber': json['applicationNumber'] == null ? undefined : json['applicationNumber'],
-        'patentName': json['patentName'] == null ? undefined : json['patentName'],
-        'applicantsAll': json['applicantsAll'] == null ? undefined : json['applicantsAll'],
-        'patentAuthors': json['patentAuthors'] == null ? undefined : ((json['patentAuthors'] as Array<any>).map(PatentAuthorResponseFromJSON)),
-        'remarks': json['remarks'] == null ? undefined : json['remarks'],
-        'projectId': json['projectId'] == null ? undefined : json['projectId'],
-        'projectName': json['projectName'] == null ? undefined : json['projectName'],
-        'taskId': json['taskId'] == null ? undefined : json['taskId'],
-        'taskName': json['taskName'] == null ? undefined : json['taskName'],
-        'files': json['files'] == null ? undefined : ((json['files'] as Array<any>).map(FileSummaryFromJSON)),
     };
 }
 
@@ -152,17 +81,9 @@ export function PatentResponseToJSONTyped(value?: PatentResponse | null, ignoreD
     return {
         
         'id': value['id'],
+        'patentTitle': value['patentTitle'],
+        'patentNumber': value['patentNumber'],
         'applicationDate': value['applicationDate'] == null ? undefined : ((value['applicationDate']).toISOString().substring(0,10)),
-        'applicationNumber': value['applicationNumber'],
-        'patentName': value['patentName'],
-        'applicantsAll': value['applicantsAll'],
-        'patentAuthors': value['patentAuthors'] == null ? undefined : ((value['patentAuthors'] as Array<any>).map(PatentAuthorResponseToJSON)),
-        'remarks': value['remarks'],
-        'projectId': value['projectId'],
-        'projectName': value['projectName'],
-        'taskId': value['taskId'],
-        'taskName': value['taskName'],
-        'files': value['files'] == null ? undefined : ((value['files'] as Array<any>).map(FileSummaryToJSON)),
     };
 }
 

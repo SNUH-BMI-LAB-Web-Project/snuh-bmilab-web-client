@@ -24,7 +24,6 @@ import {
   ProjectCategorySummary,
   RegisterUserRequestPositionEnum,
   RegisterUserRequestRoleEnum,
-  UpdateUserStatusRequestStatusEnum,
   UserDetail,
   UserEducationSummary,
   UserEducationSummaryStatusEnum,
@@ -81,7 +80,6 @@ export default function UserEditModal({
     joinedAt: Date;
     comment: string;
     role: RegisterUserRequestRoleEnum;
-    status: UpdateUserStatusRequestStatusEnum;
   }>({
     name: '',
     email: '',
@@ -101,7 +99,6 @@ export default function UserEditModal({
     joinedAt: new Date(),
     comment: '',
     role: RegisterUserRequestRoleEnum.User,
-    status: UpdateUserStatusRequestStatusEnum.Active,
   });
 
   // 카테고리 옵션들
@@ -165,9 +162,6 @@ export default function UserEditModal({
         joinedAt: user.joinedAt ? new Date(user.joinedAt) : new Date(),
         comment: user.comment || '',
         role: user.role ?? RegisterUserRequestRoleEnum.User,
-        status:
-          (user.status as UpdateUserStatusRequestStatusEnum) ??
-          UpdateUserStatusRequestStatusEnum.Active,
       });
     }
   }, [user, open, categoryOptions]);
@@ -266,35 +260,18 @@ export default function UserEditModal({
         role: formData.role,
       };
 
-      if (!user) return;
-
-      const originalStatus =
-        (user.status as UpdateUserStatusRequestStatusEnum) ??
-        UpdateUserStatusRequestStatusEnum.Active;
-
       await adminUserApi.updateUserById({
         userId: user?.userId || -1,
         adminUpdateUserRequest: requestBody,
       });
 
-      if (formData.status !== originalStatus) {
-        await adminUserApi.updateUserStatus({
-          userId: user?.userId || -1,
-          updateUserStatusRequest: {
-            status: formData.status,
-          },
-        });
-      }
-
       onUserUpdate({
         ...user,
         ...requestBody,
-        status: formData.status,
         categories: categoryOptions
           .filter((cat) => cat.categoryId !== undefined)
           .filter((cat) => formData.categories.includes(cat.categoryId!)),
       });
-
       onOpenChange(false);
 
       toast.success('사용자 정보가 성공적으로 수정되었습니다.');
@@ -440,43 +417,6 @@ export default function UserEditModal({
                 <p className="text-muted-foreground text-right text-xs">
                   {formData.phoneNumber.length}/13자
                 </p>
-              </div>
-
-              {/* 상태 */}
-              <div className="space-y-2">
-                <Label>
-                  상태 <span className="text-destructive text-xs">*</span>
-                </Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value) =>
-                    handleInputChange(
-                      'status',
-                      value as UpdateUserStatusRequestStatusEnum,
-                    )
-                  }
-                >
-                  <SelectTrigger className="w-full bg-white">
-                    <SelectValue placeholder="상태 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem
-                      value={UpdateUserStatusRequestStatusEnum.Active}
-                    >
-                      재직자
-                    </SelectItem>
-                    <SelectItem
-                      value={UpdateUserStatusRequestStatusEnum.OnLeave}
-                    >
-                      휴직자
-                    </SelectItem>
-                    <SelectItem
-                      value={UpdateUserStatusRequestStatusEnum.Resigned}
-                    >
-                      퇴사자
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
 

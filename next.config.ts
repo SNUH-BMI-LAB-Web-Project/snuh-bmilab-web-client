@@ -3,23 +3,20 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
+  webpack: (config) => {
+    config.module.rules.push({
+      test: /\.svg$/i,
+      issuer: /\.[jt]sx?$/,
+      use: ['@svgr/webpack'],
+    });
+
+    return config;
+  },
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'github.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'bmi-bucket.s3.ap-northeast-2.amazonaws.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'bmilab-bucket.s3.ap-northeast-2.amazonaws.com',
-        pathname: '/**',
-      },
+    domains: [
+      'github.com',
+      'bmi-bucket.s3.ap-northeast-2.amazonaws.com', // S3 이미지 도메인 추가
+      'bmilab-bucket.s3.ap-northeast-2.amazonaws.com',
     ],
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; img-src 'self' data: https:;",

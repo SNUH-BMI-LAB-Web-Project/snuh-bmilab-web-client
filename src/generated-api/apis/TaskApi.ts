@@ -38,7 +38,6 @@ import type {
   TaskProposalUpdateRequest,
   TaskRequest,
   TaskStatsResponse,
-  TaskSummaryResponse,
 } from '../models/index';
 import {
     AcknowledgementResponseFromJSON,
@@ -87,14 +86,7 @@ import {
     TaskRequestToJSON,
     TaskStatsResponseFromJSON,
     TaskStatsResponseToJSON,
-    TaskSummaryResponseFromJSON,
-    TaskSummaryResponseToJSON,
 } from '../models/index';
-
-export interface AddProjectToTaskRequest {
-    taskId: number;
-    projectId: number;
-}
 
 export interface CreateTaskRequest {
     taskRequest: TaskRequest;
@@ -133,10 +125,6 @@ export interface GetPublicationRequest {
     taskId: number;
 }
 
-export interface GetTaskRequest {
-    taskId: number;
-}
-
 export interface GetTaskAgreementRequest {
     taskId: number;
 }
@@ -160,11 +148,6 @@ export interface GetTaskProjectsRequest {
 
 export interface GetTaskProposalRequest {
     taskId: number;
-}
-
-export interface RemoveProjectFromTaskRequest {
-    taskId: number;
-    projectId: number;
 }
 
 export interface SaveAcknowledgementRequest {
@@ -222,55 +205,6 @@ export interface UpdateTaskPeriodRequest {
  * 
  */
 export class TaskApi extends runtime.BaseAPI {
-
-    /**
-     * 과제와 연구프로젝트를 연결하는 POST API
-     * 과제에 연구프로젝트 추가
-     */
-    async addProjectToTaskRaw(requestParameters: AddProjectToTaskRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters['taskId'] == null) {
-            throw new runtime.RequiredError(
-                'taskId',
-                'Required parameter "taskId" was null or undefined when calling addProjectToTask().'
-            );
-        }
-
-        if (requestParameters['projectId'] == null) {
-            throw new runtime.RequiredError(
-                'projectId',
-                'Required parameter "projectId" was null or undefined when calling addProjectToTask().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("JWT", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/tasks/{taskId}/projects/{projectId}`.replace(`{${"taskId"}}`, encodeURIComponent(String(requestParameters['taskId']))).replace(`{${"projectId"}}`, encodeURIComponent(String(requestParameters['projectId']))),
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     * 과제와 연구프로젝트를 연결하는 POST API
-     * 과제에 연구프로젝트 추가
-     */
-    async addProjectToTask(requestParameters: AddProjectToTaskRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.addProjectToTaskRaw(requestParameters, initOverrides);
-    }
 
     /**
      * 새로운 과제를 생성하는 POST API
@@ -637,49 +571,6 @@ export class TaskApi extends runtime.BaseAPI {
     }
 
     /**
-     * 과제 ID로 과제 요약 정보를 조회하는 GET API
-     * 과제 상세 조회
-     */
-    async getTaskRaw(requestParameters: GetTaskRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<TaskSummaryResponse>> {
-        if (requestParameters['taskId'] == null) {
-            throw new runtime.RequiredError(
-                'taskId',
-                'Required parameter "taskId" was null or undefined when calling getTask().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("JWT", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/tasks/{taskId}`.replace(`{${"taskId"}}`, encodeURIComponent(String(requestParameters['taskId']))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => TaskSummaryResponseFromJSON(jsonValue));
-    }
-
-    /**
-     * 과제 ID로 과제 요약 정보를 조회하는 GET API
-     * 과제 상세 조회
-     */
-    async getTask(requestParameters: GetTaskRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TaskSummaryResponse> {
-        const response = await this.getTaskRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
      * 과제 ID로 협약 정보를 조회하는 GET API
      * 과제 협약 정보 조회
      */
@@ -978,55 +869,6 @@ export class TaskApi extends runtime.BaseAPI {
     async getTaskStats(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TaskStatsResponse> {
         const response = await this.getTaskStatsRaw(initOverrides);
         return await response.value();
-    }
-
-    /**
-     * 과제와 연구프로젝트 연결을 해제하는 DELETE API
-     * 과제에서 연구프로젝트 제거
-     */
-    async removeProjectFromTaskRaw(requestParameters: RemoveProjectFromTaskRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters['taskId'] == null) {
-            throw new runtime.RequiredError(
-                'taskId',
-                'Required parameter "taskId" was null or undefined when calling removeProjectFromTask().'
-            );
-        }
-
-        if (requestParameters['projectId'] == null) {
-            throw new runtime.RequiredError(
-                'projectId',
-                'Required parameter "projectId" was null or undefined when calling removeProjectFromTask().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("JWT", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/tasks/{taskId}/projects/{projectId}`.replace(`{${"taskId"}}`, encodeURIComponent(String(requestParameters['taskId']))).replace(`{${"projectId"}}`, encodeURIComponent(String(requestParameters['projectId']))),
-            method: 'DELETE',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     * 과제와 연구프로젝트 연결을 해제하는 DELETE API
-     * 과제에서 연구프로젝트 제거
-     */
-    async removeProjectFromTask(requestParameters: RemoveProjectFromTaskRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.removeProjectFromTaskRaw(requestParameters, initOverrides);
     }
 
     /**
@@ -1554,6 +1396,61 @@ export class TaskApi extends runtime.BaseAPI {
      */
     async updateTaskPeriod(requestParameters: UpdateTaskPeriodRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.updateTaskPeriodRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * 과제 ID로 전체 Task 정보를 조회하는 GET API
+     * Task 상세 조회
+     */
+    async getTaskRaw(
+      requestParameters: { taskId: number },
+      initOverrides?: RequestInit | runtime.InitOverrideFunction
+    ): Promise<runtime.ApiResponse<TaskBasicInfoResponse>> {
+        if (requestParameters['taskId'] == null) {
+            throw new runtime.RequiredError(
+              'taskId',
+              'Required parameter "taskId" was null or undefined when calling getTask().'
+            );
+        }
+
+        const queryParameters: any = {};
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+
+        const response = await this.request({
+            path: `/tasks/{taskId}`.replace(
+              `{${"taskId"}}`,
+              encodeURIComponent(String(requestParameters['taskId']))
+            ),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(
+          response,
+          (jsonValue) => TaskBasicInfoResponseFromJSON(jsonValue)
+        );
+    }
+
+    /**
+     * 과제 ID로 전체 Task 정보를 조회하는 GET API
+     * Task 상세 조회
+     */
+    async getTask(
+      requestParameters: { taskId: number },
+      initOverrides?: RequestInit | runtime.InitOverrideFunction
+    ): Promise<TaskBasicInfoResponse> {
+        const response = await this.getTaskRaw(requestParameters, initOverrides);
+        return await response.value();
     }
 
 }

@@ -1,13 +1,8 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import UserInfoCard from '@/components/portal/users/members/user-info-card';
-import {
-  UserItem,
-  UserApi,
-  UserFindAllResponse,
-  GetAllUsersStatusEnum,
-} from '@/generated-api';
+import { UserItem, UserApi, UserFindAllResponse } from '@/generated-api';
 import { useAuthStore } from '@/store/auth-store';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,11 +20,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { getApiConfig } from '@/lib/config';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const api = new UserApi(getApiConfig());
-
-type StatusTabValue = 'ALL' | GetAllUsersStatusEnum;
 
 export default function UsersPage() {
   const [users, setUsers] = useState<UserItem[]>([]);
@@ -39,25 +31,7 @@ export default function UsersPage() {
 
   const itemsPerPageOptions = [5, 10, 20, 50];
 
-  // 탭 상태: 전체/재직/휴직/퇴직
-  const [selectedStatus, setSelectedStatus] = useState<StatusTabValue>('ALL');
-
-  // 탭 라벨 매핑
-  const statusTabs = useMemo(
-    () => [
-      { label: '전체', value: 'ALL' as const },
-      { label: '재직자', value: GetAllUsersStatusEnum.Active },
-      { label: '휴직자', value: GetAllUsersStatusEnum.OnLeave },
-      { label: '퇴사자', value: GetAllUsersStatusEnum.Resigned },
-    ],
-    [],
-  );
-
-  const fetchUsers = async (
-    page: number,
-    size: number,
-    status: StatusTabValue,
-  ) => {
+  const fetchUsers = async (page: number, size: number) => {
     try {
       const token = useAuthStore.getState().accessToken;
       if (!token) return;
@@ -66,7 +40,6 @@ export default function UsersPage() {
         pageNo: page - 1,
         size,
         criteria: 'createdAt',
-        status: status === 'ALL' ? undefined : status,
       });
 
       setUsers(res.users ?? []);
@@ -86,31 +59,12 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (!accessToken) return;
-    fetchUsers(currentPage, itemsPerPage, selectedStatus);
-  }, [currentPage, itemsPerPage, selectedStatus, accessToken]);
+    fetchUsers(currentPage, itemsPerPage);
+  }, [currentPage, itemsPerPage, accessToken]);
 
   return (
     <div className="mb-8 flex flex-col gap-8">
-      <div className="flex flex-col gap-6">
-        <h1 className="text-3xl font-bold">구성원</h1>
-
-        {/* 상태 탭 */}
-        <Tabs
-          value={selectedStatus}
-          onValueChange={(value) => {
-            setSelectedStatus(value as StatusTabValue);
-            setCurrentPage(1);
-          }}
-        >
-          <TabsList className="w-full">
-            {statusTabs.map((t) => (
-              <TabsTrigger key={t.value} value={t.value}>
-                {t.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      </div>
+      <h1 className="text-3xl font-bold">구성원</h1>
 
       {users.length > 0 ? (
         <div className="grid w-full grid-cols-1 gap-6 lg:grid-cols-1 xl:grid-cols-2">
@@ -143,11 +97,9 @@ export default function UsersPage() {
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-
           <span className="text-sm">
             {currentPage} / {Math.max(1, totalPages)}
           </span>
-
           <Button
             variant="outline"
             size="icon"

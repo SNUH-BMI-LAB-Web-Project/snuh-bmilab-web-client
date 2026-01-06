@@ -35,7 +35,6 @@ const baseNav = [
     items: [
       { title: '과제', url: '/portal/researches/assignment' },
       { title: '연구 & 프로젝트', url: '/portal/researches/projects' },
-      { title: '연구 성과', url: '/portal/researches/achievement' },
     ],
   },
   {
