@@ -31,6 +31,7 @@ import {
 } from '@/generated-api';
 import { Input } from '@/components/ui/input';
 import { getApiConfig } from '@/lib/config';
+import { SingleProjectSelectInput } from '@/components/portal/researches/achievement/single-project-select-input';
 
 const projectApi = new ProjectApi(getApiConfig());
 
@@ -59,31 +60,16 @@ export function FilterControls({
   showSearchFilter = true,
 }: FilterControlsProps) {
   const [user, setUser] = useState('');
-  const [project, setProject] = useState('');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 프로젝트 목록
-  const [projects, setProjects] = useState<SearchProjectItem[]>([]);
+  const [projectId, setProjectId] = useState(''); // 실제 필터 값 (id)
+  const [projectTitle, setProjectTitle] = useState(''); // 입력/표시 값 (title)
 
   // 유저 목록
   const [users, setUsers] = useState<UserSummary[]>([]);
 
   useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const res = await projectApi.searchProject({ all: true });
-        setProjects(
-          res.projects?.map((proj) => ({
-            projectId: proj.projectId,
-            title: proj.title ?? '제목 없음',
-          })) ?? [],
-        );
-      } catch (error) {
-        console.error('프로젝트 목록 불러오기 실패:', error);
-      }
-    };
-
     const fetchUsers = async () => {
       try {
         const res = await userApi.searchUsers();
@@ -98,7 +84,6 @@ export function FilterControls({
       }
     };
 
-    fetchProjects();
     fetchUsers();
   }, []);
 
@@ -106,17 +91,18 @@ export function FilterControls({
   const handleSearch = useCallback(() => {
     const filters = {
       user: user || '',
-      project: project || '',
+      project: projectId || '',
       dateRange: dateRange || undefined,
       searchQuery: searchQuery || '',
     };
     onFilter(filters);
-  }, [user, project, dateRange, searchQuery, onFilter]);
+  }, [user, projectId, dateRange, searchQuery, onFilter]);
 
   // 초기화
   const handleReset = useCallback(() => {
     setUser('');
-    setProject('');
+    setProjectId('');
+    setProjectTitle('');
     setDateRange(undefined);
     setSearchQuery('');
     onFilter({ user: '', project: '', dateRange: undefined, searchQuery: '' });
@@ -154,30 +140,27 @@ export function FilterControls({
         {/* 프로젝트 필터 */}
         <div className="space-y-2">
           <Label htmlFor="project">프로젝트</Label>
-          <Select
-            value={project || 'all'}
-            onValueChange={(value) => setProject(value === 'all' ? '' : value)}
-          >
-            <SelectTrigger id="project" className="w-full cursor-pointer">
-              <SelectValue placeholder="모든 프로젝트" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">모든 프로젝트</SelectItem>
-              {projects.map((proj) => (
-                <SelectItem
-                  key={proj.projectId}
-                  value={String(proj.projectId)}
-                  title={proj.title}
-                  className="cursor-pointer"
-                >
-                  <span className="w-[var(--radix-select-trigger-width)] cursor-pointer truncate overflow-hidden text-start whitespace-nowrap">
-                    {proj.title}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+
+          <SingleProjectSelectInput
+            value={projectTitle}
+            onValueChange={(v) => {
+              // 타이핑 중엔 제목만 바뀌고, id는 선택 시에만 세팅
+              setProjectTitle(v);
+              if (v.trim() === '') setProjectId(''); // 비우면 전체
+            }}
+            onProjectSelected={(p) => {
+              if (!p) {
+                setProjectId('');
+                setProjectTitle('');
+                return;
+              }
+              setProjectId(String(p.projectId));
+              setProjectTitle(p.title ?? '');
+            }}
+            placeholder="프로젝트 검색"
+          />
         </div>
+
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {/* 유저 필터 */}
           {showUserFilter && (
