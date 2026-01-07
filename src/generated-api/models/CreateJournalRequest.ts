@@ -73,6 +73,12 @@ export interface CreateJournalRequest {
      * @memberof CreateJournalRequest
      */
     jcrRank: string;
+    /**
+     * Issue
+     * @type {string}
+     * @memberof CreateJournalRequest
+     */
+    issue?: string;
 }
 
 
@@ -121,6 +127,7 @@ export function CreateJournalRequestFromJSONTyped(json: any, ignoreDiscriminator
         'eissn': json['eissn'] == null ? undefined : json['eissn'],
         'jif': json['jif'],
         'jcrRank': json['jcrRank'],
+        'issue': json['issue'] == null ? undefined : json['issue'],
     };
 }
 
@@ -144,6 +151,7 @@ export function CreateJournalRequestToJSONTyped(value?: CreateJournalRequest | n
         'eissn': value['eissn'],
         'jif': value['jif'],
         'jcrRank': value['jcrRank'],
+        'issue': value['issue'],
     };
 }
 

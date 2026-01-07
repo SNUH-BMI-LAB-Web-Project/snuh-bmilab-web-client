@@ -153,6 +153,12 @@ export interface TaskSummaryResponse {
      * @memberof TaskSummaryResponse
      */
     participatingInstitutions?: string;
+    /**
+     * 원내과제 여부
+     * @type {boolean}
+     * @memberof TaskSummaryResponse
+     */
+    isInternal?: boolean;
 }
 
 
@@ -233,6 +239,7 @@ export function TaskSummaryResponseFromJSONTyped(json: any, ignoreDiscriminator:
         'professorRole': json['professorRole'] == null ? undefined : json['professorRole'],
         'practicalManagerName': json['practicalManagerName'] == null ? undefined : json['practicalManagerName'],
         'participatingInstitutions': json['participatingInstitutions'] == null ? undefined : json['participatingInstitutions'],
+        'isInternal': json['isInternal'] == null ? undefined : json['isInternal'],
     };
 }
 
@@ -268,6 +275,7 @@ export function TaskSummaryResponseToJSONTyped(value?: TaskSummaryResponse | nul
         'professorRole': value['professorRole'],
         'practicalManagerName': value['practicalManagerName'],
         'participatingInstitutions': value['participatingInstitutions'],
+        'isInternal': value['isInternal'],
     };
 }
 

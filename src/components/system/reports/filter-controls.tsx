@@ -1,17 +1,9 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-// import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
@@ -23,18 +15,9 @@ import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import type { DateRange } from 'react-day-picker';
-import {
-  ProjectApi,
-  SearchProjectItem,
-  UserApi,
-  UserSummary,
-} from '@/generated-api';
 import { Input } from '@/components/ui/input';
-import { getApiConfig } from '@/lib/config';
-
-const projectApi = new ProjectApi(getApiConfig());
-
-const userApi = new UserApi(getApiConfig());
+import { SingleProjectSelectInput } from '@/components/portal/researches/achievement/single-project-select-input';
+import SingleUserSelectInput from '@/components/portal/researches/assignment/single-user-select-input';
 
 interface RawFilter {
   user: string;
@@ -58,65 +41,32 @@ export function FilterControls({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   showSearchFilter = true,
 }: FilterControlsProps) {
-  const [user, setUser] = useState('');
-  const [project, setProject] = useState('');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 프로젝트 목록
-  const [projects, setProjects] = useState<SearchProjectItem[]>([]);
+  const [userId, setUserId] = useState(''); // 실제 필터 값 (id)
+  const [userName, setUserName] = useState(''); // 입력/표시 값 (name)
 
-  // 유저 목록
-  const [users, setUsers] = useState<UserSummary[]>([]);
-
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const res = await projectApi.searchProject({ all: true });
-        setProjects(
-          res.projects?.map((proj) => ({
-            projectId: proj.projectId,
-            title: proj.title ?? '제목 없음',
-          })) ?? [],
-        );
-      } catch (error) {
-        console.error('프로젝트 목록 불러오기 실패:', error);
-      }
-    };
-
-    const fetchUsers = async () => {
-      try {
-        const res = await userApi.searchUsers();
-        setUsers(
-          res.users?.map((u) => ({
-            userId: u.userId,
-            name: u.name,
-          })) ?? [],
-        );
-      } catch (error) {
-        console.error('유저 목록 불러오기 실패:', error);
-      }
-    };
-
-    fetchProjects();
-    fetchUsers();
-  }, []);
+  const [projectId, setProjectId] = useState(''); // 실제 필터 값 (id)
+  const [projectTitle, setProjectTitle] = useState(''); // 입력/표시 값 (title)
 
   // 검색 실행
   const handleSearch = useCallback(() => {
     const filters = {
-      user: user || '',
-      project: project || '',
+      user: userId || '',
+      project: projectId || '',
       dateRange: dateRange || undefined,
       searchQuery: searchQuery || '',
     };
     onFilter(filters);
-  }, [user, project, dateRange, searchQuery, onFilter]);
+  }, [userId, projectId, dateRange, searchQuery, onFilter]);
 
   // 초기화
   const handleReset = useCallback(() => {
-    setUser('');
-    setProject('');
+    setUserId('');
+    setUserName('');
+    setProjectId('');
+    setProjectTitle('');
     setDateRange(undefined);
     setSearchQuery('');
     onFilter({ user: '', project: '', dateRange: undefined, searchQuery: '' });
@@ -154,55 +104,50 @@ export function FilterControls({
         {/* 프로젝트 필터 */}
         <div className="space-y-2">
           <Label htmlFor="project">프로젝트</Label>
-          <Select
-            value={project || 'all'}
-            onValueChange={(value) => setProject(value === 'all' ? '' : value)}
-          >
-            <SelectTrigger id="project" className="w-full cursor-pointer">
-              <SelectValue placeholder="모든 프로젝트" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">모든 프로젝트</SelectItem>
-              {projects.map((proj) => (
-                <SelectItem
-                  key={proj.projectId}
-                  value={String(proj.projectId)}
-                  title={proj.title}
-                  className="cursor-pointer"
-                >
-                  <span className="w-[var(--radix-select-trigger-width)] cursor-pointer truncate overflow-hidden text-start whitespace-nowrap">
-                    {proj.title}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+
+          <SingleProjectSelectInput
+            value={projectTitle}
+            onValueChange={(v) => {
+              // 타이핑 중엔 제목만 바뀌고, id는 선택 시에만 세팅
+              setProjectTitle(v);
+              if (v.trim() === '') setProjectId(''); // 비우면 전체
+            }}
+            onProjectSelected={(p) => {
+              if (!p) {
+                setProjectId('');
+                setProjectTitle('');
+                return;
+              }
+              setProjectId(String(p.projectId));
+              setProjectTitle(p.title ?? '');
+            }}
+            placeholder="프로젝트 검색"
+          />
         </div>
+
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {/* 유저 필터 */}
           {showUserFilter && (
             <div className="space-y-2">
               <Label htmlFor="user">사용자</Label>
-              <Select
-                value={user || 'all'}
-                onValueChange={(value) => setUser(value === 'all' ? '' : value)}
-              >
-                <SelectTrigger id="user" className="w-full cursor-pointer">
-                  <SelectValue placeholder="모든 사용자" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">모든 사용자</SelectItem>
-                  {users.map((userItem) => (
-                    <SelectItem
-                      key={userItem.userId}
-                      value={String(userItem.userId)}
-                      className="cursor-pointer"
-                    >
-                      {userItem.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+              <SingleUserSelectInput
+                value={userName}
+                onValueChange={(v) => {
+                  setUserName(v);
+                  if (v.trim() === '') setUserId(''); // 비우면 전체
+                }}
+                onUserSelected={(u) => {
+                  if (!u) {
+                    setUserId('');
+                    setUserName('');
+                    return;
+                  }
+                  setUserId(String(u.userId));
+                  setUserName(u.name ?? '');
+                }}
+                placeholder="사용자 검색"
+              />
             </div>
           )}
 

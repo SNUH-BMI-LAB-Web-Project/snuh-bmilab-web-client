@@ -111,6 +111,7 @@ export default function AddTaskPage() {
     participatingInstitutions: [] as string[], // Changed to array for tag-based input
     includesThreeToFive: '',
     progressStage: '',
+    isInternal: true,
   });
 
   const [institutionInput, setInstitutionInput] = useState('');
@@ -276,6 +277,8 @@ export default function AddTaskPage() {
 
       // 진행 상태: 선택 안 하면 undefined로 전달
       status: statusMap[formData.progressStage],
+
+      isInternal: formData.isInternal,
     };
 
     try {
@@ -842,6 +845,29 @@ export default function AddTaskPage() {
                       <SelectItem value="4년차">4년차</SelectItem>
                       <SelectItem value="5년차">5년차</SelectItem>
                       <SelectItem value="과제종료">과제종료</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="isInternal">
+                    원내과제 여부<span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={String(formData.isInternal)} // 항상 값 존재
+                    onValueChange={(v) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        isInternal: v === 'true',
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">원내</SelectItem>
+                      <SelectItem value="false">원외</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

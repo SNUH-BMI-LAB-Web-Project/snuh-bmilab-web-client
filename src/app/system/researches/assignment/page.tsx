@@ -26,6 +26,7 @@ import {
   FileCheck,
   ChevronUp,
   ChevronDown,
+  FileQuestion,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -139,6 +140,7 @@ export default function TaskManagementPage() {
     participatingInstitutions?: { name: string }[];
     includesThreeToFive?: boolean;
     progressStage?: string; // 한글 표시 (제안서 작성/진행중…)
+    isInternal?: boolean;
   };
 
   function normalizeTask(item: TaskSummaryResponse): UiTask {
@@ -187,6 +189,7 @@ export default function TaskManagementPage() {
       progressStage: item.status
         ? STATUS_ENUM_TO_LABEL[item.status as GetAllTasksStatusEnum]
         : undefined,
+      isInternal: item.isInternal,
     };
   }
 
@@ -521,6 +524,34 @@ export default function TaskManagementPage() {
                                       ? '포함'
                                       : '불포함'}
                                   </Badge>
+                                </div>
+                              </div>
+                              <div>
+                                <div className="mb-1 flex items-center gap-2">
+                                  <FileQuestion className="h-4 w-4" />
+                                  <span className="text-sm font-semibold text-gray-700">
+                                    원내과제 여부
+                                  </span>
+                                </div>
+                                <div className="pl-6">
+                                  {typeof task.isInternal === 'boolean' ? (
+                                    <Badge
+                                      variant="outline"
+                                      className={
+                                        task.isInternal
+                                          ? 'border-blue-200 text-xs text-blue-700'
+                                          : 'border-gray-200 text-xs text-gray-700'
+                                      }
+                                    >
+                                      {task.isInternal
+                                        ? '원내과제'
+                                        : '원외과제'}
+                                    </Badge>
+                                  ) : (
+                                    <span className="text-sm text-gray-500">
+                                      —
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </div>
