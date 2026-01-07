@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 import {
   Building2,
   Calendar,
@@ -179,6 +179,8 @@ function normalizeTask(item: TaskSummaryResponse): UiTask {
 export default function TaskHeaderCard() {
   const router = useRouter();
   const params = useParams();
+  const pathname = usePathname();
+
   const taskId = useMemo(() => Number(params?.id), [params]);
 
   const [task, setTask] = useState<UiTask | null>(null);
@@ -208,7 +210,12 @@ export default function TaskHeaderCard() {
     try {
       await taskApi.deleteTask({ taskId });
       toast.success('과제가 성공적으로 삭제되었습니다.');
-      router.push('/portal/researches/assignment');
+
+      if (pathname.startsWith('/system')) {
+        router.push('/system/researches/assignment');
+      } else {
+        router.push('/portal/researches/assignment');
+      }
     } catch (e) {
       console.error(e);
     }
