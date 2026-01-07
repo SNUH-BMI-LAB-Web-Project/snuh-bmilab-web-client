@@ -25,54 +25,109 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Award } from '@/lib/types';
+
+interface Award {
+  id: number; // awardId
+  recipients: string;
+  awardDate: string;
+  hostInstitution: string;
+  competitionName: string;
+  awardName: string;
+  presentationTitle: string;
+  projectId?: number;
+  taskId?: number;
+}
 
 interface AwardTableProps {
   data: Award[];
   onEdit: (item: Award, type: string) => void;
-  onDelete: (id: string, type: string) => void;
 }
 
 type SortOrder = 'asc' | 'desc';
 
-export function AwardTable({ data, onEdit, onDelete }: AwardTableProps) {
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+const getToken = () => {
+  const raw = localStorage.getItem('auth-storage');
+  return raw ? JSON.parse(raw)?.state?.accessToken : null;
+};
+
+export function AwardTable({ data, onEdit }: AwardTableProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchColumn, setSearchColumn] = useState<string>('all');
 
   const filteredData = data.filter((item) => {
     if (!searchQuery) return true;
-
-    const searchLower = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase();
 
     if (searchColumn === 'all') {
       return (
-        item.name?.toLowerCase().includes(searchLower) ||
-        item.date?.toLowerCase().includes(searchLower) ||
-        item.organizer?.toLowerCase().includes(searchLower) ||
-        item.eventName?.toLowerCase().includes(searchLower) ||
-        item.awardName?.toLowerCase().includes(searchLower) ||
-        item.presentationTitle?.toLowerCase().includes(searchLower) ||
-        item.relatedProject?.toLowerCase().includes(searchLower) ||
-        item.relatedTask?.toLowerCase().includes(searchLower)
+        item.recipients?.toLowerCase().includes(q) ||
+        item.awardName?.toLowerCase().includes(q) ||
+        item.competitionName?.toLowerCase().includes(q) ||
+        item.presentationTitle?.toLowerCase().includes(q) ||
+        item.hostInstitution?.toLowerCase().includes(q) ||
+        item.awardDate?.toLowerCase().includes(q)
       );
     }
 
-    return item[searchColumn as keyof Award]
-      ?.toString()
+    return String(item[searchColumn as keyof Award] ?? '')
       .toLowerCase()
-      .includes(searchLower);
+      .includes(q);
   });
 
   const sortedData = [...filteredData].sort((a, b) => {
-    const aValue = a.date || '';
-    const bValue = b.date || '';
-
-    if (sortOrder === 'asc') {
-      return aValue > bValue ? 1 : -1;
-    }
-    return aValue < bValue ? 1 : -1;
+    const aValue = a.awardDate || '';
+    const bValue = b.awardDate || '';
+    return sortOrder === 'asc'
+      ? aValue.localeCompare(bValue)
+      : bValue.localeCompare(aValue);
   });
+
+  const handleDelete = async (id: number) => {
+    console.log('[AWARD DELETE] 클릭됨');
+    console.log('[AWARD DELETE] 전달받은 id:', id);
+
+    if (!window.confirm('정말 삭제하시겠습니까?')) {
+      console.log('[AWARD DELETE] 사용자 취소');
+      return;
+    }
+
+    const token = getToken();
+    console.log('[AWARD DELETE] 토큰:', token);
+
+    if (!token) {
+      console.error('[AWARD DELETE] 토큰 없음');
+      return;
+    }
+
+    const url = `${API_BASE}/research/awards/${id}`;
+    console.log('[AWARD DELETE] 요청 URL:', url);
+
+    try {
+      const res = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log('[AWARD DELETE] status:', res.status);
+
+      const text = await res.text();
+      console.log('[AWARD DELETE] response body:', text);
+
+      if (!res.ok) {
+        console.error('[AWARD DELETE] 삭제 실패');
+        return;
+      }
+
+      console.log('[AWARD DELETE] 삭제 성공');
+    } catch (e) {
+      console.error('[AWARD DELETE] fetch 에러:', e);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -83,16 +138,15 @@ export function AwardTable({ data, onEdit, onDelete }: AwardTableProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">전체</SelectItem>
-            <SelectItem value="date">날짜</SelectItem>
-            <SelectItem value="name">이름</SelectItem>
-            <SelectItem value="organizer">주최기관/학회주최</SelectItem>
-            <SelectItem value="eventName">대회명/학회명</SelectItem>
+            <SelectItem value="awardDate">수상일</SelectItem>
+            <SelectItem value="recipients">수상자</SelectItem>
             <SelectItem value="awardName">수상명</SelectItem>
+            <SelectItem value="competitionName">대회명</SelectItem>
             <SelectItem value="presentationTitle">발표 제목</SelectItem>
-            <SelectItem value="relatedProject">연계 프로젝트</SelectItem>
-            <SelectItem value="relatedTask">연계 과제</SelectItem>
+            <SelectItem value="hostInstitution">주최 기관</SelectItem>
           </SelectContent>
         </Select>
+
         <div className="relative flex-1">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
@@ -102,9 +156,10 @@ export function AwardTable({ data, onEdit, onDelete }: AwardTableProps) {
             className="pl-9"
           />
         </div>
+
         <Select
           value={sortOrder}
-          onValueChange={(value) => setSortOrder(value as SortOrder)}
+          onValueChange={(v) => setSortOrder(v as SortOrder)}
         >
           <SelectTrigger className="w-[140px]">
             <SelectValue />
@@ -120,23 +175,21 @@ export function AwardTable({ data, onEdit, onDelete }: AwardTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="min-w-[60px] text-center">No</TableHead>
-              <TableHead className="text-center">날짜</TableHead>
-              <TableHead>이름</TableHead>
-              <TableHead>주최기관/학회주최</TableHead>
-              <TableHead>대회명/학회명</TableHead>
+              <TableHead className="text-center">No</TableHead>
+              <TableHead className="text-center">수상일</TableHead>
+              <TableHead>수상자</TableHead>
               <TableHead>수상명</TableHead>
+              <TableHead>대회명</TableHead>
               <TableHead>발표 제목</TableHead>
-              <TableHead>연계 프로젝트</TableHead>
-              <TableHead>연계 과제</TableHead>
-              <TableHead className="text-center" />
+              <TableHead>주최 기관</TableHead>
+              <TableHead />
             </TableRow>
           </TableHeader>
           <TableBody>
             {sortedData.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={10}
+                  colSpan={8}
                   className="text-muted-foreground h-24 text-center"
                 >
                   데이터가 없습니다.
@@ -144,54 +197,16 @@ export function AwardTable({ data, onEdit, onDelete }: AwardTableProps) {
               </TableRow>
             ) : (
               sortedData.map((item, index) => (
-                <TableRow
-                  key={item.id}
-                  className="hover:bg-primary/10 transition-colors"
-                >
+                <TableRow key={item.id}>
                   <TableCell className="text-center">{index + 1}</TableCell>
-                  <TableCell className="max-w-[120px] text-center">
-                    <div className="truncate" title={item.date}>
-                      {item.date}
-                    </div>
+                  <TableCell className="text-center">
+                    {item.awardDate}
                   </TableCell>
-                  <TableCell className="max-w-[120px]">
-                    <div className="truncate" title={item.name}>
-                      {item.name}
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[150px]">
-                    <div className="truncate" title={item.organizer}>
-                      {item.organizer}
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[200px]">
-                    <div className="truncate" title={item.eventName}>
-                      {item.eventName}
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[150px]">
-                    <div className="truncate" title={item.awardName}>
-                      {item.awardName}
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[250px]">
-                    <div className="truncate" title={item.presentationTitle}>
-                      {item.presentationTitle}
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[150px]">
-                    <div
-                      className="truncate"
-                      title={item.relatedProject || '-'}
-                    >
-                      {item.relatedProject || '-'}
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[150px]">
-                    <div className="truncate" title={item.relatedTask || '-'}>
-                      {item.relatedTask || '-'}
-                    </div>
-                  </TableCell>
+                  <TableCell>{item.recipients}</TableCell>
+                  <TableCell>{item.awardName}</TableCell>
+                  <TableCell>{item.competitionName}</TableCell>
+                  <TableCell>{item.presentationTitle}</TableCell>
+                  <TableCell>{item.hostInstitution}</TableCell>
                   <TableCell className="text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -205,10 +220,10 @@ export function AwardTable({ data, onEdit, onDelete }: AwardTableProps) {
                           수정
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => onDelete(item.id, 'award')}
-                          className="text-destructive focus:text-destructive"
+                          onClick={() => handleDelete(item.id)}
+                          className="text-destructive"
                         >
-                          <Trash2 className="text-destructive mr-2 h-4 w-4" />
+                          <Trash2 className="mr-2 h-4 w-4" />
                           삭제
                         </DropdownMenuItem>
                       </DropdownMenuContent>

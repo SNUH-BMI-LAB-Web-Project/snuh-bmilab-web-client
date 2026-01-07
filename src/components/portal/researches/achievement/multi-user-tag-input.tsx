@@ -15,13 +15,14 @@ const userApi = new UserApi(getApiConfig());
 interface UserTagInputStringProps {
   value: string[];
   onChange: (value: string[]) => void;
+  onUserSelectedIds?: (ids: number[]) => void;
   placeholder?: string;
 }
 
-// 기존 유저 + 새로운 유저도 추가할 수 있는 컴포넌트
 export function UserTagInputString({
   value,
   onChange,
+  onUserSelectedIds,
   placeholder,
 }: UserTagInputStringProps) {
   const [input, setInput] = useState('');
@@ -29,29 +30,26 @@ export function UserTagInputString({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
+
   const accessToken = useAuthStore((s) => s.accessToken);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
   const [isComposing, setIsComposing] = useState(false);
 
   /* =========================
    * 유저 검색
    * ========================= */
   useEffect(() => {
-    if (!isDropdownOpen) return;
+    if (!isDropdownOpen || !accessToken) return;
 
     const fetch = async () => {
-      if (!accessToken) return;
-
       try {
         const keyword = input.trim();
-
         const res = await userApi.searchUsers({
-          keyword: keyword || undefined, // 비어있으면 전체 조회
+          keyword: keyword || undefined,
         });
-
         setSearchResults(res.users ?? []);
         setHighlightedIndex(-1);
       } catch {
@@ -60,9 +58,15 @@ export function UserTagInputString({
     };
 
     const t = setTimeout(fetch, 300);
-    // eslint-disable-next-line consistent-return
     return () => clearTimeout(t);
   }, [input, accessToken, isDropdownOpen]);
+
+  /* =========================
+   * 부모로 ID 전달
+   * ========================= */
+  useEffect(() => {
+    onUserSelectedIds?.(selectedUserIds);
+  }, [selectedUserIds, onUserSelectedIds]);
 
   /* =========================
    * 추가 / 제거
@@ -74,7 +78,7 @@ export function UserTagInputString({
     setHighlightedIndex(-1);
   };
 
-  const addName = (name: string) => {
+  const addUser = (user: UserSummary | null, name: string) => {
     if (!name.trim()) return;
 
     if (value.includes(name)) {
@@ -83,11 +87,24 @@ export function UserTagInputString({
     }
 
     onChange([...value, name]);
+
+    if (user?.userId != null) {
+      setSelectedUserIds((prev) =>
+        prev.includes(user.userId!) ? prev : [...prev, user.userId!],
+      );
+    }
+
     resetInput();
   };
 
   const removeName = (index: number) => {
+    const removedName = value[index];
     onChange(value.filter((_, i) => i !== index));
+
+    const user = searchResults.find((u) => u.name === removedName);
+    if (user?.userId != null) {
+      setSelectedUserIds((prev) => prev.filter((id) => id !== user.userId));
+    }
   };
 
   /* =========================
@@ -114,14 +131,16 @@ export function UserTagInputString({
 
     if (e.key === 'Enter') {
       e.preventDefault();
-
       const keyword = input.trim();
       if (!keyword) return;
 
       if (highlightedIndex >= 0 && searchResults[highlightedIndex]) {
-        addName(searchResults[highlightedIndex].name ?? '');
+        addUser(
+          searchResults[highlightedIndex],
+          searchResults[highlightedIndex].name ?? '',
+        );
       } else {
-        addName(keyword);
+        addUser(null, keyword);
       }
     }
   };
@@ -140,7 +159,6 @@ export function UserTagInputString({
         setIsDropdownOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
@@ -150,7 +168,6 @@ export function UserTagInputString({
    * ========================= */
   return (
     <div className="flex flex-col gap-2">
-      {/* 입력 + 드롭다운 */}
       <div className="relative">
         <Input
           ref={inputRef}
@@ -174,13 +191,12 @@ export function UserTagInputString({
             ref={dropdownRef}
             className="bg-background absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border shadow"
           >
-            {/* eslint-disable-next-line no-nested-ternary */}
             {searchResults.length > 0 ? (
               searchResults.map((user, index) => (
                 <button
                   key={user.userId}
                   type="button"
-                  onClick={() => addName(user.name ?? '')}
+                  onClick={() => addUser(user, user.name ?? '')}
                   className={cn(
                     'flex w-full flex-col px-3 py-2 text-left text-sm',
                     index === highlightedIndex && 'bg-muted',
@@ -201,11 +217,9 @@ export function UserTagInputString({
         )}
       </div>
 
-      {/* 선택된 이름들 */}
       <div className="flex flex-wrap gap-2">
         {value.map((name, index) => (
           <Badge
-            /* eslint-disable-next-line react/no-array-index-key */
             key={`${name}-${index}`}
             variant="secondary"
             className="flex items-center gap-1 rounded-full px-3 py-1 text-xs"

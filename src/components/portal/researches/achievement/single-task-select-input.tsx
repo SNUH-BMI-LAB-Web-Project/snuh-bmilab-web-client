@@ -12,6 +12,7 @@ interface SingleTaskSelectInputProps {
   value: string;
   onValueChange: (v: string) => void;
   onTaskSelected?: (task: TaskSummaryResponse | null) => void;
+  onTaskIdChange?: (id: number | null) => void;
   placeholder?: string;
 }
 
@@ -19,6 +20,7 @@ export function SingleTaskSelectInput({
   value,
   onValueChange,
   onTaskSelected,
+  onTaskIdChange,
   placeholder = '과제 검색',
 }: SingleTaskSelectInputProps) {
   const [input, setInput] = useState(value);
@@ -28,10 +30,15 @@ export function SingleTaskSelectInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => setInput(value), [value]);
+  /* 외부 value 동기화 */
+  useEffect(() => {
+    setInput(value);
+  }, [value]);
 
+  /* 검색 로직 (기존 유지) */
   useEffect(() => {
     if (!open) return;
+
     (async () => {
       try {
         const res = await taskApi.getAllTasks({
@@ -46,18 +53,40 @@ export function SingleTaskSelectInput({
     })();
   }, [input, open]);
 
+  useEffect(() => {
+    if (!open) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+
+      if (
+        inputRef.current?.contains(target) ||
+        popRef.current?.contains(target)
+      ) {
+        return;
+      }
+
+      setOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
   const selectTask = (t: TaskSummaryResponse) => {
     const title = t.title ?? '';
+    setInput(title);
     onValueChange(title);
     onTaskSelected?.(t);
-    setInput(title);
+    onTaskIdChange?.(t.id ?? null);
     setOpen(false);
   };
 
   const clear = () => {
+    setInput('');
     onValueChange('');
     onTaskSelected?.(null);
-    setInput('');
+    onTaskIdChange?.(null);
     setOpen(true);
     inputRef.current?.focus();
   };
@@ -73,6 +102,7 @@ export function SingleTaskSelectInput({
         onChange={(e) => {
           setInput(e.target.value);
           onValueChange(e.target.value);
+          setOpen(true);
         }}
       />
 

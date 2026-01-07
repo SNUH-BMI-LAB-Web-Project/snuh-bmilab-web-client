@@ -1,8 +1,7 @@
 'use client';
 
 import type React from 'react';
-
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,13 +12,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Book } from '@/lib/types';
 import { UserTagInputString } from '@/components/portal/researches/achievement/multi-user-tag-input';
 import { DatePicker } from '@/components/common/date-picker';
 
 interface BookFormProps {
-  initialData?: Book;
-  onSave: (data: Omit<Book, 'id'>) => void;
+  initialData?: {
+    authors?: string;
+    authorType?: 'BOOK' | 'CONTRIBUTION';
+    publicationDate?: string;
+    publisher?: string;
+    publicationHouse?: string;
+    publicationName?: string;
+    title?: string;
+    isbn?: string;
+  } | null;
+  onSave: (data: {
+    authors: string;
+    authorType: 'BOOK' | 'CONTRIBUTION';
+    publicationDate: string;
+    publisher: string;
+    publicationHouse: string;
+    publicationName: string;
+    title: string;
+    isbn: string;
+  }) => void;
   onCancel: () => void;
 }
 
@@ -27,25 +43,54 @@ export function BookForm({ initialData, onSave, onCancel }: BookFormProps) {
   const [names, setNames] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
-    name: initialData?.name || '',
-    category: initialData?.category || '저서',
-    publishDate: initialData?.publishDate || '',
-    publisher: initialData?.publisher || '',
-    publishingHouse: initialData?.publishingHouse || '',
-    publicationName: initialData?.publicationName || '',
-    title: initialData?.title || '',
-    isbn: initialData?.isbn || '',
+    category: '저서' as '저서' | '기고',
+    publicationDate: '',
+    publisher: '',
+    publicationHouse: '',
+    publicationName: '',
+    title: '',
+    isbn: '',
   });
+
+  useEffect(() => {
+    if (!initialData) return;
+
+    setNames(
+      initialData.authors
+        ? initialData.authors.split(',').map((v) => v.trim())
+        : [],
+    );
+
+    setFormData({
+      category: initialData.authorType === 'CONTRIBUTION' ? '기고' : '저서',
+      publicationDate: initialData.publicationDate ?? '',
+      publisher: initialData.publisher ?? '',
+      publicationHouse: initialData.publicationHouse ?? '',
+      publicationName: initialData.publicationName ?? '',
+      title: initialData.title ?? '',
+      isbn: initialData.isbn ?? '',
+    });
+  }, [initialData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData as Omit<Book, 'id'>);
+
+    onSave({
+      authors: names.join(', '),
+      authorType: formData.category === '저서' ? 'BOOK' : 'CONTRIBUTION',
+      publicationDate: formData.publicationDate,
+      publisher: formData.publisher,
+      publicationHouse: formData.publicationHouse,
+      publicationName: formData.publicationName,
+      title: formData.title,
+      isbn: formData.isbn,
+    });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="name">
+        <Label>
           이름 <span className="text-destructive">*</span>
         </Label>
         <UserTagInputString
@@ -56,21 +101,21 @@ export function BookForm({ initialData, onSave, onCancel }: BookFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="category">
+        <Label>
           구분 <span className="text-destructive">*</span>
         </Label>
         <Select
           value={formData.category}
-          onValueChange={(value: '기고' | '저서') =>
-            setFormData({ ...formData, category: value })
+          onValueChange={(value: '저서' | '기고') =>
+            setFormData((prev) => ({ ...prev, category: value }))
           }
         >
           <SelectTrigger className="w-1/2">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="기고">기고</SelectItem>
             <SelectItem value="저서">저서</SelectItem>
+            <SelectItem value="기고">기고</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -79,78 +124,91 @@ export function BookForm({ initialData, onSave, onCancel }: BookFormProps) {
         <Label>
           출판일 <span className="text-destructive">*</span>
         </Label>
-
         <DatePicker
-          value={formData.publishDate}
+          value={formData.publicationDate}
           onChange={(date) =>
-            setFormData((prev) => ({ ...prev, publishDate: date }))
+            setFormData((prev) => ({ ...prev, publicationDate: date }))
           }
           placeholder="출판일 선택"
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="publisher">
+        <Label>
           발행처 <span className="text-destructive">*</span>
         </Label>
         <Input
-          id="publisher"
           value={formData.publisher}
           onChange={(e) =>
-            setFormData({ ...formData, publisher: e.target.value })
+            setFormData((prev) => ({
+              ...prev,
+              publisher: e.target.value,
+            }))
           }
           required
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="publishingHouse">
+        <Label>
           출판사 <span className="text-destructive">*</span>
         </Label>
         <Input
-          id="publishingHouse"
-          value={formData.publishingHouse}
+          value={formData.publicationHouse}
           onChange={(e) =>
-            setFormData({ ...formData, publishingHouse: e.target.value })
+            setFormData((prev) => ({
+              ...prev,
+              publicationHouse: e.target.value,
+            }))
           }
           required
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="publicationName">
+        <Label>
           출판물명 <span className="text-destructive">*</span>
         </Label>
         <Input
-          id="publicationName"
           value={formData.publicationName}
           onChange={(e) =>
-            setFormData({ ...formData, publicationName: e.target.value })
+            setFormData((prev) => ({
+              ...prev,
+              publicationName: e.target.value,
+            }))
           }
           required
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="title">
+        <Label>
           제목 <span className="text-destructive">*</span>
         </Label>
         <Input
-          id="title"
           value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          onChange={(e) =>
+            setFormData((prev) => ({
+              ...prev,
+              title: e.target.value,
+            }))
+          }
           required
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="isbn">
+        <Label>
           ISBN <span className="text-destructive">*</span>
         </Label>
         <Input
-          id="isbn"
           value={formData.isbn}
-          onChange={(e) => setFormData({ ...formData, isbn: e.target.value })}
+          onChange={(e) =>
+            setFormData((prev) => ({
+              ...prev,
+              isbn: e.target.value,
+            }))
+          }
           required
         />
       </div>
