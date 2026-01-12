@@ -411,7 +411,6 @@ export default function JournalPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg">
-              <BookOpen className="h-5 w-5" />
               저널 목록
             </CardTitle>
             <Badge variant="secondary" className="text-sm">
