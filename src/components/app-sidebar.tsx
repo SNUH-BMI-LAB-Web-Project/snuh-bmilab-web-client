@@ -50,6 +50,7 @@ const baseNav = [
     icon: Archive,
     items: [
       { title: 'RSS 공고', url: '/portal/archive/rss' },
+      { title: '세미나 캘린더', url: '/portal/archive/seminar' },
       { title: '저널', url: '/portal/archive/journal' },
     ],
   },
