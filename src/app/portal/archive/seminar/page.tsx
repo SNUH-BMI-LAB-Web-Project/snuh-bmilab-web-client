@@ -7,6 +7,7 @@ import {
   Plus,
   X,
   Calendar as CalendarIcon,
+  Search,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,6 +33,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -41,6 +43,7 @@ import { toast } from 'sonner';
  * Types
  * ======================= */
 type EventType = 'SEMINAR' | 'CONFERENCE';
+type SidebarTab = 'DATE' | 'SEARCH';
 
 type SeminarEvent = {
   id: number;
@@ -248,72 +251,185 @@ function EndPill({ ev }: { ev: SeminarEvent }) {
   );
 }
 
+/* =========================
+ * Sidebar with Tabs (DATE / SEARCH)
+ * ======================= */
 function Sidebar({
   selectedDate,
-  events,
+  dateEvents,
+  isOpen,
   onClose,
+  activeTab,
+  onTabChange,
+  searchQuery,
+  onSearchQueryChange,
+  searchedEvents,
+  onClickSearchResult,
 }: {
   selectedDate: Date | null;
-  events: SeminarEvent[];
+  dateEvents: SeminarEvent[];
+  isOpen: boolean;
   onClose: () => void;
+
+  activeTab: SidebarTab;
+  onTabChange: (v: SidebarTab) => void;
+
+  searchQuery: string;
+  onSearchQueryChange: (v: string) => void;
+  searchedEvents: SeminarEvent[];
+  onClickSearchResult: (ev: SeminarEvent) => void;
 }) {
+  if (!isOpen) return null;
+
   const selectedDateText =
     selectedDate &&
     `${selectedDate.getFullYear()}년 ${monthNames[selectedDate.getMonth()]} ${selectedDate.getDate()}일 (${weekdayLabels[selectedDate.getDay()]})`;
 
   return (
     <div className="absolute right-0 h-full w-1/4 border-l bg-white py-4 pr-2 pl-6">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <CalendarIcon className="h-5 w-5" />
-          <h2 className="text-lg font-semibold">{selectedDateText}</h2>
+          <h2 className="text-lg font-semibold">일정</h2>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose}>
           <X className="h-4 w-4" />
         </Button>
       </div>
 
-      <div className="space-y-3">
-        <h3 className="text-muted-foreground mb-3 text-sm font-medium">
-          일정 ({events.length}개)
-        </h3>
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => onTabChange(v as SidebarTab)}
+        className="w-full"
+      >
+        <TabsList className="w-full">
+          <TabsTrigger className="w-full" value="DATE">
+            날짜별
+          </TabsTrigger>
+          <TabsTrigger className="w-full" value="SEARCH">
+            검색별
+          </TabsTrigger>
+        </TabsList>
 
-        {events.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            해당 날짜에 일정이 없습니다.
-          </p>
-        ) : (
-          events.map((ev) => {
-            const meta = EVENT_TYPES[ev.type];
-            const rangeText =
-              ev.endDate && ev.endDate !== ev.startDate
-                ? `${ev.startDate} ~ ${ev.endDate}`
-                : ev.startDate;
+        {/* DATE TAB */}
+        <TabsContent value="DATE" className="mt-4">
+          <div className="mb-3">
+            <div className="text-sm font-semibold">{selectedDateText}</div>
+            <div className="text-muted-foreground mt-1 text-xs">
+              일정 {dateEvents.length}개
+            </div>
+          </div>
 
-            return (
-              <div key={ev.id} className="mr-6 ml-2 border-b pt-2 pb-4">
-                <div className="mb-1 flex items-center gap-2">
-                  <div
-                    className={cn('size-3 flex-shrink-0 rounded', meta.color)}
-                  />
-                  <div className="text-sm font-medium">{ev.title}</div>
+          {dateEvents.length === 0 ? (
+            <p className="text-muted-foreground text-sm">
+              해당 날짜에 일정이 없습니다.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {dateEvents.map((ev) => {
+                const meta = EVENT_TYPES[ev.type];
+                const rangeText =
+                  ev.endDate && ev.endDate !== ev.startDate
+                    ? `${ev.startDate} ~ ${ev.endDate}`
+                    : ev.startDate;
+
+                return (
+                  <div key={ev.id} className="mr-6 ml-2 border-b pt-2 pb-4">
+                    <div className="mb-1 flex items-center gap-2">
+                      <div
+                        className={cn(
+                          'size-3 flex-shrink-0 rounded',
+                          meta.color,
+                        )}
+                      />
+                      <div className="text-sm font-medium">{ev.title}</div>
+                    </div>
+                    <div className="text-muted-foreground ml-6 text-xs">
+                      {meta.name}
+                    </div>
+                    <div className="text-muted-foreground ml-6 text-xs">
+                      {rangeText}
+                    </div>
+                    {ev.description && (
+                      <div className="text-muted-foreground mt-2 ml-6 text-xs whitespace-pre-wrap">
+                        {ev.description}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* SEARCH TAB */}
+        <TabsContent value="SEARCH" className="mt-4">
+          <div className="space-y-2">
+            <div className="relative">
+              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+              <Input
+                id="sidebar-search"
+                value={searchQuery}
+                onChange={(e) => onSearchQueryChange(e.target.value)}
+                placeholder="검색"
+                className="pl-9"
+              />
+            </div>
+
+            {searchQuery.trim() && (
+              <div className="mt-2 rounded border p-3">
+                <div className="text-muted-foreground mb-2 text-xs">
+                  검색 결과 {searchedEvents.length}개
                 </div>
-                <div className="text-muted-foreground ml-6 text-xs">
-                  {meta.name}
-                </div>
-                <div className="text-muted-foreground ml-6 text-xs">
-                  {rangeText}
-                </div>
-                {ev.description && (
-                  <div className="text-muted-foreground mt-2 ml-6 text-xs whitespace-pre-wrap">
-                    {ev.description}
+
+                {searchedEvents.length === 0 ? (
+                  <div className="text-muted-foreground text-sm">
+                    일치하는 일정이 없습니다.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {searchedEvents.map((ev) => {
+                      const meta = EVENT_TYPES[ev.type];
+                      const range =
+                        ev.endDate && ev.endDate !== ev.startDate
+                          ? `${ev.startDate} ~ ${ev.endDate}`
+                          : ev.startDate;
+
+                      return (
+                        <button
+                          key={ev.id}
+                          type="button"
+                          className="hover:bg-muted/40 flex w-full items-start justify-between gap-3 rounded p-2 text-left"
+                          onClick={() => onClickSearchResult(ev)}
+                        >
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={cn('h-3 w-3 rounded', meta.color)}
+                              />
+                              <div className="truncate text-sm font-medium">
+                                {ev.title}
+                              </div>
+                            </div>
+                            <div className="text-muted-foreground mt-1 text-xs">
+                              {meta.name} · {range}
+                            </div>
+                            {ev.description && (
+                              <div className="text-muted-foreground mt-1 line-clamp-2 text-xs">
+                                {ev.description}
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
-            );
-          })
-        )}
-      </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
@@ -328,7 +444,7 @@ export default function SeminarCalendar() {
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
 
-  // ✅ 더미 데이터
+  // 더미 데이터
   const dummyEvents: SeminarEvent[] = useMemo(
     () => [
       {
@@ -352,32 +468,31 @@ export default function SeminarCalendar() {
         title: '바이오인포매틱스 학회',
         startDate: '2026-02-05',
         endDate: '2026-02-07',
+        description: '워크샵/튜토리얼 참가',
+      },
+      {
+        id: 4,
+        type: 'SEMINAR',
+        title: 'Seminar: Diffusion Model Overview',
+        startDate: '2026-02-12',
+        description: '기초 개념 + 최근 논문 리뷰',
       },
     ],
     [],
   );
 
   const [events, setEvents] = useState<SeminarEvent[]>(dummyEvents);
+
+  // 사이드바/선택 날짜
   const [selectedDate, setSelectedDate] = useState<Date | null>(today);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState<{
-    type: '' | EventType;
-    title: string;
-    startDate: string;
-    endDate: string;
-    description: string;
-  }>({
-    type: '',
-    title: '',
-    startDate: '',
-    endDate: '',
-    description: '',
-  });
+  // 사이드바 탭
+  const [activeTab, setActiveTab] = useState<SidebarTab>('DATE');
 
-  // ✅ 검색
+  // 검색(사이드바에서만)
   const [searchQuery, setSearchQuery] = useState('');
+
   const searchedEvents = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return [];
@@ -425,17 +540,34 @@ export default function SeminarCalendar() {
     );
   }, []);
 
-  const handleDateClick = useCallback((date: Date) => {
-    setSelectedDate((prev) => {
-      const same = prev && isSameDay(prev, date);
-      if (same) {
-        setIsSidebarOpen(false);
-        return null;
-      }
-      setIsSidebarOpen(true);
-      return date;
-    });
-  }, []);
+  // const handleDateClick = useCallback((date: Date) => {
+  //   setSelectedDate((prev) => {
+  //     const same = prev && isSameDay(prev, date);
+  //     if (same) {
+  //       setIsSidebarOpen(false);
+  //       return null;
+  //     }
+  //     setIsSidebarOpen(true);
+  //     setActiveTab('DATE'); // 날짜 클릭하면 날짜별 탭으로
+  //     return date;
+  //   });
+  // }, []);
+
+  // 일정 추가 모달
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState<{
+    type: '' | EventType;
+    title: string;
+    startDate: string;
+    endDate: string;
+    description: string;
+  }>({
+    type: '',
+    title: '',
+    startDate: '',
+    endDate: '',
+    description: '',
+  });
 
   const isAllRequiredValid = useMemo(() => {
     const { type, title, startDate } = formData;
@@ -454,7 +586,7 @@ export default function SeminarCalendar() {
         return;
       }
 
-      // ✅ 승인 없이 즉시 추가
+      // 승인 없이 즉시 추가
       setEvents((prev) => {
         const nextId = (prev.at(-1)?.id ?? 0) + 1;
         const end = formData.endDate || undefined;
@@ -473,6 +605,15 @@ export default function SeminarCalendar() {
       });
 
       toast.success('일정이 캘린더에 추가되었습니다.');
+
+      // 추가한 일정 날짜로 바로 열어주고 싶으면(옵션)
+      const d = fromYmdLocal(formData.startDate);
+      if (d) {
+        setSelectedDate(d);
+        setIsSidebarOpen(true);
+        setActiveTab('DATE');
+      }
+
       setFormData({
         type: '',
         title: '',
@@ -484,9 +625,6 @@ export default function SeminarCalendar() {
     },
     [formData, isAllRequiredValid],
   );
-
-  // (선택) 현재 월로 넘어갈 때, 더미데이터가 갱신되는 느낌만 주고 싶으면 useEffect로 뭔가 할 수 있지만
-  // 지금은 "API 없음" 조건이라 특별히 fetch 없음.
 
   return (
     <div className="mx-auto flex max-w-7xl bg-white">
@@ -514,7 +652,19 @@ export default function SeminarCalendar() {
           </div>
 
           {/* 일정 추가 버튼 */}
-          <div className="absolute right-0">
+          <div className="absolute right-0 flex items-center gap-2">
+            {/* 검색은 사이드바에서만. 대신 여기서 "검색 탭 열기" 버튼만 제공(선택) */}
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsSidebarOpen(true);
+                setActiveTab('SEARCH');
+              }}
+            >
+              <Search className="mr-2 h-4 w-4" />
+              검색
+            </Button>
+
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -633,7 +783,6 @@ export default function SeminarCalendar() {
                               setFormData((s) => ({
                                 ...s,
                                 startDate: toYmdLocal(date),
-                                // startDate가 바뀌면 endDate가 startDate보다 앞일 수 있으니 정리
                                 endDate:
                                   s.endDate &&
                                   fromYmdLocal(s.endDate) &&
@@ -744,73 +893,6 @@ export default function SeminarCalendar() {
         {/* 범례 */}
         <Legend />
 
-        {/* 검색 */}
-        <div className="mb-6">
-          <Label htmlFor="search" className="mb-2 block">
-            검색
-          </Label>
-          <Input
-            id="search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="예) ㅇㅇㅇ학회, 세미나, 키워드..."
-          />
-
-          {searchQuery.trim() && (
-            <div className="mt-3 rounded border p-3">
-              <div className="text-muted-foreground mb-2 text-xs">
-                검색 결과 {searchedEvents.length}개
-              </div>
-
-              {searchedEvents.length === 0 ? (
-                <div className="text-muted-foreground text-sm">
-                  일치하는 일정이 없습니다.
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {searchedEvents.map((ev) => {
-                    const meta = EVENT_TYPES[ev.type];
-                    const range =
-                      ev.endDate && ev.endDate !== ev.startDate
-                        ? `${ev.startDate} ~ ${ev.endDate}`
-                        : ev.startDate;
-
-                    return (
-                      <button
-                        key={ev.id}
-                        type="button"
-                        className="hover:bg-muted/40 flex w-full items-start justify-between gap-3 rounded p-2 text-left"
-                        onClick={() => {
-                          // 검색 결과 클릭하면 해당 날짜로 사이드바 열어줌
-                          const d = fromYmdLocal(ev.startDate);
-                          if (d) {
-                            setSelectedDate(d);
-                            setIsSidebarOpen(true);
-                          }
-                        }}
-                      >
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={cn('h-3 w-3 rounded', meta.color)}
-                            />
-                            <div className="truncate text-sm font-medium">
-                              {ev.title}
-                            </div>
-                          </div>
-                          <div className="text-muted-foreground mt-1 text-xs">
-                            {meta.name} · {range}
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
         {/* 캘린더 */}
         <div className="mb-10 overflow-hidden rounded-lg border">
           {/* 요일 헤더 */}
@@ -836,9 +918,8 @@ export default function SeminarCalendar() {
 
               const dayEventsRaw = eventsByDateMap.get(toYmd(day)) ?? [];
 
-              // (원하면 여기서 타입 우선순위 정렬 가능: 학회 먼저 등)
+              // CONFERENCE 먼저
               const sorted = [...dayEventsRaw].sort((a, b) => {
-                // CONFERENCE를 위로
                 if (a.type !== b.type) return a.type === 'CONFERENCE' ? -1 : 1;
                 return a.startDate.localeCompare(b.startDate);
               });
@@ -850,7 +931,7 @@ export default function SeminarCalendar() {
                 <button
                   key={toYmdLocal(day)}
                   type="button"
-                  onClick={() => handleDateClick(day)}
+                  // onClick={() => handleDateClick(day)}
                   className={cn(
                     'hover:bg-muted/30 relative flex h-full w-full cursor-pointer flex-col justify-start border-r border-b pt-7 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 [&:nth-child(7n)]:border-r-0 [&:nth-last-child(-n+7)]:border-b-0',
                     isCurrentMonth ? 'bg-white' : 'bg-muted/30',
@@ -922,14 +1003,26 @@ export default function SeminarCalendar() {
         </div>
       </div>
 
-      {/* 우측 사이드바 */}
-      {isSidebarOpen && (
-        <Sidebar
-          selectedDate={selectedDate}
-          events={selectedDateEvents}
-          onClose={() => setIsSidebarOpen(false)}
-        />
-      )}
+      {/* 우측 사이드바: 탭(날짜별/검색별) + 검색은 사이드바에서 */}
+      <Sidebar
+        selectedDate={selectedDate}
+        dateEvents={selectedDateEvents}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        activeTab={activeTab}
+        onTabChange={(v) => setActiveTab(v)}
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        searchedEvents={searchedEvents}
+        onClickSearchResult={(ev) => {
+          const d = fromYmdLocal(ev.startDate);
+          if (d) {
+            setSelectedDate(d);
+            setIsSidebarOpen(true);
+            setActiveTab('DATE'); // 검색 결과 클릭 → 날짜별 탭으로 이동
+          }
+        }}
+      />
     </div>
   );
 }
