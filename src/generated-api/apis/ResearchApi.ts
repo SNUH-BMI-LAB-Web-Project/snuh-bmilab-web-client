@@ -186,7 +186,7 @@ export interface GetPapersRequest {
     sort?: Array<any>;
 }
 
-export interface GetPatent1Request {
+export interface GetPatentRequest {
     patentId: number;
 }
 
@@ -197,7 +197,7 @@ export interface GetPatentsRequest {
     sort?: Array<any>;
 }
 
-export interface GetPublication1Request {
+export interface GetPublicationRequest {
     authorId: number;
 }
 
@@ -1355,11 +1355,11 @@ export class ResearchApi extends runtime.BaseAPI {
      * 특허 ID로 특허를 상세 조회하는 GET API
      * 특허 단건 조회
      */
-    async getPatent1Raw(requestParameters: GetPatent1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PatentResponse>> {
+    async getPatentRaw(requestParameters: GetPatentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PatentResponse>> {
         if (requestParameters['patentId'] == null) {
             throw new runtime.RequiredError(
                 'patentId',
-                'Required parameter "patentId" was null or undefined when calling getPatent1().'
+                'Required parameter "patentId" was null or undefined when calling getPatent().'
             );
         }
 
@@ -1389,8 +1389,8 @@ export class ResearchApi extends runtime.BaseAPI {
      * 특허 ID로 특허를 상세 조회하는 GET API
      * 특허 단건 조회
      */
-    async getPatent1(requestParameters: GetPatent1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PatentResponse> {
-        const response = await this.getPatent1Raw(requestParameters, initOverrides);
+    async getPatent(requestParameters: GetPatentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PatentResponse> {
+        const response = await this.getPatentRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1450,11 +1450,11 @@ export class ResearchApi extends runtime.BaseAPI {
      * 저서 ID로 저서를 상세 조회하는 GET API
      * 저서 단건 조회
      */
-    async getPublication1Raw(requestParameters: GetPublication1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthorResponse>> {
+    async getPublicationRaw(requestParameters: GetPublicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<AuthorResponse>> {
         if (requestParameters['authorId'] == null) {
             throw new runtime.RequiredError(
                 'authorId',
-                'Required parameter "authorId" was null or undefined when calling getPublication1().'
+                'Required parameter "authorId" was null or undefined when calling getPublication().'
             );
         }
 
@@ -1484,8 +1484,8 @@ export class ResearchApi extends runtime.BaseAPI {
      * 저서 ID로 저서를 상세 조회하는 GET API
      * 저서 단건 조회
      */
-    async getPublication1(requestParameters: GetPublication1Request, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthorResponse> {
-        const response = await this.getPublication1Raw(requestParameters, initOverrides);
+    async getPublication(requestParameters: GetPublicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<AuthorResponse> {
+        const response = await this.getPublicationRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

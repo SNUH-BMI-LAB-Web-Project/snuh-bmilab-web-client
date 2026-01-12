@@ -29,6 +29,7 @@ models/AcademicPresentationResponse.ts
 models/AcademicPresentationSummaryResponse.ts
 models/AcknowledgementResponse.ts
 models/AcknowledgementUpdateRequest.ts
+models/AdminUpdateLeaveRequest.ts
 models/AdminUpdateUserRequest.ts
 models/ApplyLeaveRequest.ts
 models/AuthorFindAllResponse.ts
@@ -50,8 +51,6 @@ models/BoardSummary.ts
 models/CommentFindAllResponse.ts
 models/CommentRequest.ts
 models/CommentSummary.ts
-models/ConferenceRequest.ts
-models/ConferenceResponse.ts
 models/CreateAcademicPresentationRequest.ts
 models/CreateAuthorRequest.ts
 models/CreateAwardRequest.ts
@@ -85,7 +84,6 @@ models/PaperSummaryResponse.ts
 models/PatentAuthorRequest.ts
 models/PatentAuthorResponse.ts
 models/PatentFindAllResponse.ts
-models/PatentRequest.ts
 models/PatentResponse.ts
 models/PatentSummaryResponse.ts
 models/ProjectCategoryFindAllResponse.ts
@@ -99,8 +97,6 @@ models/ProjectFindAllResponse.ts
 models/ProjectPinRequest.ts
 models/ProjectRequest.ts
 models/ProjectSummary.ts
-models/PublicationResponse.ts
-models/PublicationUpdateRequest.ts
 models/RSSItem.ts
 models/RSSResponse.ts
 models/RegisterUserRequest.ts

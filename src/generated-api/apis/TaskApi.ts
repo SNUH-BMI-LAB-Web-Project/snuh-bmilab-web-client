@@ -15,16 +15,13 @@
 
 import * as runtime from '../runtime';
 import type {
+  AcademicPresentationSummaryResponse,
   AcknowledgementResponse,
   AcknowledgementUpdateRequest,
-  ConferenceRequest,
-  ConferenceResponse,
   ErrorResponse,
   PageTaskSummaryResponse,
-  PatentRequest,
-  PatentResponse,
-  PublicationResponse,
-  PublicationUpdateRequest,
+  PaperSummaryResponse,
+  PatentSummaryResponse,
   TaskAgreementResponse,
   TaskAgreementUpdateRequest,
   TaskBasicInfoResponse,
@@ -41,26 +38,20 @@ import type {
   TaskSummaryResponse,
 } from '../models/index';
 import {
+    AcademicPresentationSummaryResponseFromJSON,
+    AcademicPresentationSummaryResponseToJSON,
     AcknowledgementResponseFromJSON,
     AcknowledgementResponseToJSON,
     AcknowledgementUpdateRequestFromJSON,
     AcknowledgementUpdateRequestToJSON,
-    ConferenceRequestFromJSON,
-    ConferenceRequestToJSON,
-    ConferenceResponseFromJSON,
-    ConferenceResponseToJSON,
     ErrorResponseFromJSON,
     ErrorResponseToJSON,
     PageTaskSummaryResponseFromJSON,
     PageTaskSummaryResponseToJSON,
-    PatentRequestFromJSON,
-    PatentRequestToJSON,
-    PatentResponseFromJSON,
-    PatentResponseToJSON,
-    PublicationResponseFromJSON,
-    PublicationResponseToJSON,
-    PublicationUpdateRequestFromJSON,
-    PublicationUpdateRequestToJSON,
+    PaperSummaryResponseFromJSON,
+    PaperSummaryResponseToJSON,
+    PatentSummaryResponseFromJSON,
+    PatentSummaryResponseToJSON,
     TaskAgreementResponseFromJSON,
     TaskAgreementResponseToJSON,
     TaskAgreementUpdateRequestFromJSON,
@@ -121,18 +112,6 @@ export interface GetAllTasksRequest {
     sort?: Array<any>;
 }
 
-export interface GetConferenceRequest {
-    taskId: number;
-}
-
-export interface GetPatentRequest {
-    taskId: number;
-}
-
-export interface GetPublicationRequest {
-    taskId: number;
-}
-
 export interface GetTaskRequest {
     taskId: number;
 }
@@ -145,12 +124,24 @@ export interface GetTaskBasicInfoRequest {
     taskId: number;
 }
 
+export interface GetTaskPapersRequest {
+    taskId: number;
+}
+
+export interface GetTaskPatentsRequest {
+    taskId: number;
+}
+
 export interface GetTaskPeriodRequest {
     taskId: number;
     periodId: number;
 }
 
 export interface GetTaskPresentationRequest {
+    taskId: number;
+}
+
+export interface GetTaskPresentationsRequest {
     taskId: number;
 }
 
@@ -170,21 +161,6 @@ export interface RemoveProjectFromTaskRequest {
 export interface SaveAcknowledgementRequest {
     taskId: number;
     acknowledgementUpdateRequest: AcknowledgementUpdateRequest;
-}
-
-export interface SaveConferenceRequest {
-    taskId: number;
-    conferenceRequest: ConferenceRequest;
-}
-
-export interface SavePatentRequest {
-    taskId: number;
-    patentRequest: PatentRequest;
-}
-
-export interface SavePublicationRequest {
-    taskId: number;
-    publicationUpdateRequest: PublicationUpdateRequest;
 }
 
 export interface UpdateAgreementRequest {
@@ -508,135 +484,6 @@ export class TaskApi extends runtime.BaseAPI {
     }
 
     /**
-     * 과제별 학회발표 정보를 조회하는 GET API
-     * 학회발표 정보 조회
-     */
-    async getConferenceRaw(requestParameters: GetConferenceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ConferenceResponse>> {
-        if (requestParameters['taskId'] == null) {
-            throw new runtime.RequiredError(
-                'taskId',
-                'Required parameter "taskId" was null or undefined when calling getConference().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("JWT", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/tasks/{taskId}/conference`.replace(`{${"taskId"}}`, encodeURIComponent(String(requestParameters['taskId']))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ConferenceResponseFromJSON(jsonValue));
-    }
-
-    /**
-     * 과제별 학회발표 정보를 조회하는 GET API
-     * 학회발표 정보 조회
-     */
-    async getConference(requestParameters: GetConferenceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ConferenceResponse> {
-        const response = await this.getConferenceRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * 과제별 특허 정보를 조회하는 GET API
-     * 특허 정보 조회
-     */
-    async getPatentRaw(requestParameters: GetPatentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PatentResponse>> {
-        if (requestParameters['taskId'] == null) {
-            throw new runtime.RequiredError(
-                'taskId',
-                'Required parameter "taskId" was null or undefined when calling getPatent().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("JWT", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/tasks/{taskId}/patent`.replace(`{${"taskId"}}`, encodeURIComponent(String(requestParameters['taskId']))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => PatentResponseFromJSON(jsonValue));
-    }
-
-    /**
-     * 과제별 특허 정보를 조회하는 GET API
-     * 특허 정보 조회
-     */
-    async getPatent(requestParameters: GetPatentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PatentResponse> {
-        const response = await this.getPatentRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     * 과제별 논문 정보를 조회하는 GET API
-     * 논문 정보 조회
-     */
-    async getPublicationRaw(requestParameters: GetPublicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<PublicationResponse>> {
-        if (requestParameters['taskId'] == null) {
-            throw new runtime.RequiredError(
-                'taskId',
-                'Required parameter "taskId" was null or undefined when calling getPublication().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("JWT", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/tasks/{taskId}/publication`.replace(`{${"taskId"}}`, encodeURIComponent(String(requestParameters['taskId']))),
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => PublicationResponseFromJSON(jsonValue));
-    }
-
-    /**
-     * 과제별 논문 정보를 조회하는 GET API
-     * 논문 정보 조회
-     */
-    async getPublication(requestParameters: GetPublicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<PublicationResponse> {
-        const response = await this.getPublicationRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
      * 과제 ID로 과제 요약 정보를 조회하는 GET API
      * 과제 상세 조회
      */
@@ -766,6 +613,92 @@ export class TaskApi extends runtime.BaseAPI {
     }
 
     /**
+     * 과제와 연결된 논문 목록을 조회하는 GET API
+     * 과제 관련 논문 목록 조회
+     */
+    async getTaskPapersRaw(requestParameters: GetTaskPapersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<PaperSummaryResponse>>> {
+        if (requestParameters['taskId'] == null) {
+            throw new runtime.RequiredError(
+                'taskId',
+                'Required parameter "taskId" was null or undefined when calling getTaskPapers().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/tasks/{taskId}/papers`.replace(`{${"taskId"}}`, encodeURIComponent(String(requestParameters['taskId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(PaperSummaryResponseFromJSON));
+    }
+
+    /**
+     * 과제와 연결된 논문 목록을 조회하는 GET API
+     * 과제 관련 논문 목록 조회
+     */
+    async getTaskPapers(requestParameters: GetTaskPapersRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<PaperSummaryResponse>> {
+        const response = await this.getTaskPapersRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * 과제와 연결된 특허 목록을 조회하는 GET API
+     * 과제 관련 특허 목록 조회
+     */
+    async getTaskPatentsRaw(requestParameters: GetTaskPatentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<PatentSummaryResponse>>> {
+        if (requestParameters['taskId'] == null) {
+            throw new runtime.RequiredError(
+                'taskId',
+                'Required parameter "taskId" was null or undefined when calling getTaskPatents().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/tasks/{taskId}/patents`.replace(`{${"taskId"}}`, encodeURIComponent(String(requestParameters['taskId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(PatentSummaryResponseFromJSON));
+    }
+
+    /**
+     * 과제와 연결된 특허 목록을 조회하는 GET API
+     * 과제 관련 특허 목록 조회
+     */
+    async getTaskPatents(requestParameters: GetTaskPatentsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<PatentSummaryResponse>> {
+        const response = await this.getTaskPatentsRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
      * 과제 ID와 연차 ID로 특정 연차 정보를 조회하는 GET API
      * 과제 특정 연차 정보 조회
      */
@@ -855,6 +788,49 @@ export class TaskApi extends runtime.BaseAPI {
      */
     async getTaskPresentation(requestParameters: GetTaskPresentationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<TaskPresentationResponse> {
         const response = await this.getTaskPresentationRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * 과제와 연결된 학회발표 목록을 조회하는 GET API
+     * 과제 관련 학회발표 목록 조회
+     */
+    async getTaskPresentationsRaw(requestParameters: GetTaskPresentationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<AcademicPresentationSummaryResponse>>> {
+        if (requestParameters['taskId'] == null) {
+            throw new runtime.RequiredError(
+                'taskId',
+                'Required parameter "taskId" was null or undefined when calling getTaskPresentations().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/tasks/{taskId}/presentations`.replace(`{${"taskId"}}`, encodeURIComponent(String(requestParameters['taskId']))),
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(AcademicPresentationSummaryResponseFromJSON));
+    }
+
+    /**
+     * 과제와 연결된 학회발표 목록을 조회하는 GET API
+     * 과제 관련 학회발표 목록 조회
+     */
+    async getTaskPresentations(requestParameters: GetTaskPresentationsRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<AcademicPresentationSummaryResponse>> {
+        const response = await this.getTaskPresentationsRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -1079,162 +1055,6 @@ export class TaskApi extends runtime.BaseAPI {
      */
     async saveAcknowledgement(requestParameters: SaveAcknowledgementRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.saveAcknowledgementRaw(requestParameters, initOverrides);
-    }
-
-    /**
-     * 학회발표 정보를 저장하는 PUT API
-     * 학회발표 정보 저장
-     */
-    async saveConferenceRaw(requestParameters: SaveConferenceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters['taskId'] == null) {
-            throw new runtime.RequiredError(
-                'taskId',
-                'Required parameter "taskId" was null or undefined when calling saveConference().'
-            );
-        }
-
-        if (requestParameters['conferenceRequest'] == null) {
-            throw new runtime.RequiredError(
-                'conferenceRequest',
-                'Required parameter "conferenceRequest" was null or undefined when calling saveConference().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("JWT", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/tasks/{taskId}/conference`.replace(`{${"taskId"}}`, encodeURIComponent(String(requestParameters['taskId']))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: ConferenceRequestToJSON(requestParameters['conferenceRequest']),
-        }, initOverrides);
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     * 학회발표 정보를 저장하는 PUT API
-     * 학회발표 정보 저장
-     */
-    async saveConference(requestParameters: SaveConferenceRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.saveConferenceRaw(requestParameters, initOverrides);
-    }
-
-    /**
-     * 특허 정보를 저장하는 PUT API
-     * 특허 정보 저장
-     */
-    async savePatentRaw(requestParameters: SavePatentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters['taskId'] == null) {
-            throw new runtime.RequiredError(
-                'taskId',
-                'Required parameter "taskId" was null or undefined when calling savePatent().'
-            );
-        }
-
-        if (requestParameters['patentRequest'] == null) {
-            throw new runtime.RequiredError(
-                'patentRequest',
-                'Required parameter "patentRequest" was null or undefined when calling savePatent().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("JWT", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/tasks/{taskId}/patent`.replace(`{${"taskId"}}`, encodeURIComponent(String(requestParameters['taskId']))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: PatentRequestToJSON(requestParameters['patentRequest']),
-        }, initOverrides);
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     * 특허 정보를 저장하는 PUT API
-     * 특허 정보 저장
-     */
-    async savePatent(requestParameters: SavePatentRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.savePatentRaw(requestParameters, initOverrides);
-    }
-
-    /**
-     * 논문 정보를 저장하는 PUT API
-     * 논문 정보 저장
-     */
-    async savePublicationRaw(requestParameters: SavePublicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
-        if (requestParameters['taskId'] == null) {
-            throw new runtime.RequiredError(
-                'taskId',
-                'Required parameter "taskId" was null or undefined when calling savePublication().'
-            );
-        }
-
-        if (requestParameters['publicationUpdateRequest'] == null) {
-            throw new runtime.RequiredError(
-                'publicationUpdateRequest',
-                'Required parameter "publicationUpdateRequest" was null or undefined when calling savePublication().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.accessToken) {
-            const token = this.configuration.accessToken;
-            const tokenString = await token("JWT", []);
-
-            if (tokenString) {
-                headerParameters["Authorization"] = `Bearer ${tokenString}`;
-            }
-        }
-        const response = await this.request({
-            path: `/tasks/{taskId}/publication`.replace(`{${"taskId"}}`, encodeURIComponent(String(requestParameters['taskId']))),
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: PublicationUpdateRequestToJSON(requestParameters['publicationUpdateRequest']),
-        }, initOverrides);
-
-        return new runtime.VoidApiResponse(response);
-    }
-
-    /**
-     * 논문 정보를 저장하는 PUT API
-     * 논문 정보 저장
-     */
-    async savePublication(requestParameters: SavePublicationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.savePublicationRaw(requestParameters, initOverrides);
     }
 
     /**

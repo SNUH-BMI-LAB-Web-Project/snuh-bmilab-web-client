@@ -161,13 +161,13 @@ export default function ResearchManagementSystem({
         onValueChange={(v) => setActiveTab(v as ResearchType)}
       >
         <div className="flex items-center justify-between">
-          <TabsList className="grid w-full max-w-3xl grid-cols-6">
+          <TabsList className="grid w-full max-w-3xl grid-cols-5">
             <TabsTrigger value="book">저서</TabsTrigger>
             <TabsTrigger value="conference">학회 발표</TabsTrigger>
             <TabsTrigger value="award">수상</TabsTrigger>
             <TabsTrigger value="paper">논문</TabsTrigger>
             <TabsTrigger value="patent">특허</TabsTrigger>
-            <TabsTrigger value="journal">저널</TabsTrigger>
+            {/* <TabsTrigger value="journal">저널</TabsTrigger> */}
           </TabsList>
 
           <Button onClick={handleAdd}>

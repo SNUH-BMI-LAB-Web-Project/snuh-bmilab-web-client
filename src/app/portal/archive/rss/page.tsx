@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { rssSearchTypeOptions } from '@/constants/rss-search-enum';
-import RssLoading from '@/components/portal/etc/rss/rss-loading';
+import RssLoading from '@/components/portal/archive/rss/rss-loading';
 import { getApiConfig } from '@/lib/config';
 
 function decodeEntities(html: string) {

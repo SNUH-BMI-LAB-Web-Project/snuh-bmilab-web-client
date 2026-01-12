@@ -1,6 +1,12 @@
 'use client';
 
-import { Users, Newspaper, FolderSearch, CircleFadingPlus } from 'lucide-react';
+import {
+  Users,
+  Newspaper,
+  FolderSearch,
+  CircleFadingPlus,
+  Archive,
+} from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent } from '@/components/ui/sidebar';
 import { useAuthStore } from '@/store/auth-store';
@@ -12,7 +18,6 @@ const baseNav = [
     icon: Users,
     items: [
       { title: '구성원', url: '/system/users/members' },
-      { title: '외부 인사', url: '/system/users/external' },
       { title: '휴가 관리', url: '/system/users/leaves' },
       // { title: '자리배치도', url: '/system/users/seats' },
     ],
@@ -32,6 +37,15 @@ const baseNav = [
       { title: '과제', url: '/system/researches/assignment' },
       { title: '연구 & 프로젝트', url: '/system/researches/projects' },
       { title: '연구 성과', url: '/system/researches/achievement' },
+    ],
+  },
+  {
+    title: '아카이브 관리',
+    url: '/system/archive',
+    icon: Archive,
+    items: [
+      { title: '외부 인사', url: '/system/archive/external' },
+      { title: '저널', url: '/system/archive/journal' },
     ],
   },
   {

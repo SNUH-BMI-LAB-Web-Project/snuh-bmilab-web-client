@@ -163,6 +163,12 @@ export interface PaperResponse {
      */
     isRepresentative?: boolean;
     /**
+     * 연계 과제 ID
+     * @type {number}
+     * @memberof PaperResponse
+     */
+    taskId?: number;
+    /**
      * 첨부 파일 목록
      * @type {Array<FileSummary>}
      * @memberof PaperResponse
@@ -206,6 +212,7 @@ export function PaperResponseFromJSONTyped(json: any, ignoreDiscriminator: boole
         'citations': json['citations'] == null ? undefined : json['citations'],
         'professorRole': json['professorRole'] == null ? undefined : json['professorRole'],
         'isRepresentative': json['isRepresentative'] == null ? undefined : json['isRepresentative'],
+        'taskId': json['taskId'] == null ? undefined : json['taskId'],
         'files': json['files'] == null ? undefined : ((json['files'] as Array<any>).map(FileSummaryFromJSON)),
     };
 }
@@ -240,6 +247,7 @@ export function PaperResponseToJSONTyped(value?: PaperResponse | null, ignoreDis
         'citations': value['citations'],
         'professorRole': value['professorRole'],
         'isRepresentative': value['isRepresentative'],
+        'taskId': value['taskId'],
         'files': value['files'] == null ? undefined : ((value['files'] as Array<any>).map(FileSummaryToJSON)),
     };
 }

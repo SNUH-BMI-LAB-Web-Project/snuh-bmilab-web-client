@@ -1,6 +1,12 @@
 'use client';
 
-import { Users, Newspaper, FolderSearch, CircleFadingPlus } from 'lucide-react';
+import {
+  Users,
+  Newspaper,
+  FolderSearch,
+  CircleFadingPlus,
+  Archive,
+} from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import {
   Sidebar,
@@ -39,13 +45,20 @@ const baseNav = [
     ],
   },
   {
+    title: '아카이브',
+    url: '/portal/archive',
+    icon: Archive,
+    items: [
+      { title: 'RSS 공고', url: '/portal/archive/rss' },
+      { title: '세미나 캘린더', url: '/portal/archive/seminar' },
+      { title: '저널', url: '/portal/archive/journal' },
+    ],
+  },
+  {
     title: '기타',
     url: '/portal/etc',
     icon: CircleFadingPlus,
-    items: [
-      { title: 'RSS 공고', url: '/portal/etc/rss' },
-      { title: '정보 게시판', url: '/portal/etc/board' },
-    ],
+    items: [{ title: '정보 게시판', url: '/portal/etc/board' }],
   },
 ];
 

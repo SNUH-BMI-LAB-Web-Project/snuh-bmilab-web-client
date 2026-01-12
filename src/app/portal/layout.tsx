@@ -12,7 +12,10 @@ export default function SidebarLayout({
 }) {
   const pathname = usePathname();
   const isDailyReport = pathname === '/portal/reports/daily';
-  const noPadding = pathname === '/portal/users/leaves';
+
+  const NO_PADDING_PATHS = ['/portal/users/leaves', '/portal/archive/seminar'];
+
+  const noPadding = NO_PADDING_PATHS.includes(pathname);
 
   return (
     <SidebarProvider>
