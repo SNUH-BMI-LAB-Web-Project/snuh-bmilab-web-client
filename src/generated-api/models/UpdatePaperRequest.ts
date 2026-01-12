@@ -137,6 +137,12 @@ export interface UpdatePaperRequest {
      */
     isRepresentative?: boolean;
     /**
+     * 연계 과제 ID (선택적)
+     * @type {number}
+     * @memberof UpdatePaperRequest
+     */
+    taskId?: number;
+    /**
      * 첨부 파일 ID 목록
      * @type {Array<string>}
      * @memberof UpdatePaperRequest
@@ -190,6 +196,7 @@ export function UpdatePaperRequestFromJSONTyped(json: any, ignoreDiscriminator: 
         'citations': json['citations'] == null ? undefined : json['citations'],
         'professorRole': json['professorRole'] == null ? undefined : json['professorRole'],
         'isRepresentative': json['isRepresentative'] == null ? undefined : json['isRepresentative'],
+        'taskId': json['taskId'] == null ? undefined : json['taskId'],
         'fileIds': json['fileIds'] == null ? undefined : json['fileIds'],
     };
 }
@@ -222,6 +229,7 @@ export function UpdatePaperRequestToJSONTyped(value?: UpdatePaperRequest | null,
         'citations': value['citations'],
         'professorRole': value['professorRole'],
         'isRepresentative': value['isRepresentative'],
+        'taskId': value['taskId'],
         'fileIds': value['fileIds'],
     };
 }

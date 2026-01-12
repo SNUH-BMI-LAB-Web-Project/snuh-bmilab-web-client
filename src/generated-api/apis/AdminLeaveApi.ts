@@ -15,10 +15,13 @@
 
 import * as runtime from '../runtime';
 import type {
+  AdminUpdateLeaveRequest,
   LeaveFindAllResponse,
   RejectLeaveRequest,
 } from '../models/index';
 import {
+    AdminUpdateLeaveRequestFromJSON,
+    AdminUpdateLeaveRequestToJSON,
     LeaveFindAllResponseFromJSON,
     LeaveFindAllResponseToJSON,
     RejectLeaveRequestFromJSON,
@@ -39,6 +42,11 @@ export interface GetLeaves1Request {
 export interface RejectLeaveOperationRequest {
     leaveId: number;
     rejectLeaveRequest: RejectLeaveRequest;
+}
+
+export interface UpdateLeaveRequest {
+    leaveId: number;
+    adminUpdateLeaveRequest: AdminUpdateLeaveRequest;
 }
 
 /**
@@ -190,6 +198,58 @@ export class AdminLeaveApi extends runtime.BaseAPI {
      */
     async rejectLeave(requestParameters: RejectLeaveOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.rejectLeaveRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * 승인된 휴가 정보를 수정하는 PATCH API
+     * 승인된 휴가 수정
+     */
+    async updateLeaveRaw(requestParameters: UpdateLeaveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['leaveId'] == null) {
+            throw new runtime.RequiredError(
+                'leaveId',
+                'Required parameter "leaveId" was null or undefined when calling updateLeave().'
+            );
+        }
+
+        if (requestParameters['adminUpdateLeaveRequest'] == null) {
+            throw new runtime.RequiredError(
+                'adminUpdateLeaveRequest',
+                'Required parameter "adminUpdateLeaveRequest" was null or undefined when calling updateLeave().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/admin/leaves/{leaveId}`.replace(`{${"leaveId"}}`, encodeURIComponent(String(requestParameters['leaveId']))),
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AdminUpdateLeaveRequestToJSON(requestParameters['adminUpdateLeaveRequest']),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * 승인된 휴가 정보를 수정하는 PATCH API
+     * 승인된 휴가 수정
+     */
+    async updateLeave(requestParameters: UpdateLeaveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.updateLeaveRaw(requestParameters, initOverrides);
     }
 
 }
