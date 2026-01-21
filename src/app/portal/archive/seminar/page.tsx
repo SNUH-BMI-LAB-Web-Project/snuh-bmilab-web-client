@@ -188,7 +188,7 @@ function BasePill({
     <div
       className={cn(
         color,
-        'relative z-10 truncate px-2 py-1 text-xs',
+        'relative z-10 h-6 truncate px-2 py-1 text-xs',
         className,
       )}
       title={title}
@@ -396,11 +396,11 @@ function Sidebar({
                           : ev.startDate;
 
                       return (
-                        <button
+                        <div
                           key={ev.id}
-                          type="button"
+                          // type="button"
                           className="hover:bg-muted/40 flex w-full items-start justify-between gap-3 rounded p-2 text-left"
-                          onClick={() => onClickSearchResult(ev)}
+                          // onClick={() => onClickSearchResult(ev)}
                         >
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
@@ -420,7 +420,7 @@ function Sidebar({
                               </div>
                             )}
                           </div>
-                        </button>
+                        </div>
                       );
                     })}
                   </div>
@@ -540,18 +540,18 @@ export default function SeminarCalendar() {
     );
   }, []);
 
-  // const handleDateClick = useCallback((date: Date) => {
-  //   setSelectedDate((prev) => {
-  //     const same = prev && isSameDay(prev, date);
-  //     if (same) {
-  //       setIsSidebarOpen(false);
-  //       return null;
-  //     }
-  //     setIsSidebarOpen(true);
-  //     setActiveTab('DATE'); // 날짜 클릭하면 날짜별 탭으로
-  //     return date;
-  //   });
-  // }, []);
+  const handleDateClick = useCallback((date: Date) => {
+    setSelectedDate((prev) => {
+      const same = prev && isSameDay(prev, date);
+      if (same) {
+        setIsSidebarOpen(false);
+        return null;
+      }
+      setIsSidebarOpen(true);
+      setActiveTab('DATE'); // 날짜 클릭하면 날짜별 탭으로
+      return date;
+    });
+  }, []);
 
   // 일정 추가 모달
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -931,7 +931,7 @@ export default function SeminarCalendar() {
                 <button
                   key={toYmdLocal(day)}
                   type="button"
-                  // onClick={() => handleDateClick(day)}
+                  onClick={() => handleDateClick(day)}
                   className={cn(
                     'hover:bg-muted/30 relative flex h-full w-full cursor-pointer flex-col justify-start border-r border-b pt-7 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 [&:nth-child(7n)]:border-r-0 [&:nth-last-child(-n+7)]:border-b-0',
                     isCurrentMonth ? 'bg-white' : 'bg-muted/30',
