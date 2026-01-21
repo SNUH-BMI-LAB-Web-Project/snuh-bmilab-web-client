@@ -48,6 +48,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 const leaveApi = new LeaveApi(getApiConfig());
 
@@ -177,6 +178,7 @@ interface LeavesTableProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   onItemsPerPageChange: (count: number) => void;
+  onDeletePending: (leaveId: number) => void;
 }
 
 const DEFAULT_ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
@@ -190,6 +192,7 @@ function LeavesTable({
   totalPages,
   onPageChange,
   onItemsPerPageChange,
+  onDeletePending,
 }: LeavesTableProps) {
   const paginatedData = data;
 
@@ -217,6 +220,7 @@ function LeavesTable({
               <TableHead className="min-w-[140px] text-center">
                 처리일
               </TableHead>
+              <TableHead className="min-w-[100px] text-center" />
             </TableRow>
           </TableHeader>
 
@@ -224,7 +228,7 @@ function LeavesTable({
             {paginatedData.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={8}
                   className="text-muted-foreground py-12 text-center"
                 >
                   <div className="flex flex-col items-center gap-2">
@@ -280,6 +284,23 @@ function LeavesTable({
                       </div>
                     ) : (
                       <span className="text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="min-w-[100px] py-4 text-center">
+                    {request.status === 'PENDING' ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation(); // row 클릭(상세 모달) 막기
+                          onDeletePending(request.leaveId!);
+                        }}
+                      >
+                        취소
+                      </Button>
+                    ) : (
+                      <span className="text-muted-foreground" />
                     )}
                   </TableCell>
                 </TableRow>
@@ -389,6 +410,15 @@ export default function LeavesHistory() {
     setIsDetailDialogOpen(true);
   };
 
+  const handleDeletePending = async (leaveId: number) => {
+    try {
+      console.log('삭제~~');
+    } catch (e) {
+      console.error('휴가 삭제 실패:', e);
+      toast.error('휴가 삭제에 실패했습니다.');
+    }
+  };
+
   return (
     <div className="mb-10 flex flex-col gap-14">
       {/* 연차 현황 */}
@@ -426,6 +456,7 @@ export default function LeavesHistory() {
             setItemsPerPage(count);
             setCurrentPage(1);
           }}
+          onDeletePending={handleDeletePending}
         />
 
         <LeavesDetailDialog
