@@ -56,6 +56,8 @@ type VacationMeta = {
   requireReason: boolean;
 };
 
+type HolidayLite = { date: string; name: string };
+
 /* =========================
  * Constants
  * ======================= */
@@ -129,6 +131,20 @@ export const toYmd = (d: Date | string | undefined | null): string => {
   return `${year}-${month}-${day}`;
 };
 
+const toYmdLocal = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+const fromYmdLocal = (s?: string) => {
+  if (!s) return undefined;
+  const [y, m, d] = s.split('-').map(Number);
+  if (!y || !m || !d) return undefined;
+  return new Date(y, m - 1, d);
+};
+
 const isSameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
 
 const startOfMonth = (date: Date) =>
@@ -165,19 +181,32 @@ function eachDateRange(
   }
 }
 
-const toYmdLocal = (d: Date) => {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-};
+export function getCalendarDateRange(current: Date): {
+  startDate: string;
+  endDate: string;
+} {
+  const firstDayOfMonth = new Date(
+    current.getFullYear(),
+    current.getMonth(),
+    1,
+  );
+  const lastDayOfMonth = new Date(
+    current.getFullYear(),
+    current.getMonth() + 1,
+    0,
+  );
 
-const fromYmdLocal = (s?: string) => {
-  if (!s) return undefined;
-  const [y, m, d] = s.split('-').map(Number);
-  if (!y || !m || !d) return undefined;
-  return new Date(y, m - 1, d);
-};
+  const gridStart = new Date(firstDayOfMonth);
+  gridStart.setDate(gridStart.getDate() - gridStart.getDay());
+
+  const gridEnd = new Date(lastDayOfMonth);
+  gridEnd.setDate(gridEnd.getDate() + (6 - gridEnd.getDay()));
+
+  return {
+    startDate: toYmd(gridStart),
+    endDate: toYmd(gridEnd),
+  };
+}
 
 const getVacationSegmentKind = (
   vacation: LeaveDetail,
@@ -206,41 +235,23 @@ const getVacationSegmentKind = (
   return 'middle';
 };
 
-export function getCalendarDateRange(current: Date): {
-  startDate: string;
-  endDate: string;
-} {
-  const firstDayOfMonth = new Date(
-    current.getFullYear(),
-    current.getMonth(),
-    1,
-  );
-  const lastDayOfMonth = new Date(
-    current.getFullYear(),
-    current.getMonth() + 1,
-    0,
-  );
+const overlapsDate = (v: LeaveDetail, dayYmd: string) => {
+  if (!v.startDate) return false;
+  const start = toYmd(new Date(v.startDate));
+  const end = v.endDate ? toYmd(new Date(v.endDate)) : start;
+  return start <= dayYmd && dayYmd <= end;
+};
 
-  const gridStart = new Date(firstDayOfMonth);
-  gridStart.setDate(gridStart.getDate() - gridStart.getDay());
-
-  const gridEnd = new Date(lastDayOfMonth);
-  gridEnd.setDate(gridEnd.getDate() + (6 - gridEnd.getDay()));
-
-  return {
-    startDate: toYmd(gridStart),
-    endDate: toYmd(gridEnd),
-  };
-}
+const getLeaveKey = (v: LeaveDetail) =>
+  String(v.leaveId ?? `${v.user?.userId ?? 'u'}-${v.startDate}-${v.type}`);
 
 /* =========================
- * Types
+ * UI Pieces
  * ======================= */
 function Legend() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between gap-10">
-        {/* 왼쪽: 색상 범례 */}
         <div className="flex flex-wrap gap-4">
           {Object.entries(VACATION_TYPES).map(([key, value]) => (
             <div key={key} className="flex items-center gap-2">
@@ -252,7 +263,6 @@ function Legend() {
           ))}
         </div>
 
-        {/* 오른쪽: 툴팁 아이콘 */}
         <div className="text-muted-foreground text-xs">
           * 휴가 신청 내역에 대해서는{' '}
           <Settings className="text-muted-foreground mb-0.5 inline h-3 w-3 font-bold" />{' '}
@@ -281,7 +291,6 @@ function DayCell({
   const holidayTextClass = isCurrentMonth ? 'text-red-600' : 'text-red-300';
 
   if (isSelected) {
-    // 선택일: 숫자는 선택 스타일 유지, 공휴일 이름만 월 여부에 따라 빨강 농도
     return (
       <div className="flex items-center gap-1 rounded-full">
         <span className="bg-muted-foreground flex size-5 items-center justify-center rounded-full text-xs text-white">
@@ -297,7 +306,6 @@ function DayCell({
   }
 
   if (isToday) {
-    // 오늘: 숫자는 오늘 스타일 유지, 공휴일 이름만 월 여부에 따라 빨강 농도
     return (
       <div className="flex items-center gap-1 rounded-full">
         <span className="flex size-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
@@ -312,7 +320,6 @@ function DayCell({
     );
   }
 
-  // 숫자 색상 계산 (공휴일 또는 일요일 빨강, 토요일 파랑, 평일 회색)
   const isHoliday = Boolean(holidayName);
   const dow = date.getDay();
   let colorClass = '';
@@ -340,6 +347,9 @@ function DayCell({
   );
 }
 
+/* =========================
+ * Pills (SeminarCalendar와 동일한 "구간 표현" 구조)
+ * ======================= */
 type BasePillProps = {
   className?: string;
   color: string;
@@ -363,8 +373,8 @@ export function BasePill({
     <div
       className={cn(
         color,
-        'relative z-10 truncate px-2 py-1 text-xs',
-        hideText && 'flex h-6 items-center px-0',
+        'relative z-10 h-6 truncate px-2 py-1 text-xs',
+        hideText && 'flex items-center px-0',
         className,
       )}
       title={title}
@@ -388,37 +398,38 @@ export function SingleDayPill({
   meta: VacationMeta;
   v: LeaveDetail;
 }) {
+  const name = v.user?.name ?? '';
   return (
     <BasePill
       color={meta.color}
-      name={v.user!.name!}
+      name={name}
       label={meta.name}
       className="mx-1 rounded"
-      title={`${v.user!.name!} - ${meta.name}${v.reason ? ` (${v.reason})` : ''}`}
+      title={`${name} - ${meta.name}${v.reason ? ` (${v.reason})` : ''}`}
     />
   );
 }
 
 export function StartPill({ meta, v }: { meta: VacationMeta; v: LeaveDetail }) {
+  const name = v.user?.name ?? '';
   return (
     <BasePill
       color={meta.color}
-      name={v.user!.name!}
+      name={name}
       label={meta.name}
       className="-mr-px ml-1 rounded-l rounded-r-none"
-      title={`${v.user!.name!} - ${meta.name}${v.reason ? ` (${v.reason})` : ''}`}
+      title={`${name} - ${meta.name}${v.reason ? ` (${v.reason})` : ''}`}
     />
   );
 }
 
+/** 기본 middle: 텍스트 숨김(연결감 유지) */
 export function MiddlePill({
   meta,
   v,
-  showText = false,
 }: {
   meta: VacationMeta;
   v: LeaveDetail;
-  showText?: boolean;
 }) {
   const name = v.user?.name ?? '';
   const label = meta.name;
@@ -428,7 +439,7 @@ export function MiddlePill({
       color={meta.color}
       name={name}
       label={label}
-      hideText={!showText} // 기본은 숨김, showText면 표시
+      hideText
       ariaLabel={`${name} ${label}`}
       className="-mx-px rounded-none"
       title={`${name} - ${label}${v.reason ? ` (${v.reason})` : ''}`}
@@ -436,20 +447,65 @@ export function MiddlePill({
   );
 }
 
-export function EndPill({ meta, v }: { meta: VacationMeta; v: LeaveDetail }) {
+/** 주 시작(일요일)에서 “이전 주부터 이어지는” 구간: 텍스트 다시 표시 */
+export function ContinuedPill({
+  meta,
+  v,
+}: {
+  meta: VacationMeta;
+  v: LeaveDetail;
+}) {
+  const name = v.user?.name ?? '';
   return (
     <BasePill
       color={meta.color}
-      name={v.user!.name!}
+      name={name}
       label={meta.name}
-      hideText
-      ariaLabel={`${v.user!.name!} ${meta.name}`}
-      className="mr-1 -ml-px rounded-l-none rounded-r px-0"
-      title={`${v.user!.name!} - ${meta.name}${v.reason ? ` (${v.reason})` : ''}`}
+      className="-mx-px rounded-none"
+      title={`${name} - ${meta.name}${v.reason ? ` (${v.reason})` : ''}`}
     />
   );
 }
 
+/** 기본 end: 오른쪽 둥글게 + 텍스트 숨김 */
+export function EndPill({ meta, v }: { meta: VacationMeta; v: LeaveDetail }) {
+  const name = v.user?.name ?? '';
+  return (
+    <BasePill
+      color={meta.color}
+      name={name}
+      label={meta.name}
+      hideText
+      ariaLabel={`${name} ${meta.name}`}
+      className="mr-1 -ml-px rounded-l-none rounded-r px-0"
+      title={`${name} - ${meta.name}${v.reason ? ` (${v.reason})` : ''}`}
+    />
+  );
+}
+
+/** 주 시작 + end(마지막날)인 경우: 오른쪽 둥글게 + 텍스트 표시 */
+export function ContinuedEndPill({
+  meta,
+  v,
+}: {
+  meta: VacationMeta;
+  v: LeaveDetail;
+}) {
+  const name = v.user?.name ?? '';
+  return (
+    <BasePill
+      color={meta.color}
+      name={name}
+      label={meta.name}
+      className="-mx-px mr-1 rounded-l-none rounded-r"
+      title={`${name} - ${meta.name}${v.reason ? ` (${v.reason})` : ''}`}
+    />
+  );
+}
+
+/* =========================
+ * Sidebar
+ * ======================= */
 function Sidebar({
   selectedDate,
   vacations,
@@ -495,21 +551,21 @@ function Sidebar({
           vacations.map((v) => {
             const meta = VACATION_TYPES[v.type || LeaveDetailTypeEnum.Annual];
             return (
-              <div key={v.leaveId} className="mr-6 ml-2 border-b pt-2 pb-4">
+              <div
+                key={getLeaveKey(v)}
+                className="mr-6 ml-2 border-b pt-2 pb-4"
+              >
                 <div className="mb-1 flex items-center gap-2">
                   <div
                     className={`size-3 flex-shrink-0 rounded ${meta.color}`}
                   />
 
                   <div className="flex flex-col text-sm font-medium sm:flex-row sm:items-center sm:gap-2">
-                    {/* 이름: truncate 적용 */}
                     <div className="max-w-[160px] truncate whitespace-nowrap">
-                      {v.user!.name}
+                      {v.user?.name}
                     </div>
-
-                    {/* 이메일: 줄바꿈 허용 + 항상 보이도록 별도 block으로 분리 */}
                     <div className="text-muted-foreground text-xs break-words">
-                      {v.user!.email}
+                      {v.user?.email}
                     </div>
                   </div>
                 </div>
@@ -525,10 +581,7 @@ function Sidebar({
                       ? formatDateTimeVer2(v.endDate)
                       : null;
 
-                    if (!end || start === end) {
-                      return start;
-                    }
-
+                    if (!end || start === end) return start;
                     return `${start} ~ ${end}`;
                   })()}
                 </div>
@@ -546,15 +599,19 @@ function Sidebar({
  * ======================= */
 export default function LeavesCalendar() {
   const role = useAuthStore((s) => s.role);
+
   const today = useMemo(() => new Date(), []);
   const [currentDate, setCurrentDate] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
+
   const [vacations, setVacations] = useState<LeaveDetail[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [selectedDate, setSelectedDate] = useState<Date | null>(today);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   const [formData, setFormData] = useState<{
     type: '' | ApplyLeaveRequestTypeEnum;
     startDate: string;
@@ -575,7 +632,6 @@ export default function LeavesCalendar() {
       const sd = new Date(startDate);
       const ed = new Date(endDate);
       const res = await leaveApi.getLeaves({ startDate: sd, endDate: ed });
-
       setVacations(res.leaves ?? []);
     } catch (error) {
       console.error('휴가 조회 실패:', error);
@@ -585,42 +641,6 @@ export default function LeavesCalendar() {
   useEffect(() => {
     fetchLeaves();
   }, [fetchLeaves]);
-
-  /** 휴가를 날짜별로 빠르게 조회하기 위한 맵 (YYYY-MM-DD → Vacation[]) */
-  const vacationsByDateMap = useMemo(() => {
-    const map = new Map<string, LeaveDetail[]>();
-
-    vacations.forEach((v) => {
-      const start = v.startDate ? new Date(v.startDate) : null;
-      const end = v.endDate ? new Date(v.endDate) : start;
-
-      if (
-        !start ||
-        !end ||
-        Number.isNaN(start.getTime()) ||
-        Number.isNaN(end.getTime())
-      ) {
-        return;
-      }
-
-      const sd = toYmd(start);
-      const ed = toYmd(end);
-
-      eachDateRange(sd, ed, (d) => {
-        const key = toYmd(d);
-        const list = map.get(key);
-        if (list) list.push(v);
-        else map.set(key, [v]);
-      });
-    });
-
-    return map;
-  }, [vacations]);
-
-  const selectedDateVacations = useMemo(() => {
-    if (!selectedDate) return [];
-    return vacationsByDateMap.get(toYmd(selectedDate)) ?? [];
-  }, [selectedDate, vacationsByDateMap]);
 
   const changeMonth = useCallback((direction: number) => {
     setCurrentDate(
@@ -642,7 +662,17 @@ export default function LeavesCalendar() {
 
   const isReasonRequired = useCallback(() => {
     if (!formData.type) return false;
-    return VACATION_TYPES[formData.type].requireReason;
+    return !!VACATION_TYPES[formData.type as LeaveDetailTypeEnum]
+      ?.requireReason;
+  }, [formData.type]);
+
+  const isHalfDayType = useCallback(() => {
+    return (
+      formData.type === ApplyLeaveRequestTypeEnum.HalfAm ||
+      formData.type === ApplyLeaveRequestTypeEnum.HalfPm ||
+      formData.type === ApplyLeaveRequestTypeEnum.SpecialHalfAm ||
+      formData.type === ApplyLeaveRequestTypeEnum.SpecialHalfPm
+    );
   }, [formData.type]);
 
   const handleSubmit = useCallback(
@@ -687,17 +717,9 @@ export default function LeavesCalendar() {
     [formData, isReasonRequired, fetchLeaves],
   );
 
-  const isHalfDayType = useCallback(() => {
-    return (
-      formData.type === ApplyLeaveRequestTypeEnum.HalfAm ||
-      formData.type === ApplyLeaveRequestTypeEnum.HalfPm ||
-      formData.type === ApplyLeaveRequestTypeEnum.SpecialHalfAm ||
-      formData.type === ApplyLeaveRequestTypeEnum.SpecialHalfPm
-    );
-  }, [formData.type]);
-
-  type HolidayLite = { date: string; name: string };
-
+  /* =========================
+   * Holidays
+   * ======================= */
   const [holidays, setHolidays] = useState<HolidayLite[]>([]);
 
   const holidaysMap = useMemo(() => {
@@ -719,7 +741,7 @@ export default function LeavesCalendar() {
 
         if (!res.ok) {
           const text = await res.text();
-          console.error('GET /api/holidays failed 5th:', res.status, text);
+          console.error('GET /api/holidays failed:', res.status, text);
           if (!cancelled) setHolidays([]);
           return;
         }
@@ -727,7 +749,7 @@ export default function LeavesCalendar() {
         const data: HolidayLite[] = await res.json();
         if (!cancelled) setHolidays(data);
       } catch (e) {
-        console.error('GET /api/holidays threw 5th:', e);
+        console.error('GET /api/holidays threw:', e);
         if (!cancelled) setHolidays([]);
       }
     })();
@@ -737,11 +759,158 @@ export default function LeavesCalendar() {
     };
   }, [currentYear]);
 
+  /* =========================
+   * Sidebar data (YYYY-MM-DD -> LeaveDetail[])
+   * ======================= */
+  const vacationsByDateMap = useMemo(() => {
+    const map = new Map<string, LeaveDetail[]>();
+
+    vacations.forEach((v) => {
+      if (!v.startDate) return;
+
+      const start = new Date(v.startDate);
+      const end = v.endDate ? new Date(v.endDate) : start;
+
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return;
+
+      const sd = toYmd(start);
+      const ed = toYmd(end);
+
+      eachDateRange(sd, ed, (d) => {
+        const key = toYmd(d);
+        const list = map.get(key);
+        if (list) list.push(v);
+        else map.set(key, [v]);
+      });
+    });
+
+    return map;
+  }, [vacations]);
+
+  const selectedDateVacations = useMemo(() => {
+    if (!selectedDate) return [];
+    return vacationsByDateMap.get(toYmd(selectedDate)) ?? [];
+  }, [selectedDate, vacationsByDateMap]);
+
+  /* =========================
+   * ✅ SeminarCalendar와 동일: 주 단위 트랙(3줄) 고정 배치
+   *    + ALL(랩실 전체 휴가) 항상 최상단(가능하면 0번 트랙)
+   * ======================= */
+  const weeks = useMemo(() => {
+    const w: Date[][] = [];
+    for (let i = 0; i < days.length; i += 7) w.push(days.slice(i, i + 7));
+    return w;
+  }, [days]);
+
+  type WeekTracks = (LeaveDetail | null)[][]; // [track(0..2)][dayIdx(0..6)]
+
+  const weekTracksList = useMemo(() => {
+    return weeks.map((weekDays) => {
+      const weekStart = toYmd(weekDays[0]);
+      const weekEnd = toYmd(weekDays[6]);
+
+      // 이 주와 겹치는 휴가만
+      const weekVacations = vacations.filter((v) => {
+        if (!v.startDate) return false;
+
+        const vStart = toYmd(new Date(v.startDate));
+        const vEnd = v.endDate ? toYmd(new Date(v.endDate)) : vStart;
+
+        return !(vEnd < weekStart || vStart > weekEnd);
+      });
+
+      // 우선순위:
+      // 1) ALL 최상단
+      // 2) 주 시작 전에 이미 시작한 ongoing 먼저(끊김 방지)
+      // 3) 시작일 빠른 순
+      // 4) (동률) leaveId
+      const prioritized = [...weekVacations].sort((a, b) => {
+        const aIsAll = String(a.type) === 'ALL';
+        const bIsAll = String(b.type) === 'ALL';
+        if (aIsAll !== bIsAll) return aIsAll ? -1 : 1;
+
+        const aStartYmd = a.startDate ? toYmd(new Date(a.startDate)) : '';
+        const bStartYmd = b.startDate ? toYmd(new Date(b.startDate)) : '';
+
+        const aOngoing = Boolean(aStartYmd && aStartYmd < weekStart);
+        const bOngoing = Boolean(bStartYmd && bStartYmd < weekStart);
+        if (aOngoing !== bOngoing) return aOngoing ? -1 : 1;
+
+        const aStartTime = a.startDate
+          ? new Date(a.startDate).getTime()
+          : Number.POSITIVE_INFINITY;
+        const bStartTime = b.startDate
+          ? new Date(b.startDate).getTime()
+          : Number.POSITIVE_INFINITY;
+
+        if (aStartTime !== bStartTime) return aStartTime - bStartTime;
+
+        return (a.leaveId ?? 0) - (b.leaveId ?? 0);
+      });
+
+      const tracks: WeekTracks = Array.from({ length: 3 }, () =>
+        Array(7).fill(null),
+      );
+
+      prioritized.forEach((v) => {
+        if (!v.startDate) return;
+
+        const occupyIdx: number[] = [];
+
+        weekDays.forEach((d, idx) => {
+          if (overlapsDate(v, toYmd(d))) occupyIdx.push(idx);
+        });
+
+        if (!occupyIdx.length) return;
+
+        const isAll = String(v.type) === 'ALL';
+
+        // ALL은 무조건 0번 트랙부터 시도
+        let trackIndex = -1;
+
+        if (isAll) {
+          const ok = occupyIdx.every((i) => tracks[0][i] === null);
+          if (ok) trackIndex = 0;
+        }
+
+        if (trackIndex === -1) {
+          trackIndex = tracks.findIndex((track) =>
+            occupyIdx.every((i) => track[i] === null),
+          );
+        }
+
+        if (trackIndex === -1) return;
+
+        occupyIdx.forEach((i) => {
+          tracks[trackIndex][i] = v;
+        });
+      });
+
+      return tracks;
+    });
+  }, [weeks, vacations]);
+
+  const getDisplayVacationsForCell = useCallback(
+    (weekIdx: number, dayIdx: number) => {
+      const tracks = weekTracksList[weekIdx] ?? [];
+      return [0, 1, 2].map((t) => tracks[t]?.[dayIdx] ?? null);
+    },
+    [weekTracksList],
+  );
+
+  const getTotalVacationsCountForDay = useCallback(
+    (day: Date) => vacationsByDateMap.get(toYmd(day))?.length ?? 0,
+    [vacationsByDateMap],
+  );
+
   return (
     <div className="mx-auto flex max-w-7xl bg-white">
       {/* 메인 캘린더 영역 */}
       <div
-        className={`relative px-10 transition-all duration-300 ${isSidebarOpen ? 'w-3/4' : 'w-full'}`}
+        className={cn(
+          'relative px-10 transition-all duration-300',
+          isSidebarOpen ? 'w-3/4' : 'w-full',
+        )}
       >
         {/* 헤더 */}
         <div className="relative mt-10 mb-6 flex items-center justify-center">
@@ -768,16 +937,19 @@ export default function LeavesCalendar() {
                   휴가 신청
                 </Button>
               </DialogTrigger>
+
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                   <DialogTitle>휴가 신청</DialogTitle>
                 </DialogHeader>
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="type">
                       휴가 종류{' '}
                       <span className="text-destructive text-xs">*</span>
                     </Label>
+
                     <Select
                       value={formData.type}
                       onValueChange={(value) => {
@@ -797,6 +969,7 @@ export default function LeavesCalendar() {
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="휴가 종류를 선택하세요" />
                       </SelectTrigger>
+
                       <SelectContent>
                         {Object.entries(VACATION_TYPES)
                           .filter(([key]) =>
@@ -823,6 +996,7 @@ export default function LeavesCalendar() {
                         시작일
                         <span className="text-destructive text-xs">*</span>
                       </Label>
+
                       <Popover modal>
                         <PopoverTrigger asChild>
                           <Button
@@ -851,6 +1025,7 @@ export default function LeavesCalendar() {
                             </span>
                           </Button>
                         </PopoverTrigger>
+
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
@@ -902,6 +1077,7 @@ export default function LeavesCalendar() {
                             </span>
                           </Button>
                         </PopoverTrigger>
+
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
@@ -979,46 +1155,45 @@ export default function LeavesCalendar() {
 
           {/* 날짜 그리드 */}
           <div className="grid auto-rows-[145px] grid-cols-7">
-            {days.map((day) => {
+            {days.map((day, idx) => {
+              const weekIdx = Math.floor(idx / 7);
+              const dayIdx = idx % 7;
+
               const isCurrentMonth = day.getMonth() === currentDate.getMonth();
               const isTodayFlag = isSameDay(day, today);
               const isSelectedFlag = selectedDate
                 ? isSameDay(day, selectedDate)
                 : false;
 
-              const dayVacationsRaw = vacationsByDateMap.get(toYmd(day)) ?? [];
-              const sortedDayVacations = [...dayVacationsRaw].sort((a, b) => {
-                const aIsAll = String(a.type) === 'ALL';
-                const bIsAll = String(b.type) === 'ALL';
-                if (aIsAll !== bIsAll) return aIsAll ? -1 : 1;
-
-                const aStart = a.startDate
-                  ? new Date(a.startDate).getTime()
-                  : 0;
-                const bStart = b.startDate
-                  ? new Date(b.startDate).getTime()
-                  : 0;
-                if (aStart !== bStart) return aStart - bStart;
-
-                return (a.leaveId ?? 0) - (b.leaveId ?? 0);
-              });
-
-              const displayVacations = sortedDayVacations.slice(0, 3);
-              const hasMore = sortedDayVacations.length > 3;
-
               const holiday = holidaysMap.get(toYmd(day));
               const holidayName = holiday?.name;
+
+              const weekStartYmd = toYmd(days[weekIdx * 7]);
+              const isWeekStart = dayIdx === 0;
+
+              const trackCells = getDisplayVacationsForCell(weekIdx, dayIdx);
+
+              const totalCount = getTotalVacationsCountForDay(day);
+              const displayedUnique = new Set(
+                trackCells
+                  .filter(Boolean)
+                  .map((v) => getLeaveKey(v as LeaveDetail)),
+              ).size;
+              const hiddenCount = Math.max(0, totalCount - displayedUnique);
 
               return (
                 <button
                   key={toYmdLocal(day)}
                   type="button"
                   onClick={() => handleDateClick(day)}
-                  className={`hover:bg-muted/30 relative flex h-full w-full cursor-pointer flex-col justify-start border-r border-b pt-7 text-left ${isCurrentMonth ? 'bg-white' : 'bg-muted/30'} focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 [&:nth-child(7n)]:border-r-0 [&:nth-last-child(-n+7)]:border-b-0`}
+                  className={cn(
+                    'hover:bg-muted/30 relative flex h-full w-full cursor-pointer flex-col justify-start border-r border-b pt-7 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 [&:nth-child(7n)]:border-r-0 [&:nth-last-child(-n+7)]:border-b-0',
+                    isCurrentMonth ? 'bg-white' : 'bg-muted/30',
+                  )}
                   aria-pressed={isSelectedFlag}
                   aria-current={isTodayFlag ? 'date' : undefined}
                 >
-                  {/* 항상 좌상단 날짜 */}
+                  {/* 좌상단 날짜 */}
                   <div className="absolute top-1 left-1">
                     <DayCell
                       date={day}
@@ -1029,66 +1204,87 @@ export default function LeavesCalendar() {
                     />
                   </div>
 
-                  {/* 휴가 리스트: 위부터 쌓임 */}
+                  {/* 휴가 pills (트랙 3줄 고정) */}
                   <div className="flex flex-col justify-start gap-1">
-                    {displayVacations.map((v) => {
-                      const isWeekStart = (d: Date) => d.getDay() === 0; // 일요일
+                    {trackCells.map((v, tIdx) => {
+                      if (!v)
+                        // eslint-disable-next-line react/no-array-index-key
+                        return <div key={`empty-${tIdx}`} className="h-6" />;
 
-                      const meta = VACATION_TYPES[v.type!];
+                      const meta =
+                        VACATION_TYPES[v.type || LeaveDetailTypeEnum.Annual];
                       const kind = getVacationSegmentKind(v, day);
 
-                      const start = v.startDate ? new Date(v.startDate) : null;
+                      const vStartYmd = v.startDate
+                        ? toYmd(new Date(v.startDate))
+                        : '';
+                      const shouldRepeatTitleAtWeekStart =
+                        isWeekStart &&
+                        Boolean(vStartYmd && vStartYmd < weekStartYmd) &&
+                        overlapsDate(v, toYmd(day));
 
-                      const showNameAgain = Boolean(
-                        kind === 'middle' &&
-                          start &&
-                          isWeekStart(day) &&
-                          day > start,
-                      );
-
-                      switch (kind) {
-                        case 'single':
-                          return (
-                            <SingleDayPill
-                              key={`${v.leaveId}-${toYmd(day)}`}
-                              meta={meta}
-                              v={v}
-                            />
-                          );
-
-                        case 'start':
-                          return (
-                            <StartPill
-                              key={`${v.leaveId}-${toYmd(day)}`}
-                              meta={meta}
-                              v={v}
-                            />
-                          );
-
-                        case 'end':
-                          return (
-                            <EndPill
-                              key={`${v.leaveId}-${toYmd(day)}`}
-                              meta={meta}
-                              v={v}
-                            />
-                          );
-
-                        default:
-                          return (
-                            <MiddlePill
-                              key={`${v.leaveId}-${toYmd(day)}`}
-                              meta={meta}
-                              v={v}
-                              showText={showNameAgain}
-                            />
-                          );
+                      if (kind === 'single') {
+                        return (
+                          <SingleDayPill
+                            key={`${getLeaveKey(v)}-${toYmd(day)}`}
+                            meta={meta}
+                            v={v}
+                          />
+                        );
                       }
+
+                      if (kind === 'start') {
+                        return (
+                          <StartPill
+                            key={`${getLeaveKey(v)}-${toYmd(day)}`}
+                            meta={meta}
+                            v={v}
+                          />
+                        );
+                      }
+
+                      if (shouldRepeatTitleAtWeekStart) {
+                        if (kind === 'end') {
+                          return (
+                            <ContinuedEndPill
+                              key={`${getLeaveKey(v)}-${toYmd(day)}`}
+                              meta={meta}
+                              v={v}
+                            />
+                          );
+                        }
+
+                        return (
+                          <ContinuedPill
+                            key={`${getLeaveKey(v)}-${toYmd(day)}`}
+                            meta={meta}
+                            v={v}
+                          />
+                        );
+                      }
+
+                      if (kind === 'end') {
+                        return (
+                          <EndPill
+                            key={`${getLeaveKey(v)}-${toYmd(day)}`}
+                            meta={meta}
+                            v={v}
+                          />
+                        );
+                      }
+
+                      return (
+                        <MiddlePill
+                          key={`${getLeaveKey(v)}-${toYmd(day)}`}
+                          meta={meta}
+                          v={v}
+                        />
+                      );
                     })}
 
-                    {hasMore && (
+                    {hiddenCount > 0 && (
                       <div className="bg-border/70 text-muted-foreground mx-1 rounded px-2 py-1 text-center text-xs">
-                        + {sortedDayVacations.length - 3}명
+                        + {hiddenCount}명
                       </div>
                     )}
                   </div>
