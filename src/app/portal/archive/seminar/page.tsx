@@ -677,7 +677,7 @@ export default function SeminarCalendar() {
   );
 
   /* =========================
-   * ✅ NEW: 주 단위 트랙(3줄) 고정 배치
+   *  NEW: 주 단위 트랙(3줄) 고정 배치
    * ======================= */
   const weeks = useMemo(() => {
     const w: Date[][] = [];
@@ -1063,7 +1063,7 @@ export default function SeminarCalendar() {
               const weekStartYmd = toYmd(days[weekIdx * 7]); // 그 주 일요일
               const isWeekStart = dayIdx === 0; // 일요일
 
-              // ✅ 트랙 3줄 고정 렌더
+              // 트랙 3줄 고정 렌더
               const trackCells = getDisplayEventsForCell(weekIdx, dayIdx);
 
               // +N 계산: 그날 전체 겹치는 이벤트 수 - (그날 표시된 unique 이벤트 수)
@@ -1109,12 +1109,13 @@ export default function SeminarCalendar() {
                   <div className="flex flex-col justify-start gap-1">
                     {trackCells.map((ev, tIdx) => {
                       if (!ev)
+                        // eslint-disable-next-line react/no-array-index-key
                         return <div key={`empty-${tIdx}`} className="h-6" />;
 
-                      // ✅ 기본 세그먼트(시작/중간/끝/단일)
+                      // 기본 세그먼트(시작/중간/끝/단일)
                       const kind = getSegmentKind(ev, day);
 
-                      // ✅ 주가 바뀌는 지점(새 주 일요일)인데, 이벤트는 이전 주부터 이어지는 경우 -> 제목 다시 표시
+                      // 주가 바뀌는 지점(새 주 일요일)인데, 이벤트는 이전 주부터 이어지는 경우 -> 제목 다시 표시
                       const shouldRepeatTitleAtWeekStart =
                         isWeekStart &&
                         ev.startDate < weekStartYmd &&

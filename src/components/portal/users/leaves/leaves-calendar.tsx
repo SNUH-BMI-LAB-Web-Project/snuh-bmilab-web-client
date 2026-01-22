@@ -793,7 +793,7 @@ export default function LeavesCalendar() {
   }, [selectedDate, vacationsByDateMap]);
 
   /* =========================
-   * ✅ SeminarCalendar와 동일: 주 단위 트랙(3줄) 고정 배치
+   *  SeminarCalendar와 동일: 주 단위 트랙(3줄) 고정 배치
    *    + ALL(랩실 전체 휴가) 항상 최상단(가능하면 0번 트랙)
    * ======================= */
   const weeks = useMemo(() => {
