@@ -157,6 +157,11 @@ const getSegmentKind = (
   return 'middle';
 };
 
+const overlapsDate = (ev: SeminarEvent, dayYmd: string) => {
+  const end = ev.endDate ?? ev.startDate;
+  return ev.startDate <= dayYmd && dayYmd <= end;
+};
+
 /* =========================
  * UI Pieces
  * ======================= */
@@ -210,6 +215,7 @@ function SingleDayPill({ ev }: { ev: SeminarEvent }) {
     </BasePill>
   );
 }
+
 function StartPill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
   return (
@@ -222,6 +228,20 @@ function StartPill({ ev }: { ev: SeminarEvent }) {
     </BasePill>
   );
 }
+
+function ContinuedPill({ ev }: { ev: SeminarEvent }) {
+  const meta = EVENT_TYPES[ev.type];
+  return (
+    <BasePill
+      color={meta.color}
+      className="-mx-px rounded-none"
+      title={`${meta.name} · ${ev.title}${ev.description ? ` (${ev.description})` : ''}`}
+    >
+      <strong className="font-semibold">{meta.name}</strong> {ev.title}
+    </BasePill>
+  );
+}
+
 function MiddlePill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
   return (
@@ -236,6 +256,20 @@ function MiddlePill({ ev }: { ev: SeminarEvent }) {
     </BasePill>
   );
 }
+
+function ContinuedEndPill({ ev }: { ev: SeminarEvent }) {
+  const meta = EVENT_TYPES[ev.type];
+  return (
+    <BasePill
+      color={meta.color}
+      className="-mx-px mr-1 rounded-l-none rounded-r"
+      title={`${meta.name} · ${ev.title}${ev.description ? ` (${ev.description})` : ''}`}
+    >
+      <strong className="font-semibold">{meta.name}</strong> {ev.title}
+    </BasePill>
+  );
+}
+
 function EndPill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
   return (
@@ -264,7 +298,6 @@ function Sidebar({
   searchQuery,
   onSearchQueryChange,
   searchedEvents,
-  onClickSearchResult,
 }: {
   selectedDate: Date | null;
   dateEvents: SeminarEvent[];
@@ -277,7 +310,6 @@ function Sidebar({
   searchQuery: string;
   onSearchQueryChange: (v: string) => void;
   searchedEvents: SeminarEvent[];
-  onClickSearchResult: (ev: SeminarEvent) => void;
 }) {
   if (!isOpen) return null;
 
@@ -311,7 +343,6 @@ function Sidebar({
           </TabsTrigger>
         </TabsList>
 
-        {/* DATE TAB */}
         <TabsContent value="DATE" className="mt-4">
           <div className="mb-3">
             <div className="text-sm font-semibold">{selectedDateText}</div>
@@ -362,7 +393,6 @@ function Sidebar({
           )}
         </TabsContent>
 
-        {/* SEARCH TAB */}
         <TabsContent value="SEARCH" className="mt-4">
           <div className="space-y-2">
             <div className="relative">
@@ -398,9 +428,7 @@ function Sidebar({
                       return (
                         <div
                           key={ev.id}
-                          // type="button"
                           className="hover:bg-muted/40 flex w-full items-start justify-between gap-3 rounded p-2 text-left"
-                          // onClick={() => onClickSearchResult(ev)}
                         >
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
@@ -466,16 +494,40 @@ export default function SeminarCalendar() {
         id: 3,
         type: 'CONFERENCE',
         title: '바이오인포매틱스 학회',
-        startDate: '2026-02-05',
-        endDate: '2026-02-07',
+        startDate: '2026-01-05',
+        endDate: '2026-01-07',
         description: '워크샵/튜토리얼 참가',
       },
       {
         id: 4,
         type: 'SEMINAR',
         title: 'Seminar: Diffusion Model Overview',
-        startDate: '2026-02-12',
+        startDate: '2026-01-12',
         description: '기초 개념 + 최근 논문 리뷰',
+      },
+      {
+        id: 5,
+        type: 'CONFERENCE',
+        title: '룰루랄라 학회',
+        startDate: '2026-01-05',
+        endDate: '2026-01-11',
+        description: '워크샵/튜토리얼 참가',
+      },
+      {
+        id: 6,
+        type: 'CONFERENCE',
+        title: '쿨쿨 학회',
+        startDate: '2026-01-05',
+        endDate: '2026-01-20',
+        description: '워크샵/튜토리얼 참가',
+      },
+      {
+        id: 7,
+        type: 'SEMINAR',
+        title: '냠냠 학회',
+        startDate: '2026-01-15',
+        endDate: '2026-01-19',
+        description: '워크샵/튜토리얼 참가',
       },
     ],
     [],
@@ -510,7 +562,7 @@ export default function SeminarCalendar() {
 
   const days = useMemo(() => generateCalendarDays(currentDate), [currentDate]);
 
-  /** 이벤트를 날짜별로 조회하기 위한 맵 */
+  /** 이벤트를 날짜별로 조회하기 위한 맵(사이드바용은 유지) */
   const eventsByDateMap = useMemo(() => {
     const map = new Map<string, SeminarEvent[]>();
 
@@ -548,7 +600,7 @@ export default function SeminarCalendar() {
         return null;
       }
       setIsSidebarOpen(true);
-      setActiveTab('DATE'); // 날짜 클릭하면 날짜별 탭으로
+      setActiveTab('DATE');
       return date;
     });
   }, []);
@@ -586,7 +638,6 @@ export default function SeminarCalendar() {
         return;
       }
 
-      // 승인 없이 즉시 추가
       setEvents((prev) => {
         const nextId = (prev.at(-1)?.id ?? 0) + 1;
         const end = formData.endDate || undefined;
@@ -606,7 +657,6 @@ export default function SeminarCalendar() {
 
       toast.success('일정이 캘린더에 추가되었습니다.');
 
-      // 추가한 일정 날짜로 바로 열어주고 싶으면(옵션)
       const d = fromYmdLocal(formData.startDate);
       if (d) {
         setSelectedDate(d);
@@ -624,6 +674,105 @@ export default function SeminarCalendar() {
       setIsModalOpen(false);
     },
     [formData, isAllRequiredValid],
+  );
+
+  /* =========================
+   * ✅ NEW: 주 단위 트랙(3줄) 고정 배치
+   * ======================= */
+  const weeks = useMemo(() => {
+    const w: Date[][] = [];
+    for (let i = 0; i < days.length; i += 7) w.push(days.slice(i, i + 7));
+    return w;
+  }, [days]);
+
+  type WeekTracks = (SeminarEvent | null)[][]; // [track(0..2)][dayIdx(0..6)]
+
+  const weekTracksList = useMemo(() => {
+    return weeks.map((weekDays) => {
+      const weekStart = toYmd(weekDays[0]);
+      const weekEnd = toYmd(weekDays[6]);
+
+      // 이 주와 겹치는 이벤트만
+      const weekEvents = events.filter((ev) => {
+        const evEnd = ev.endDate ?? ev.startDate;
+        return !(evEnd < weekStart || ev.startDate > weekEnd);
+      });
+
+      // 우선순위:
+      // 1) 주 시작 전에 이미 시작한 ongoing 먼저(끊김 방지)
+      // 2) CONFERENCE 먼저(원래 정책 유지)
+      // 3) 시작일 빠른 순
+      // 4) 길이가 긴 순(같은 시작일이면 긴 게 위에 올라가면 덜 끊김)
+      const prioritized = [...weekEvents].sort((a, b) => {
+        const aOngoing = a.startDate < weekStart;
+        const bOngoing = b.startDate < weekStart;
+        if (aOngoing !== bOngoing) return aOngoing ? -1 : 1;
+
+        if (a.type !== b.type) return a.type === 'CONFERENCE' ? -1 : 1;
+
+        if (a.startDate !== b.startDate)
+          return a.startDate.localeCompare(b.startDate);
+
+        const aEnd = a.endDate ?? a.startDate;
+        const bEnd = b.endDate ?? b.startDate;
+
+        const aDays =
+          (new Date(aEnd).getTime() - new Date(a.startDate).getTime()) /
+          (1000 * 60 * 60 * 24);
+        const bDays =
+          (new Date(bEnd).getTime() - new Date(b.startDate).getTime()) /
+          (1000 * 60 * 60 * 24);
+        return bDays - aDays;
+      });
+
+      const tracks: WeekTracks = Array.from({ length: 3 }, () =>
+        Array(7).fill(null),
+      );
+
+      for (const ev of prioritized) {
+        const occupyIdx: number[] = [];
+        weekDays.forEach((d, idx) => {
+          const dayYmd = toYmd(d);
+          if (overlapsDate(ev, dayYmd)) occupyIdx.push(idx);
+        });
+        if (occupyIdx.length === 0) continue;
+
+        // 들어갈 트랙 찾기 (해당 day칸이 모두 비어있어야 함)
+        const trackIndex = tracks.findIndex((track) =>
+          occupyIdx.every((idx) => track[idx] === null),
+        );
+        if (trackIndex === -1) continue;
+
+        occupyIdx.forEach((idx) => {
+          tracks[trackIndex][idx] = ev;
+        });
+      }
+
+      return tracks;
+    });
+  }, [weeks, events]);
+
+  // 특정 (weekIdx, dayIdx)의 표시 이벤트(트랙 0..2)
+  const getDisplayEventsForCell = useCallback(
+    (weekIdx: number, dayIdx: number) => {
+      const tracks = weekTracksList[weekIdx] ?? [];
+      const display: (SeminarEvent | null)[] = [];
+      for (let t = 0; t < 3; t += 1) {
+        display.push(tracks[t]?.[dayIdx] ?? null);
+      }
+      return display;
+    },
+    [weekTracksList],
+  );
+
+  // 해당 날짜에 실제로 겹치는 이벤트 수(+) 계산용
+  const getTotalEventsCountForDay = useCallback(
+    (day: Date) => {
+      const dayYmd = toYmd(day);
+      // eventsByDateMap로도 가능하지만, 여기선 overlaps로 정확히
+      return events.filter((ev) => overlapsDate(ev, dayYmd)).length;
+    },
+    [events],
   );
 
   return (
@@ -653,7 +802,6 @@ export default function SeminarCalendar() {
 
           {/* 일정 추가 버튼 */}
           <div className="absolute right-0 flex items-center gap-2">
-            {/* 검색은 사이드바에서만. 대신 여기서 "검색 탭 열기" 버튼만 제공(선택) */}
             <Button
               variant="outline"
               onClick={() => {
@@ -679,7 +827,6 @@ export default function SeminarCalendar() {
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* 타입 */}
                   <div className="space-y-2">
                     <Label htmlFor="type">
                       라벨 <span className="text-destructive text-xs">*</span>
@@ -720,7 +867,6 @@ export default function SeminarCalendar() {
                     </Select>
                   </div>
 
-                  {/* 제목 */}
                   <div className="space-y-2">
                     <Label htmlFor="title">
                       제목 <span className="text-destructive text-xs">*</span>
@@ -736,9 +882,7 @@ export default function SeminarCalendar() {
                     />
                   </div>
 
-                  {/* 날짜 */}
                   <div className="grid grid-cols-2 gap-4">
-                    {/* 시작일 */}
                     <div className="space-y-2">
                       <Label htmlFor="startDate">
                         시작일{' '}
@@ -798,7 +942,6 @@ export default function SeminarCalendar() {
                       </Popover>
                     </div>
 
-                    {/* 종료일 */}
                     <div className="space-y-2">
                       <Label htmlFor="endDate">종료일 (선택)</Label>
 
@@ -855,9 +998,8 @@ export default function SeminarCalendar() {
                     </div>
                   </div>
 
-                  {/* 설명 */}
                   <div className="space-y-2">
-                    <Label htmlFor="description">메모 (선택)</Label>
+                    <Label htmlFor="description">기타</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
@@ -890,7 +1032,6 @@ export default function SeminarCalendar() {
           </div>
         </div>
 
-        {/* 범례 */}
         <Legend />
 
         {/* 캘린더 */}
@@ -909,23 +1050,28 @@ export default function SeminarCalendar() {
 
           {/* 날짜 그리드 */}
           <div className="grid auto-rows-[145px] grid-cols-7">
-            {days.map((day) => {
+            {days.map((day, idx) => {
+              const weekIdx = Math.floor(idx / 7);
+              const dayIdx = idx % 7;
+
               const isCurrentMonth = day.getMonth() === currentDate.getMonth();
               const isTodayFlag = isSameDay(day, today);
               const isSelectedFlag = selectedDate
                 ? isSameDay(day, selectedDate)
                 : false;
 
-              const dayEventsRaw = eventsByDateMap.get(toYmd(day)) ?? [];
+              const weekStartYmd = toYmd(days[weekIdx * 7]); // 그 주 일요일
+              const isWeekStart = dayIdx === 0; // 일요일
 
-              // CONFERENCE 먼저
-              const sorted = [...dayEventsRaw].sort((a, b) => {
-                if (a.type !== b.type) return a.type === 'CONFERENCE' ? -1 : 1;
-                return a.startDate.localeCompare(b.startDate);
-              });
+              // ✅ 트랙 3줄 고정 렌더
+              const trackCells = getDisplayEventsForCell(weekIdx, dayIdx);
 
-              const display = sorted.slice(0, 3);
-              const hasMore = sorted.length > 3;
+              // +N 계산: 그날 전체 겹치는 이벤트 수 - (그날 표시된 unique 이벤트 수)
+              const totalCount = getTotalEventsCountForDay(day);
+              const displayedUnique = new Set(
+                trackCells.filter(Boolean).map((e) => (e as SeminarEvent).id),
+              ).size;
+              const hiddenCount = Math.max(0, totalCount - displayedUnique);
 
               return (
                 <button
@@ -959,40 +1105,70 @@ export default function SeminarCalendar() {
                     </div>
                   </div>
 
-                  {/* 이벤트 pills */}
+                  {/* 이벤트 pills (트랙 3줄 고정) */}
                   <div className="flex flex-col justify-start gap-1">
-                    {display.map((ev) => {
+                    {trackCells.map((ev, tIdx) => {
+                      if (!ev)
+                        return <div key={`empty-${tIdx}`} className="h-6" />;
+
+                      // ✅ 기본 세그먼트(시작/중간/끝/단일)
                       const kind = getSegmentKind(ev, day);
 
-                      switch (kind) {
-                        case 'single':
-                          return (
-                            <SingleDayPill
-                              key={`${ev.id}-${toYmd(day)}`}
-                              ev={ev}
-                            />
-                          );
-                        case 'start':
-                          return (
-                            <StartPill key={`${ev.id}-${toYmd(day)}`} ev={ev} />
-                          );
-                        case 'end':
-                          return (
-                            <EndPill key={`${ev.id}-${toYmd(day)}`} ev={ev} />
-                          );
-                        default:
-                          return (
-                            <MiddlePill
-                              key={`${ev.id}-${toYmd(day)}`}
-                              ev={ev}
-                            />
-                          );
+                      // ✅ 주가 바뀌는 지점(새 주 일요일)인데, 이벤트는 이전 주부터 이어지는 경우 -> 제목 다시 표시
+                      const shouldRepeatTitleAtWeekStart =
+                        isWeekStart &&
+                        ev.startDate < weekStartYmd &&
+                        overlapsDate(ev, toYmd(day));
+
+                      if (kind === 'single') {
+                        return (
+                          <SingleDayPill
+                            key={`${ev.id}-${toYmd(day)}`}
+                            ev={ev}
+                          />
+                        );
                       }
+
+                      // 이벤트 시작일이면 StartPill
+                      if (kind === 'start') {
+                        return (
+                          <StartPill key={`${ev.id}-${toYmd(day)}`} ev={ev} />
+                        );
+                      }
+
+                      if (shouldRepeatTitleAtWeekStart) {
+                        if (kind === 'end') {
+                          return (
+                            <ContinuedEndPill
+                              key={`${ev.id}-${toYmd(day)}`}
+                              ev={ev}
+                            />
+                          );
+                        }
+
+                        // 그 외엔 그냥 이어짐
+                        return (
+                          <ContinuedPill
+                            key={`${ev.id}-${toYmd(day)}`}
+                            ev={ev}
+                          />
+                        );
+                      }
+
+                      if (kind === 'end') {
+                        return (
+                          <EndPill key={`${ev.id}-${toYmd(day)}`} ev={ev} />
+                        );
+                      }
+
+                      return (
+                        <MiddlePill key={`${ev.id}-${toYmd(day)}`} ev={ev} />
+                      );
                     })}
 
-                    {hasMore && (
+                    {hiddenCount > 0 && (
                       <div className="bg-border/70 text-muted-foreground mx-1 rounded px-2 py-1 text-center text-xs">
-                        + {sorted.length - 3}개
+                        + {hiddenCount}개
                       </div>
                     )}
                   </div>
@@ -1003,7 +1179,6 @@ export default function SeminarCalendar() {
         </div>
       </div>
 
-      {/* 우측 사이드바: 탭(날짜별/검색별) + 검색은 사이드바에서 */}
       <Sidebar
         selectedDate={selectedDate}
         dateEvents={selectedDateEvents}
@@ -1014,14 +1189,6 @@ export default function SeminarCalendar() {
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}
         searchedEvents={searchedEvents}
-        onClickSearchResult={(ev) => {
-          const d = fromYmdLocal(ev.startDate);
-          if (d) {
-            setSelectedDate(d);
-            setIsSidebarOpen(true);
-            setActiveTab('DATE'); // 검색 결과 클릭 → 날짜별 탭으로 이동
-          }
-        }}
       />
     </div>
   );
