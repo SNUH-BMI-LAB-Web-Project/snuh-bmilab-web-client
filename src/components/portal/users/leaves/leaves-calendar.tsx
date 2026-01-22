@@ -256,9 +256,7 @@ function Legend() {
           {Object.entries(VACATION_TYPES).map(([key, value]) => (
             <div key={key} className="flex items-center gap-2">
               <div className={`h-4 w-4 rounded ${value.color}`} />
-              <span className="text-sm text-xs text-gray-900">
-                {value.name}
-              </span>
+              <span className="text-xs text-gray-900">{value.name}</span>
             </div>
           ))}
         </div>
