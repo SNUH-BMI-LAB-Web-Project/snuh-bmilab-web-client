@@ -357,12 +357,31 @@ function ReasonDisplay({ reason }: { reason?: string }) {
   );
 }
 
+function isCancelableApprovedLeave(row: LeaveDetail) {
+  if (row.status !== 'APPROVED') return false;
+
+  // startDate가 없으면 취소 판단 불가 → false
+  if (!row.startDate) return false;
+
+  // "오늘 00:00" 기준으로 비교(시간 때문에 하루 차이 나는 이슈 방지)
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const start = new Date(row.startDate);
+  start.setHours(0, 0, 0, 0);
+
+  // 아직 시작 안 했으면 취소 가능 (오늘 이후)
+  return start.getTime() > todayStart.getTime();
+}
+
 const getLeaveColumns = ({
   onApprove,
   onReject,
+  onCancel,
 }: {
   onApprove: (leaveId: number) => void;
   onReject: (row: LeaveDetail) => void;
+  onCancel: (leaveId: number) => void;
 }) => [
   {
     label: '신청자',
@@ -447,36 +466,64 @@ const getLeaveColumns = ({
   },
   {
     label: '',
-    className: 'text-center w-[200px]',
-    cell: (row: LeaveDetail) =>
-      row.status === 'PENDING' ? (
-        <div className="flex justify-center gap-2">
-          <Button
-            size="sm"
-            onClick={() => row.leaveId && onApprove(row.leaveId)}
-          >
-            <Check className="mr-1 h-3 w-3" />
-            승인
-          </Button>
-          <Button variant="destructive" size="sm" onClick={() => onReject(row)}>
-            <X className="mr-1 h-3 w-3" />
-            반려
-          </Button>
-        </div>
-      ) : (
-        <div className="text-muted-foreground space-y-1 text-xs">
-          {row.processedAt && (
-            <div className="flex items-center gap-1 truncate">
-              처리일시: {formatDateTimeVer5(row.processedAt)}
-            </div>
+    className: 'text-center w-[260px]', // 버튼 들어가면 살짝 넓히는 거 추천
+    cell: (row: LeaveDetail) => {
+      // 1) PENDING: 승인/반려 유지
+      if (row.status === 'PENDING') {
+        return (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              onClick={() => row.leaveId && onApprove(row.leaveId)}
+            >
+              <Check className="mr-1 h-3 w-3" />
+              승인
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => onReject(row)}
+            >
+              <X className="mr-1 h-3 w-3" />
+              반려
+            </Button>
+          </div>
+        );
+      }
+
+      // 2) 그 외(승인/반려): 처리 정보는 항상 노출 + 옆에 취소 버튼(조건부)
+      const canCancel = row.leaveId && isCancelableApprovedLeave(row);
+
+      return (
+        <div className="flex items-center gap-6">
+          {/* 처리 정보(누가/언제) */}
+          <div className="text-muted-foreground space-y-1 text-left text-xs">
+            {row.processedAt && (
+              <div className="truncate">
+                처리일시: {formatDateTimeVer5(row.processedAt)}
+              </div>
+            )}
+            {row.processor?.name && (
+              <div className="truncate">처리자: {row.processor.name}</div>
+            )}
+            {/* 혹시 processedAt/processor 둘 다 없을 때 */}
+            {!row.processedAt && !row.processor?.name && <div>-</div>}
+          </div>
+
+          {/* 취소 버튼(승인 + 시작 전일 때만) */}
+          {canCancel && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => onCancel(row.leaveId!)}
+            >
+              취소
+            </Button>
           )}
-          {row.processor?.name && (
-            <div className="flex items-center gap-1 truncate">
-              처리자: {row.processor.name}
-            </div>
-          )}
         </div>
-      ),
+      );
+    },
   },
 ];
 
@@ -558,6 +605,15 @@ export default function LeavesAdmin() {
     setSelectedTemplate('');
   };
 
+  const handleCancel = async (leaveId: number) => {
+    try {
+      console.log('휴가 취소~~');
+    } catch (e) {
+      console.error('휴가 취소 실패:', e);
+      toast.error('휴가 취소에 실패했습니다.');
+    }
+  };
+
   return (
     <div>
       <Tabs defaultValue="all" className="space-y-4">
@@ -616,6 +672,7 @@ export default function LeavesAdmin() {
               columns={getLeaveColumns({
                 onApprove: handleApprove,
                 onReject: handleReject,
+                onCancel: handleCancel,
               })}
               currentPage={currentPage}
               setCurrentPage={setCurrentPage}
