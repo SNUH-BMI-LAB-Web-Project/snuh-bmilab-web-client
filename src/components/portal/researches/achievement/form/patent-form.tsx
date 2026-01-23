@@ -23,7 +23,7 @@ interface IdName {
 }
 
 interface PatentFormProps {
-  initialData?: any; // GET /research/patents/{id} 응답
+  initialData?: any;
   onCancel: () => void;
 }
 
@@ -51,9 +51,7 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
     name: '',
   });
 
-  /* ===============================
-     GET 응답 → 폼 주입 (수정 모드)
-  =============================== */
+  /* ===== 수정 모드: GET 응답 주입 ===== */
   useEffect(() => {
     if (!initialData) return;
 
@@ -120,12 +118,10 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
       applicationNumber,
       patentName,
       applicantsAll,
-
       patentAuthors: authorUserIds.map((id) => ({
         userId: id,
         role: '발명자',
       })),
-
       remarks,
       projectId: relatedProject.id,
       taskId: relatedTask.id,
@@ -167,65 +163,103 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <Label>출원일자 *</Label>
-      <DatePicker value={applicationDate} onChange={setApplicationDate} />
+      <div className="space-y-2">
+        <Label>
+          출원일자 <span className="text-destructive">*</span>
+        </Label>
+        <DatePicker value={applicationDate} onChange={setApplicationDate} />
+      </div>
 
-      <Label>출원번호 *</Label>
-      <Input
-        value={applicationNumber}
-        onChange={(e) => setApplicationNumber(e.target.value)}
-      />
+      <div className="space-y-2">
+        <Label>
+          출원번호 <span className="text-destructive">*</span>
+        </Label>
+        <Input
+          value={applicationNumber}
+          onChange={(e) => setApplicationNumber(e.target.value)}
+          required
+        />
+      </div>
 
-      <Label>특허명 *</Label>
-      <Input
-        value={patentName}
-        onChange={(e) => setPatentName(e.target.value)}
-      />
+      <div className="space-y-2">
+        <Label>
+          특허명 <span className="text-destructive">*</span>
+        </Label>
+        <Input
+          value={patentName}
+          onChange={(e) => setPatentName(e.target.value)}
+          required
+        />
+      </div>
 
-      <Label>출원인(전체) *</Label>
-      <Textarea
-        value={applicantsAll}
-        onChange={(e) => setApplicantsAll(e.target.value)}
-      />
+      <div className="space-y-2">
+        <Label>
+          출원인(전체) <span className="text-destructive">*</span>
+        </Label>
+        <Textarea
+          value={applicantsAll}
+          onChange={(e) => setApplicantsAll(e.target.value)}
+          required
+        />
+      </div>
 
-      <Label>발명자 *</Label>
-      <UserTagInputString
-        value={authorNames}
-        onChange={setAuthorNames}
-        onUserSelectedIds={setAuthorUserIds}
-      />
+      <div className="space-y-2">
+        <Label>
+          발명자 <span className="text-destructive">*</span>
+        </Label>
+        <UserTagInputString
+          value={authorNames}
+          onChange={setAuthorNames}
+          onUserSelectedIds={setAuthorUserIds}
+        />
+      </div>
 
-      <Label>비고</Label>
-      <Textarea value={remarks} onChange={(e) => setRemarks(e.target.value)} />
+      <div className="space-y-2">
+        <Label>비고</Label>
+        <Textarea
+          value={remarks}
+          onChange={(e) => setRemarks(e.target.value)}
+        />
+      </div>
 
-      <Label>연계 프로젝트 *</Label>
-      <SingleProjectSelectInput
-        value={relatedProject.name}
-        onValueChange={(name) => setRelatedProject((p) => ({ ...p, name }))}
-        onProjectSelected={(p) =>
-          setRelatedProject(
-            p
-              ? { id: p.projectId ?? null, name: p.title ?? '' }
-              : { id: null, name: '' },
-          )
-        }
-      />
+      <div className="space-y-2">
+        <Label>
+          연계 프로젝트 <span className="text-destructive">*</span>
+        </Label>
+        <SingleProjectSelectInput
+          value={relatedProject.name}
+          onValueChange={(name) => setRelatedProject((p) => ({ ...p, name }))}
+          onProjectSelected={(p) =>
+            setRelatedProject(
+              p
+                ? { id: p.projectId ?? null, name: p.title ?? '' }
+                : { id: null, name: '' },
+            )
+          }
+        />
+      </div>
 
-      <Label>연계 과제 *</Label>
-      <SingleTaskSelectInput
-        value={relatedTask.name}
-        onValueChange={(name) => setRelatedTask((t) => ({ ...t, name }))}
-        onTaskSelected={(t) =>
-          setRelatedTask(
-            t
-              ? { id: t.id ?? null, name: t.title ?? '' }
-              : { id: null, name: '' },
-          )
-        }
-      />
+      <div className="space-y-2">
+        <Label>
+          연계 과제 <span className="text-destructive">*</span>
+        </Label>
+        <SingleTaskSelectInput
+          value={relatedTask.name}
+          onValueChange={(name) => setRelatedTask((t) => ({ ...t, name }))}
+          onTaskSelected={(t) =>
+            setRelatedTask(
+              t
+                ? { id: t.id ?? null, name: t.title ?? '' }
+                : { id: null, name: '' },
+            )
+          }
+        />
+      </div>
 
-      <Label>파일 첨부</Label>
-      <FileUploadBox value={files} onChange={setFiles} />
+      <div className="space-y-2">
+        <Label>파일 첨부</Label>
+        <FileUploadBox value={files} onChange={setFiles} />
+      </div>
 
       <div className="flex justify-end gap-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
