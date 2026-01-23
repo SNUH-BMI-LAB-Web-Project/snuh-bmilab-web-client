@@ -116,11 +116,16 @@ export function ResearchAchievementTables({
         <ConferenceTable
           data={conferences}
           onEdit={(item) => onEdit(item, 'conference')}
+          onDelete={(id) => onDelete(String(id), 'conference')}
         />
       </TabsContent>
 
       <TabsContent value="award">
-        <AwardTable data={awards} onEdit={(item) => onEdit(item, 'award')} />
+        <AwardTable
+          data={awards}
+          onEdit={(item) => onEdit(item, 'award')}
+          onDelete={(id) => onDelete(String(id), 'conference')}
+        />
       </TabsContent>
 
       <TabsContent value="paper">

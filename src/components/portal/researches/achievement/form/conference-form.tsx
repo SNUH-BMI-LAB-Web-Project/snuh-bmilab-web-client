@@ -2,8 +2,10 @@
 
 import type React from 'react';
 import { useEffect, useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -11,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
 import { DatePicker } from '@/components/common/date-picker';
 import { UserTagInputString } from '@/components/portal/researches/achievement/multi-user-tag-input';
 import { SingleProjectSelectInput } from '@/components/portal/researches/achievement/single-project-select-input';
@@ -32,16 +35,14 @@ const getToken = () => {
   return localStorage.getItem('accessToken');
 };
 
-const mapPresentationType = (value?: string): PresentationType => {
-  switch (value) {
-    case 'Oral':
-      return 'ORAL';
-    case 'Mini Oral':
-      return 'MINI_ORAL';
-    case 'Poster':
-      return 'POSTER';
-    default:
-      return 'ORAL';
+const mapPresentationTypeLabel = (v: PresentationType) => {
+  switch (v) {
+    case 'ORAL':
+      return 'Oral';
+    case 'MINI_ORAL':
+      return 'Mini Oral';
+    case 'POSTER':
+      return 'Poster';
   }
 };
 
@@ -86,7 +87,7 @@ export function ConferenceForm({
       location: initialData.conferenceLocation ?? '',
       organizer: initialData.conferenceHost ?? '',
       conferenceName: initialData.conferenceName ?? '',
-      presentationType: mapPresentationType(initialData.presentationType),
+      presentationType: initialData.presentationType ?? 'ORAL',
       presentationTitle: initialData.presentationTitle ?? '',
       relatedProject: {
         id: initialData.projectId ?? null,
@@ -151,118 +152,167 @@ export function ConferenceForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <UserTagInputString
-        value={authorNames}
-        onChange={setAuthorNames}
-        onUserSelectedIds={setAuthorUserIds}
-      />
-
-      <div className="grid grid-cols-2 gap-4">
-        <DatePicker
-          value={formData.startDate}
-          onChange={(v) => setFormData((p) => ({ ...p, startDate: v }))}
-        />
-        <DatePicker
-          value={formData.endDate}
-          onChange={(v) => setFormData((p) => ({ ...p, endDate: v }))}
+      <div className="space-y-2">
+        <Label>
+          이름 <span className="text-destructive">*</span>
+        </Label>
+        <UserTagInputString
+          value={authorNames}
+          onChange={setAuthorNames}
+          onUserSelectedIds={setAuthorUserIds}
         />
       </div>
 
-      <Input
-        placeholder="장소"
-        value={formData.location}
-        onChange={(e) =>
-          setFormData((p) => ({ ...p, location: e.target.value }))
-        }
-      />
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>
+            학회 시작일 <span className="text-destructive">*</span>
+          </Label>
+          <DatePicker
+            value={formData.startDate}
+            onChange={(v) => setFormData((p) => ({ ...p, startDate: v }))}
+          />
+        </div>
 
-      <Input
-        placeholder="주최"
-        value={formData.organizer}
-        onChange={(e) =>
-          setFormData((p) => ({ ...p, organizer: e.target.value }))
-        }
-      />
+        <div className="space-y-2">
+          <Label>
+            학회 종료일 <span className="text-destructive">*</span>
+          </Label>
+          <DatePicker
+            value={formData.endDate}
+            onChange={(v) => setFormData((p) => ({ ...p, endDate: v }))}
+          />
+        </div>
+      </div>
 
-      <Input
-        placeholder="학회명"
-        value={formData.conferenceName}
-        onChange={(e) =>
-          setFormData((p) => ({ ...p, conferenceName: e.target.value }))
-        }
-      />
+      <div className="space-y-2">
+        <Label>
+          학회 장소 <span className="text-destructive">*</span>
+        </Label>
+        <Input
+          value={formData.location}
+          onChange={(e) =>
+            setFormData((p) => ({ ...p, location: e.target.value }))
+          }
+          required
+        />
+      </div>
 
-      <Select
-        value={formData.presentationType}
-        onValueChange={(v) =>
-          setFormData((p) => ({
-            ...p,
-            presentationType: v as PresentationType,
-          }))
-        }
-      >
-        <SelectTrigger className="w-1/2">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="ORAL">Oral</SelectItem>
-          <SelectItem value="MINI_ORAL">Mini Oral</SelectItem>
-          <SelectItem value="POSTER">Poster</SelectItem>
-        </SelectContent>
-      </Select>
+      <div className="space-y-2">
+        <Label>
+          학회 주최 <span className="text-destructive">*</span>
+        </Label>
+        <Input
+          value={formData.organizer}
+          onChange={(e) =>
+            setFormData((p) => ({ ...p, organizer: e.target.value }))
+          }
+          required
+        />
+      </div>
 
-      <Input
-        placeholder="발표 제목"
-        value={formData.presentationTitle}
-        onChange={(e) =>
-          setFormData((p) => ({
-            ...p,
-            presentationTitle: e.target.value,
-          }))
-        }
-      />
+      <div className="space-y-2">
+        <Label>
+          학회명 <span className="text-destructive">*</span>
+        </Label>
+        <Input
+          value={formData.conferenceName}
+          onChange={(e) =>
+            setFormData((p) => ({ ...p, conferenceName: e.target.value }))
+          }
+          required
+        />
+      </div>
 
-      <SingleProjectSelectInput
-        value={formData.relatedProject.name}
-        onValueChange={(name) =>
-          setFormData((prev) => ({
-            ...prev,
-            relatedProject: {
-              ...prev.relatedProject,
-              name,
-            },
-          }))
-        }
-        onProjectSelected={(p) =>
-          setFormData((prev) => ({
-            ...prev,
-            relatedProject: p
-              ? { id: p.projectId ?? null, name: p.title ?? '' }
-              : { id: null, name: '' },
-          }))
-        }
-      />
+      <div className="space-y-2">
+        <Label>발표 Type</Label>
+        <Select
+          value={formData.presentationType}
+          onValueChange={(v) =>
+            setFormData((p) => ({
+              ...p,
+              presentationType: v as PresentationType,
+            }))
+          }
+        >
+          <SelectTrigger>
+            <SelectValue>
+              {mapPresentationTypeLabel(formData.presentationType)}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ORAL">Oral</SelectItem>
+            <SelectItem value="MINI_ORAL">Mini Oral</SelectItem>
+            <SelectItem value="POSTER">Poster</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-      <SingleTaskSelectInput
-        value={formData.relatedTask.name}
-        onValueChange={(name) =>
-          setFormData((prev) => ({
-            ...prev,
-            relatedTask: {
-              ...prev.relatedTask,
-              name,
-            },
-          }))
-        }
-        onTaskSelected={(t) =>
-          setFormData((prev) => ({
-            ...prev,
-            relatedTask: t
-              ? { id: t.id ?? null, name: t.title ?? '' }
-              : { id: null, name: '' },
-          }))
-        }
-      />
+      <div className="space-y-2">
+        <Label>
+          발표 제목 <span className="text-destructive">*</span>
+        </Label>
+        <Input
+          value={formData.presentationTitle}
+          onChange={(e) =>
+            setFormData((p) => ({
+              ...p,
+              presentationTitle: e.target.value,
+            }))
+          }
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>
+          연계 프로젝트 <span className="text-destructive">*</span>
+        </Label>
+        <SingleProjectSelectInput
+          value={formData.relatedProject.name}
+          onValueChange={(name) =>
+            setFormData((prev) => ({
+              ...prev,
+              relatedProject: {
+                ...prev.relatedProject,
+                name,
+              },
+            }))
+          }
+          onProjectSelected={(p) =>
+            setFormData((prev) => ({
+              ...prev,
+              relatedProject: p
+                ? { id: p.projectId ?? null, name: p.title ?? '' }
+                : { id: null, name: '' },
+            }))
+          }
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>연계 과제</Label>
+        <SingleTaskSelectInput
+          value={formData.relatedTask.name}
+          onValueChange={(name) =>
+            setFormData((prev) => ({
+              ...prev,
+              relatedTask: {
+                ...prev.relatedTask,
+                name,
+              },
+            }))
+          }
+          onTaskSelected={(t) =>
+            setFormData((prev) => ({
+              ...prev,
+              relatedTask: t
+                ? { id: t.id ?? null, name: t.title ?? '' }
+                : { id: null, name: '' },
+            }))
+          }
+        />
+      </div>
 
       <div className="flex pt-4">
         {initialData?.id && (
