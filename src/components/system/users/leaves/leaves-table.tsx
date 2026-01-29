@@ -44,6 +44,7 @@ import {
 } from '@/constants/leave-enum';
 import { toast } from 'sonner';
 import { positionLabelMap } from '@/constants/position-enum';
+import ConfirmModal from '@/components/common/confirm-modal';
 
 // 자주 사용하는 반려사유 템플릿 추가
 const rejectReasonTemplates = [
@@ -518,7 +519,7 @@ const getLeaveColumns = ({
               className="text-destructive hover:text-destructive"
               onClick={() => onCancel(row.leaveId!)}
             >
-              취소
+              삭제
             </Button>
           )}
         </div>
@@ -543,6 +544,11 @@ export default function LeavesAdmin() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPage, setTotalPage] = useState(1);
   const [loading, setLoading] = useState(false);
+
+  const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
+  const [pendingCancelLeaveId, setPendingCancelLeaveId] = useState<
+    number | null
+  >(null);
 
   const fetchLeaves = async () => {
     setLoading(true);
@@ -605,12 +611,22 @@ export default function LeavesAdmin() {
     setSelectedTemplate('');
   };
 
-  const handleCancel = async (leaveId: number) => {
+  const handleCancel = (leaveId: number) => {
+    setPendingCancelLeaveId(leaveId);
+    setIsCancelConfirmOpen(true);
+  };
+
+  const confirmCancel = async () => {
+    if (!pendingCancelLeaveId) return;
+
     try {
-      console.log('휴가 취소~~');
+      await leaveApi.deleteLeave({ leaveId: pendingCancelLeaveId });
+      toast.success('휴가가 삭제되었습니다.');
+      await fetchLeaves();
     } catch (e) {
       console.error('휴가 취소 실패:', e);
-      toast.error('휴가 취소에 실패했습니다.');
+    } finally {
+      setPendingCancelLeaveId(null);
     }
   };
 
@@ -695,6 +711,17 @@ export default function LeavesAdmin() {
         setSelectedTemplate={setSelectedTemplate}
         rejectReasonTemplates={rejectReasonTemplates}
         confirmReject={confirmReject}
+      />
+
+      <ConfirmModal
+        open={isCancelConfirmOpen}
+        onOpenChange={(open) => {
+          setIsCancelConfirmOpen(open);
+          if (!open) setPendingCancelLeaveId(null);
+        }}
+        title="휴가 삭제"
+        description="승인된 휴가를 삭제하시겠습니까?"
+        onConfirm={confirmCancel}
       />
     </div>
   );

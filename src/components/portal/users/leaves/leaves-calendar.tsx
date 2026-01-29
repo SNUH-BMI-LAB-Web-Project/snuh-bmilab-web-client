@@ -65,12 +65,12 @@ export const VACATION_TYPES: Record<LeaveDetailTypeEnum, VacationMeta> = {
   ANNUAL: { name: '일반 연차', color: 'bg-blue-200', requireReason: false },
   HALF_AM: {
     name: '일반 반차(오전)',
-    color: 'bg-green-200',
+    color: 'bg-blue-200',
     requireReason: false,
   },
   HALF_PM: {
     name: '일반 반차(오후)',
-    color: 'bg-yellow-200',
+    color: 'bg-blue-200',
     requireReason: false,
   },
   SPECIAL_ANNUAL: {
@@ -80,12 +80,12 @@ export const VACATION_TYPES: Record<LeaveDetailTypeEnum, VacationMeta> = {
   },
   SPECIAL_HALF_AM: {
     name: '특별 반차(오전)',
-    color: 'bg-purple-200',
+    color: 'bg-pink-200',
     requireReason: true,
   },
   SPECIAL_HALF_PM: {
     name: '특별 반차(오후)',
-    color: 'bg-orange-200',
+    color: 'bg-pink-200',
     requireReason: true,
   },
   ALL: {
@@ -94,6 +94,16 @@ export const VACATION_TYPES: Record<LeaveDetailTypeEnum, VacationMeta> = {
     requireReason: false,
   },
 };
+
+const LEGEND_VACATION_TYPES: VacationMeta[] = [
+  { name: '일반 연차', color: 'bg-blue-200', requireReason: false },
+  { name: '특별 연차', color: 'bg-pink-200', requireReason: true },
+  {
+    name: '랩실 전체 휴가',
+    color: 'bg-red-400 text-white',
+    requireReason: false,
+  },
+];
 
 const monthNames = [
   '1월',
@@ -253,8 +263,8 @@ function Legend() {
     <div>
       <div className="mb-6 flex items-center justify-between gap-10">
         <div className="flex flex-wrap gap-4">
-          {Object.entries(VACATION_TYPES).map(([key, value]) => (
-            <div key={key} className="flex items-center gap-2">
+          {LEGEND_VACATION_TYPES.map((value) => (
+            <div key={value.name} className="flex items-center gap-2">
               <div className={`h-4 w-4 rounded ${value.color}`} />
               <span className="text-xs text-gray-900">{value.name}</span>
             </div>
