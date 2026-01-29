@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -49,6 +49,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import ConfirmModal from '@/components/common/confirm-modal';
 
 const leaveApi = new LeaveApi(getApiConfig());
 
@@ -384,38 +385,51 @@ export default function LeavesHistory() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    const fetchLeaves = async () => {
-      try {
-        const res: UserLeaveResponse = await leaveApi.getLeavesByUser({
-          page: currentPage - 1,
-          size: itemsPerPage,
-        });
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
-        setRequests(res.leaves ?? []);
-        setAnnualLeaveCount(res.annualLeaveCount ?? 0);
-        setUsedLeaveCount(res.usedLeaveCount ?? 0);
+  const fetchLeaves = useCallback(async () => {
+    try {
+      const res: UserLeaveResponse = await leaveApi.getLeavesByUser({
+        page: currentPage - 1,
+        size: itemsPerPage,
+      });
 
-        setTotalPages(res.totalPage ?? 1);
-      } catch (error) {
-        console.error('휴가 조회 실패:', error);
-      }
-    };
-
-    fetchLeaves();
+      setRequests(res.leaves ?? []);
+      setAnnualLeaveCount(res.annualLeaveCount ?? 0);
+      setUsedLeaveCount(res.usedLeaveCount ?? 0);
+      setTotalPages(res.totalPage ?? 1);
+    } catch (error) {
+      console.error('휴가 조회 실패:', error);
+    }
   }, [currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    fetchLeaves();
+  }, [fetchLeaves]);
 
   const handleRowClick = (request: LeaveDetail) => {
     setSelectedRequest(request);
     setIsDetailDialogOpen(true);
   };
 
-  const handleDeletePending = async (leaveId: number) => {
+  const handleDeletePending = (leaveId: number) => {
+    setPendingDeleteId(leaveId);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDeletePending = async () => {
+    if (!pendingDeleteId) return;
+
     try {
-      console.log('삭제~~');
+      await leaveApi.cancelLeave({ leaveId: pendingDeleteId });
+      toast.success('휴가 신청이 취소되었습니다.');
+
+      await fetchLeaves(); // 목록 재조회
     } catch (e) {
-      console.error('휴가 삭제 실패:', e);
-      toast.error('휴가 삭제에 실패했습니다.');
+      console.error('휴가 취소 실패:', e);
+    } finally {
+      setPendingDeleteId(null);
     }
   };
 
@@ -463,6 +477,14 @@ export default function LeavesHistory() {
           isOpen={isDetailDialogOpen}
           onClose={() => setIsDetailDialogOpen(false)}
           request={selectedRequest}
+        />
+
+        <ConfirmModal
+          open={isConfirmOpen}
+          onOpenChange={setIsConfirmOpen}
+          title="휴가 신청 취소"
+          description="대기 중인 휴가 신청을 취소하시겠습니까?"
+          onConfirm={confirmDeletePending}
         />
       </div>
     </div>
