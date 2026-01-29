@@ -19,6 +19,7 @@ export * from './ProjectApi';
 export * from './ProjectCategoryApi';
 export * from './ReportApi';
 export * from './ResearchApi';
+export * from './SeminarApi';
 export * from './TaskApi';
 export * from './TimelineApi';
 export * from './UserApi';

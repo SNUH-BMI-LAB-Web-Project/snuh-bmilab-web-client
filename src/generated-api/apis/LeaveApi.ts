@@ -32,6 +32,10 @@ export interface ApplyLeaveOperationRequest {
     applyLeaveRequest: ApplyLeaveRequest;
 }
 
+export interface CancelLeaveRequest {
+    leaveId: number;
+}
+
 export interface GetLeavesRequest {
     startDate?: Date;
     endDate?: Date;
@@ -91,6 +95,48 @@ export class LeaveApi extends runtime.BaseAPI {
      */
     async applyLeave(requestParameters: ApplyLeaveOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.applyLeaveRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * 대기 상태인 휴가를 취소하는 DELETE API
+     * 휴가 취소
+     */
+    async cancelLeaveRaw(requestParameters: CancelLeaveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['leaveId'] == null) {
+            throw new runtime.RequiredError(
+                'leaveId',
+                'Required parameter "leaveId" was null or undefined when calling cancelLeave().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/leaves/{leaveId}`.replace(`{${"leaveId"}}`, encodeURIComponent(String(requestParameters['leaveId']))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * 대기 상태인 휴가를 취소하는 DELETE API
+     * 휴가 취소
+     */
+    async cancelLeave(requestParameters: CancelLeaveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.cancelLeaveRaw(requestParameters, initOverrides);
     }
 
     /**

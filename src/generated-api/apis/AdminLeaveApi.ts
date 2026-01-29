@@ -32,6 +32,10 @@ export interface ApproveLeaveRequest {
     leaveId: number;
 }
 
+export interface DeleteLeaveRequest {
+    leaveId: number;
+}
+
 export interface GetLeaves1Request {
     status?: GetLeaves1StatusEnum;
     page?: any;
@@ -94,6 +98,48 @@ export class AdminLeaveApi extends runtime.BaseAPI {
      */
     async approveLeave(requestParameters: ApproveLeaveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.approveLeaveRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     * 휴가를 삭제하는 DELETE API (승인된 휴가 삭제 시 휴가 일수 복원)
+     * 휴가 삭제
+     */
+    async deleteLeaveRaw(requestParameters: DeleteLeaveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['leaveId'] == null) {
+            throw new runtime.RequiredError(
+                'leaveId',
+                'Required parameter "leaveId" was null or undefined when calling deleteLeave().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("JWT", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/admin/leaves/{leaveId}`.replace(`{${"leaveId"}}`, encodeURIComponent(String(requestParameters['leaveId']))),
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     * 휴가를 삭제하는 DELETE API (승인된 휴가 삭제 시 휴가 일수 복원)
+     * 휴가 삭제
+     */
+    async deleteLeave(requestParameters: DeleteLeaveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.deleteLeaveRaw(requestParameters, initOverrides);
     }
 
     /**
@@ -201,7 +247,7 @@ export class AdminLeaveApi extends runtime.BaseAPI {
     }
 
     /**
-     * 승인된 휴가 정보를 수정하는 PATCH API
+     * 승인된 휴가 정보를 수정하는 PATCH API (시작일이 지나지 않은 휴가만 수정 가능)
      * 승인된 휴가 수정
      */
     async updateLeaveRaw(requestParameters: UpdateLeaveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
@@ -245,7 +291,7 @@ export class AdminLeaveApi extends runtime.BaseAPI {
     }
 
     /**
-     * 승인된 휴가 정보를 수정하는 PATCH API
+     * 승인된 휴가 정보를 수정하는 PATCH API (시작일이 지나지 않은 휴가만 수정 가능)
      * 승인된 휴가 수정
      */
     async updateLeave(requestParameters: UpdateLeaveRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
