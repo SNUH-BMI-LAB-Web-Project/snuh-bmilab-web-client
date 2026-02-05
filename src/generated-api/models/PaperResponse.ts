@@ -169,6 +169,24 @@ export interface PaperResponse {
      */
     taskId?: number;
     /**
+     * 연계 과제명
+     * @type {string}
+     * @memberof PaperResponse
+     */
+    taskName?: string;
+    /**
+     * 연계 프로젝트 ID
+     * @type {number}
+     * @memberof PaperResponse
+     */
+    projectId?: number;
+    /**
+     * 연계 프로젝트명
+     * @type {string}
+     * @memberof PaperResponse
+     */
+    projectName?: string;
+    /**
      * 첨부 파일 목록
      * @type {Array<FileSummary>}
      * @memberof PaperResponse
@@ -213,6 +231,9 @@ export function PaperResponseFromJSONTyped(json: any, ignoreDiscriminator: boole
         'professorRole': json['professorRole'] == null ? undefined : json['professorRole'],
         'isRepresentative': json['isRepresentative'] == null ? undefined : json['isRepresentative'],
         'taskId': json['taskId'] == null ? undefined : json['taskId'],
+        'taskName': json['taskName'] == null ? undefined : json['taskName'],
+        'projectId': json['projectId'] == null ? undefined : json['projectId'],
+        'projectName': json['projectName'] == null ? undefined : json['projectName'],
         'files': json['files'] == null ? undefined : ((json['files'] as Array<any>).map(FileSummaryFromJSON)),
     };
 }
@@ -248,6 +269,9 @@ export function PaperResponseToJSONTyped(value?: PaperResponse | null, ignoreDis
         'professorRole': value['professorRole'],
         'isRepresentative': value['isRepresentative'],
         'taskId': value['taskId'],
+        'taskName': value['taskName'],
+        'projectId': value['projectId'],
+        'projectName': value['projectName'],
         'files': value['files'] == null ? undefined : ((value['files'] as Array<any>).map(FileSummaryToJSON)),
     };
 }
