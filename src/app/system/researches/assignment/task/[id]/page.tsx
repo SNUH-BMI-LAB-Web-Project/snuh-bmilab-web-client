@@ -11,7 +11,7 @@ export default function Page() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen p-20 pt-6">
+    <div className="min-h-screen py-20 pt-6 lg:p-20">
       <div className="mb-8 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button
