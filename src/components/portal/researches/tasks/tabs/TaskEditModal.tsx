@@ -254,7 +254,7 @@ export default function TaskEditModal({
           isInternal: boolToLabel(task.isInternal ?? true),
         });
 
-        setPracticalManagerId(null); // 상세 응답에 id가 없어서 초기화
+        setPracticalManagerId(task.practicalManagerId ?? null); // 상세 응답에 id가 없어서 초기화
 
         setHostProfessor(
           task.leadProfessor

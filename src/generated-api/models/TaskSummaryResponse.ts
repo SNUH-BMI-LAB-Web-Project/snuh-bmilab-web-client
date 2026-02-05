@@ -142,6 +142,12 @@ export interface TaskSummaryResponse {
      */
     professorRole?: TaskSummaryResponseProfessorRoleEnum;
     /**
+     * 실무 책임자 ID
+     * @type {number}
+     * @memberof TaskSummaryResponse
+     */
+    practicalManagerId?: number;
+    /**
      * 실무 책임자 이름
      * @type {string}
      * @memberof TaskSummaryResponse
@@ -237,6 +243,7 @@ export function TaskSummaryResponseFromJSONTyped(json: any, ignoreDiscriminator:
         'leadProfessor': json['leadProfessor'] == null ? undefined : json['leadProfessor'],
         'snuhPi': json['snuhPi'] == null ? undefined : json['snuhPi'],
         'professorRole': json['professorRole'] == null ? undefined : json['professorRole'],
+        'practicalManagerId': json['practicalManagerId'] == null ? undefined : json['practicalManagerId'],
         'practicalManagerName': json['practicalManagerName'] == null ? undefined : json['practicalManagerName'],
         'participatingInstitutions': json['participatingInstitutions'] == null ? undefined : json['participatingInstitutions'],
         'isInternal': json['isInternal'] == null ? undefined : json['isInternal'],
@@ -273,6 +280,7 @@ export function TaskSummaryResponseToJSONTyped(value?: TaskSummaryResponse | nul
         'leadProfessor': value['leadProfessor'],
         'snuhPi': value['snuhPi'],
         'professorRole': value['professorRole'],
+        'practicalManagerId': value['practicalManagerId'],
         'practicalManagerName': value['practicalManagerName'],
         'participatingInstitutions': value['participatingInstitutions'],
         'isInternal': value['isInternal'],
