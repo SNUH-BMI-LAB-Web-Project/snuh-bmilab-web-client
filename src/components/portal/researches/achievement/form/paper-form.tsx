@@ -27,13 +27,20 @@ import {
   LabMemberSelect,
 } from '@/components/portal/researches/achievement/lab-member-select';
 
+import { SingleProjectSelectInput } from '@/components/portal/researches/achievement/single-project-select-input';
+import { SingleTaskSelectInput } from '@/components/portal/researches/achievement/single-task-select-input';
+
 interface PaperFormProps {
-  initialData?: Paper;
-  onSave: (data: Omit<Paper, 'id'>) => void;
+  initialData?: Paper & {
+    projectId?: number;
+    projectName?: string;
+    taskId?: number;
+    taskName?: string;
+  };
+  onSave: (data: any) => void;
   onCancel: () => void;
 }
 
-// 서버 Enum 타입 정의
 type ProfessorRole = 'FIRST_AUTHOR' | 'CO_AUTHOR' | 'CORRESPONDING_AUTHOR';
 
 export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
@@ -60,6 +67,8 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
     citationCount: '',
     professorRole: 'FIRST_AUTHOR' as ProfessorRole,
     isRepresentative: false,
+    relatedProject: { id: null as number | null, name: '' },
+    relatedTask: { id: null as number | null, name: '' },
   });
 
   useEffect(() => {
@@ -83,9 +92,15 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
       professorRole:
         (initialData.professorRole as ProfessorRole) ?? 'FIRST_AUTHOR',
       isRepresentative: initialData.isRepresentative ?? false,
+      relatedProject: {
+        id: initialData.projectId ?? null,
+        name: initialData.projectName ?? '',
+      },
+      relatedTask: {
+        id: initialData.taskId ?? null,
+        name: initialData.taskName ?? '',
+      },
     });
-
-    // 첨부파일이나 연구실 멤버 등 추가 데이터 복구 로직이 필요할 경우 여기에 추가
   }, [initialData]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -93,6 +108,11 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
 
     if (correspondingProfessors.length === 0) {
       toast('교신저자를 1명 이상 선택하세요.');
+      return;
+    }
+
+    if (!formData.relatedProject.id) {
+      toast('연계 프로젝트를 선택해주세요.');
       return;
     }
 
@@ -108,33 +128,38 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
 
     const allAuthors = [...firstAuthorsList, ...coAuthorsList].join(', ');
 
-    onSave({
+    const payload = {
       acceptDate: formData.acceptDate,
       publishDate: formData.publishDate,
-      journal: formData.journalName
-        ? { id: Number(formData.journalName) || 0 } // ID가 숫자인 경우 처리
-        : undefined,
-      journalName: formData.journalName,
+      journalId: 1,
       paperTitle: formData.paperTitle,
       allAuthors,
-      firstAuthors: formData.firstAuthors,
+      firstAuthor: firstAuthorsList[0] || '',
       coAuthors: formData.coAuthors,
-      correspondingAuthor: correspondingProfessors[0]?.name ?? '',
-      labMembers: labMembers.map((m) => m.name),
-      authorCount: firstAuthorsList.length + coAuthorsList.length,
+      correspondingAuthors: correspondingProfessors.map((p: any) => ({
+        externalProfessorId: p.externalProfessorId || p.id || p.professorId,
+        role: '교신저자',
+      })),
+      paperAuthors: labMembers.map((member: any) => ({
+        userId: member.userId || member.id,
+        role: member.role || '제1저자',
+      })),
       vol: formData.vol,
       page: formData.page,
       paperLink: formData.paperLink,
       doi: formData.doi,
       pmid: formData.pmid,
       citations: Number(formData.citationCount) || 0,
-      citationCount: formData.citationCount,
       professorRole: formData.professorRole,
       isRepresentative: formData.isRepresentative,
-      attachments: files
+      taskId: formData.relatedTask.id,
+      projectId: formData.relatedProject.id,
+      fileIds: files
         .map((f) => f.fileId)
         .filter((id): id is string => Boolean(id)),
-    });
+    };
+
+    onSave(payload);
   };
 
   return (
@@ -190,6 +215,7 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
           onChange={(e) =>
             setFormData({ ...formData, paperTitle: e.target.value })
           }
+          placeholder="논문 제목 입력"
           required
         />
       </div>
@@ -241,7 +267,6 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
           <div className="bg-muted/50 mt-2 space-y-3 rounded-xl p-4">
             {correspondingProfessors.map((prof, index) => {
               const key = getProfessorKey(prof);
-
               return (
                 <div key={key} className="flex items-center gap-2">
                   <Input
@@ -277,7 +302,6 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
                         prev.filter((_, i) => i !== index),
                       )
                     }
-                    title="제거"
                   >
                     <Minus className="h-4 w-4" />
                   </Button>
@@ -309,7 +333,6 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
             placeholder="예: 30"
           />
         </div>
-
         <div className="space-y-2">
           <Label htmlFor="page">Page</Label>
           <Input
@@ -375,14 +398,63 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
         />
       </div>
 
+      <hr className="my-4" />
+
+      {/* 연계 프로젝트 및 과제 선택 영역 (하단 이동) */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>
+            연계 프로젝트 <span className="text-destructive">*</span>
+          </Label>
+          <SingleProjectSelectInput
+            value={formData.relatedProject.name}
+            onValueChange={(name) =>
+              setFormData((prev) => ({
+                ...prev,
+                relatedProject: { ...prev.relatedProject, name },
+              }))
+            }
+            onProjectSelected={(p) =>
+              setFormData((prev) => ({
+                ...prev,
+                relatedProject: p
+                  ? { id: p.projectId ?? null, name: p.title ?? '' }
+                  : { id: null, name: '' },
+              }))
+            }
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>연계 과제</Label>
+          <SingleTaskSelectInput
+            value={formData.relatedTask.name}
+            onValueChange={(name) =>
+              setFormData((prev) => ({
+                ...prev,
+                relatedTask: { ...prev.relatedTask, name },
+              }))
+            }
+            onTaskSelected={(t) =>
+              setFormData((prev) => ({
+                ...prev,
+                relatedTask: t
+                  ? { id: t.id ?? null, name: t.title ?? '' }
+                  : { id: null, name: '' },
+              }))
+            }
+          />
+        </div>
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="professorRole">
           김광수 교수님 역할 <span className="text-destructive">*</span>
         </Label>
         <Select
           value={formData.professorRole}
-          onValueChange={(value: ProfessorRole) =>
-            setFormData({ ...formData, professorRole: value })
+          onValueChange={(v: ProfessorRole) =>
+            setFormData({ ...formData, professorRole: v })
           }
         >
           <SelectTrigger className="w-1/2">
@@ -403,14 +475,14 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
         <Checkbox
           id="isRepresentative"
           checked={formData.isRepresentative}
-          onCheckedChange={(checked) =>
-            setFormData({ ...formData, isRepresentative: checked as boolean })
+          onCheckedChange={(c) =>
+            setFormData({ ...formData, isRepresentative: c as boolean })
           }
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="attachments">
+        <Label>
           첨부파일 <span className="text-destructive">*</span>
         </Label>
         <FileUploadBox value={files} onChange={setFiles} />
@@ -428,13 +500,11 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
         onClose={() => setShowCorrespondingModal(false)}
         onSelect={(prof) => {
           const key = getProfessorKey(prof);
-
           setCorrespondingProfessors((prev) =>
             prev.some((p) => getProfessorKey(p) === key)
               ? prev
               : [...prev, prof],
           );
-
           setShowCorrespondingModal(false);
         }}
         selectedProfessorKeys={correspondingProfessors.map(getProfessorKey)}
