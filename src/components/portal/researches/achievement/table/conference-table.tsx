@@ -94,7 +94,6 @@ export function ConferenceTable({
 
   return (
     <div className="space-y-4">
-      {/* ===== 검색 / 정렬 ===== */}
       <div className="flex items-center gap-2">
         <Select value={searchColumn} onValueChange={setSearchColumn}>
           <SelectTrigger className="w-[180px]">
@@ -145,7 +144,6 @@ export function ConferenceTable({
         </Select>
       </div>
 
-      {/* ===== 테이블 ===== */}
       <div className="bg-card overflow-x-auto rounded-lg border">
         <Table>
           <TableHeader>

@@ -32,7 +32,8 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const getToken = () => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('accessToken');
+  const raw = localStorage.getItem('auth-storage');
+  return raw ? JSON.parse(raw)?.state?.accessToken : null;
 };
 
 const mapPresentationTypeLabel = (v: PresentationType) => {
@@ -43,6 +44,8 @@ const mapPresentationTypeLabel = (v: PresentationType) => {
       return 'Mini Oral';
     case 'POSTER':
       return 'Poster';
+    default:
+      return v;
   }
 };
 
@@ -71,6 +74,7 @@ export function ConferenceForm({
   useEffect(() => {
     if (!initialData) return;
 
+    // 테이블 데이터 필드명과 API 필드명을 매핑
     setAuthorNames(
       initialData.authors
         ? initialData.authors.split(',').map((v: string) => v.trim())
@@ -82,11 +86,11 @@ export function ConferenceForm({
     );
 
     setFormData({
-      startDate: initialData.conferenceStartDate ?? '',
-      endDate: initialData.conferenceEndDate ?? '',
-      location: initialData.conferenceLocation ?? '',
-      organizer: initialData.conferenceHost ?? '',
-      conferenceName: initialData.conferenceName ?? '',
+      startDate: initialData.academicPresentationStartDate ?? '',
+      endDate: initialData.academicPresentationEndDate ?? '',
+      location: initialData.academicPresentationLocation ?? '',
+      organizer: initialData.academicPresentationHost ?? '',
+      conferenceName: initialData.academicPresentationName ?? '',
       presentationType: initialData.presentationType ?? 'ORAL',
       presentationTitle: initialData.presentationTitle ?? '',
       relatedProject: {
@@ -100,13 +104,15 @@ export function ConferenceForm({
     });
   }, [initialData]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.relatedProject.id) return;
-    if (!formData.relatedTask.id) return;
+    if (!formData.relatedProject.id) {
+      alert('연계 프로젝트를 선택해주세요.');
+      return;
+    }
 
-    onSave({
+    const payload = {
       authors: authorNames.join(', '),
       academicPresentationAuthors: authorUserIds.map((id) => ({
         userId: id,
@@ -121,14 +127,42 @@ export function ConferenceForm({
       presentationTitle: formData.presentationTitle,
       projectId: formData.relatedProject.id,
       taskId: formData.relatedTask.id,
-    });
+    };
+
+    const token = getToken();
+    const method = initialData?.id ? 'PUT' : 'POST';
+    const url = initialData?.id
+      ? `${API_BASE}/research/academic-presentations/${initialData.id}`
+      : `${API_BASE}/research/academic-presentations`;
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        alert(initialData?.id ? '수정되었습니다.' : '등록되었습니다.');
+        onSave(payload);
+      } else {
+        const errorData = await res.json();
+        alert(`오류 발생: ${errorData.message || '저장에 실패했습니다.'}`);
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+      alert('서버 통신 중 오류가 발생했습니다.');
+    }
   };
 
   const handleDelete = async () => {
     if (!initialData?.id) return;
+    if (!confirm('정말로 삭제하시겠습니까?')) return;
 
     setIsDeleting(true);
-
     try {
       const res = await fetch(
         `${API_BASE}/research/academic-presentations/${initialData.id}`,
@@ -140,11 +174,14 @@ export function ConferenceForm({
         },
       );
 
-      if (!res.ok) {
-        throw new Error('DELETE FAILED');
+      if (res.ok) {
+        alert('삭제되었습니다.');
+        onDeleted?.();
+      } else {
+        alert('삭제에 실패했습니다.');
       }
-
-      onDeleted?.();
+    } catch (error) {
+      console.error('Delete error:', error);
     } finally {
       setIsDeleting(false);
     }

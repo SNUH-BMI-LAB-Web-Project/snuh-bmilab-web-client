@@ -27,7 +27,6 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 
-// 제공된 JSON 양식에 맞춘 내부 타입 정의
 interface PaperData {
   id: number;
   acceptDate: string;
@@ -192,7 +191,6 @@ export function PaperTable({
                   <TableCell>{item.journal?.journalName}</TableCell>
                   <TableCell>
                     <div className="font-medium">{item.paperTitle}</div>
-                    {/* 링크 노출 및 말줄임 처리 */}
                     {item.paperLink && (
                       <div className="max-w-[250px] truncate">
                         <a
@@ -213,7 +211,6 @@ export function PaperTable({
                   <TableCell className="text-xs">
                     {correspondingNames}
                   </TableCell>
-
                   {!isUserView && (
                     <TableCell className="text-xs">
                       총 {item.authorCount}명<br />
@@ -222,7 +219,6 @@ export function PaperTable({
                       </span>
                     </TableCell>
                   )}
-
                   <TableCell className="text-xs">
                     {item.vol || '-'}/{item.page || '-'}
                   </TableCell>
@@ -231,7 +227,6 @@ export function PaperTable({
                     <br />
                     P: {item.pmid || '-'}
                   </TableCell>
-
                   <TableCell className="text-center">
                     {(item.files?.length ?? 0) > 0 && (
                       <DropdownMenu>
@@ -253,7 +248,6 @@ export function PaperTable({
                       </DropdownMenu>
                     )}
                   </TableCell>
-
                   {!isUserView && (
                     <TableCell className="text-center">
                       {item.isRepresentative && (
@@ -264,7 +258,6 @@ export function PaperTable({
                       </div>
                     </TableCell>
                   )}
-
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
