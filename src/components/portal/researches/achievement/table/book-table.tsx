@@ -26,7 +26,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-// API 응답 양식에 맞춘 내부 타입 정의 (또는 lib/types.ts 수정)
 interface BookData {
   id: number;
   authors: string;
@@ -177,7 +176,7 @@ export function BookTable({ data, onEdit, onDelete }: BookTableProps) {
                         {onDelete && (
                           <DropdownMenuItem
                             className="text-destructive"
-                            onClick={() => onDelete(String(item.id))}
+                            onClick={() => onDelete(String(item.id))} // 부모의 handleDelete 호출
                           >
                             <Trash2 className="mr-2 h-4 w-4" /> 삭제
                           </DropdownMenuItem>
