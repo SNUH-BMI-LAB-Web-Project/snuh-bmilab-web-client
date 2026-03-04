@@ -10,34 +10,22 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { DatePicker } from '@/components/common/date-picker';
 import { Badge } from '@/components/ui/badge';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { X } from 'lucide-react';
 
 import { SingleProjectSelectInput } from '@/components/portal/researches/achievement/single-project-select-input';
 import { SingleTaskSelectInput } from '@/components/portal/researches/achievement/single-task-select-input';
 import { FileUploadBox } from '@/components/portal/researches/achievement/file-upload-box';
 import { UserTagInputString } from '@/components/portal/researches/achievement/multi-user-tag-input';
+import ExternalProfessorSelectModal from '@/components/portal/researches/projects/external-professor-select-modal';
+import { getProfessorKey } from '@/utils/external-professor-utils';
 
 import type { ProjectFileSummary } from '@/generated-api';
-import { ProjectApi } from '@/generated-api/apis/ProjectApi';
 import type { ExternalProfessorItem } from '@/generated-api';
-import { getApiConfig } from '@/lib/config';
 
 interface IdName {
   id: number | null;
   name: string;
 }
-
-interface ExternalAuthor {
-  externalProfessorId: number;
-  name: string;
-}
-
-const projectApi = new ProjectApi(getApiConfig());
 
 interface PatentFormProps {
   initialData?: any;
@@ -55,12 +43,10 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
 
   const [authorNames, setAuthorNames] = useState<string[]>([]);
   const [authorUserIds, setAuthorUserIds] = useState<number[]>([]);
-  const [externalAuthors, setExternalAuthors] = useState<ExternalAuthor[]>([]);
-
-  const [externalProfessorList, setExternalProfessorList] = useState<
+  const [externalAuthors, setExternalAuthors] = useState<
     ExternalProfessorItem[]
   >([]);
-  const [externalPopoverOpen, setExternalPopoverOpen] = useState(false);
+  const [showExternalModal, setShowExternalModal] = useState(false);
 
   const [files, setFiles] = useState<ProjectFileSummary[]>([]);
 
@@ -95,9 +81,11 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
     setAuthorUserIds(internal.map((a: any) => a.userId));
     setExternalAuthors(
       external.map((a: any) => ({
-        externalProfessorId:
-          a.externalProfessorId ?? a.professorId ?? 0,
+        professorId: a.externalProfessorId ?? a.professorId ?? 0,
         name: a.externalProfessorName ?? a.name ?? '',
+        organization: '',
+        department: '',
+        position: '',
       })),
     );
 
@@ -148,7 +136,7 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
     const patentAuthorsPayload = [
       ...authorUserIds.map((id) => ({ userId: id, role: '발명자' })),
       ...externalAuthors.map((e) => ({
-        externalProfessorId: e.externalProfessorId,
+        externalProfessorId: e.professorId ?? 0,
         role: '발명자',
       })),
     ];
@@ -244,9 +232,6 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
         <Label>
           발명자 <span className="text-destructive">*</span>
         </Label>
-        <p className="text-muted-foreground text-xs">
-          내부 인원 검색 후 선택하거나, 외부 인사를 추가할 수 있습니다.
-        </p>
         <div className="space-y-3">
           <div>
             <span className="text-muted-foreground mb-1 block text-xs">
@@ -263,77 +248,19 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
             <span className="text-muted-foreground mb-1 block text-xs">
               외부 인사
             </span>
-            <Popover
-              open={externalPopoverOpen}
-              onOpenChange={(open) => {
-                setExternalPopoverOpen(open);
-                if (open) {
-                  projectApi
-                    .getExternalProfessors()
-                    .then((res) =>
-                      setExternalProfessorList(
-                        res.externalProfessors ?? [],
-                      ),
-                    )
-                    .catch(() => setExternalProfessorList([]));
-                }
-              }}
+            <Button
+              type="button"
+              variant="outline"
+              className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-md border bg-background px-4 py-2 text-sm font-medium shadow-sm transition-all hover:bg-accent hover:text-accent-foreground"
+              onClick={() => setShowExternalModal(true)}
             >
-              <PopoverTrigger asChild>
-                <Button type="button" variant="outline" size="sm">
-                  외부 인사 추가
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="max-h-64 w-80 overflow-y-auto p-0">
-                <ul className="py-1">
-                  {externalProfessorList
-                    .filter(
-                      (p) =>
-                        !externalAuthors.some(
-                          (e) =>
-                            e.externalProfessorId === (p.professorId ?? 0),
-                        ),
-                    )
-                    .map((p) => (
-                      <li key={p.professorId}>
-                        <button
-                          type="button"
-                          className="hover:bg-muted flex w-full flex-col px-3 py-2 text-left text-sm"
-                          onClick={() => {
-                            setExternalAuthors((prev) => [
-                              ...prev,
-                              {
-                                externalProfessorId: p.professorId ?? 0,
-                                name: p.name ?? '',
-                              },
-                            ]);
-                            setExternalPopoverOpen(false);
-                          }}
-                        >
-                          <span className="font-medium">{p.name}</span>
-                          {(p.organization || p.department) && (
-                            <span className="text-muted-foreground text-xs">
-                              {[p.organization, p.department]
-                                .filter(Boolean)
-                                .join(' · ')}
-                            </span>
-                          )}
-                        </button>
-                      </li>
-                    ))}
-                  {externalProfessorList.length === 0 && (
-                    <li className="text-muted-foreground px-3 py-4 text-center text-sm">
-                      등록된 외부 인사가 없습니다.
-                    </li>
-                  )}
-                </ul>
-              </PopoverContent>
-            </Popover>
+              외부 인사 추가
+            </Button>
             {externalAuthors.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-2">
                 {externalAuthors.map((ext) => (
                   <Badge
-                    key={ext.externalProfessorId}
+                    key={ext.professorId ?? ext.name}
                     variant="secondary"
                     className="flex items-center gap-1 rounded-full px-3 py-1 text-xs"
                   >
@@ -343,9 +270,7 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
                       onClick={() =>
                         setExternalAuthors((prev) =>
                           prev.filter(
-                            (e) =>
-                              e.externalProfessorId !==
-                              ext.externalProfessorId,
+                            (e) => e.professorId !== ext.professorId,
                           ),
                         )
                       }
@@ -360,6 +285,23 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
           </div>
         </div>
       </div>
+
+      <ExternalProfessorSelectModal
+        open={showExternalModal}
+        onClose={() => setShowExternalModal(false)}
+        onSelect={(prof) => {
+          if (
+            externalAuthors.some(
+              (e) => e.professorId === (prof.professorId ?? 0),
+            )
+          ) {
+            return;
+          }
+          setExternalAuthors((prev) => [...prev, prof]);
+          setShowExternalModal(false);
+        }}
+        selectedProfessorKeys={externalAuthors.map(getProfessorKey)}
+      />
 
       <div className="space-y-2">
         <Label>비고</Label>

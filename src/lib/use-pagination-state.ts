@@ -58,7 +58,7 @@ export function usePaginationState() {
     });
   };
 
-  // 마운트 시에만 sessionStorage 복원 (뒤로가기 등으로 재진입 시). pathname이 바뀌면 다른 목록 페이지이므로 복원.
+  // 마운트 시 sessionStorage 복원. pathname이 바뀌면 다른 목록 페이지이므로 복원.
   useEffect(() => {
     const stored = getStored(pathname);
     if (stored) {
@@ -68,6 +68,24 @@ export function usePaginationState() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- pathname 변경 시에만 복원
   }, [pathname]);
+
+  // Chrome 등에서 bfcache(뒤로가기 캐시)로 복원될 때: in-memory state는 초기값이라 sessionStorage에서 다시 복원
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        const stored = getStored(pathname);
+        if (stored) {
+          setState(stored);
+          const params = new URLSearchParams(window.location.search);
+          params.set('page', String(stored.page));
+          params.set('size', String(stored.size));
+          router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+        }
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, [pathname, router]);
 
   // page/size 변경 시 sessionStorage 저장 + URL 반영
   useEffect(() => {
