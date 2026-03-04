@@ -145,7 +145,7 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
     const allAuthors = [...firstAuthorsList, ...coAuthorsList].join(', ');
 
     const payload = {
-      acceptDate: formData.acceptDate,
+      acceptDate: formData.acceptDate || formData.publishDate,
       publishDate: formData.publishDate,
       journalId: formData.relatedJournal.id,
       paperTitle: formData.paperTitle,

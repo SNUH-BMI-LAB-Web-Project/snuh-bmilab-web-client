@@ -1,7 +1,6 @@
 'use client';
 
 import { Suspense, useCallback, useEffect, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PaginatedTable } from '@/components/common/paginated-table';
@@ -25,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { getStatusClassName, getStatusLabel } from '@/utils/project-utils';
 import { useProjectCategories } from '@/hooks/use-project-categories';
 import { getApiConfig } from '@/lib/config';
+import { usePaginationState } from '@/lib/use-pagination-state';
 
 const projectApi = new ProjectApi(getApiConfig());
 
@@ -232,13 +232,9 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
 ];
 
 function ProjectPageContent() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const { currentPage, setCurrentPage, itemsPerPage, setItemsPerPage } =
+    usePaginationState();
   const { data: categoryData } = useProjectCategories();
-
-  const pageFromUrl = Math.max(1, Number(searchParams.get('page')) || 1);
-  const sizeFromUrl = Math.max(1, Math.min(100, Number(searchParams.get('size')) || 10));
 
   const [searchTerm, setSearchTerm] = useState('');
   const [committedSearchTerm, setCommittedSearchTerm] = useState('');
@@ -253,8 +249,6 @@ function ProjectPageContent() {
   const [allUsers, setAllUsers] = useState<UserSummary[]>([]);
 
   const [sortOption, setSortOption] = useState('startDate-desc');
-  const [currentPage, setCurrentPage] = useState(pageFromUrl);
-  const [itemsPerPage, setItemsPerPage] = useState(sizeFromUrl);
   const [showFilters, setShowFilters] = useState(false);
 
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
@@ -307,25 +301,6 @@ function ProjectPageContent() {
 
     fetchAllUsers();
   }, []);
-
-  // URL 쿼리 → state 동기화 (뒤로가기 시 페이지네이션 유지)
-  useEffect(() => {
-    const page = Math.max(1, Number(searchParams.get('page')) || 1);
-    const size = Math.max(1, Math.min(100, Number(searchParams.get('size')) || 10));
-    setCurrentPage((prev) => (prev !== page ? page : prev));
-    setItemsPerPage((prev) => (prev !== size ? size : prev));
-  }, [searchParams]);
-
-  // state → URL 반영 (페이지/사이즈 변경 시, URL과 다를 때만)
-  useEffect(() => {
-    const urlPage = Number(searchParams.get('page')) || 1;
-    const urlSize = Number(searchParams.get('size')) || 10;
-    if (urlPage === currentPage && urlSize === itemsPerPage) return;
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('page', String(currentPage));
-    params.set('size', String(itemsPerPage));
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [currentPage, itemsPerPage, pathname, router, searchParams]);
 
   useEffect(() => {
     fetchProjects();

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PaginatedTable } from '@/components/common/paginated-table';
@@ -64,6 +64,96 @@ type InlineSaveFn = (
   value: string,
 ) => Promise<void>;
 
+const CLICK_NAV_DELAY_MS = 250;
+
+function NameCellWithDetailNav({
+  row,
+  onInlineSave,
+  onNavigate,
+  userStatusSuffixMap,
+}: {
+  row: UserItem;
+  onInlineSave: InlineSaveFn;
+  onNavigate: () => void;
+  userStatusSuffixMap: Record<string, string>;
+}) {
+  const navTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearNavTimeout = () => {
+    if (navTimeoutRef.current) {
+      clearTimeout(navTimeoutRef.current);
+      navTimeoutRef.current = null;
+    }
+  };
+
+  const handleClick = () => {
+    clearNavTimeout();
+    navTimeoutRef.current = setTimeout(() => {
+      navTimeoutRef.current = null;
+      onNavigate();
+    }, CLICK_NAV_DELAY_MS);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    clearNavTimeout();
+  };
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
+      className="cursor-pointer space-y-0.5 rounded px-1 py-0.5 hover:bg-muted/50"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onNavigate();
+        }
+      }}
+    >
+      <EditableCell
+        value={row.name ?? ''}
+        fieldKey="name"
+        userId={row.userId!}
+        onSave={onInlineSave}
+        placeholder="이름"
+        maxLength={10}
+        className="font-medium"
+      >
+        <div className="flex items-center gap-1 font-medium">
+          <span>{row.name || '-'}</span>
+          {(row.status === 'ON_LEAVE' || row.status === 'RESIGNED') && (
+            <span
+              className={`text-sm font-normal ${
+                row.status === 'ON_LEAVE'
+                  ? 'text-primary'
+                  : 'text-destructive'
+              }`}
+            >
+              ({userStatusSuffixMap[row.status]})
+            </span>
+          )}
+        </div>
+      </EditableCell>
+      <EditableCell
+        value={row.email ?? ''}
+        fieldKey="email"
+        userId={row.userId!}
+        onSave={onInlineSave}
+        placeholder="이메일"
+        maxLength={50}
+        className="text-sm text-gray-500"
+      >
+        <span className="block w-[220px] truncate text-sm text-gray-500">
+          {row.email || '-'}
+        </span>
+      </EditableCell>
+    </div>
+  );
+}
+
 const getUserColumns = (
   currentPage: number,
   itemsPerPage: number,
@@ -90,51 +180,12 @@ const getUserColumns = (
     label: '이름',
     className: 'text-left w-[250px]',
     cell: (row: UserItem) => (
-      <div className="space-y-0.5">
-        <EditableCell
-          value={row.name ?? ''}
-          fieldKey="name"
-          userId={row.userId!}
-          onSave={onInlineSave}
-          placeholder="이름"
-          maxLength={10}
-          className="font-medium"
-        >
-          <div className="flex items-center gap-1 font-medium">
-            <span>{row.name || '-'}</span>
-            {(row.status === 'ON_LEAVE' || row.status === 'RESIGNED') && (
-              <span
-                className={`text-sm font-normal ${
-                  row.status === 'ON_LEAVE'
-                    ? 'text-primary'
-                    : 'text-destructive'
-                }`}
-              >
-                ({userStatusSuffixMap[row.status]})
-              </span>
-            )}
-          </div>
-        </EditableCell>
-        <EditableCell
-          value={row.email ?? ''}
-          fieldKey="email"
-          userId={row.userId!}
-          onSave={onInlineSave}
-          placeholder="이메일"
-          maxLength={50}
-          className="text-sm text-gray-500"
-        >
-          <span className="block w-[220px] truncate text-sm text-gray-500">
-            {row.email || '-'}
-          </span>
-        </EditableCell>
-        <Link
-          href={`/system/users/members/${row.userId}`}
-          className="text-xs text-muted-foreground hover:underline"
-        >
-          상세보기
-        </Link>
-      </div>
+      <NameCellWithDetailNav
+        row={row}
+        onInlineSave={onInlineSave}
+        onNavigate={() => router.push(`/system/users/members/${row.userId}`)}
+        userStatusSuffixMap={userStatusSuffixMap}
+      />
     ),
   },
   {

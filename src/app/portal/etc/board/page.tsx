@@ -1,7 +1,6 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PaginatedTable } from '@/components/common/paginated-table';
@@ -22,6 +21,7 @@ import {
   BoardSummary,
 } from '@/generated-api';
 import { getApiConfig } from '@/lib/config';
+import { usePaginationState } from '@/lib/use-pagination-state';
 import { cn } from '@/lib/utils';
 import { hexToRgbaWithOpacity } from '@/utils/color-utils';
 
@@ -129,12 +129,8 @@ const getUserColumns = (currentPage: number, itemsPerPage: number) => [
 ];
 
 function PortalBoardPageContent() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const pageFromUrl = Math.max(1, Number(searchParams.get('page')) || 1);
-  const sizeFromUrl = Math.max(1, Math.min(100, Number(searchParams.get('size')) || 10));
+  const { currentPage, setCurrentPage, itemsPerPage, setItemsPerPage } =
+    usePaginationState();
 
   // 실시간 입력값
   const [searchTerm, setSearchTerm] = useState('');
@@ -144,9 +140,6 @@ function PortalBoardPageContent() {
 
   const [categorySortOption, setCategorySortOption] = useState('all');
   const [sortOption, setSortOption] = useState('desc');
-
-  const [currentPage, setCurrentPage] = useState(pageFromUrl);
-  const [itemsPerPage, setItemsPerPage] = useState(sizeFromUrl);
 
   const [posts, setPosts] = useState<BoardSummary[]>([]);
   const [totalPage, setTotalPage] = useState(1);
@@ -188,25 +181,6 @@ function PortalBoardPageContent() {
   useEffect(() => {
     fetchCategories();
   }, []);
-
-  // URL 쿼리 → state 동기화 (뒤로가기 시 페이지네이션 유지)
-  useEffect(() => {
-    const page = Math.max(1, Number(searchParams.get('page')) || 1);
-    const size = Math.max(1, Math.min(100, Number(searchParams.get('size')) || 10));
-    setCurrentPage((prev) => (prev !== page ? page : prev));
-    setItemsPerPage((prev) => (prev !== size ? size : prev));
-  }, [searchParams]);
-
-  // state → URL 반영 (페이지/사이즈 변경 시, URL과 다를 때만)
-  useEffect(() => {
-    const urlPage = Number(searchParams.get('page')) || 1;
-    const urlSize = Number(searchParams.get('size')) || 10;
-    if (urlPage === currentPage && urlSize === itemsPerPage) return;
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('page', String(currentPage));
-    params.set('size', String(itemsPerPage));
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [currentPage, itemsPerPage, pathname, router, searchParams]);
 
   useEffect(() => {
     fetchBoards();
