@@ -27,6 +27,25 @@ export const THREE_FIVE_RULE_OPTIONS: { value: ThreeFiveRuleType; label: string 
   { value: THREE_FIVE_RULE.NOT_APPLICABLE, label: '해당없음' },
 ];
 
+const VALID_THREE_FIVE_RULE = new Set<string>([
+  THREE_FIVE_RULE.RESPONSIBLE,
+  THREE_FIVE_RULE.JOINT,
+  THREE_FIVE_RULE.NOT_APPLICABLE,
+]);
+
+/**
+ * API 전송/응답용: null·빈 문자열·잘못된 값을 NOT_APPLICABLE로 정규화.
+ * 백엔드 ThreeFiveRuleType enum과 동일한 값만 허용 (500 InvalidDataAccessApiUsageException 방지).
+ */
+export function normalizeThreeFiveRuleForApi(
+  value: string | null | undefined,
+): ThreeFiveRuleType {
+  if (value == null || value === '') return THREE_FIVE_RULE.NOT_APPLICABLE;
+  const v = String(value).toUpperCase();
+  if (VALID_THREE_FIVE_RULE.has(v)) return v as ThreeFiveRuleType;
+  return THREE_FIVE_RULE.NOT_APPLICABLE;
+}
+
 export function getThreeFiveRuleLabel(
   value: ThreeFiveRuleType | string | undefined | null,
 ): string {

@@ -34,7 +34,7 @@ import { getProfessorKey } from '@/utils/external-professor-utils';
 import { parseISO } from 'date-fns';
 import { TaskApi } from '@/generated-api/apis/TaskApi';
 import { getApiConfig } from '@/lib/config';
-import { THREE_FIVE_RULE_OPTIONS } from '@/lib/constants/threeFiveRule';
+import { normalizeThreeFiveRuleForApi, THREE_FIVE_RULE_OPTIONS } from '@/lib/constants/threeFiveRule';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -225,9 +225,9 @@ export default function AddTaskPage() {
       return;
     }
 
-    // 스키마 변환
+    // 스키마 변환 (유효 enum만 전송해 백엔드 500 방지)
     const threeFiveRule: TaskRequestThreeFiveRuleEnum =
-      (formData.includesThreeToFive || 'NOT_APPLICABLE') as TaskRequestThreeFiveRuleEnum;
+      normalizeThreeFiveRuleForApi(formData.includesThreeToFive) as TaskRequestThreeFiveRuleEnum;
     const totalYears = formData.totalYears ? Number(formData.totalYears) : 0;
     const currentYear = parseCurrentYear(formData.progressStage);
     const periods: TaskPeriodRequest[] | undefined = (

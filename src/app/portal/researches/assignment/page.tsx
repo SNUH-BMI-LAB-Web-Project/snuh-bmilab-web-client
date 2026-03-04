@@ -37,7 +37,7 @@ import {
   TaskSummaryResponse,
 } from '@/generated-api';
 import { getApiConfig } from '@/lib/config';
-import { getThreeFiveRuleLabel } from '@/lib/constants/threeFiveRule';
+import { getThreeFiveRuleLabel, normalizeThreeFiveRuleForApi } from '@/lib/constants/threeFiveRule';
 import { format } from 'date-fns';
 
 const taskApi = new TaskApi(getApiConfig());
@@ -186,7 +186,7 @@ export default function TaskManagementPage() {
         : undefined,
       practicalManager: item.practicalManagerName ?? '',
       participatingInstitutions,
-      includesThreeToFive: item.threeFiveRule ?? undefined,
+      includesThreeToFive: normalizeThreeFiveRuleForApi(item.threeFiveRule),
       progressStage: item.status
         ? STATUS_ENUM_TO_LABEL[item.status as GetAllTasksStatusEnum]
         : undefined,

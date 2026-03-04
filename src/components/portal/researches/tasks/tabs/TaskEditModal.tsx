@@ -37,7 +37,7 @@ import { ko } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { getApiConfig } from '@/lib/config';
 import {
-  THREE_FIVE_RULE,
+  normalizeThreeFiveRuleForApi,
   THREE_FIVE_RULE_OPTIONS,
 } from '@/lib/constants/threeFiveRule';
 
@@ -312,7 +312,7 @@ export default function TaskEditModal({
     }
 
     const threeFiveRule: TaskRequestThreeFiveRuleEnum =
-      (formData.includesThreeToFive || THREE_FIVE_RULE.NOT_APPLICABLE) as TaskRequestThreeFiveRuleEnum;
+      normalizeThreeFiveRuleForApi(formData.includesThreeToFive) as TaskRequestThreeFiveRuleEnum;
     const totalYears = formData.totalYears ? Number(formData.totalYears) : 0;
     const currentYear = parseCurrentYear(formData.progressStage);
 
