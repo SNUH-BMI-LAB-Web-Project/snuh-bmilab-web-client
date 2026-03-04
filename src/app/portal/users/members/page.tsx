@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import UserInfoCard from '@/components/portal/users/members/user-info-card';
 import {
   UserItem,
@@ -32,10 +33,17 @@ const api = new UserApi(getApiConfig());
 type StatusTabValue = 'ALL' | GetAllUsersStatusEnum;
 
 export default function UsersPage() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const pageFromUrl = Math.max(1, Number(searchParams.get('page')) || 1);
+  const sizeFromUrl = Math.max(1, Math.min(100, Number(searchParams.get('size')) || 10));
+
   const [users, setUsers] = useState<UserItem[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [totalPages, setTotalPages] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(sizeFromUrl);
 
   const itemsPerPageOptions = [5, 10, 20, 50];
 
@@ -85,6 +93,25 @@ export default function UsersPage() {
   };
 
   const accessToken = useAuthStore((state) => state.accessToken);
+
+  // URL 쿼리 → state 동기화 (뒤로가기 시 페이지네이션 유지)
+  useEffect(() => {
+    const page = Math.max(1, Number(searchParams.get('page')) || 1);
+    const size = Math.max(1, Math.min(100, Number(searchParams.get('size')) || 10));
+    setCurrentPage((prev) => (prev !== page ? page : prev));
+    setItemsPerPage((prev) => (prev !== size ? size : prev));
+  }, [searchParams]);
+
+  // state → URL 반영 (페이지/사이즈 변경 시, URL과 다를 때만)
+  useEffect(() => {
+    const urlPage = Number(searchParams.get('page')) || 1;
+    const urlSize = Number(searchParams.get('size')) || 10;
+    if (urlPage === currentPage && urlSize === itemsPerPage) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', String(currentPage));
+    params.set('size', String(itemsPerPage));
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [currentPage, itemsPerPage, pathname, router, searchParams]);
 
   useEffect(() => {
     if (!accessToken) return;

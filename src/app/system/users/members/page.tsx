@@ -36,10 +36,12 @@ import UserEditModal from '@/components/system/users/members/user-edit-modal';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import UserDeleteModal from '@/components/system/users/members/user-delete-modal';
 import UserAddModal from '@/components/system/users/members/user-add-modal';
+import { EditableCell } from '@/components/system/users/members/editable-cell';
 import { positionLabelMap } from '@/constants/position-enum';
 import PasswordResetModal from '@/components/system/users/members/password-reset-modal';
 import { getApiConfig } from '@/lib/config';
 import { formatSeatNumberDetail } from '@/utils/user-utils';
+import type { AdminUpdateUserRequest } from '@/generated-api';
 
 const userApi = new UserApi(getApiConfig());
 
@@ -50,6 +52,12 @@ const userStatusSuffixMap: Record<string, string> = {
   RESIGNED: '퇴사자',
 };
 
+type InlineSaveFn = (
+  userId: number,
+  fieldKey: string,
+  value: string,
+) => Promise<void>;
+
 const getUserColumns = (
   currentPage: number,
   itemsPerPage: number,
@@ -57,6 +65,7 @@ const getUserColumns = (
   onDeleteClick: (id: number) => void,
   onEditClick: (userId: number) => void,
   onPasswordResetClick: (userId: number) => void,
+  onInlineSave: InlineSaveFn,
 ) => [
   {
     label: '',
@@ -73,51 +82,109 @@ const getUserColumns = (
   },
   {
     label: '이름',
-    className: 'text-left truncate overflow-hidden whitespace-nowrap w-[250px]',
+    className: 'text-left w-[250px]',
     cell: (row: UserItem) => (
-      <Link
-        href={`/system/users/members/${row.userId}`}
-        className="hover:underline"
-      >
-        <div className="flex items-center gap-1 font-medium">
-          <span>{row.name}</span>
-
-          {/* 휴직 / 퇴직 상태 표시 */}
-          {(row.status === 'ON_LEAVE' || row.status === 'RESIGNED') && (
-            <span
-              className={`text-sm font-normal ${
-                row.status === 'ON_LEAVE' ? 'text-primary' : 'text-destructive'
-              }`}
-            >
-              ({userStatusSuffixMap[row.status]})
-            </span>
-          )}
-        </div>
-
-        <div className="w-[220px] truncate overflow-hidden text-sm whitespace-nowrap text-gray-500">
-          {row.email}
-        </div>
-      </Link>
+      <div className="space-y-0.5">
+        <EditableCell
+          value={row.name ?? ''}
+          fieldKey="name"
+          userId={row.userId!}
+          onSave={onInlineSave}
+          placeholder="이름"
+          maxLength={10}
+          className="font-medium"
+        >
+          <div className="flex items-center gap-1 font-medium">
+            <span>{row.name || '-'}</span>
+            {(row.status === 'ON_LEAVE' || row.status === 'RESIGNED') && (
+              <span
+                className={`text-sm font-normal ${
+                  row.status === 'ON_LEAVE'
+                    ? 'text-primary'
+                    : 'text-destructive'
+                }`}
+              >
+                ({userStatusSuffixMap[row.status]})
+              </span>
+            )}
+          </div>
+        </EditableCell>
+        <EditableCell
+          value={row.email ?? ''}
+          fieldKey="email"
+          userId={row.userId!}
+          onSave={onInlineSave}
+          placeholder="이메일"
+          maxLength={50}
+          className="text-sm text-gray-500"
+        >
+          <span className="block w-[220px] truncate text-sm text-gray-500">
+            {row.email || '-'}
+          </span>
+        </EditableCell>
+        <Link
+          href={`/system/users/members/${row.userId}`}
+          className="text-xs text-muted-foreground hover:underline"
+        >
+          상세보기
+        </Link>
+      </div>
     ),
   },
   {
     label: '기관',
     className:
       'text-center truncate overflow-hidden whitespace-nowrap w-[250px]',
-    cell: (row: UserItem) => row.organization || '-',
+    cell: (row: UserItem) => (
+      <EditableCell
+        value={row.organization ?? ''}
+        fieldKey="organization"
+        userId={row.userId!}
+        onSave={onInlineSave}
+        placeholder="기관"
+        maxLength={50}
+        className="flex justify-center"
+      >
+        {row.organization || '-'}
+      </EditableCell>
+    ),
   },
   {
     label: '부서',
     className:
       'text-center truncate overflow-hidden whitespace-nowrap w-[150px]',
-    cell: (row: UserItem) => row.department || '-',
+    cell: (row: UserItem) => (
+      <EditableCell
+        value={row.department ?? ''}
+        fieldKey="department"
+        userId={row.userId!}
+        onSave={onInlineSave}
+        placeholder="부서"
+        maxLength={20}
+        className="flex justify-center"
+      >
+        {row.department || '-'}
+      </EditableCell>
+    ),
   },
   {
     label: '구분',
     className:
       'text-center truncate overflow-hidden whitespace-nowrap w-[150px]',
-    cell: (row: UserItem) =>
-      row.position ? (positionLabelMap[row.position] ?? row.position) : '-',
+    cell: (row: UserItem) => (
+      <EditableCell
+        value={row.position ?? ''}
+        fieldKey="position"
+        userId={row.userId!}
+        type="position"
+        onSave={onInlineSave}
+        className="flex justify-center"
+      >
+        {row.position
+          ? (positionLabelMap[row.position] ?? row.position)
+          : '-'}
+      </EditableCell>
+    ),
   },
   {
     label: '연구 분야',
@@ -152,29 +219,53 @@ const getUserColumns = (
     label: '연락처',
     className:
       'text-center truncate overflow-hidden whitespace-nowrap w-[150px]',
-    cell: (row: UserItem) =>
-      row.phoneNumber?.trim() ? (
-        <div className="flex items-center justify-center gap-1 text-sm">
-          <Phone className="h-3 w-3 text-gray-400" />
-          <span>{row.phoneNumber}</span>
-        </div>
-      ) : (
-        '-'
-      ),
+    cell: (row: UserItem) => (
+      <EditableCell
+        value={row.phoneNumber?.trim() ?? ''}
+        fieldKey="phoneNumber"
+        userId={row.userId!}
+        onSave={onInlineSave}
+        placeholder="010-1234-5678"
+        maxLength={13}
+        className="flex justify-center"
+      >
+        {row.phoneNumber?.trim() ? (
+          <div className="flex items-center justify-center gap-1 text-sm">
+            <Phone className="h-3 w-3 text-gray-400" />
+            <span>{row.phoneNumber}</span>
+          </div>
+        ) : (
+          '-'
+        )}
+      </EditableCell>
+    ),
   },
   {
     label: '좌석',
     className: 'text-center w-[200px]',
     cell: (row: UserItem) => (
-      <Badge
-        variant="outline"
-        title={formatSeatNumberDetail(row.seatNumber || '융합의학기술원-00-00')}
-        className="mx-auto flex max-w-[150px] items-center justify-center border-gray-300 font-mono"
+      <EditableCell
+        value={row.seatNumber ?? ''}
+        fieldKey="seatNumber"
+        userId={row.userId!}
+        onSave={onInlineSave}
+        placeholder="14-07"
+        className="flex justify-center"
       >
-        <div className="max-w-full truncate overflow-hidden whitespace-nowrap">
-          {formatSeatNumberDetail(row.seatNumber || '융합의학기술원-00-00')}
-        </div>
-      </Badge>
+        <Badge
+          variant="outline"
+          title={formatSeatNumberDetail(
+            row.seatNumber || '융합의학기술원-00-00',
+          )}
+          className="mx-auto flex max-w-[150px] items-center justify-center border-gray-300 font-mono"
+        >
+          <div className="max-w-full truncate overflow-hidden whitespace-nowrap">
+            {formatSeatNumberDetail(
+              row.seatNumber || '융합의학기술원-00-00',
+            )}
+          </div>
+        </Badge>
+      </EditableCell>
     ),
   },
   {
@@ -302,6 +393,69 @@ export default function SystemProjectPage() {
     if (detail) {
       setSelectedUser(detail);
       setEditModalOpen(true);
+    }
+  };
+
+  // 테이블 셀 더블클릭 인라인 수정 저장 (엑셀처럼)
+  const handleInlineSave: InlineSaveFn = async (userId, fieldKey, value) => {
+    const detail = await fetchUserDetail(userId);
+    if (!detail) {
+      toast.error('사용자 정보를 불러올 수 없습니다.');
+      return;
+    }
+    const requestBody: AdminUpdateUserRequest = {
+      name: detail.name ?? '',
+      email: detail.email ?? '',
+      organization: detail.organization ?? '',
+      department: detail.department ?? '',
+      role: (detail.role as AdminUpdateUserRequest['role']) ?? 'USER',
+      newCategoryIds: [],
+      deletedCategoryIds: [],
+      subAffiliations:
+        detail.subAffiliations?.map((a) => ({
+          organization: a.organization ?? '',
+          department: a.department ?? '',
+          position: a.position ?? '',
+        })),
+      position:
+        fieldKey === 'position'
+          ? (value as AdminUpdateUserRequest['position']) || undefined
+          : (detail.position as AdminUpdateUserRequest['position']),
+      phoneNumber: fieldKey === 'phoneNumber' ? value : detail.phoneNumber,
+      seatNumber: fieldKey === 'seatNumber' ? value : detail.seatNumber,
+      annualLeaveCount: detail.annualLeaveCount,
+      comment: detail.comment,
+    };
+    if (fieldKey === 'name') requestBody.name = value;
+    if (fieldKey === 'email') requestBody.email = value;
+    if (fieldKey === 'organization') requestBody.organization = value;
+    if (fieldKey === 'department') requestBody.department = value;
+
+    try {
+      await adminApi.updateUserById({
+        userId,
+        adminUpdateUserRequest: requestBody,
+      });
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.userId === userId
+            ? {
+                ...u,
+                ...(fieldKey === 'name' && { name: value }),
+                ...(fieldKey === 'email' && { email: value }),
+                ...(fieldKey === 'organization' && { organization: value }),
+                ...(fieldKey === 'department' && { department: value }),
+                ...(fieldKey === 'position' && { position: value || undefined }),
+                ...(fieldKey === 'phoneNumber' && { phoneNumber: value }),
+                ...(fieldKey === 'seatNumber' && { seatNumber: value }),
+              }
+            : u,
+        ),
+      );
+      toast.success('저장되었습니다.');
+    } catch (err) {
+      console.error(err);
+      toast.error('저장에 실패했습니다.');
     }
   };
 
@@ -459,6 +613,7 @@ export default function SystemProjectPage() {
             },
             handleUserEdit,
             handleOpenPasswordResetDialog,
+            handleInlineSave,
           )}
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}

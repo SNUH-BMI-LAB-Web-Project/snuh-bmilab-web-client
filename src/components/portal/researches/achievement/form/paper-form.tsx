@@ -29,6 +29,7 @@ import {
 
 import { SingleProjectSelectInput } from '@/components/portal/researches/achievement/single-project-select-input';
 import { SingleTaskSelectInput } from '@/components/portal/researches/achievement/single-task-select-input';
+import { SingleJournalSelectInput } from '@/components/portal/researches/achievement/single-journal-select-input';
 
 interface PaperFormProps {
   initialData?: Paper & {
@@ -36,6 +37,7 @@ interface PaperFormProps {
     projectName?: string;
     taskId?: number;
     taskName?: string;
+    journalId?: number;
   };
   onSave: (data: any) => void;
   onCancel: () => void;
@@ -55,7 +57,7 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
   const [formData, setFormData] = useState({
     acceptDate: '',
     publishDate: '',
-    journalName: '',
+    relatedJournal: { id: null as number | null, name: '' },
     paperTitle: '',
     firstAuthors: '',
     coAuthors: '',
@@ -77,7 +79,16 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
     setFormData({
       acceptDate: initialData.acceptDate ?? '',
       publishDate: initialData.publishDate ?? '',
-      journalName: initialData.journalName ?? '',
+      relatedJournal: {
+        id:
+          initialData.journalId ??
+          (initialData as any).journal?.id ??
+          null,
+        name:
+          initialData.journalName ??
+          (initialData as any).journal?.journalName ??
+          '',
+      },
       paperTitle: initialData.paperTitle ?? '',
       firstAuthors: initialData.firstAuthors ?? '',
       coAuthors: initialData.coAuthors ?? '',
@@ -111,8 +122,13 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
       return;
     }
 
-    if (!formData.relatedProject.id) {
-      toast('연계 프로젝트를 선택해주세요.');
+    if (!formData.publishDate) {
+      toast('Publish Date를 선택해주세요.');
+      return;
+    }
+
+    if (!formData.relatedJournal.id) {
+      toast('저널을 검색하여 선택해주세요.');
       return;
     }
 
@@ -131,7 +147,7 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
     const payload = {
       acceptDate: formData.acceptDate,
       publishDate: formData.publishDate,
-      journalId: 1,
+      journalId: formData.relatedJournal.id,
       paperTitle: formData.paperTitle,
       allAuthors,
       firstAuthor: firstAuthorsList[0] || '',
@@ -166,9 +182,7 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="acceptDate">
-            Accept Date <span className="text-destructive">*</span>
-          </Label>
+          <Label htmlFor="acceptDate">Accept Date</Label>
           <DatePicker
             value={formData.acceptDate}
             onChange={(date) =>
@@ -179,7 +193,9 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="publishDate">Publish Date</Label>
+          <Label htmlFor="publishDate">
+            Publish Date <span className="text-destructive">*</span>
+          </Label>
           <DatePicker
             value={formData.publishDate}
             onChange={(date) =>
@@ -191,16 +207,26 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="journalName">
-          저널명 <span className="text-destructive">*</span>
+        <Label htmlFor="journal">
+          저널 <span className="text-destructive">*</span>
         </Label>
-        <Input
-          id="journalName"
-          value={formData.journalName}
-          onChange={(e) =>
-            setFormData({ ...formData, journalName: e.target.value })
+        <SingleJournalSelectInput
+          value={formData.relatedJournal.name}
+          onValueChange={(name) =>
+            setFormData((prev) => ({
+              ...prev,
+              relatedJournal: { ...prev.relatedJournal, name },
+            }))
           }
-          placeholder="저널 입력"
+          onJournalSelected={(j) =>
+            setFormData((prev) => ({
+              ...prev,
+              relatedJournal: j
+                ? { id: j.id ?? null, name: j.journalName ?? '' }
+                : { id: null, name: '' },
+            }))
+          }
+          placeholder="저널 검색"
           required
         />
       </div>
@@ -403,9 +429,7 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
       {/* 연계 프로젝트 및 과제 선택 영역 (하단 이동) */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>
-            연계 프로젝트 <span className="text-destructive">*</span>
-          </Label>
+          <Label>연계 프로젝트</Label>
           <SingleProjectSelectInput
             value={formData.relatedProject.name}
             onValueChange={(name) =>

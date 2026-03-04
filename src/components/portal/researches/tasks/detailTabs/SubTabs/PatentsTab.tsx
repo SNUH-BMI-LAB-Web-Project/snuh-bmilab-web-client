@@ -33,17 +33,25 @@ import { getApiConfig } from '@/lib/config';
 
 const taskApi = new TaskApi(getApiConfig());
 
+type PatentAuthor = {
+  userId?: number;
+  userName?: string;
+  externalProfessorId?: number;
+  externalProfessorName?: string;
+  role?: string;
+};
+
+function authorDisplayName(a: PatentAuthor): string {
+  return a.userName ?? a.externalProfessorName ?? '';
+}
+
 type Patent = {
   id: number;
   applicationDate: string;
   applicationNumber: string;
   patentName: string;
   applicantsAll: string;
-  patentAuthors: {
-    userId: number;
-    userName: string;
-    role: string;
-  }[];
+  patentAuthors: PatentAuthor[];
   remarks: string;
   projectId: number;
   projectName: string;
@@ -100,7 +108,7 @@ export default function PatentsTab() {
     const q = searchQuery.toLowerCase();
 
     const labApplicants =
-      item.patentAuthors?.map((a) => a.userName).join(', ') ?? '';
+      item.patentAuthors?.map((a) => authorDisplayName(a)).join(', ') ?? '';
 
     if (searchColumn === 'all') {
       return (
@@ -213,7 +221,7 @@ export default function PatentsTab() {
             ) : (
               sortedData.map((item, index) => {
                 const labApplicants =
-                  item.patentAuthors?.map((a) => a.userName).join(', ') ?? '-';
+                  item.patentAuthors?.map((a) => authorDisplayName(a)).join(', ') ?? '-';
 
                 return (
                   <TableRow key={item.id}>

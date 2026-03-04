@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-// 실제 API 응답 양식에 맞춘 타입 정의
+// 실제 API 응답 양식에 맞춘 타입 정의 (내부: userName, 외부: externalProfessorName)
 interface PatentData {
   id: number;
   applicationDate: string;
@@ -34,20 +34,28 @@ interface PatentData {
   patentName: string;
   applicantsAll: string;
   patentAuthors: Array<{
-    userId: number;
-    userName: string;
-    role: string;
+    userId?: number;
+    userName?: string;
+    externalProfessorId?: number;
+    externalProfessorName?: string;
+    role?: string;
   }>;
   remarks: string;
-  projectId: number;
-  projectName: string;
-  taskId: number;
-  taskName: string;
+  projectId?: number;
+  projectName?: string;
+  taskId?: number;
+  taskName?: string;
   files: Array<{
     fileId: string;
     fileName: string;
     uploadUrl: string;
   }>;
+}
+
+function authorDisplayName(
+  a: PatentData['patentAuthors'][0],
+): string {
+  return a.userName ?? a.externalProfessorName ?? '';
 }
 
 interface PatentTableProps {
@@ -76,7 +84,7 @@ export function PatentTable({ data, onEdit, onDelete }: PatentTableProps) {
     const q = searchQuery.toLowerCase();
 
     const labApplicants =
-      item.patentAuthors?.map((a) => a.userName).join(', ') ?? '';
+      item.patentAuthors?.map((a) => authorDisplayName(a)).join(', ') ?? '';
 
     if (searchColumn === 'all') {
       return (
@@ -180,7 +188,7 @@ export function PatentTable({ data, onEdit, onDelete }: PatentTableProps) {
             ) : (
               sortedData.map((item, index) => {
                 const labApplicants =
-                  item.patentAuthors?.map((a) => a.userName).join(', ') ?? '-';
+                  item.patentAuthors?.map((a) => authorDisplayName(a)).join(', ') ?? '-';
 
                 return (
                   <TableRow key={item.id} className="hover:bg-muted/50">

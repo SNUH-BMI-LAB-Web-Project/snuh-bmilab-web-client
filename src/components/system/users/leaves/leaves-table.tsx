@@ -34,8 +34,9 @@ import {
   AdminLeaveApi,
   GetLeaves1StatusEnum,
   LeaveDetail,
-  UserDetail,
+  UserSummary,
 } from '@/generated-api';
+import Link from 'next/link';
 import { getApiConfig } from '@/lib/config';
 import {
   leaveStatusColorMap,
@@ -57,12 +58,18 @@ const rejectReasonTemplates = [
 
 const leaveApi = new AdminLeaveApi(getApiConfig());
 
-function UserProfilePopover({ employee }: { employee: UserDetail }) {
+function UserProfilePopover({ employee }: { employee: UserSummary }) {
+  const nameNode = (
+    <span className="truncate transition-colors hover:underline">
+      {employee.name}
+    </span>
+  );
+
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" className="h-auto p-0 hover:bg-transparent">
-          <div className="flex cursor-pointer items-center gap-3">
+    <div className="flex items-center gap-3">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="ghost" className="h-auto p-0 hover:bg-transparent">
             <Avatar
               className={cn('aspect-square h-9 w-9 rounded-full border-1')}
             >
@@ -72,51 +79,58 @@ function UserProfilePopover({ employee }: { employee: UserDetail }) {
                 className="object-cover"
               />
             </Avatar>
-            <span className="truncate transition-colors hover:underline">
-              {employee.name}
-            </span>
-          </div>
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80" align="start">
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <Avatar
-              className={cn('aspect-square h-12 w-12 rounded-full border-1')}
-            >
-              <AvatarImage
-                src={employee.profileImageUrl || '/default-profile-image.svg'}
-                alt="tmp"
-                className="object-cover"
-              />
-            </Avatar>
-            <div>
-              <h4 className="text-lg font-semibold">{employee.name}</h4>
-              <p className="text-muted-foreground text-sm">{employee.email} </p>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80" align="start">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <Avatar
+                className={cn('aspect-square h-12 w-12 rounded-full border-1')}
+              >
+                <AvatarImage
+                  src={employee.profileImageUrl || '/default-profile-image.svg'}
+                  alt="tmp"
+                  className="object-cover"
+                />
+              </Avatar>
+              <div>
+                <h4 className="text-lg font-semibold">{employee.name}</h4>
+                <p className="text-muted-foreground text-sm">{employee.email} </p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm">
+                <Building className="text-muted-foreground h-4 w-4" />
+                <span className="font-medium">기관:</span>
+                <span>{employee.organization ? employee.organization : ''}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Users className="text-muted-foreground h-4 w-4" />
+                <span className="font-medium">부서:</span>
+                <span>{employee.department ? employee.department : ''}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <User className="text-muted-foreground h-4 w-4" />
+                <span className="font-medium">구분:</span>
+                <span>
+                  {employee.position ? positionLabelMap[employee.position] : ''}
+                </span>
+              </div>
             </div>
           </div>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm">
-              <Building className="text-muted-foreground h-4 w-4" />
-              <span className="font-medium">기관:</span>
-              <span>{employee.organization ? employee.organization : ''}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Users className="text-muted-foreground h-4 w-4" />
-              <span className="font-medium">부서:</span>
-              <span>{employee.department ? employee.department : ''}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <User className="text-muted-foreground h-4 w-4" />
-              <span className="font-medium">구분:</span>
-              <span>
-                {employee.position ? positionLabelMap[employee.position] : ''}
-              </span>
-            </div>
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+      {employee.userId != null ? (
+        <Link
+          href={`/system/users/members/${employee.userId}`}
+          className="cursor-pointer"
+        >
+          {nameNode}
+        </Link>
+      ) : (
+        nameNode
+      )}
+    </div>
   );
 }
 
