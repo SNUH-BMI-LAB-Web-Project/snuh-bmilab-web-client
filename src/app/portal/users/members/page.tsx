@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import UserInfoCard from '@/components/portal/users/members/user-info-card';
 import {
@@ -32,7 +32,7 @@ const api = new UserApi(getApiConfig());
 
 type StatusTabValue = 'ALL' | GetAllUsersStatusEnum;
 
-export default function UsersPage() {
+function UsersPageContent() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -215,5 +215,13 @@ export default function UsersPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function UsersPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[200px] items-center justify-center">로딩 중...</div>}>
+      <UsersPageContent />
+    </Suspense>
   );
 }

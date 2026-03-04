@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -231,7 +231,7 @@ const getProjectColumns = (currentPage: number, itemsPerPage: number) => [
   },
 ];
 
-export default function ProjectPage() {
+function ProjectPageContent() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -511,5 +511,13 @@ export default function ProjectPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function ProjectPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[200px] items-center justify-center">로딩 중...</div>}>
+      <ProjectPageContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -128,7 +128,7 @@ const getUserColumns = (currentPage: number, itemsPerPage: number) => [
   },
 ];
 
-export default function PortalBoardPage() {
+function PortalBoardPageContent() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -318,5 +318,13 @@ export default function PortalBoardPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function PortalBoardPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[200px] items-center justify-center">로딩 중...</div>}>
+      <PortalBoardPageContent />
+    </Suspense>
   );
 }

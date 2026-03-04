@@ -30,7 +30,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import { AdminUserApi, UserApi, UserDetail, UserItem } from '@/generated-api';
+import {
+  AdminUserApi,
+  UserApi,
+  UserDetail,
+  UserItem,
+  UserItemPositionEnum,
+} from '@/generated-api';
 import { toast } from 'sonner';
 import UserEditModal from '@/components/system/users/members/user-edit-modal';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
@@ -437,20 +443,22 @@ export default function SystemProjectPage() {
         adminUpdateUserRequest: requestBody,
       });
       setUsers((prev) =>
-        prev.map((u) =>
-          u.userId === userId
-            ? {
-                ...u,
-                ...(fieldKey === 'name' && { name: value }),
-                ...(fieldKey === 'email' && { email: value }),
-                ...(fieldKey === 'organization' && { organization: value }),
-                ...(fieldKey === 'department' && { department: value }),
-                ...(fieldKey === 'position' && { position: value || undefined }),
-                ...(fieldKey === 'phoneNumber' && { phoneNumber: value }),
-                ...(fieldKey === 'seatNumber' && { seatNumber: value }),
-              }
-            : u,
-        ),
+        prev.map((u): UserItem => {
+          if (u.userId !== userId) return u;
+          const updated: UserItem = {
+            ...u,
+            ...(fieldKey === 'name' && { name: value }),
+            ...(fieldKey === 'email' && { email: value }),
+            ...(fieldKey === 'organization' && { organization: value }),
+            ...(fieldKey === 'department' && { department: value }),
+            ...(fieldKey === 'position' && {
+              position: (value || undefined) as UserItemPositionEnum | undefined,
+            }),
+            ...(fieldKey === 'phoneNumber' && { phoneNumber: value }),
+            ...(fieldKey === 'seatNumber' && { seatNumber: value }),
+          };
+          return updated;
+        }),
       );
       toast.success('저장되었습니다.');
     } catch (err) {
