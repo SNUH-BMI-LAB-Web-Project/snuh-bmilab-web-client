@@ -47,5 +47,9 @@ export const uploadFileWithPresignedUrl = async (
     throw new Error(`File metadata registration failed: ${error}`);
   }
 
-  return response.json(); // fileRecord
+  const record = await response.json();
+  if (record && !record.fileId && record.uuid) {
+    record.fileId = record.uuid;
+  }
+  return record;
 };

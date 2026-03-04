@@ -135,11 +135,17 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
 
     const patentAuthorsPayload = [
       ...authorUserIds.map((id) => ({ userId: id, role: '발명자' })),
-      ...externalAuthors.map((e) => ({
-        externalProfessorId: e.professorId ?? 0,
-        role: '발명자',
-      })),
+      ...externalAuthors
+        .filter((e) => e.professorId != null && e.professorId !== 0)
+        .map((e) => ({
+          externalProfessorId: e.professorId as number,
+          role: '발명자',
+        })),
     ];
+
+    const validFileIds = files
+      .map((f) => f.fileId)
+      .filter((id): id is string => Boolean(id && typeof id === 'string'));
 
     const payload = {
       applicationDate,
@@ -150,7 +156,7 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
       remarks,
       ...(relatedProject.id != null && { projectId: relatedProject.id }),
       ...(relatedTask.id != null && { taskId: relatedTask.id }),
-      fileIds: files.map((f) => f.fileId as string),
+      fileIds: validFileIds,
     };
 
     try {

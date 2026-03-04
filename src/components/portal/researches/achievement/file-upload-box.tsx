@@ -43,8 +43,15 @@ export function FileUploadBox({
     );
 
     const validFiles = uploaded.filter(
-      (f): f is ProjectFileSummary => f !== null,
+      (f): f is ProjectFileSummary =>
+        f !== null &&
+        typeof (f as ProjectFileSummary).fileId === 'string' &&
+        (f as ProjectFileSummary).fileId!.length > 0,
     );
+
+    if (validFiles.length < uploaded.filter(Boolean).length) {
+      toast.error('일부 파일 메타데이터 등록에 실패했습니다.');
+    }
 
     onChange([...value, ...validFiles]);
   };

@@ -20,11 +20,17 @@ import { mapValues } from '../runtime';
  */
 export interface PatentAuthorRequest {
     /**
-     * 사용자 ID
+     * 사용자 ID (내부 사용자)
      * @type {number}
      * @memberof PatentAuthorRequest
      */
     userId?: number;
+    /**
+     * 외부 인사 ID (userId와 중 하나만 입력)
+     * @type {number}
+     * @memberof PatentAuthorRequest
+     */
+    externalProfessorId?: number;
     /**
      * 저자 역할
      * @type {string}
@@ -51,6 +57,7 @@ export function PatentAuthorRequestFromJSONTyped(json: any, ignoreDiscriminator:
     return {
         
         'userId': json['userId'] == null ? undefined : json['userId'],
+        'externalProfessorId': json['externalProfessorId'] == null ? undefined : json['externalProfessorId'],
         'role': json['role'] == null ? undefined : json['role'],
     };
 }
@@ -67,6 +74,7 @@ export function PatentAuthorRequestToJSONTyped(value?: PatentAuthorRequest | nul
     return {
         
         'userId': value['userId'],
+        'externalProfessorId': value['externalProfessorId'],
         'role': value['role'],
     };
 }
