@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import { Plus, Edit, Trash2, Save, BookOpen } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, BookOpen, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
@@ -47,6 +47,7 @@ const api = new ResearchApi(getApiConfig());
 
 type JournalForm = {
   journalName: string;
+  year: string; // 연도 (필수, 년도별 분류)
   category: CreateJournalRequestCategoryEnum | ''; // 선택 전 ''
   publisher: string;
   publishCountry: string;
@@ -77,6 +78,7 @@ export default function JournalPage() {
 
   const [formData, setFormData] = useState<JournalForm>({
     journalName: '',
+    year: '',
     category: '',
     publisher: '',
     publishCountry: '',
@@ -87,6 +89,41 @@ export default function JournalPage() {
     jcrRank: '',
     issue: '',
   });
+
+  type SortKey = 'year' | 'journalName';
+  const [sortBy, setSortBy] = useState<SortKey | null>('year');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const sortedJournals = useMemo(() => {
+    if (!sortBy) return [...journals];
+    return [...journals].sort((a, b) => {
+      const aVal = sortBy === 'year' ? (a.year ?? 0) : (a.journalName ?? '');
+      const bVal = sortBy === 'year' ? (b.year ?? 0) : (b.journalName ?? '');
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+      const cmp = String(aVal).localeCompare(String(bVal));
+      return sortOrder === 'asc' ? cmp : -cmp;
+    });
+  }, [journals, sortBy, sortOrder]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortBy === key) {
+      setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(key);
+      setSortOrder(key === 'year' ? 'desc' : 'asc');
+    }
+  };
+
+  const SortIcon = ({ column }: { column: SortKey }) => {
+    if (sortBy !== column) return <ArrowUpDown className="ml-1 inline h-4 w-4 opacity-50" />;
+    return sortOrder === 'asc' ? (
+      <ArrowUp className="ml-1 inline h-4 w-4" />
+    ) : (
+      <ArrowDown className="ml-1 inline h-4 w-4" />
+    );
+  };
 
   const fetchJournals = async () => {
     try {
@@ -104,6 +141,7 @@ export default function JournalPage() {
   const resetForm = () => {
     setFormData({
       journalName: '',
+      year: '',
       category: '',
       publisher: '',
       publishCountry: '',
@@ -120,6 +158,7 @@ export default function JournalPage() {
     setEditingJournal(journal);
     setFormData({
       journalName: journal.journalName ?? '',
+      year: journal.year != null ? String(journal.year) : '',
       category: (journal.category as CreateJournalRequestCategoryEnum) ?? '',
       publisher: journal.publisher ?? '',
       publishCountry: journal.publishCountry ?? '',
@@ -141,8 +180,12 @@ export default function JournalPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const yearNum = formData.year.trim() ? parseInt(formData.year.trim(), 10) : NaN;
+  const isYearValid = !isNaN(yearNum) && yearNum >= 1900 && yearNum <= 2100;
+
   const isAllRequiredValid =
     !!formData.journalName.trim() &&
+    isYearValid &&
     !!formData.category &&
     !!formData.publisher.trim() &&
     !!formData.publishCountry.trim() &&
@@ -160,6 +203,7 @@ export default function JournalPage() {
       await api.createJournal({
         createJournalRequest: {
           journalName: formData.journalName.trim(),
+          year: yearNum,
           category: formData.category as CreateJournalRequestCategoryEnum,
           publisher: formData.publisher.trim(),
           publishCountry: formData.publishCountry.trim(),
@@ -189,6 +233,7 @@ export default function JournalPage() {
         journalId: Number(editingJournal.id),
         updateJournalRequest: {
           journalName: formData.journalName.trim(),
+          year: yearNum,
           category:
             formData.category as unknown as UpdateJournalRequestCategoryEnum,
           publisher: formData.publisher.trim(),
@@ -266,6 +311,21 @@ export default function JournalPage() {
                   handleInputChange('journalName', e.target.value)
                 }
                 placeholder="Nature / IEEE Transactions on ..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="year">
+                연도 <span className="text-destructive text-xs">*</span>
+              </Label>
+              <Input
+                id="year"
+                type="number"
+                min={1900}
+                max={2100}
+                value={formData.year}
+                onChange={(e) => handleInputChange('year', e.target.value)}
+                placeholder="예: 2025"
               />
             </div>
 
@@ -429,7 +489,28 @@ export default function JournalPage() {
             <Table className="min-w-[1100px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="pl-6">저널명</TableHead>
+                  <TableHead className="pl-6">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="-ml-2 h-8 font-semibold"
+                      onClick={() => toggleSort('journalName')}
+                    >
+                      저널명
+                      <SortIcon column="journalName" />
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="-ml-2 h-8 font-semibold"
+                      onClick={() => toggleSort('year')}
+                    >
+                      연도 (시간순)
+                      <SortIcon column="year" />
+                    </Button>
+                  </TableHead>
                   <TableHead>분류</TableHead>
                   <TableHead>출판사</TableHead>
                   <TableHead>국가</TableHead>
@@ -444,11 +525,12 @@ export default function JournalPage() {
               </TableHeader>
 
               <TableBody>
-                {journals.map((j) => (
-                  <TableRow key={String(j.id ?? `${j.journalName}-${j.issn}`)}>
+                {sortedJournals.map((j) => (
+                  <TableRow key={String(j.id ?? `${j.journalName}-${j.year}-${j.issn}`)}>
                     <TableCell>
                       <div className="pl-4 font-medium">{j.journalName}</div>
                     </TableCell>
+                    <TableCell>{j.year ?? '-'}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{j.category}</Badge>
                     </TableCell>

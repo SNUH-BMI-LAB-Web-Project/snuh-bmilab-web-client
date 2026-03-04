@@ -79,6 +79,12 @@ export interface CreateJournalRequest {
      * @memberof CreateJournalRequest
      */
     issue?: string;
+    /**
+     * 연도 (년도별 분류, 필수)
+     * @type {number}
+     * @memberof CreateJournalRequest
+     */
+    year: number;
 }
 
 
@@ -105,6 +111,7 @@ export function instanceOfCreateJournalRequest(value: object): value is CreateJo
     if (!('issn' in value) || value['issn'] === undefined) return false;
     if (!('jif' in value) || value['jif'] === undefined) return false;
     if (!('jcrRank' in value) || value['jcrRank'] === undefined) return false;
+    if (!('year' in value) || value['year'] === undefined) return false;
     return true;
 }
 
@@ -128,6 +135,7 @@ export function CreateJournalRequestFromJSONTyped(json: any, ignoreDiscriminator
         'jif': json['jif'],
         'jcrRank': json['jcrRank'],
         'issue': json['issue'] == null ? undefined : json['issue'],
+        'year': json['year'],
     };
 }
 
@@ -152,6 +160,7 @@ export function CreateJournalRequestToJSONTyped(value?: CreateJournalRequest | n
         'jif': value['jif'],
         'jcrRank': value['jcrRank'],
         'issue': value['issue'],
+        'year': value['year'],
     };
 }
 

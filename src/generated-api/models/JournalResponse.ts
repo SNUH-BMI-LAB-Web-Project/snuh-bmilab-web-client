@@ -85,6 +85,12 @@ export interface JournalResponse {
      * @memberof JournalResponse
      */
     issue?: string;
+    /**
+     * 연도 (년도별 분류, 필수)
+     * @type {number}
+     * @memberof JournalResponse
+     */
+    year?: number;
 }
 
 
@@ -128,6 +134,7 @@ export function JournalResponseFromJSONTyped(json: any, ignoreDiscriminator: boo
         'jif': json['jif'] == null ? undefined : json['jif'],
         'jcrRank': json['jcrRank'] == null ? undefined : json['jcrRank'],
         'issue': json['issue'] == null ? undefined : json['issue'],
+        'year': json['year'] == null ? undefined : json['year'],
     };
 }
 
@@ -153,6 +160,7 @@ export function JournalResponseToJSONTyped(value?: JournalResponse | null, ignor
         'jif': value['jif'],
         'jcrRank': value['jcrRank'],
         'issue': value['issue'],
+        'year': value['year'],
     };
 }
 

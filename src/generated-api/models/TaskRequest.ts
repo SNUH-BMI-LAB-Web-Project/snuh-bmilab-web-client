@@ -70,11 +70,11 @@ export interface TaskRequest {
      */
     supportType: TaskRequestSupportTypeEnum;
     /**
-     * 3책5공 포함 여부
-     * @type {boolean}
+     * 3책5공 (RESPONSIBLE: 책임, JOINT: 공동, NOT_APPLICABLE: 해당없음)
+     * @type {string}
      * @memberof TaskRequest
      */
-    threeFiveRule: boolean;
+    threeFiveRule: TaskRequestThreeFiveRuleEnum;
     /**
      * 총 연차
      * @type {number}
@@ -181,6 +181,16 @@ export const TaskRequestStatusEnum = {
     Completed: 'COMPLETED'
 } as const;
 export type TaskRequestStatusEnum = typeof TaskRequestStatusEnum[keyof typeof TaskRequestStatusEnum];
+
+/**
+ * @export
+ */
+export const TaskRequestThreeFiveRuleEnum = {
+    Responsible: 'RESPONSIBLE',
+    Joint: 'JOINT',
+    NotApplicable: 'NOT_APPLICABLE'
+} as const;
+export type TaskRequestThreeFiveRuleEnum = typeof TaskRequestThreeFiveRuleEnum[keyof typeof TaskRequestThreeFiveRuleEnum];
 
 
 /**

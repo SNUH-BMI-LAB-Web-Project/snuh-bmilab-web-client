@@ -38,11 +38,11 @@ export interface TaskBasicInfoUpdateRequest {
      */
     announcementNumber?: string;
     /**
-     * 3책5공
-     * @type {boolean}
+     * 3책5공 (RESPONSIBLE: 책임, JOINT: 공동, NOT_APPLICABLE: 해당없음)
+     * @type {string}
      * @memberof TaskBasicInfoUpdateRequest
      */
-    threeFiveRule?: boolean;
+    threeFiveRule?: TaskBasicInfoUpdateRequestThreeFiveRuleEnum;
     /**
      * 공고 시작일
      * @type {Date}
@@ -98,6 +98,16 @@ export interface TaskBasicInfoUpdateRequest {
      */
     announcementFileIds?: Array<string>;
 }
+
+/**
+ * @export
+ */
+export const TaskBasicInfoUpdateRequestThreeFiveRuleEnum = {
+    Responsible: 'RESPONSIBLE',
+    Joint: 'JOINT',
+    NotApplicable: 'NOT_APPLICABLE'
+} as const;
+export type TaskBasicInfoUpdateRequestThreeFiveRuleEnum = typeof TaskBasicInfoUpdateRequestThreeFiveRuleEnum[keyof typeof TaskBasicInfoUpdateRequestThreeFiveRuleEnum];
 
 /**
  * Check if a given object implements the TaskBasicInfoUpdateRequest interface.

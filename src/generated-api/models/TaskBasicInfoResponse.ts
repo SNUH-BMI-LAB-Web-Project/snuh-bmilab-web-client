@@ -95,11 +95,11 @@ export interface TaskBasicInfoResponse {
      */
     announcementLink?: string;
     /**
-     * 3책5공
-     * @type {boolean}
+     * 3책5공 (RESPONSIBLE: 책임, JOINT: 공동, NOT_APPLICABLE: 해당없음)
+     * @type {string}
      * @memberof TaskBasicInfoResponse
      */
-    threeFiveRule?: boolean;
+    threeFiveRule?: TaskBasicInfoResponseThreeFiveRuleEnum;
     /**
      * 과제제안요구서(RFP) 파일
      * @type {Array<FileSummary>}
@@ -119,6 +119,16 @@ export interface TaskBasicInfoResponse {
      */
     periods?: Array<TaskPeriodResponse>;
 }
+
+/**
+ * @export
+ */
+export const TaskBasicInfoResponseThreeFiveRuleEnum = {
+    Responsible: 'RESPONSIBLE',
+    Joint: 'JOINT',
+    NotApplicable: 'NOT_APPLICABLE'
+} as const;
+export type TaskBasicInfoResponseThreeFiveRuleEnum = typeof TaskBasicInfoResponseThreeFiveRuleEnum[keyof typeof TaskBasicInfoResponseThreeFiveRuleEnum];
 
 /**
  * Check if a given object implements the TaskBasicInfoResponse interface.

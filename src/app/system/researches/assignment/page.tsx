@@ -37,6 +37,7 @@ import {
   TaskSummaryResponse,
 } from '@/generated-api';
 import { getApiConfig } from '@/lib/config';
+import { getThreeFiveRuleLabel } from '@/lib/constants/threeFiveRule';
 import { format } from 'date-fns';
 
 const taskApi = new TaskApi(getApiConfig());
@@ -138,7 +139,7 @@ export default function TaskManagementPage() {
     professorRole?: string;
     practicalManager?: string;
     participatingInstitutions?: { name: string }[];
-    includesThreeToFive?: boolean;
+    includesThreeToFive?: string; // ThreeFiveRuleType
     progressStage?: string; // 한글 표시 (제안서 작성/진행중…)
     isInternal?: boolean;
   };
@@ -185,7 +186,7 @@ export default function TaskManagementPage() {
         : undefined,
       practicalManager: item.practicalManagerName ?? '',
       participatingInstitutions,
-      includesThreeToFive: item.threeFiveRule,
+      includesThreeToFive: item.threeFiveRule ?? undefined,
       progressStage: item.status
         ? STATUS_ENUM_TO_LABEL[item.status as GetAllTasksStatusEnum]
         : undefined,
@@ -514,15 +515,9 @@ export default function TaskManagementPage() {
                                 <div className="pl-6">
                                   <Badge
                                     variant="outline"
-                                    className={
-                                      task.includesThreeToFive
-                                        ? 'border-blue-200 text-xs text-blue-700'
-                                        : 'border-gray-200 text-xs text-gray-700'
-                                    }
+                                    className="border-gray-200 text-xs text-gray-700"
                                   >
-                                    {task.includesThreeToFive
-                                      ? '포함'
-                                      : '불포함'}
+                                    {getThreeFiveRuleLabel(task.includesThreeToFive)}
                                   </Badge>
                                 </div>
                               </div>

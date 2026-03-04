@@ -29,7 +29,7 @@ export default function ResearchManagementSystem({
 }: {
   isUserView?: boolean;
 }) {
-  const [activeTab, setActiveTab] = useState<ResearchType>('book');
+  const [activeTab, setActiveTab] = useState<ResearchType>('paper');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -85,12 +85,11 @@ export default function ResearchManagementSystem({
         onValueChange={(v) => setActiveTab(v as ResearchType)}
       >
         <div className="flex items-center justify-between">
-          <TabsList className="grid w-full max-w-3xl grid-cols-5">
-            <TabsTrigger value="book">저서</TabsTrigger>
-            <TabsTrigger value="conference">학회 발표</TabsTrigger>
-            <TabsTrigger value="award">수상</TabsTrigger>
+          <TabsList className="grid w-full max-w-3xl grid-cols-4">
             <TabsTrigger value="paper">논문</TabsTrigger>
             <TabsTrigger value="patent">특허</TabsTrigger>
+            <TabsTrigger value="conference">학회 발표</TabsTrigger>
+            <TabsTrigger value="award">수상</TabsTrigger>
           </TabsList>
           <Button onClick={handleAdd}>
             <Plus className="mr-2 h-4 w-4" />

@@ -32,6 +32,7 @@ import { toast } from 'sonner';
 import { TaskApi, GetAllTasksStatusEnum } from '@/generated-api/apis/TaskApi';
 import type { TaskSummaryResponse } from '@/generated-api';
 import { getApiConfig } from '@/lib/config';
+import { getThreeFiveRuleLabel } from '@/lib/constants/threeFiveRule';
 import TaskEditModal from './TaskEditModal';
 
 const taskApi = new TaskApi(getApiConfig());
@@ -113,7 +114,7 @@ type UiTask = {
 
   participatingInstitutions?: { name: string }[];
 
-  includesThreeToFive?: boolean;
+  includesThreeToFive?: string; // ThreeFiveRuleType: RESPONSIBLE | JOINT | NOT_APPLICABLE
   progressStage?: string; // 한글(진행중/제안서작성…)
   isInternal?: boolean;
 };
@@ -167,7 +168,7 @@ function normalizeTask(item: TaskSummaryResponse): UiTask {
 
     participatingInstitutions,
 
-    includesThreeToFive: item.threeFiveRule,
+    includesThreeToFive: item.threeFiveRule ?? undefined,
     progressStage: item.status
       ? STATUS_ENUM_TO_LABEL[item.status as GetAllTasksStatusEnum]
       : undefined,
@@ -398,13 +399,9 @@ export default function TaskHeaderCard() {
               <div className="pl-6">
                 <Badge
                   variant="outline"
-                  className={
-                    task.includesThreeToFive
-                      ? 'border-blue-200 text-xs text-blue-700'
-                      : 'border-gray-200 text-xs text-gray-700'
-                  }
+                  className="border-gray-200 text-xs text-gray-700"
                 >
-                  {task.includesThreeToFive ? '포함' : '불포함'}
+                  {getThreeFiveRuleLabel(task.includesThreeToFive)}
                 </Badge>
               </div>
             </div>

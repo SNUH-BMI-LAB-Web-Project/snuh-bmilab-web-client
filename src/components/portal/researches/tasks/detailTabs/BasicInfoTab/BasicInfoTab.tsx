@@ -89,7 +89,7 @@ export default function BasicInfoTab({ taskInfo }: { taskInfo?: any }) {
         businessContactEmail: editData.businessContactEmail ?? '',
         businessContactPhone: editData.businessContactPhone ?? '',
         announcementLink: editData.announcementLink ?? '',
-        threeFiveRule: editData.threeFiveRule ?? false,
+        threeFiveRule: editData.threeFiveRule ?? undefined,
 
         // 파일 저장용
         rfpFileIds: editData.rfpFiles?.map((f: any) => f.fileId) ?? [],

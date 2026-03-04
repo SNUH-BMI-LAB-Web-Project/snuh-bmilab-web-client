@@ -82,11 +82,11 @@ export interface TaskSummaryResponse {
      */
     supportType?: TaskSummaryResponseSupportTypeEnum;
     /**
-     * 삼책오공
-     * @type {boolean}
+     * 3책5공 (RESPONSIBLE: 책임, JOINT: 공동, NOT_APPLICABLE: 해당없음)
+     * @type {string}
      * @memberof TaskSummaryResponse
      */
-    threeFiveRule?: boolean;
+    threeFiveRule?: TaskSummaryResponseThreeFiveRuleEnum;
     /**
      * 총 연차
      * @type {number}
@@ -194,6 +194,16 @@ export const TaskSummaryResponseSupportTypeEnum = {
     FifthLead: 'FIFTH_LEAD'
 } as const;
 export type TaskSummaryResponseSupportTypeEnum = typeof TaskSummaryResponseSupportTypeEnum[keyof typeof TaskSummaryResponseSupportTypeEnum];
+
+/**
+ * @export
+ */
+export const TaskSummaryResponseThreeFiveRuleEnum = {
+    Responsible: 'RESPONSIBLE',
+    Joint: 'JOINT',
+    NotApplicable: 'NOT_APPLICABLE'
+} as const;
+export type TaskSummaryResponseThreeFiveRuleEnum = typeof TaskSummaryResponseThreeFiveRuleEnum[keyof typeof TaskSummaryResponseThreeFiveRuleEnum];
 
 /**
  * @export
