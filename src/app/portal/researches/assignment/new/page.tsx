@@ -13,19 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { DateInput } from '@/components/ui/date-input';
 import {
   ArrowLeft,
   X,
   Minus,
   Plus,
-  Calendar as CalendarIcon,
 } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import SingleUserSelectInput from '@/components/portal/researches/assignment/single-user-select-input';
@@ -34,12 +28,13 @@ import {
   ExternalProfessorItem,
   TaskPeriodRequest,
   TaskRequest,
+  TaskRequestThreeFiveRuleEnum,
 } from '@/generated-api';
 import { getProfessorKey } from '@/utils/external-professor-utils';
-import { format, parseISO } from 'date-fns';
-import { ko } from 'date-fns/locale';
+import { parseISO } from 'date-fns';
 import { TaskApi } from '@/generated-api/apis/TaskApi';
 import { getApiConfig } from '@/lib/config';
+import { THREE_FIVE_RULE_OPTIONS } from '@/lib/constants/threeFiveRule';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -109,7 +104,7 @@ export default function AddTaskPage() {
     kimKwangSooRole: '',
     practicalManager: '',
     participatingInstitutions: [] as string[], // Changed to array for tag-based input
-    includesThreeToFive: '',
+    includesThreeToFive: '' as string, // RESPONSIBLE | JOINT | NOT_APPLICABLE
     progressStage: '',
     isInternal: true,
   });
@@ -135,7 +130,6 @@ export default function AddTaskPage() {
     : [];
   const selectedSnuhKeys = snuhPIs.map(getProfessorKey);
 
-  const toYMD = (d?: Date) => (d ? format(d, 'yyyy-MM-dd') : '');
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -232,7 +226,8 @@ export default function AddTaskPage() {
     }
 
     // 스키마 변환
-    const threeFiveRule = formData.includesThreeToFive === '포함';
+    const threeFiveRule: TaskRequestThreeFiveRuleEnum =
+      (formData.includesThreeToFive || 'NOT_APPLICABLE') as TaskRequestThreeFiveRuleEnum;
     const totalYears = formData.totalYears ? Number(formData.totalYears) : 0;
     const currentYear = parseCurrentYear(formData.progressStage);
     const periods: TaskPeriodRequest[] | undefined = (
@@ -460,79 +455,33 @@ export default function AddTaskPage() {
                           </Label>
                         </div>
 
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              id={`startDate-${period.year}`}
-                              variant="outline"
-                              className="w-full justify-start bg-white text-left font-normal lg:col-span-2"
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {period.startDate
-                                ? format(
-                                    parseISO(period.startDate),
-                                    'yyyy.MM.dd',
-                                    { locale: ko },
-                                  )
-                                : '시작일 선택'}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={
-                                period.startDate
-                                  ? parseISO(period.startDate)
-                                  : undefined
-                              }
-                              onSelect={(d) =>
-                                handleYearlyPeriodChange(
-                                  index,
-                                  'startDate',
-                                  toYMD(d || undefined),
-                                )
-                              }
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <div className="space-y-2 lg:col-span-2">
+                          <Label htmlFor={`startDate-${period.year}`}>
+                            시작일
+                          </Label>
+                          <DateInput
+                            id={`startDate-${period.year}`}
+                            value={period.startDate}
+                            onChange={(v) =>
+                              handleYearlyPeriodChange(index, 'startDate', v)
+                            }
+                            placeholder="예: 2025-01-01 또는 2025.01.01"
+                          />
+                        </div>
 
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              id={`endDate-${period.year}`}
-                              variant="outline"
-                              className="w-full justify-start bg-white text-left font-normal lg:col-span-2"
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {period.endDate
-                                ? format(
-                                    parseISO(period.endDate),
-                                    'yyyy.MM.dd',
-                                    { locale: ko },
-                                  )
-                                : '종료일 선택'}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={
-                                period.endDate
-                                  ? parseISO(period.endDate)
-                                  : undefined
-                              }
-                              onSelect={(d) =>
-                                handleYearlyPeriodChange(
-                                  index,
-                                  'endDate',
-                                  toYMD(d || undefined),
-                                )
-                              }
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <div className="space-y-2 lg:col-span-2">
+                          <Label htmlFor={`endDate-${period.year}`}>
+                            종료일
+                          </Label>
+                          <DateInput
+                            id={`endDate-${period.year}`}
+                            value={period.endDate}
+                            onChange={(v) =>
+                              handleYearlyPeriodChange(index, 'endDate', v)
+                            }
+                            placeholder="예: 2025-12-31 또는 2025.12.31"
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -804,6 +753,7 @@ export default function AddTaskPage() {
                     3책5공<span className="text-destructive">*</span>
                   </Label>
                   <Select
+                    value={formData.includesThreeToFive}
                     onValueChange={(value) =>
                       handleInputChange('includesThreeToFive', value)
                     }
@@ -813,8 +763,11 @@ export default function AddTaskPage() {
                       <SelectValue placeholder="3책5공 선택" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="포함">포함</SelectItem>
-                      <SelectItem value="불포함">불포함</SelectItem>
+                      {THREE_FIVE_RULE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

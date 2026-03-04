@@ -104,7 +104,7 @@ export function ConferenceForm({
     });
   }, [initialData]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.relatedProject.id) {
@@ -129,33 +129,8 @@ export function ConferenceForm({
       taskId: formData.relatedTask.id,
     };
 
-    const token = getToken();
-    const method = initialData?.id ? 'PUT' : 'POST';
-    const url = initialData?.id
-      ? `${API_BASE}/research/academic-presentations/${initialData.id}`
-      : `${API_BASE}/research/academic-presentations`;
-
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        alert(initialData?.id ? '수정되었습니다.' : '등록되었습니다.');
-        onSave(payload);
-      } else {
-        const errorData = await res.json();
-        alert(`오류 발생: ${errorData.message || '저장에 실패했습니다.'}`);
-      }
-    } catch (error) {
-      console.error('Save error:', error);
-      alert('서버 통신 중 오류가 발생했습니다.');
-    }
+    // API 호출은 ResearchAchievementModal의 handleSubmit에서 한 번만 수행됨 (이중 등록 방지)
+    onSave(payload);
   };
 
   const handleDelete = async () => {

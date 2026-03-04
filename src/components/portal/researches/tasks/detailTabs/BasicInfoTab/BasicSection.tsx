@@ -1,12 +1,18 @@
 'use client';
 
+import type { ThreeFiveRuleType } from '@/lib/constants/threeFiveRule';
+import {
+  THREE_FIVE_RULE_OPTIONS,
+  getThreeFiveRuleLabel,
+} from '@/lib/constants/threeFiveRule';
+
 interface BasicInfo {
   ministry: string;
   specializedAgency: string;
   announcementNumber: string;
   announcementStartDate: string;
   announcementEndDate: string;
-  threeFiveRule: boolean;
+  threeFiveRule?: ThreeFiveRuleType | null;
   [key: string]: unknown;
 }
 
@@ -65,7 +71,7 @@ export default function BasicSection({
     announcementNumber: '',
     announcementStartDate: '',
     announcementEndDate: '',
-    threeFiveRule: false,
+    threeFiveRule: undefined,
   };
 
   return (
@@ -85,7 +91,7 @@ export default function BasicSection({
           />
           <InfoRow
             label="3책5공"
-            value={info.threeFiveRule ? '포함' : '미포함'}
+            value={getThreeFiveRuleLabel(info.threeFiveRule)}
           />
         </div>
       ) : (
@@ -156,16 +162,20 @@ export default function BasicSection({
             <select
               id="threeFiveRule"
               className="rounded border px-2 py-1 text-sm"
-              value={editData.threeFiveRule ? 'true' : 'false'}
+              value={editData.threeFiveRule ?? ''}
               onChange={(e) =>
                 setEditData({
                   ...editData,
-                  threeFiveRule: e.target.value === 'true',
+                  threeFiveRule: (e.target.value || undefined) as ThreeFiveRuleType | undefined,
                 })
               }
             >
-              <option value="true">포함</option>
-              <option value="false">미포함</option>
+              <option value="">선택</option>
+              {THREE_FIVE_RULE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>

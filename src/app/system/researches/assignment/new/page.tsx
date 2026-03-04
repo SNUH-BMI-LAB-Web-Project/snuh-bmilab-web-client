@@ -34,12 +34,14 @@ import {
   ExternalProfessorItem,
   TaskPeriodRequest,
   TaskRequest,
+  TaskRequestThreeFiveRuleEnum,
 } from '@/generated-api';
 import { getProfessorKey } from '@/utils/external-professor-utils';
 import { format, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { TaskApi } from '@/generated-api/apis/TaskApi';
 import { getApiConfig } from '@/lib/config';
+import { THREE_FIVE_RULE_OPTIONS } from '@/lib/constants/threeFiveRule';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -109,7 +111,7 @@ export default function AddTaskPage() {
     kimKwangSooRole: '',
     practicalManager: '',
     participatingInstitutions: [] as string[], // Changed to array for tag-based input
-    includesThreeToFive: '',
+    includesThreeToFive: '' as string,
     progressStage: '',
     isInternal: true,
   });
@@ -232,7 +234,8 @@ export default function AddTaskPage() {
     }
 
     // 스키마 변환
-    const threeFiveRule = formData.includesThreeToFive === '포함';
+    const threeFiveRule: TaskRequestThreeFiveRuleEnum =
+      (formData.includesThreeToFive || 'NOT_APPLICABLE') as TaskRequestThreeFiveRuleEnum;
     const totalYears = formData.totalYears ? Number(formData.totalYears) : 0;
     const currentYear = parseCurrentYear(formData.progressStage);
     const periods: TaskPeriodRequest[] | undefined = (
@@ -804,6 +807,7 @@ export default function AddTaskPage() {
                     3책5공<span className="text-destructive">*</span>
                   </Label>
                   <Select
+                    value={formData.includesThreeToFive}
                     onValueChange={(value) =>
                       handleInputChange('includesThreeToFive', value)
                     }
@@ -813,8 +817,11 @@ export default function AddTaskPage() {
                       <SelectValue placeholder="3책5공 선택" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="포함">포함</SelectItem>
-                      <SelectItem value="불포함">불포함</SelectItem>
+                      {THREE_FIVE_RULE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

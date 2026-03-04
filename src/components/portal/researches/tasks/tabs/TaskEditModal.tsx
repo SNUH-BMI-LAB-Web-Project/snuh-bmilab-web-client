@@ -29,12 +29,17 @@ import {
   TaskApi,
   TaskPeriodRequest,
   TaskRequest,
+  TaskRequestThreeFiveRuleEnum,
 } from '@/generated-api';
 import { getProfessorKey } from '@/utils/external-professor-utils';
 import { format, isDate, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { getApiConfig } from '@/lib/config';
+import {
+  THREE_FIVE_RULE,
+  THREE_FIVE_RULE_OPTIONS,
+} from '@/lib/constants/threeFiveRule';
 
 interface TaskEditModalProps {
   open: boolean;
@@ -247,7 +252,7 @@ export default function TaskEditModal({
                 .map((s) => s.trim())
                 .filter(Boolean)
             : [],
-          includesThreeToFive: task.threeFiveRule ? '포함' : '불포함',
+          includesThreeToFive: task.threeFiveRule ?? '',
           progressStage:
             Object.keys(statusMap).find((k) => statusMap[k] === task.status) ||
             '',
@@ -306,7 +311,8 @@ export default function TaskEditModal({
       return;
     }
 
-    const threeFiveRule = formData.includesThreeToFive === '포함';
+    const threeFiveRule: TaskRequestThreeFiveRuleEnum =
+      (formData.includesThreeToFive || THREE_FIVE_RULE.NOT_APPLICABLE) as TaskRequestThreeFiveRuleEnum;
     const totalYears = formData.totalYears ? Number(formData.totalYears) : 0;
     const currentYear = parseCurrentYear(formData.progressStage);
 
@@ -820,8 +826,11 @@ export default function TaskEditModal({
                         <SelectValue placeholder="선택" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="포함">포함</SelectItem>
-                        <SelectItem value="불포함">불포함</SelectItem>
+                        {THREE_FIVE_RULE_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

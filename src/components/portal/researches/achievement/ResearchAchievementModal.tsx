@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -133,6 +134,7 @@ export function ResearchAchievementModal({
       throw responseBody;
     }
 
+    toast.success(editingItem ? '수정되었습니다.' : '등록되었습니다.');
     onSave(responseBody, type);
     onClose();
   };
