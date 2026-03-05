@@ -170,22 +170,30 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
 
     try {
       const isEdit = Boolean(initialData?.id);
+      const url = isEdit
+        ? `${API_BASE}/research/patents/${initialData.id}`
+        : `${API_BASE}/research/patents`;
+      const method = isEdit ? 'PUT' : 'POST';
 
-      const res = await fetch(
-        isEdit
-          ? `${API_BASE}/research/patents/${initialData.id}`
-          : `${API_BASE}/research/patents`,
-        {
-          method: isEdit ? 'PUT' : 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
+      console.log('[PatentForm] 요청', { method, url, payload });
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify(payload),
+      });
 
       const text = await res.text();
+      let body: unknown = text;
+      try {
+        if (text) body = JSON.parse(text);
+      } catch {
+        // 비JSON이면 text 유지
+      }
+      console.log('[PatentForm] 응답', { status: res.status, ok: res.ok, body });
 
       if (!res.ok) {
         throw new Error(`서버 오류 (${res.status}) ${text}`);
