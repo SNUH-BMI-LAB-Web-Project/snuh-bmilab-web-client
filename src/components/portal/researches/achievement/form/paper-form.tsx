@@ -128,7 +128,7 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
     }
 
     if (!formData.relatedJournal.id) {
-      toast('저널을 검색하여 선택해주세요.');
+      toast('저널을 검색해 선택하거나, 이름 입력 후 엔터로 추가해주세요.');
       return;
     }
 
@@ -226,7 +226,7 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
                 : { id: null, name: '' },
             }))
           }
-          placeholder="저널 검색"
+          placeholder="저널 검색 또는 입력 후 엔터로 추가"
           required
         />
       </div>
