@@ -138,6 +138,7 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
       ...externalAuthors
         .filter((e) => e.professorId != null && e.professorId !== 0)
         .map((e) => ({
+          userId: null,
           externalProfessorId: e.professorId as number,
           role: '발명자',
         })),
@@ -154,8 +155,8 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
       applicantsAll,
       patentAuthors: patentAuthorsPayload,
       remarks,
-      ...(relatedProject.id != null && { projectId: relatedProject.id }),
-      ...(relatedTask.id != null && { taskId: relatedTask.id }),
+      projectId: relatedProject.id ?? null,
+      taskId: relatedTask.id ?? null,
       fileIds: validFileIds,
     };
 
