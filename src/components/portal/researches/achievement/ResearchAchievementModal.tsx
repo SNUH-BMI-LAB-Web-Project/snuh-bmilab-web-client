@@ -38,11 +38,6 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 const getToken = () => {
   const raw = localStorage.getItem('auth-storage');
   const token = raw ? JSON.parse(raw)?.state?.accessToken : null;
-
-  console.log('[AUTH]');
-  console.log('raw auth-storage:', raw);
-  console.log('accessToken:', token);
-
   return token;
 };
 
@@ -72,16 +67,8 @@ export function ResearchAchievementModal({
   onSave,
 }: ResearchAchievementModalProps) {
   const handleSubmit = async (data: any) => {
-    console.log('[SUBMIT]');
-    console.log('type:', type);
-    console.log('editingItem:', editingItem);
-    console.log('payload:', data);
-
     const token = getToken();
-    if (!token) {
-      console.error('[AUTH ERROR] accessToken is null');
-      return;
-    }
+    if (!token) return;
 
     let url = '';
     let method: 'POST' | 'PUT' = 'POST';
@@ -93,15 +80,6 @@ export function ResearchAchievementModal({
       method = 'POST';
       url = `${API_BASE}${CREATE_ENDPOINT_MAP[type]}`;
     }
-
-    console.log('[API REQUEST]');
-    console.log('METHOD:', method);
-    console.log('URL:', url);
-    console.log('HEADERS:', {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    });
-    console.log('BODY:', JSON.stringify(data));
 
     let response: Response;
 
@@ -115,22 +93,17 @@ export function ResearchAchievementModal({
         body: JSON.stringify(data),
       });
     } catch (networkError) {
-      console.error('[NETWORK ERROR]');
-      console.error(networkError);
       throw networkError;
     }
 
     let responseBody: any = null;
     try {
       responseBody = await response.json();
-      console.log('response body:', responseBody);
-    } catch (parseError) {
-      console.warn('[RESPONSE PARSE WARNING] JSON parse failed');
+    } catch {
+      // JSON parse failed
     }
 
     if (!response.ok) {
-      console.error('[API ERROR]');
-      console.error(responseBody);
       throw responseBody;
     }
 
@@ -160,7 +133,6 @@ export function ResearchAchievementModal({
       case 'journal':
         return <JournalForm {...commonProps} />;
       default:
-        console.error('[RENDER ERROR] invalid research type:', type);
         return null;
     }
   };

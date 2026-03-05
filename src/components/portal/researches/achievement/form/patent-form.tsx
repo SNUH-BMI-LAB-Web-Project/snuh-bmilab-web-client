@@ -133,7 +133,8 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
       return;
     }
 
-    const patentAuthorsPayload = [
+    // PatentAuthorRequest: userId 또는 externalProfessorId 중 하나만 포함. userId: null 전송 시 백엔드가 user_id null INSERT로 500 발생
+    const patentAuthorsPayload: Array<{ userId?: number; externalProfessorId?: number; role: string }> = [
       ...authorUserIds.map((id) => ({ userId: id, role: '발명자' })),
       ...externalAuthors
         .filter((e) => {
@@ -141,7 +142,6 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
           return id != null && id !== 0;
         })
         .map((e) => ({
-          userId: null,
           externalProfessorId: (e.professorId ?? (e as { id?: number }).id) as number,
           role: '발명자',
         })),
@@ -170,22 +170,30 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
 
     try {
       const isEdit = Boolean(initialData?.id);
+      const url = isEdit
+        ? `${API_BASE}/research/patents/${initialData.id}`
+        : `${API_BASE}/research/patents`;
+      const method = isEdit ? 'PUT' : 'POST';
 
-      const res = await fetch(
-        isEdit
-          ? `${API_BASE}/research/patents/${initialData.id}`
-          : `${API_BASE}/research/patents`,
-        {
-          method: isEdit ? 'PUT' : 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
+      console.log('[PatentForm] 요청', { method, url, payload });
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify(payload),
+      });
 
       const text = await res.text();
+      let body: unknown = text;
+      try {
+        if (text) body = JSON.parse(text);
+      } catch {
+        // 비JSON이면 text 유지
+      }
+      console.log('[PatentForm] 응답', { status: res.status, ok: res.ok, body });
 
       if (!res.ok) {
         throw new Error(`서버 오류 (${res.status}) ${text}`);

@@ -142,9 +142,7 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
     const payload = {
       acceptDate: formData.acceptDate || formData.publishDate,
       publishDate: formData.publishDate,
-      ...(formData.relatedJournal.id != null && {
-        journalId: formData.relatedJournal.id,
-      }),
+      journalId: formData.relatedJournal.id ?? null,
       paperTitle: formData.paperTitle,
       allAuthors,
       firstAuthor: firstAuthorsList[0] || '',
