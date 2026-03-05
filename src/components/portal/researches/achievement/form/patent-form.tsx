@@ -151,17 +151,22 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
       .map((f) => f.fileId)
       .filter((id): id is string => Boolean(id && typeof id === 'string'));
 
-    const payload = {
+    // API 스펙: projectId, taskId는 선택(optional). 미선택 시 키를 포함하지 않음 (포함 시 백엔드가 null로 매핑하면 DB NOT NULL 제약으로 500 발생)
+    const payload: Record<string, unknown> = {
       applicationDate,
       applicationNumber,
       patentName,
       applicantsAll,
       patentAuthors: patentAuthorsPayload,
       remarks,
-      ...(relatedProject.id != null && { projectId: relatedProject.id }),
-      ...(relatedTask.id != null && { taskId: relatedTask.id }),
       fileIds: validFileIds,
     };
+    if (relatedProject.id != null) {
+      payload.projectId = relatedProject.id;
+    }
+    if (relatedTask.id != null) {
+      payload.taskId = relatedTask.id;
+    }
 
     try {
       const isEdit = Boolean(initialData?.id);

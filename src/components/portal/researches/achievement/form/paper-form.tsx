@@ -127,11 +127,6 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
       return;
     }
 
-    if (!formData.relatedJournal.id) {
-      toast('저널을 검색해 선택하거나, 이름 입력 후 엔터로 추가해주세요.');
-      return;
-    }
-
     const firstAuthorsList = formData.firstAuthors
       .split(',')
       .map((s) => s.trim())
@@ -147,7 +142,9 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
     const payload = {
       acceptDate: formData.acceptDate || formData.publishDate,
       publishDate: formData.publishDate,
-      journalId: formData.relatedJournal.id,
+      ...(formData.relatedJournal.id != null && {
+        journalId: formData.relatedJournal.id,
+      }),
       paperTitle: formData.paperTitle,
       allAuthors,
       firstAuthor: firstAuthorsList[0] || '',
@@ -207,9 +204,7 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="journal">
-          저널 <span className="text-destructive">*</span>
-        </Label>
+        <Label htmlFor="journal">저널</Label>
         <SingleJournalSelectInput
           value={formData.relatedJournal.name}
           onValueChange={(name) =>
@@ -227,7 +222,6 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
             }))
           }
           placeholder="저널 검색 또는 입력 후 엔터로 추가"
-          required
         />
       </div>
 
