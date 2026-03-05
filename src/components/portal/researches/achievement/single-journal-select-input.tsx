@@ -1,9 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Check, X } from 'lucide-react';
-import { ResearchApi, type JournalSummaryResponse } from '@/generated-api';
+import {
+  ResearchApi,
+  type JournalResponse,
+  type JournalSummaryResponse,
+} from '@/generated-api';
 import { getApiConfig } from '@/lib/config';
 
 const researchApi = new ResearchApi(getApiConfig());
@@ -29,6 +34,7 @@ export function SingleJournalSelectInput({
   const [input, setInput] = useState(value);
   const [open, setOpen] = useState(false);
   const [list, setList] = useState<JournalSummaryResponse[]>([]);
+  const [creating, setCreating] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
@@ -75,9 +81,10 @@ export function SingleJournalSelectInput({
   const selectJournal = useCallback(
     (j: JournalSummaryResponse | JournalResponse) => {
       const name = (j as { journalName?: string }).journalName ?? '';
+      const id = (j as { id?: number }).id ?? null;
       setInput(name);
       onValueChange(name);
-      onJournalSelected?.(j as JournalSummaryResponse);
+      onJournalSelected?.({ id: id ?? null, journalName: name });
       setOpen(false);
     },
     [onValueChange, onJournalSelected],
