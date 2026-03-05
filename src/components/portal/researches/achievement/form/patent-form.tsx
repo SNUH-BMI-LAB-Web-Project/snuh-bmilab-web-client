@@ -133,7 +133,8 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
       return;
     }
 
-    const patentAuthorsPayload = [
+    // PatentAuthorRequest: userId 또는 externalProfessorId 중 하나만 포함. userId: null 전송 시 백엔드가 user_id null INSERT로 500 발생
+    const patentAuthorsPayload: Array<{ userId?: number; externalProfessorId?: number; role: string }> = [
       ...authorUserIds.map((id) => ({ userId: id, role: '발명자' })),
       ...externalAuthors
         .filter((e) => {
@@ -141,7 +142,6 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
           return id != null && id !== 0;
         })
         .map((e) => ({
-          userId: null,
           externalProfessorId: (e.professorId ?? (e as { id?: number }).id) as number,
           role: '발명자',
         })),

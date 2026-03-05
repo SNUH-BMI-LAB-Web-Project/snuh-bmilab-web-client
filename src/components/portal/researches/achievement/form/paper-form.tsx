@@ -170,8 +170,6 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
         .filter((id): id is string => Boolean(id)),
     };
 
-    console.log('[PaperForm] 논문 저장 payload:', payload);
-    console.log('[PaperForm] journalId 포함 여부:', 'journalId' in payload, '→ 값:', (payload as any).journalId);
     onSave(payload);
   };
 
