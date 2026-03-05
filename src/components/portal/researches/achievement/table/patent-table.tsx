@@ -41,10 +41,10 @@ interface PatentData {
     role?: string;
   }>;
   remarks: string;
-  projectId?: number;
-  projectName?: string;
-  taskId?: number;
-  taskName?: string;
+  projectId?: number | null;
+  projectName?: string | null;
+  taskId?: number | null;
+  taskName?: string | null;
   files: Array<{
     fileId: string;
     fileName: string;
@@ -211,10 +211,10 @@ export function PatentTable({ data, onEdit, onDelete }: PatentTableProps) {
                     </TableCell>
                     <TableCell className="text-xs">
                       <div className="text-primary font-medium">
-                        {item.projectName || '-'}
+                        {item.projectName ?? '-'}
                       </div>
                       <div className="text-muted-foreground">
-                        {item.taskName || '-'}
+                        {item.taskName ?? '-'}
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
