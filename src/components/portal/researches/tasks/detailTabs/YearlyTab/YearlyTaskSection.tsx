@@ -14,8 +14,8 @@ import {
 interface Props {
   isEditMode: boolean;
   year: number | string;
-  data?: any;
-  onChange?: (update: any) => void;
+  data?: Record<string, unknown>;
+  onChange?: (update: Record<string, unknown>) => void;
 }
 
 interface Researcher {
@@ -64,15 +64,15 @@ export default function YearlyTaskSection({
 
   // ✅ data 변경 감지 (JSON.stringify로 안정화)
   useEffect(() => {
-    if (data && (data.managerId || data.managerName)) {
+    if (data && (data.managerId != null || data.managerName != null)) {
       setCurrentPm({
-        userId: data.managerId,
-        name: data.managerName,
+        userId: data.managerId as number,
+        name: (data.managerName as string) ?? '',
       });
     } else {
       setCurrentPm(null);
     }
-    setMembers(data?.members ?? []);
+    setMembers((data?.members as Researcher[]) ?? []);
   }, [JSON.stringify(data)]);
 
   const handleAddPm = () => {
@@ -127,12 +127,12 @@ export default function YearlyTaskSection({
   };
 
   // ✅ 담당자 표시 보강
-  const pmName =
-    currentPm?.name ||
+  const pmName: string =
+    currentPm?.name ??
     availableResearchers.find(
-      (r) => r.userId === (currentPm?.userId || data?.managerId),
-    )?.name ||
-    data?.managerName ||
+      (r) => r.userId === (currentPm?.userId ?? (data?.managerId as number)),
+    )?.name ??
+    (data?.managerName as string) ??
     '담당자 미지정';
 
   if (!data)
@@ -159,6 +159,7 @@ export default function YearlyTaskSection({
               <span className="text-blue-800">{pmName}</span>
               {isEditMode && (
                 <button
+                  type="button"
                   className="ml-1 text-blue-600 hover:text-blue-800"
                   onClick={handleRemovePm}
                 >
@@ -211,6 +212,7 @@ export default function YearlyTaskSection({
                 <span className="text-blue-800">{m.name}</span>
                 {isEditMode && (
                   <button
+                    type="button"
                     className="ml-1 text-blue-600 hover:text-blue-800"
                     onClick={() => handleRemoveMember(m.userId)}
                   >

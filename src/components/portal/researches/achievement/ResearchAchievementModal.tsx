@@ -28,10 +28,12 @@ type ResearchType =
 interface ResearchAchievementModalProps {
   open: boolean;
   type: ResearchType;
-  editingItem: any | null;
+  editingItem: Record<string, unknown> | null;
   onClose: () => void;
-  onSave: (savedItem: any, type: ResearchType) => void;
+  onSave: (savedItem: Record<string, unknown>, type: ResearchType) => void;
 }
+
+
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -66,7 +68,7 @@ export function ResearchAchievementModal({
   onClose,
   onSave,
 }: ResearchAchievementModalProps) {
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: Record<string, unknown>) => {
     const token = getToken();
     if (!token) return;
 
@@ -83,20 +85,16 @@ export function ResearchAchievementModal({
 
     let response: Response;
 
-    try {
-      response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-    } catch (networkError) {
-      throw networkError;
-    }
+    response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
 
-    let responseBody: any = null;
+    let responseBody: Record<string, unknown> | null = null;
     try {
       responseBody = await response.json();
     } catch {
@@ -104,16 +102,20 @@ export function ResearchAchievementModal({
     }
 
     if (!response.ok) {
+      if (response.status === 403) {
+        toast.error('수정 권한이 없습니다.');
+        return;
+      }
       throw responseBody;
     }
 
     toast.success(editingItem ? '수정되었습니다.' : '등록되었습니다.');
-    onSave(responseBody, type);
+    onSave(responseBody ?? {}, type);
     onClose();
   };
 
   const commonProps = {
-    initialData: editingItem,
+    initialData: editingItem ?? undefined,
     onCancel: onClose,
     onSave: handleSubmit,
   };
@@ -121,17 +123,29 @@ export function ResearchAchievementModal({
   const renderForm = () => {
     switch (type) {
       case 'book':
-        return <BookForm {...commonProps} />;
+        return <BookForm {...(commonProps as Parameters<typeof BookForm>[0])} />;
       case 'conference':
-        return <ConferenceForm {...commonProps} />;
+        return (
+          <ConferenceForm
+            {...(commonProps as Parameters<typeof ConferenceForm>[0])}
+          />
+        );
       case 'award':
-        return <AwardForm {...commonProps} />;
+        return <AwardForm {...(commonProps as Parameters<typeof AwardForm>[0])} />;
       case 'paper':
-        return <PaperForm {...commonProps} />;
+        return (
+          <PaperForm {...(commonProps as Parameters<typeof PaperForm>[0])} />
+        );
       case 'patent':
-        return <PatentForm {...commonProps} />;
+        return (
+          <PatentForm {...(commonProps as Parameters<typeof PatentForm>[0])} />
+        );
       case 'journal':
-        return <JournalForm {...commonProps} />;
+        return (
+          <JournalForm
+            {...(commonProps as Parameters<typeof JournalForm>[0])}
+          />
+        );
       default:
         return null;
     }

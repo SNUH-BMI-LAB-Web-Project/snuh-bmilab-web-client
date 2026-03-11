@@ -166,7 +166,9 @@ export default function BasicSection({
               onChange={(e) =>
                 setEditData({
                   ...editData,
-                  threeFiveRule: (e.target.value || undefined) as ThreeFiveRuleType | undefined,
+                  threeFiveRule: (e.target.value || undefined) as
+                    | ThreeFiveRuleType
+                    | undefined,
                 })
               }
             >

@@ -37,7 +37,10 @@ import {
   TaskSummaryResponse,
 } from '@/generated-api';
 import { getApiConfig } from '@/lib/config';
-import { getThreeFiveRuleLabel, normalizeThreeFiveRuleForApi } from '@/lib/constants/threeFiveRule';
+import {
+  getThreeFiveRuleLabel,
+  normalizeThreeFiveRuleForApi,
+} from '@/lib/constants/threeFiveRule';
 import { format } from 'date-fns';
 
 const taskApi = new TaskApi(getApiConfig());
@@ -517,7 +520,9 @@ export default function TaskManagementPage() {
                                     variant="outline"
                                     className="border-gray-200 text-xs text-gray-700"
                                   >
-                                    {getThreeFiveRuleLabel(task.includesThreeToFive)}
+                                    {getThreeFiveRuleLabel(
+                                      task.includesThreeToFive,
+                                    )}
                                   </Badge>
                                 </div>
                               </div>

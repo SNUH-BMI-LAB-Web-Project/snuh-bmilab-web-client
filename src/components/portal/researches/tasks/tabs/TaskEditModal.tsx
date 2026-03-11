@@ -312,7 +312,9 @@ export default function TaskEditModal({
     }
 
     const threeFiveRule: TaskRequestThreeFiveRuleEnum =
-      normalizeThreeFiveRuleForApi(formData.includesThreeToFive) as TaskRequestThreeFiveRuleEnum;
+      normalizeThreeFiveRuleForApi(
+        formData.includesThreeToFive,
+      ) as TaskRequestThreeFiveRuleEnum;
     const totalYears = formData.totalYears ? Number(formData.totalYears) : 0;
     const currentYear = parseCurrentYear(formData.progressStage);
 
@@ -365,8 +367,20 @@ export default function TaskEditModal({
 
       toast.success('과제가 성공적으로 수정되었습니다.');
       onClose();
-    } catch (error) {
-      console.error(error);
+    } catch (error: unknown) {
+      const status =
+        error &&
+        typeof error === 'object' &&
+        'response' in error &&
+        (error as { response: Response }).response
+          ? (error as { response: Response }).response.status
+          : undefined;
+      if (status === 403) {
+        toast.error('수정 권한이 없습니다.');
+      } else {
+        console.error(error);
+        toast.error('수정에 실패했습니다.');
+      }
     } finally {
       setSubmitting(false);
     }

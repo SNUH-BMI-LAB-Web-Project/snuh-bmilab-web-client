@@ -19,8 +19,10 @@ import { UserTagInputString } from '@/components/portal/researches/achievement/m
 import ExternalProfessorSelectModal from '@/components/portal/researches/projects/external-professor-select-modal';
 import { getProfessorKey } from '@/utils/external-professor-utils';
 
-import type { ProjectFileSummary } from '@/generated-api';
-import type { ExternalProfessorItem } from '@/generated-api';
+import type {
+  ProjectFileSummary,
+  ExternalProfessorItem,
+} from '@/generated-api';
 
 interface IdName {
   id: number | null;
@@ -112,8 +114,7 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const hasAuthors =
-      authorUserIds.length > 0 || externalAuthors.length > 0;
+    const hasAuthors = authorUserIds.length > 0 || externalAuthors.length > 0;
     if (
       !applicationDate ||
       !applicationNumber ||
@@ -134,7 +135,11 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
     }
 
     // PatentAuthorRequest: userId 또는 externalProfessorId 중 하나만 포함. userId: null 전송 시 백엔드가 user_id null INSERT로 500 발생
-    const patentAuthorsPayload: Array<{ userId?: number; externalProfessorId?: number; role: string }> = [
+    const patentAuthorsPayload: Array<{
+      userId?: number;
+      externalProfessorId?: number;
+      role: string;
+    }> = [
       ...authorUserIds.map((id) => ({ userId: id, role: '발명자' })),
       ...externalAuthors
         .filter((e) => {
@@ -142,7 +147,8 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
           return id != null && id !== 0;
         })
         .map((e) => ({
-          externalProfessorId: (e.professorId ?? (e as { id?: number }).id) as number,
+          externalProfessorId: (e.professorId ??
+            (e as { id?: number }).id) as number,
           role: '발명자',
         })),
     ];
@@ -193,7 +199,11 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
       } catch {
         // 비JSON이면 text 유지
       }
-      console.log('[PatentForm] 응답', { status: res.status, ok: res.ok, body });
+      console.log('[PatentForm] 응답', {
+        status: res.status,
+        ok: res.ok,
+        body,
+      });
 
       if (!res.ok) {
         throw new Error(`서버 오류 (${res.status}) ${text}`);
@@ -274,7 +284,7 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
             <Button
               type="button"
               variant="outline"
-              className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-md border bg-background px-4 py-2 text-sm font-medium shadow-sm transition-all hover:bg-accent hover:text-accent-foreground"
+              className="bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-9 w-full items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium shadow-sm transition-all"
               onClick={() => setShowExternalModal(true)}
             >
               외부 인사 추가
@@ -292,9 +302,7 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
                       type="button"
                       onClick={() =>
                         setExternalAuthors((prev) =>
-                          prev.filter(
-                            (e) => e.professorId !== ext.professorId,
-                          ),
+                          prev.filter((e) => e.professorId !== ext.professorId),
                         )
                       }
                       className="rounded-full p-0.5 hover:bg-black/5"

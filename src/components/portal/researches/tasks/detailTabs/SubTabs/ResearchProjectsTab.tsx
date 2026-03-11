@@ -43,10 +43,16 @@ export default function ResearchProjectsTab() {
         },
       );
 
-      if (!res.ok) return setProjects([]);
+      if (!res.ok) {
+        setProjects([]);
+        return;
+      }
 
       const text = await res.text();
-      if (!text) return setProjects([]);
+      if (!text) {
+        setProjects([]);
+        return;
+      }
 
       const data = JSON.parse(text);
       setProjects(data);
@@ -71,10 +77,16 @@ export default function ResearchProjectsTab() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!res.ok) return setSearchResults([]);
+      if (!res.ok) {
+        setSearchResults([]);
+        return;
+      }
 
       const text = await res.text();
-      if (!text) return setSearchResults([]);
+      if (!text) {
+        setSearchResults([]);
+        return;
+      }
 
       const data = JSON.parse(text);
       setSearchResults(data.projects || []);
@@ -115,7 +127,7 @@ export default function ResearchProjectsTab() {
   };
 
   useEffect(() => {
-    if (!isResearchModalOpen) return;
+    if (!isResearchModalOpen) return undefined;
     const t = setTimeout(() => fetchSearchProjects(searchKeyword), 400);
     return () => clearTimeout(t);
   }, [searchKeyword, isResearchModalOpen]);
@@ -143,15 +155,17 @@ export default function ResearchProjectsTab() {
           </Button>
         </div>
 
-        {loading ? (
+        {loading && (
           <div className="py-6 text-center text-gray-500">
             연구 프로젝트를 불러오는 중입니다...
           </div>
-        ) : projects.length === 0 ? (
+        )}
+        {!loading && projects.length === 0 && (
           <div className="py-6 text-center text-gray-500">
             관련된 연구 프로젝트가 없습니다.
           </div>
-        ) : (
+        )}
+        {!loading && projects.length > 0 && (
           <div className="space-y-4">
             {projects.map((p) => (
               <div
@@ -206,11 +220,12 @@ export default function ResearchProjectsTab() {
 
             <div className="flex-1 overflow-y-auto p-6">
               <div className="space-y-3">
-                {searchLoading ? (
+                {searchLoading && (
                   <div className="py-8 text-center text-gray-500">
                     검색 중입니다...
                   </div>
-                ) : searchResults.length > 0 ? (
+                )}
+                {!searchLoading && searchResults.length > 0 &&
                   searchResults.map((p) => (
                     <div
                       key={p.projectId}
@@ -230,8 +245,8 @@ export default function ResearchProjectsTab() {
                         추가
                       </Button>
                     </div>
-                  ))
-                ) : (
+                  ))}
+                {!searchLoading && searchResults.length === 0 && (
                   <div className="py-8 text-center text-gray-500">
                     조회된 프로젝트가 없습니다.
                   </div>

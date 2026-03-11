@@ -53,7 +53,10 @@ export default function YearlyFileSection({
     const selectedFiles = e.target.files;
     if (!selectedFiles?.length || !taskId || !periodId) return;
     const token = getToken();
-    if (!token) return alert('로그인이 필요합니다.');
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
 
     try {
       const uploadTasks = Array.from(selectedFiles).map(async (file) => {

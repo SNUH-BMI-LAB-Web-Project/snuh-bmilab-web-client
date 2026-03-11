@@ -80,10 +80,7 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
       acceptDate: initialData.acceptDate ?? '',
       publishDate: initialData.publishDate ?? '',
       relatedJournal: {
-        id:
-          initialData.journalId ??
-          (initialData as any).journal?.id ??
-          null,
+        id: initialData.journalId ?? (initialData as any).journal?.id ?? null,
         name:
           initialData.journalName ??
           (initialData as any).journal?.journalName ??

@@ -491,7 +491,13 @@ function ProjectPageContent() {
 
 export default function ProjectPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-[200px] items-center justify-center">로딩 중...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-[200px] items-center justify-center">
+          로딩 중...
+        </div>
+      }
+    >
       <ProjectPageContent />
     </Suspense>
   );

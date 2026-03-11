@@ -21,7 +21,10 @@ export const THREE_FIVE_RULE_LABEL: Record<ThreeFiveRuleType, string> = {
 };
 
 /** 한글 라벨 → enum (폼 선택용) */
-export const THREE_FIVE_RULE_OPTIONS: { value: ThreeFiveRuleType; label: string }[] = [
+export const THREE_FIVE_RULE_OPTIONS: {
+  value: ThreeFiveRuleType;
+  label: string;
+}[] = [
   { value: THREE_FIVE_RULE.RESPONSIBLE, label: '책임' },
   { value: THREE_FIVE_RULE.JOINT, label: '공동' },
   { value: THREE_FIVE_RULE.NOT_APPLICABLE, label: '해당없음' },

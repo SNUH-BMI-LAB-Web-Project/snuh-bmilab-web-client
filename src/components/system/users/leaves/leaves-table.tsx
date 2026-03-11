@@ -95,14 +95,18 @@ function UserProfilePopover({ employee }: { employee: UserSummary }) {
               </Avatar>
               <div>
                 <h4 className="text-lg font-semibold">{employee.name}</h4>
-                <p className="text-muted-foreground text-sm">{employee.email} </p>
+                <p className="text-muted-foreground text-sm">
+                  {employee.email}{' '}
+                </p>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm">
                 <Building className="text-muted-foreground h-4 w-4" />
                 <span className="font-medium">기관:</span>
-                <span>{employee.organization ? employee.organization : ''}</span>
+                <span>
+                  {employee.organization ? employee.organization : ''}
+                </span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Users className="text-muted-foreground h-4 w-4" />
