@@ -314,7 +314,13 @@ export default function JournalPage() {
           ? (e as { response: Response }).response?.status
           : undefined;
       if (status === 403) toast.error('삭제 권한이 없습니다.');
-      else console.error(e);
+      else if (status === 500 || status === 400) {
+        toast.error(
+          '삭제에 실패했습니다. 이 저널에 연결된 논문이 있으면 삭제할 수 없습니다. 논문에서 저널 연결을 해제한 뒤 다시 시도해 주세요.',
+        );
+      } else {
+        console.error(e);
+      }
     }
   };
 
@@ -543,10 +549,10 @@ export default function JournalPage() {
                     >
                       저널명
                       <JournalSortIcon
-                          column="journalName"
-                          sortBy={sortBy}
-                          sortOrder={sortOrder}
-                        />
+                        column="journalName"
+                        sortBy={sortBy}
+                        sortOrder={sortOrder}
+                      />
                     </Button>
                   </TableHead>
                   <TableHead>
@@ -558,10 +564,10 @@ export default function JournalPage() {
                     >
                       연도 (시간순)
                       <JournalSortIcon
-                          column="year"
-                          sortBy={sortBy}
-                          sortOrder={sortOrder}
-                        />
+                        column="year"
+                        sortBy={sortBy}
+                        sortOrder={sortOrder}
+                      />
                     </Button>
                   </TableHead>
                   <TableHead>분류</TableHead>

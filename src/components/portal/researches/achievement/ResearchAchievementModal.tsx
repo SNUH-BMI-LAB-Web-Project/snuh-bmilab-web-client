@@ -33,8 +33,6 @@ interface ResearchAchievementModalProps {
   onSave: (savedItem: Record<string, unknown>, type: ResearchType) => void;
 }
 
-
-
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const getToken = () => {
@@ -83,9 +81,7 @@ export function ResearchAchievementModal({
       url = `${API_BASE}${CREATE_ENDPOINT_MAP[type]}`;
     }
 
-    let response: Response;
-
-    response = await fetch(url, {
+    const response = await fetch(url, {
       method,
       headers: {
         'Content-Type': 'application/json',
@@ -106,7 +102,7 @@ export function ResearchAchievementModal({
         toast.error('수정 권한이 없습니다.');
         return;
       }
-      throw responseBody;
+      throw new Error(JSON.stringify(responseBody));
     }
 
     toast.success(editingItem ? '수정되었습니다.' : '등록되었습니다.');
@@ -123,7 +119,9 @@ export function ResearchAchievementModal({
   const renderForm = () => {
     switch (type) {
       case 'book':
-        return <BookForm {...(commonProps as Parameters<typeof BookForm>[0])} />;
+        return (
+          <BookForm {...(commonProps as Parameters<typeof BookForm>[0])} />
+        );
       case 'conference':
         return (
           <ConferenceForm
@@ -131,7 +129,9 @@ export function ResearchAchievementModal({
           />
         );
       case 'award':
-        return <AwardForm {...(commonProps as Parameters<typeof AwardForm>[0])} />;
+        return (
+          <AwardForm {...(commonProps as Parameters<typeof AwardForm>[0])} />
+        );
       case 'paper':
         return (
           <PaperForm {...(commonProps as Parameters<typeof PaperForm>[0])} />

@@ -749,12 +749,9 @@ export default function SeminarCalendar() {
                     {cells.map((ev, tIdx) => {
                       if (!ev)
                         return (
-                          // empty slot: no stable id, index is acceptable
-                          // eslint-disable-next-line react/no-array-index-key
-                          <div
-                            key={`empty-${dayYmd}-${tIdx}`}
-                            className="h-6"
-                          />
+                          // eslint-disable-next-line react/no-array-index-key -- empty slot, no stable id
+                          // prettier-ignore
+                          <div key={`empty-${dayYmd}-${tIdx}`} className="h-6" />
                         );
                       const kind = getSegmentKind(ev, day);
                       if (kind === 'single')

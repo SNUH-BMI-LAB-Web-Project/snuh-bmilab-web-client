@@ -36,7 +36,9 @@ export default function ResearchManagementSystem({
 
   const [activeTab, setActiveTab] = useState<ResearchType>('paper');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<Record<string, unknown> | null>(null);
+  const [editingItem, setEditingItem] = useState<
+    Record<string, unknown> | null
+  >(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const canEditResearch = (item: { createdBy?: number | null } | null) =>
@@ -87,7 +89,10 @@ export default function ResearchManagementSystem({
     }
   };
 
-  const handleEditDefault = (item: Record<string, unknown>, type: ResearchType) => {
+  const handleEditDefault = (
+    item: Record<string, unknown>,
+    type: ResearchType,
+  ) => {
     setEditingItem({ ...item, type });
     setIsDialogOpen(true);
   };

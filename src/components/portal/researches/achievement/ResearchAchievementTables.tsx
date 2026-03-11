@@ -107,7 +107,11 @@ export function ResearchAchievementTables({
       </TabsContent>
       <TabsContent value="conference">
         <ConferenceTable
-          data={conferences as unknown as Parameters<typeof ConferenceTable>[0]['data']}
+          data={
+            conferences as unknown as Parameters<
+              typeof ConferenceTable
+            >[0]['data']
+          }
           onEdit={(item) =>
             onEdit(item as unknown as Record<string, unknown>, 'conference')
           }
