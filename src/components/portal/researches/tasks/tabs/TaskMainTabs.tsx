@@ -8,7 +8,11 @@ import PresentationTab from '../detailTabs/PresentationTab/PresentationTab';
 import ContractTab from '../detailTabs/ContractTab/ContractTab';
 import YearlyTab from '../detailTabs/YearlyTab/YearlyTab';
 
-export default function TaskMainTabs({ taskInfo }: { taskInfo?: any }) {
+export default function TaskMainTabs({
+  taskInfo,
+}: {
+  taskInfo?: Record<string, unknown>;
+}) {
   return (
     <div className="w-full">
       <Tabs defaultValue="basic" className="w-full">
@@ -58,7 +62,9 @@ export default function TaskMainTabs({ taskInfo }: { taskInfo?: any }) {
           <ContractTab taskInfo={taskInfo?.contract} />
         </TabsContent>
         <TabsContent value="yearly" className="mt-6">
-          <YearlyTab taskInfo={taskInfo?.yearly} />
+          <YearlyTab
+            taskInfo={taskInfo?.yearly as Record<string, unknown> | undefined}
+          />
         </TabsContent>
       </Tabs>
     </div>

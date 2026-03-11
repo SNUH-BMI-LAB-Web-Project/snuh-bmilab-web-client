@@ -66,7 +66,8 @@ export function EditableCell({
   };
 
   const submit = async () => {
-    const trimmed = typeof editValue === 'string' ? editValue.trim() : editValue;
+    const trimmed =
+      typeof editValue === 'string' ? editValue.trim() : editValue;
     if (trimmed === (value ?? '')) {
       setIsEditing(false);
       return;
@@ -110,7 +111,7 @@ export function EditableCell({
         }}
         onDoubleClick={handleDoubleClick}
         className={cn(
-          'min-h-[2rem] cursor-cell rounded px-1 py-0.5 transition-colors hover:bg-muted/60',
+          'hover:bg-muted/60 min-h-[2rem] cursor-cell rounded px-1 py-0.5 transition-colors',
           className,
         )}
         title="더블클릭하여 수정"

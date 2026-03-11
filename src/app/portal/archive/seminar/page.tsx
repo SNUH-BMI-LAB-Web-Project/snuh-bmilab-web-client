@@ -297,7 +297,7 @@ export default function SeminarCalendar() {
       );
       if (res.ok) {
         const data = await res.json();
-        const mapped = data.seminars.map((s: any) => ({
+        const mapped = data.seminars.map((s: Record<string, unknown>) => ({
           id: s.id,
           title: s.title,
           type: s.label as EventType,
@@ -334,7 +334,7 @@ export default function SeminarCalendar() {
         if (res.ok) {
           const data = await res.json();
           setSearchedEvents(
-            data.seminars.map((s: any) => ({
+            data.seminars.map((s: Record<string, unknown>) => ({
               id: s.id,
               title: s.title,
               type: s.label as EventType,
@@ -351,10 +351,31 @@ export default function SeminarCalendar() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingId(null);
+    setFormData({
+      type: '',
+      title: '',
+      startDate: '',
+      endDate: '',
+      description: '',
+    });
+  };
+
   // API 3: 일정 생성(POST) 및 수정(PUT) 통합
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.type || !formData.title.trim() || !formData.startDate) return;
+
+    // 시작일이 종료일보다 뒤면 수정/추가 불가
+    if (
+      formData.endDate &&
+      formData.startDate > formData.endDate
+    ) {
+      toast.error('시작일은 종료일보다 늦을 수 없습니다.');
+      return;
+    }
 
     const token = getToken();
     const body = {
@@ -385,6 +406,10 @@ export default function SeminarCalendar() {
         // 수정/생성 성공 시 fetchEvents 호출하여 뷰 갱신
         fetchEvents();
         handleCloseModal();
+      } else if (res.status === 403) {
+        toast.error('권한이 없습니다.');
+      } else {
+        toast.error('실패하였습니다.');
       }
     } catch (err) {
       toast.error('실패하였습니다.');
@@ -393,7 +418,7 @@ export default function SeminarCalendar() {
 
   // API 4: 일정 삭제
   const handleDelete = async (id: number) => {
-    if (!confirm('일정을 삭제하시겠습니까?')) return;
+    if (!window.confirm('일정을 삭제하시겠습니까?')) return;
     const token = getToken();
     try {
       const res = await fetch(`${API_BASE}/seminars/${id}`, {
@@ -402,24 +427,20 @@ export default function SeminarCalendar() {
       });
       if (res.ok) {
         toast.success('삭제되었습니다.');
-        // 삭제 성공 시 fetchEvents 호출하여 뷰 갱신
         fetchEvents();
+      } else if (res.status === 403) {
+        toast.error('권한이 없습니다.');
+      } else if (res.status === 500 || res.status === 400) {
+        toast.error(
+          '연계된 데이터가 있어 삭제할 수 없습니다. 연결을 해제한 뒤 다시 시도해 주세요.',
+        );
+      } else {
+        toast.error('삭제에 실패했습니다.');
       }
     } catch (err) {
-      toast.error('삭제 실패');
+      console.error('Seminar delete error:', err);
+      toast.error('삭제에 실패했습니다.');
     }
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingId(null);
-    setFormData({
-      type: '',
-      title: '',
-      startDate: '',
-      endDate: '',
-      description: '',
-    });
   };
 
   const openEditModal = (ev: SeminarEvent) => {
@@ -474,7 +495,7 @@ export default function SeminarCalendar() {
         const evEnd = ev.endDate ?? ev.startDate;
         return !(evEnd < weekStart || ev.startDate > weekEnd);
       });
-      const prioritized = [...weekEvents].sort((a, b) =>
+      const prioritized = [...weekEvents].sort((a) =>
         a.startDate < weekStart ? -1 : 1,
       );
       const tracks: (SeminarEvent | null)[][] = Array.from({ length: 3 }, () =>
@@ -488,7 +509,10 @@ export default function SeminarCalendar() {
         const tIdx = tracks.findIndex((t) =>
           occupy.every((i) => t[i] === null),
         );
-        if (tIdx !== -1) occupy.forEach((i) => (tracks[tIdx][i] = ev));
+        if (tIdx !== -1)
+          occupy.forEach((i) => {
+            tracks[tIdx][i] = ev;
+          });
       });
       return tracks;
     });
@@ -671,7 +695,11 @@ export default function SeminarCalendar() {
                     <Button
                       type="submit"
                       disabled={
-                        !formData.type || !formData.title || !formData.startDate
+                        !formData.type ||
+                        !formData.title ||
+                        !formData.startDate ||
+                        (!!formData.endDate &&
+                          formData.startDate > formData.endDate)
                       }
                     >
                       {editingId ? '수정' : '추가'}
@@ -710,6 +738,7 @@ export default function SeminarCalendar() {
                 .size;
               return (
                 <button
+                  type="button"
                   key={dayYmd}
                   onClick={() => handleDateClick(day)}
                   className={cn(
@@ -721,13 +750,13 @@ export default function SeminarCalendar() {
                     <span
                       className={cn(
                         'flex size-5 items-center justify-center rounded-full text-xs',
-                        selectedDate && isSameDay(day, selectedDate)
-                          ? 'bg-muted-foreground text-white'
-                          : isToday
-                            ? 'bg-blue-500 text-white'
-                            : isCurr
-                              ? 'text-gray-900'
-                              : 'text-gray-400',
+                        (() => {
+                          if (selectedDate && isSameDay(day, selectedDate))
+                            return 'bg-muted-foreground text-white';
+                          if (isToday) return 'bg-blue-500 text-white';
+                          if (isCurr) return 'text-gray-900';
+                          return 'text-gray-400';
+                        })(),
                       )}
                     >
                       {day.getDate()}
@@ -735,7 +764,12 @@ export default function SeminarCalendar() {
                   </div>
                   <div className="flex flex-col gap-1">
                     {cells.map((ev, tIdx) => {
-                      if (!ev) return <div key={tIdx} className="h-6" />;
+                      if (!ev)
+                        return (
+                          // eslint-disable-next-line react/no-array-index-key -- empty slot, no stable id
+                          // prettier-ignore
+                          <div key={`empty-${dayYmd}-${tIdx}`} className="h-6" />
+                        );
                       const kind = getSegmentKind(ev, day);
                       if (kind === 'single')
                         return <SingleDayPill key={ev.id} ev={ev} />;
@@ -858,10 +892,19 @@ export default function SeminarCalendar() {
                 {searchedEvents.map((ev) => (
                   <div
                     key={ev.id}
+                    role="button"
+                    tabIndex={0}
                     className="hover:bg-muted/40 group cursor-pointer rounded border p-3"
                     onClick={() => {
                       setSelectedDate(fromYmdLocal(ev.startDate)!);
                       setActiveTab('DATE');
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedDate(fromYmdLocal(ev.startDate)!);
+                        setActiveTab('DATE');
+                      }
                     }}
                   >
                     <div className="mb-1 flex items-center justify-between">

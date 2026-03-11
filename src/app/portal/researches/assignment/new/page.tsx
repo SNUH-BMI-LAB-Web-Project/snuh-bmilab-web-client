@@ -14,12 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DateInput } from '@/components/ui/date-input';
-import {
-  ArrowLeft,
-  X,
-  Minus,
-  Plus,
-} from 'lucide-react';
+import { ArrowLeft, X, Minus, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import SingleUserSelectInput from '@/components/portal/researches/assignment/single-user-select-input';
@@ -34,7 +29,10 @@ import { getProfessorKey } from '@/utils/external-professor-utils';
 import { parseISO } from 'date-fns';
 import { TaskApi } from '@/generated-api/apis/TaskApi';
 import { getApiConfig } from '@/lib/config';
-import { normalizeThreeFiveRuleForApi, THREE_FIVE_RULE_OPTIONS } from '@/lib/constants/threeFiveRule';
+import {
+  normalizeThreeFiveRuleForApi,
+  THREE_FIVE_RULE_OPTIONS,
+} from '@/lib/constants/threeFiveRule';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -129,7 +127,6 @@ export default function AddTaskPage() {
     ? [getProfessorKey(hostProfessor)]
     : [];
   const selectedSnuhKeys = snuhPIs.map(getProfessorKey);
-
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -227,7 +224,9 @@ export default function AddTaskPage() {
 
     // 스키마 변환 (유효 enum만 전송해 백엔드 500 방지)
     const threeFiveRule: TaskRequestThreeFiveRuleEnum =
-      normalizeThreeFiveRuleForApi(formData.includesThreeToFive) as TaskRequestThreeFiveRuleEnum;
+      normalizeThreeFiveRuleForApi(
+        formData.includesThreeToFive,
+      ) as TaskRequestThreeFiveRuleEnum;
     const totalYears = formData.totalYears ? Number(formData.totalYears) : 0;
     const currentYear = parseCurrentYear(formData.progressStage);
     const periods: TaskPeriodRequest[] | undefined = (

@@ -27,7 +27,8 @@ function parseDateString(input: string): string | null {
   if (isoMatch) {
     const [, y, m, d] = isoMatch;
     const date = new Date(Number(y), Number(m) - 1, Number(d));
-    if (isValid(date)) return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+    if (isValid(date))
+      return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
   }
   // yyyy.MM.dd / yyyy/MM/dd
   const dotMatch = /^(\d{4})[./](\d{1,2})[./](\d{1,2})$/.exec(trimmed);
@@ -68,7 +69,7 @@ export function DateInput({
 }: DateInputProps) {
   const [open, setOpen] = React.useState(false);
   const [inputText, setInputText] = React.useState(() =>
-    value ? format(parseISO(value), displayFormat) : ''
+    value ? format(parseISO(value), displayFormat) : '',
   );
 
   const dateValue = React.useMemo(() => {

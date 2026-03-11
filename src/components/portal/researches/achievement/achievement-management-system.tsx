@@ -4,7 +4,9 @@ import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { toast } from 'sonner';
 
+import { useAuthStore } from '@/store/auth-store';
 import { ResearchAchievementModal } from './ResearchAchievementModal';
 import { ResearchAchievementTables } from './ResearchAchievementTables';
 
@@ -29,10 +31,22 @@ export default function ResearchManagementSystem({
 }: {
   isUserView?: boolean;
 }) {
+  const { role, user } = useAuthStore();
+  const currentUserId = user?.userId != null ? Number(user.userId) : null;
+
   const [activeTab, setActiveTab] = useState<ResearchType>('paper');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<
+    Record<string, unknown> | null
+  >(null);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  const canEditResearch = (item: { createdBy?: number | null } | null) =>
+    role === 'ADMIN' ||
+    (item?.createdBy != null &&
+      currentUserId !== null &&
+      Number(item.createdBy) === currentUserId);
+  const canDeleteResearch = canEditResearch;
 
   const handleAdd = () => {
     setEditingItem(null);
@@ -40,7 +54,7 @@ export default function ResearchManagementSystem({
   };
 
   const handleDelete = async (id: string | number, type: ResearchType) => {
-    if (!confirm('정말로 삭제하시겠습니까?')) return;
+    if (!window.confirm('정말로 삭제하시겠습니까?')) return;
 
     const token = getToken();
     const endpointMap: Record<ResearchType, string> = {
@@ -62,17 +76,27 @@ export default function ResearchManagementSystem({
       );
 
       if (res.ok) {
-        alert('삭제되었습니다.');
+        toast.success('삭제되었습니다.');
         setRefreshKey((prev) => prev + 1);
+      } else if (res.status === 403) {
+        toast.error('삭제 권한이 없습니다.');
+      } else if (res.status === 500 || res.status === 400) {
+        toast.error(
+          '연계된 데이터가 있어 삭제할 수 없습니다. 연결을 해제한 뒤 다시 시도해 주세요.',
+        );
       } else {
-        alert('삭제 실패: 권한이 없거나 서버 오류가 발생했습니다.');
+        toast.error('삭제에 실패했습니다.');
       }
     } catch (e) {
       console.error('Delete error:', e);
+      toast.error('삭제에 실패했습니다.');
     }
   };
 
-  const handleEditDefault = (item: any, type: ResearchType) => {
+  const handleEditDefault = (
+    item: Record<string, unknown>,
+    type: ResearchType,
+  ) => {
     setEditingItem({ ...item, type });
     setIsDialogOpen(true);
   };
@@ -101,12 +125,14 @@ export default function ResearchManagementSystem({
           refreshKey={refreshKey}
           onEdit={(item, type) => handleEditDefault(item, type as ResearchType)}
           onDelete={handleDelete}
+          canEditRow={canEditResearch}
+          canDeleteRow={canDeleteResearch}
         />
       </Tabs>
 
       <ResearchAchievementModal
         open={isDialogOpen}
-        type={editingItem?.type || activeTab}
+        type={(editingItem?.type as ResearchType) || activeTab}
         editingItem={editingItem}
         onClose={() => {
           setIsDialogOpen(false);

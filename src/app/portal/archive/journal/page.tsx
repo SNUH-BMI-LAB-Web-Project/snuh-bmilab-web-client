@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { useAuthStore } from '@/store/auth-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,7 +33,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import { Plus, Edit, Trash2, Save, BookOpen, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Save,
+  BookOpen,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
@@ -69,7 +79,30 @@ const CATEGORY_OPTIONS: Array<{
   { value: CreateJournalRequestCategoryEnum.Esci, label: 'ESCI' },
 ];
 
+type SortKey = 'year' | 'journalName';
+
+function JournalSortIcon({
+  column,
+  sortBy,
+  sortOrder,
+}: {
+  column: SortKey;
+  sortBy: SortKey | null;
+  sortOrder: 'asc' | 'desc';
+}) {
+  if (sortBy !== column)
+    return <ArrowUpDown className="ml-1 inline h-4 w-4 opacity-50" />;
+  return sortOrder === 'asc' ? (
+    <ArrowUp className="ml-1 inline h-4 w-4" />
+  ) : (
+    <ArrowDown className="ml-1 inline h-4 w-4" />
+  );
+}
+
 export default function JournalPage() {
+  const role = useAuthStore((s) => s.role);
+  const isAdmin = role === 'ADMIN';
+
   const [journals, setJournals] = useState<JournalSummaryResponse[]>([]);
   const [editingJournal, setEditingJournal] =
     useState<JournalSummaryResponse | null>(null);
@@ -90,7 +123,6 @@ export default function JournalPage() {
     issue: '',
   });
 
-  type SortKey = 'year' | 'journalName';
   const [sortBy, setSortBy] = useState<SortKey | null>('year');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
@@ -114,15 +146,6 @@ export default function JournalPage() {
       setSortBy(key);
       setSortOrder(key === 'year' ? 'desc' : 'asc');
     }
-  };
-
-  const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortBy !== column) return <ArrowUpDown className="ml-1 inline h-4 w-4 opacity-50" />;
-    return sortOrder === 'asc' ? (
-      <ArrowUp className="ml-1 inline h-4 w-4" />
-    ) : (
-      <ArrowDown className="ml-1 inline h-4 w-4" />
-    );
   };
 
   const fetchJournals = async () => {
@@ -180,8 +203,11 @@ export default function JournalPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const yearNum = formData.year.trim() ? parseInt(formData.year.trim(), 10) : NaN;
-  const isYearValid = !isNaN(yearNum) && yearNum >= 1900 && yearNum <= 2100;
+  const yearNum = formData.year.trim()
+    ? parseInt(formData.year.trim(), 10)
+    : NaN;
+  const isYearValid =
+    !Number.isNaN(yearNum) && yearNum >= 1900 && yearNum <= 2100;
 
   const isAllRequiredValid =
     !!formData.journalName.trim() &&
@@ -219,8 +245,13 @@ export default function JournalPage() {
       toast.success('저널이 성공적으로 추가되었습니다.');
       resetForm();
       await fetchJournals();
-    } catch (e) {
-      console.error(e);
+    } catch (e: unknown) {
+      const status =
+        e && typeof e === 'object' && 'response' in e
+          ? (e as { response: Response }).response?.status
+          : undefined;
+      if (status === 403) toast.error('등록 권한이 없습니다.');
+      else console.error(e);
     }
   };
 
@@ -251,8 +282,13 @@ export default function JournalPage() {
       setEditingJournal(null);
       resetForm();
       await fetchJournals();
-    } catch (e) {
-      console.error(e);
+    } catch (e: unknown) {
+      const status =
+        e && typeof e === 'object' && 'response' in e
+          ? (e as { response: Response }).response?.status
+          : undefined;
+      if (status === 403) toast.error('수정 권한이 없습니다.');
+      else console.error(e);
     }
   };
 
@@ -272,8 +308,20 @@ export default function JournalPage() {
       setDeleteJournal(null);
       toast.success('저널이 성공적으로 삭제되었습니다.');
       await fetchJournals();
-    } catch (e) {
-      console.error(e);
+    } catch (e: unknown) {
+      const status =
+        e && typeof e === 'object' && 'response' in e
+          ? (e as { response: Response }).response?.status
+          : undefined;
+      if (status === 403) toast.error('삭제 권한이 없습니다.');
+      else if (status === 500 || status === 400) {
+        toast.error(
+          '이 저널에 연결된 논문이 있어 삭제할 수 없습니다. 논문에서 저널 연결을 해제한 뒤 다시 시도해 주세요.',
+        );
+      } else {
+        console.error(e);
+        toast.error('삭제에 실패했습니다.');
+      }
     }
   };
 
@@ -281,190 +329,194 @@ export default function JournalPage() {
     <div className="mb-8 flex flex-col gap-8">
       <h1 className="text-3xl font-bold">저널</h1>
 
-      {/* 추가/수정 폼 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            {editingJournal ? (
-              <>
-                <Edit className="h-5 w-5" />
-                정보 수정
-              </>
-            ) : (
-              <>
-                <Plus className="h-5 w-5" />새 저널 추가
-              </>
-            )}
-          </CardTitle>
-        </CardHeader>
+      {/* 추가/수정 폼 - 어드민만 */}
+      {isAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              {editingJournal ? (
+                <>
+                  <Edit className="h-5 w-5" />
+                  정보 수정
+                </>
+              ) : (
+                <>
+                  <Plus className="h-5 w-5" />새 저널 추가
+                </>
+              )}
+            </CardTitle>
+          </CardHeader>
 
-        <CardContent>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <div className="space-y-2 lg:col-span-3">
-              <Label htmlFor="journalName">
-                저널명 <span className="text-destructive text-xs">*</span>
-              </Label>
-              <Input
-                id="journalName"
-                value={formData.journalName}
-                onChange={(e) =>
-                  handleInputChange('journalName', e.target.value)
-                }
-                placeholder="Nature / IEEE Transactions on ..."
-              />
+          <CardContent>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="space-y-2 lg:col-span-3">
+                <Label htmlFor="journalName">
+                  저널명 <span className="text-destructive text-xs">*</span>
+                </Label>
+                <Input
+                  id="journalName"
+                  value={formData.journalName}
+                  onChange={(e) =>
+                    handleInputChange('journalName', e.target.value)
+                  }
+                  placeholder="Nature / IEEE Transactions on ..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="year">
+                  연도 <span className="text-destructive text-xs">*</span>
+                </Label>
+                <Input
+                  id="year"
+                  type="number"
+                  min={1900}
+                  max={2100}
+                  value={formData.year}
+                  onChange={(e) => handleInputChange('year', e.target.value)}
+                  placeholder="예: 2025"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="category">
+                  저널 분류 <span className="text-destructive text-xs">*</span>
+                </Label>
+
+                <Select
+                  value={formData.category}
+                  onValueChange={(v) => handleInputChange('category', v)}
+                >
+                  <SelectTrigger id="category" className="w-full">
+                    <SelectValue placeholder="선택" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {CATEGORY_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="publisher">
+                  출판사 <span className="text-destructive text-xs">*</span>
+                </Label>
+                <Input
+                  id="publisher"
+                  value={formData.publisher}
+                  onChange={(e) =>
+                    handleInputChange('publisher', e.target.value)
+                  }
+                  placeholder="Springer / Elsevier / IEEE"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="publishCountry">
+                  출판 국가 <span className="text-destructive text-xs">*</span>
+                </Label>
+                <Input
+                  id="publishCountry"
+                  value={formData.publishCountry}
+                  onChange={(e) =>
+                    handleInputChange('publishCountry', e.target.value)
+                  }
+                  placeholder="Korea / USA / UK"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="isbn">
+                  ISBN <span className="text-destructive text-xs">*</span>
+                </Label>
+                <Input
+                  id="isbn"
+                  value={formData.isbn}
+                  onChange={(e) => handleInputChange('isbn', e.target.value)}
+                  placeholder="978-..."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="issn">
+                  ISSN <span className="text-destructive text-xs">*</span>
+                </Label>
+                <Input
+                  id="issn"
+                  value={formData.issn}
+                  onChange={(e) => handleInputChange('issn', e.target.value)}
+                  placeholder="1234-5678"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="eissn">
+                  eISSN <span className="text-destructive text-xs">*</span>
+                </Label>
+                <Input
+                  id="eissn"
+                  value={formData.eissn}
+                  onChange={(e) => handleInputChange('eissn', e.target.value)}
+                  placeholder="1234-567X"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="jif">
+                  JIF <span className="text-destructive text-xs">*</span>
+                </Label>
+                <Input
+                  id="jif"
+                  value={formData.jif}
+                  onChange={(e) => handleInputChange('jif', e.target.value)}
+                  placeholder="ex) 12.3"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="jcrRank">
+                  JCR Rank <span className="text-destructive text-xs">*</span>
+                </Label>
+                <Input
+                  id="jcrRank"
+                  value={formData.jcrRank}
+                  onChange={(e) => handleInputChange('jcrRank', e.target.value)}
+                  placeholder="ex) Q1 / 10/200"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="issue">
+                  Issue <span className="text-destructive text-xs">*</span>
+                </Label>
+                <Input
+                  id="issue"
+                  value={formData.issue}
+                  onChange={(e) => handleInputChange('issue', e.target.value)}
+                  placeholder="ex) Vol.12 No.3"
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="year">
-                연도 <span className="text-destructive text-xs">*</span>
-              </Label>
-              <Input
-                id="year"
-                type="number"
-                min={1900}
-                max={2100}
-                value={formData.year}
-                onChange={(e) => handleInputChange('year', e.target.value)}
-                placeholder="예: 2025"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="category">
-                저널 분류 <span className="text-destructive text-xs">*</span>
-              </Label>
-
-              <Select
-                value={formData.category}
-                onValueChange={(v) => handleInputChange('category', v)}
+            <div className="mt-6 flex justify-end gap-3">
+              <Button variant="outline" onClick={cancelForm}>
+                취소
+              </Button>
+              <Button
+                onClick={editingJournal ? handleEditJournal : handleAddJournal}
+                disabled={!isAllRequiredValid}
               >
-                <SelectTrigger id="category" className="w-full">
-                  <SelectValue placeholder="선택" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  {CATEGORY_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <Save className="mr-2 h-4 w-4" />
+                {editingJournal ? '수정' : '추가'}
+              </Button>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="publisher">
-                출판사 <span className="text-destructive text-xs">*</span>
-              </Label>
-              <Input
-                id="publisher"
-                value={formData.publisher}
-                onChange={(e) => handleInputChange('publisher', e.target.value)}
-                placeholder="Springer / Elsevier / IEEE"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="publishCountry">
-                출판 국가 <span className="text-destructive text-xs">*</span>
-              </Label>
-              <Input
-                id="publishCountry"
-                value={formData.publishCountry}
-                onChange={(e) =>
-                  handleInputChange('publishCountry', e.target.value)
-                }
-                placeholder="Korea / USA / UK"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="isbn">
-                ISBN <span className="text-destructive text-xs">*</span>
-              </Label>
-              <Input
-                id="isbn"
-                value={formData.isbn}
-                onChange={(e) => handleInputChange('isbn', e.target.value)}
-                placeholder="978-..."
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="issn">
-                ISSN <span className="text-destructive text-xs">*</span>
-              </Label>
-              <Input
-                id="issn"
-                value={formData.issn}
-                onChange={(e) => handleInputChange('issn', e.target.value)}
-                placeholder="1234-5678"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="eissn">
-                eISSN <span className="text-destructive text-xs">*</span>
-              </Label>
-              <Input
-                id="eissn"
-                value={formData.eissn}
-                onChange={(e) => handleInputChange('eissn', e.target.value)}
-                placeholder="1234-567X"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="jif">
-                JIF <span className="text-destructive text-xs">*</span>
-              </Label>
-              <Input
-                id="jif"
-                value={formData.jif}
-                onChange={(e) => handleInputChange('jif', e.target.value)}
-                placeholder="ex) 12.3"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="jcrRank">
-                JCR Rank <span className="text-destructive text-xs">*</span>
-              </Label>
-              <Input
-                id="jcrRank"
-                value={formData.jcrRank}
-                onChange={(e) => handleInputChange('jcrRank', e.target.value)}
-                placeholder="ex) Q1 / 10/200"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="issue">
-                Issue <span className="text-destructive text-xs">*</span>
-              </Label>
-              <Input
-                id="issue"
-                value={formData.issue}
-                onChange={(e) => handleInputChange('issue', e.target.value)}
-                placeholder="ex) Vol.12 No.3"
-              />
-            </div>
-          </div>
-
-          <div className="mt-6 flex justify-end gap-3">
-            <Button variant="outline" onClick={cancelForm}>
-              취소
-            </Button>
-            <Button
-              onClick={editingJournal ? handleEditJournal : handleAddJournal}
-              disabled={!isAllRequiredValid}
-            >
-              <Save className="mr-2 h-4 w-4" />
-              {editingJournal ? '수정' : '추가'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 목록 */}
       <Card>
@@ -497,7 +549,11 @@ export default function JournalPage() {
                       onClick={() => toggleSort('journalName')}
                     >
                       저널명
-                      <SortIcon column="journalName" />
+                      <JournalSortIcon
+                        column="journalName"
+                        sortBy={sortBy}
+                        sortOrder={sortOrder}
+                      />
                     </Button>
                   </TableHead>
                   <TableHead>
@@ -508,7 +564,11 @@ export default function JournalPage() {
                       onClick={() => toggleSort('year')}
                     >
                       연도 (시간순)
-                      <SortIcon column="year" />
+                      <JournalSortIcon
+                        column="year"
+                        sortBy={sortBy}
+                        sortOrder={sortOrder}
+                      />
                     </Button>
                   </TableHead>
                   <TableHead>분류</TableHead>
@@ -526,7 +586,9 @@ export default function JournalPage() {
 
               <TableBody>
                 {sortedJournals.map((j) => (
-                  <TableRow key={String(j.id ?? `${j.journalName}-${j.year}-${j.issn}`)}>
+                  <TableRow
+                    key={String(j.id ?? `${j.journalName}-${j.year}-${j.issn}`)}
+                  >
                     <TableCell>
                       <div className="pl-4 font-medium">{j.journalName}</div>
                     </TableCell>
@@ -543,22 +605,24 @@ export default function JournalPage() {
                     <TableCell>{j.jcrRank}</TableCell>
                     <TableCell>{j.issue}</TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => startEdit(j)}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setDeleteJournal(j)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
+                      {isAdmin && (
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => startEdit(j)}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setDeleteJournal(j)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

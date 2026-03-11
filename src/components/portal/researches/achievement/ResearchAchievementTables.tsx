@@ -20,9 +20,13 @@ type ResearchType =
 
 interface Props {
   isUserView?: boolean;
-  onEdit: (item: any, type: ResearchType) => void;
+  onEdit: (item: Record<string, unknown>, type: ResearchType) => void;
   onDelete: (id: string | number, type: ResearchType) => void;
   refreshKey?: number;
+  /** 수정 가능 여부 (어드민 또는 작성자). 미전달 시 전부 표시 */
+  canEditRow?: (item: { createdBy?: number | null } | null) => boolean;
+  /** 삭제 가능 여부. 미전달 시 전부 표시 */
+  canDeleteRow?: (item: { createdBy?: number | null } | null) => boolean;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -32,12 +36,14 @@ export function ResearchAchievementTables({
   onEdit,
   onDelete,
   refreshKey,
+  canEditRow,
+  canDeleteRow,
 }: Props) {
-  const [books, setBooks] = useState<any[]>([]);
-  const [conferences, setConferences] = useState<any[]>([]);
-  const [awards, setAwards] = useState<any[]>([]);
-  const [papers, setPapers] = useState<any[]>([]);
-  const [patents, setPatents] = useState<any[]>([]);
+  const [books, setBooks] = useState<Record<string, unknown>[]>([]);
+  const [conferences, setConferences] = useState<Record<string, unknown>[]>([]);
+  const [awards, setAwards] = useState<Record<string, unknown>[]>([]);
+  const [papers, setPapers] = useState<Record<string, unknown>[]>([]);
+  const [patents, setPatents] = useState<Record<string, unknown>[]>([]);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -66,11 +72,19 @@ export function ResearchAchievementTables({
           ),
         ]);
 
-        setBooks(b.authors || []);
-        setConferences(c.presentations || []);
-        setAwards(a.awards || []);
-        setPapers(p.papers || []);
-        setPatents(pt.patents || []);
+        const withCreatedBy = (arr: Record<string, unknown>[]) =>
+          (arr || []).map((x) => ({
+            ...x,
+            createdBy:
+              (x?.createdBy as number | null) ??
+              (x?.created_by as number | null) ??
+              null,
+          }));
+        setBooks(withCreatedBy(b.authors || []));
+        setConferences(withCreatedBy(c.presentations || []));
+        setAwards(withCreatedBy(a.awards || []));
+        setPapers(withCreatedBy(p.papers || []));
+        setPatents(withCreatedBy(pt.patents || []));
       } catch (e) {
         console.error('Fetch error:', e);
       }
@@ -82,38 +96,62 @@ export function ResearchAchievementTables({
     <>
       <TabsContent value="book">
         <BookTable
-          data={books}
-          onEdit={(item) => onEdit(item, 'book')}
+          data={books as unknown as Parameters<typeof BookTable>[0]['data']}
+          onEdit={(item) =>
+            onEdit(item as unknown as Record<string, unknown>, 'book')
+          }
           onDelete={(id) => onDelete(id, 'book')}
+          canEditRow={canEditRow}
+          canDeleteRow={canDeleteRow}
         />
       </TabsContent>
       <TabsContent value="conference">
         <ConferenceTable
-          data={conferences}
-          onEdit={(item) => onEdit(item, 'conference')}
+          data={
+            conferences as unknown as Parameters<
+              typeof ConferenceTable
+            >[0]['data']
+          }
+          onEdit={(item) =>
+            onEdit(item as unknown as Record<string, unknown>, 'conference')
+          }
           onDelete={(id) => onDelete(id, 'conference')}
+          canEditRow={canEditRow}
+          canDeleteRow={canDeleteRow}
         />
       </TabsContent>
       <TabsContent value="award">
         <AwardTable
-          data={awards}
-          onEdit={(item) => onEdit(item, 'award')}
+          data={awards as unknown as Parameters<typeof AwardTable>[0]['data']}
+          onEdit={(item) =>
+            onEdit(item as unknown as Record<string, unknown>, 'award')
+          }
           onDelete={(id) => onDelete(id, 'award')}
+          canEditRow={canEditRow}
+          canDeleteRow={canDeleteRow}
         />
       </TabsContent>
       <TabsContent value="paper">
         <PaperTable
-          data={papers}
-          onEdit={(item) => onEdit(item, 'paper')}
+          data={papers as unknown as Parameters<typeof PaperTable>[0]['data']}
+          onEdit={(item) =>
+            onEdit(item as unknown as Record<string, unknown>, 'paper')
+          }
           onDelete={(id) => onDelete(id, 'paper')}
           isUserView={isUserView}
+          canEditRow={canEditRow}
+          canDeleteRow={canDeleteRow}
         />
       </TabsContent>
       <TabsContent value="patent">
         <PatentTable
-          data={patents}
-          onEdit={(item) => onEdit(item, 'patent')}
+          data={patents as unknown as Parameters<typeof PatentTable>[0]['data']}
+          onEdit={(item) =>
+            onEdit(item as unknown as Record<string, unknown>, 'patent')
+          }
           onDelete={(id) => onDelete(id, 'patent')}
+          canEditRow={canEditRow}
+          canDeleteRow={canDeleteRow}
         />
       </TabsContent>
     </>

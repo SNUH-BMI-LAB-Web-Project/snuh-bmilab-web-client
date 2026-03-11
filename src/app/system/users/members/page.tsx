@@ -70,12 +70,12 @@ function NameCellWithDetailNav({
   row,
   onInlineSave,
   onNavigate,
-  userStatusSuffixMap,
+  statusSuffixMap,
 }: {
   row: UserItem;
   onInlineSave: InlineSaveFn;
   onNavigate: () => void;
-  userStatusSuffixMap: Record<string, string>;
+  statusSuffixMap: Record<string, string>;
 }) {
   const navTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -105,7 +105,7 @@ function NameCellWithDetailNav({
       tabIndex={0}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
-      className="cursor-pointer space-y-0.5 rounded px-1 py-0.5 hover:bg-muted/50"
+      className="hover:bg-muted/50 cursor-pointer space-y-0.5 rounded px-1 py-0.5"
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -127,12 +127,10 @@ function NameCellWithDetailNav({
           {(row.status === 'ON_LEAVE' || row.status === 'RESIGNED') && (
             <span
               className={`text-sm font-normal ${
-                row.status === 'ON_LEAVE'
-                  ? 'text-primary'
-                  : 'text-destructive'
+                row.status === 'ON_LEAVE' ? 'text-primary' : 'text-destructive'
               }`}
             >
-              ({userStatusSuffixMap[row.status]})
+              ({statusSuffixMap[row.status]})
             </span>
           )}
         </div>
@@ -184,7 +182,7 @@ const getUserColumns = (
         row={row}
         onInlineSave={onInlineSave}
         onNavigate={() => router.push(`/system/users/members/${row.userId}`)}
-        userStatusSuffixMap={userStatusSuffixMap}
+        statusSuffixMap={userStatusSuffixMap}
       />
     ),
   },
@@ -237,9 +235,7 @@ const getUserColumns = (
         onSave={onInlineSave}
         className="flex justify-center"
       >
-        {row.position
-          ? (positionLabelMap[row.position] ?? row.position)
-          : '-'}
+        {row.position ? (positionLabelMap[row.position] ?? row.position) : '-'}
       </EditableCell>
     ),
   },
@@ -317,9 +313,7 @@ const getUserColumns = (
           className="mx-auto flex max-w-[150px] items-center justify-center border-gray-300 font-mono"
         >
           <div className="max-w-full truncate overflow-hidden whitespace-nowrap">
-            {formatSeatNumberDetail(
-              row.seatNumber || '융합의학기술원-00-00',
-            )}
+            {formatSeatNumberDetail(row.seatNumber || '융합의학기술원-00-00')}
           </div>
         </Badge>
       </EditableCell>
@@ -468,12 +462,11 @@ export default function SystemProjectPage() {
       role: (detail.role as AdminUpdateUserRequest['role']) ?? 'USER',
       newCategoryIds: [],
       deletedCategoryIds: [],
-      subAffiliations:
-        detail.subAffiliations?.map((a) => ({
-          organization: a.organization ?? '',
-          department: a.department ?? '',
-          position: a.position ?? '',
-        })),
+      subAffiliations: detail.subAffiliations?.map((a) => ({
+        organization: a.organization ?? '',
+        department: a.department ?? '',
+        position: a.position ?? '',
+      })),
       position:
         fieldKey === 'position'
           ? (value as AdminUpdateUserRequest['position']) || undefined
@@ -503,7 +496,9 @@ export default function SystemProjectPage() {
             ...(fieldKey === 'organization' && { organization: value }),
             ...(fieldKey === 'department' && { department: value }),
             ...(fieldKey === 'position' && {
-              position: (value || undefined) as UserItemPositionEnum | undefined,
+              position: (value || undefined) as
+                | UserItemPositionEnum
+                | undefined,
             }),
             ...(fieldKey === 'phoneNumber' && { phoneNumber: value }),
             ...(fieldKey === 'seatNumber' && { seatNumber: value }),

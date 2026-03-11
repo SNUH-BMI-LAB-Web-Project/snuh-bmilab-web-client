@@ -29,6 +29,7 @@ import { Badge } from '@/components/ui/badge';
 
 interface PaperData {
   id: number;
+  createdBy?: number | null;
   acceptDate: string;
   publishDate: string;
   journal: {
@@ -71,6 +72,8 @@ interface PaperTableProps {
   onEdit: (item: PaperData, type: string) => void;
   onDelete: (id: string, type: string) => void;
   isUserView?: boolean;
+  canEditRow?: (item: { createdBy?: number | null } | null) => boolean;
+  canDeleteRow?: (item: { createdBy?: number | null } | null) => boolean;
 }
 
 export function PaperTable({
@@ -78,6 +81,8 @@ export function PaperTable({
   onEdit,
   onDelete,
   isUserView = false,
+  canEditRow,
+  canDeleteRow,
 }: PaperTableProps) {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [searchQuery, setSearchQuery] = useState('');
@@ -259,24 +264,33 @@ export function PaperTable({
                     </TableCell>
                   )}
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="icon" variant="ghost">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(item, 'paper')}>
-                          <Pencil className="mr-2 h-4 w-4" /> 수정
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => onDelete(String(item.id), 'paper')}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" /> 삭제
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {(canEditRow?.(item) ?? true) ||
+                    (canDeleteRow?.(item) ?? true) ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="icon" variant="ghost">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {(canEditRow?.(item) ?? true) && (
+                            <DropdownMenuItem
+                              onClick={() => onEdit(item, 'paper')}
+                            >
+                              <Pencil className="mr-2 h-4 w-4" /> 수정
+                            </DropdownMenuItem>
+                          )}
+                          {(canDeleteRow?.(item) ?? true) && (
+                            <DropdownMenuItem
+                              onClick={() => onDelete(String(item.id), 'paper')}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" /> 삭제
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               );

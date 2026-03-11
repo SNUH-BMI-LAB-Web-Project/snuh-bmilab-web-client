@@ -33,7 +33,7 @@ export const customFetch: typeof fetch = async (...args) => {
       error.body = json;
       throw error;
     } catch (e) {
-      toast.error(message);
+      toast.error('요청에 실패했습니다.');
       throw new Error(message);
     }
   }

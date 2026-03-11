@@ -113,7 +113,8 @@ export default function BasicInfoTab({ taskInfo }: { taskInfo?: any }) {
       setIsEditMode(false);
       await fetchBasicInfo();
     } catch (err: any) {
-      toast.error(`저장 실패: ${err.message || '알 수 없는 오류'}`);
+      console.error('BasicInfo save error:', err);
+      toast.error('저장에 실패했습니다.');
     }
   };
 

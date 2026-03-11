@@ -297,7 +297,13 @@ function PortalBoardPageContent() {
 
 export default function PortalBoardPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-[200px] items-center justify-center">로딩 중...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-[200px] items-center justify-center">
+          로딩 중...
+        </div>
+      }
+    >
       <PortalBoardPageContent />
     </Suspense>
   );

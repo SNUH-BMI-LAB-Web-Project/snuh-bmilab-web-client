@@ -28,6 +28,7 @@ import {
 
 interface BookData {
   id: number;
+  createdBy?: number | null;
   authors: string;
   authorType: string;
   publicationDate: string;
@@ -42,11 +43,19 @@ interface BookTableProps {
   data: BookData[];
   onEdit: (item: BookData) => void;
   onDelete?: (id: string) => void;
+  canEditRow?: (item: { createdBy?: number | null } | null) => boolean;
+  canDeleteRow?: (item: { createdBy?: number | null } | null) => boolean;
 }
 
 type SortOrder = 'asc' | 'desc';
 
-export function BookTable({ data, onEdit, onDelete }: BookTableProps) {
+export function BookTable({
+  data,
+  onEdit,
+  onDelete,
+  canEditRow,
+  canDeleteRow,
+}: BookTableProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchColumn, setSearchColumn] = useState<string>('all');
@@ -163,26 +172,31 @@ export function BookTable({ data, onEdit, onDelete }: BookTableProps) {
                   <TableCell>{item.title}</TableCell>
                   <TableCell>{item.isbn}</TableCell>
                   <TableCell className="text-center">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(item)}>
-                          <Pencil className="mr-2 h-4 w-4" /> 수정
-                        </DropdownMenuItem>
-                        {onDelete && (
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() => onDelete(String(item.id))} // 부모의 handleDelete 호출
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" /> 삭제
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {(canEditRow?.(item) ?? true) ||
+                    (canDeleteRow?.(item) ?? true) ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {(canEditRow?.(item) ?? true) && (
+                            <DropdownMenuItem onClick={() => onEdit(item)}>
+                              <Pencil className="mr-2 h-4 w-4" /> 수정
+                            </DropdownMenuItem>
+                          )}
+                          {(canDeleteRow?.(item) ?? true) && onDelete && (
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => onDelete(String(item.id))}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" /> 삭제
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               ))
