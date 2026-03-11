@@ -418,15 +418,19 @@ export default function SeminarCalendar() {
       });
       if (res.ok) {
         toast.success('삭제되었습니다.');
-        // 삭제 성공 시 fetchEvents 호출하여 뷰 갱신
         fetchEvents();
       } else if (res.status === 403) {
         toast.error('권한이 없습니다.');
+      } else if (res.status === 500 || res.status === 400) {
+        toast.error(
+          '연계된 데이터가 있어 삭제할 수 없습니다. 연결을 해제한 뒤 다시 시도해 주세요.',
+        );
       } else {
-        toast.error('삭제 실패');
+        toast.error('삭제에 실패했습니다.');
       }
     } catch (err) {
-      toast.error('삭제 실패');
+      console.error('Seminar delete error:', err);
+      toast.error('삭제에 실패했습니다.');
     }
   };
 

@@ -72,9 +72,9 @@ export default function ProposalTab({ taskInfo }: { taskInfo?: any }) {
       setProposalData(data);
       setEditData(data);
     } catch (err: any) {
-      const msg = err.message || '데이터 조회 실패';
-      setErrorMessage(msg);
-      toast.error(msg);
+      console.error('Proposal fetch error:', err);
+      setErrorMessage('데이터 조회 실패');
+      toast.error('데이터를 불러오지 못했습니다.');
     } finally {
       setLoading(false);
     }
@@ -116,7 +116,8 @@ export default function ProposalTab({ taskInfo }: { taskInfo?: any }) {
       setIsEditMode(false);
       toast.success('저장되었습니다.');
     } catch (err: any) {
-      toast.error(`저장 실패: ${err.message}`);
+      console.error('Proposal save error:', err);
+      toast.error('저장에 실패했습니다.');
     }
   };
 

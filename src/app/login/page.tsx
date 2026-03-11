@@ -75,7 +75,7 @@ export default function LoginPage() {
             fallbackMessage)
           : fallbackMessage;
 
-      toast.error(message);
+      toast.error('로그인에 실패했습니다.');
       setIsLoading(false);
     }
   };

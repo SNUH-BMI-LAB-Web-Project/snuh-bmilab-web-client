@@ -215,7 +215,7 @@ export function PatentForm({ initialData, onCancel }: PatentFormProps) {
       onCancel();
     } catch (err: any) {
       console.error('[PatentForm] error', err);
-      toast.error(err.message || '요청 실패');
+      toast.error('요청에 실패했습니다.');
     }
   };
 

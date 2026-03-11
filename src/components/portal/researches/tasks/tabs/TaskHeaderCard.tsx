@@ -239,7 +239,7 @@ export default function TaskHeaderCard() {
         toast.error('삭제 권한이 없습니다.');
       } else if (status === 500 || status === 400) {
         toast.error(
-          '삭제에 실패했습니다. 이 과제에 연결된 연구 성과(논문 등)가 있으면 삭제할 수 없습니다. 연결을 해제한 뒤 다시 시도해 주세요.',
+          '이 과제에 연결된 연구 성과(논문 등)가 있어 삭제할 수 없습니다. 연결을 해제한 뒤 다시 시도해 주세요.',
         );
       } else {
         console.error(e);

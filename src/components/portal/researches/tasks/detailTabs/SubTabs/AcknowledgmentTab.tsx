@@ -90,7 +90,8 @@ export default function AcknowledgmentTab() {
       toast.success('사사표기가 성공적으로 저장되었습니다.');
       await fetchAcknowledgement();
     } catch (err: any) {
-      toast.error(err.message || '저장 실패');
+      console.error('Acknowledgment save error:', err);
+      toast.error('저장에 실패했습니다.');
     }
   };
 
