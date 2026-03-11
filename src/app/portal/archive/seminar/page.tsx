@@ -368,6 +368,15 @@ export default function SeminarCalendar() {
     e.preventDefault();
     if (!formData.type || !formData.title.trim() || !formData.startDate) return;
 
+    // 시작일이 종료일보다 뒤면 수정/추가 불가
+    if (
+      formData.endDate &&
+      formData.startDate > formData.endDate
+    ) {
+      toast.error('시작일은 종료일보다 늦을 수 없습니다.');
+      return;
+    }
+
     const token = getToken();
     const body = {
       label: formData.type,
@@ -686,7 +695,11 @@ export default function SeminarCalendar() {
                     <Button
                       type="submit"
                       disabled={
-                        !formData.type || !formData.title || !formData.startDate
+                        !formData.type ||
+                        !formData.title ||
+                        !formData.startDate ||
+                        (!!formData.endDate &&
+                          formData.startDate > formData.endDate)
                       }
                     >
                       {editingId ? '수정' : '추가'}
