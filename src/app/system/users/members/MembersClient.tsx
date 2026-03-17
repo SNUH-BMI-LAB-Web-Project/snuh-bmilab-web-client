@@ -1,0 +1,692 @@
+'use client';
+
+import { useEffect, useState, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { PaginatedTable } from '@/components/common/paginated-table';
+import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
+import {
+  Search,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Eye,
+  Phone,
+  Plus,
+  Mail,
+} from 'lucide-react';
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from '@/components/ui/select';
+import Link from 'next/link';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
+import {
+  AdminUserApi,
+  UserApi,
+  UserDetail,
+  UserItem,
+  UserItemPositionEnum,
+} from '@/generated-api';
+import { toast } from 'sonner';
+import UserEditModal from '@/components/system/users/members/user-edit-modal';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import UserDeleteModal from '@/components/system/users/members/user-delete-modal';
+import UserAddModal from '@/components/system/users/members/user-add-modal';
+import { EditableCell } from '@/components/system/users/members/editable-cell';
+import { positionLabelMap } from '@/constants/position-enum';
+import PasswordResetModal from '@/components/system/users/members/password-reset-modal';
+import { getApiConfig } from '@/lib/config';
+import { formatSeatNumberDetail } from '@/utils/user-utils';
+import type { AdminUpdateUserRequest } from '@/generated-api';
+import { usePaginationState } from '@/lib/use-pagination-state';
+
+const userApi = new UserApi(getApiConfig());
+
+const adminApi = new AdminUserApi(getApiConfig());
+
+const userStatusSuffixMap: Record<string, string> = {
+  ON_LEAVE: '휴직자',
+  RESIGNED: '퇴사자',
+};
+
+type InlineSaveFn = (
+  userId: number,
+  fieldKey: string,
+  value: string,
+) => Promise<void>;
+
+const CLICK_NAV_DELAY_MS = 250;
+
+function NameCellWithDetailNav({
+  row,
+  onInlineSave,
+  onNavigate,
+  userStatusSuffixMap,
+}: {
+  row: UserItem;
+  onInlineSave: InlineSaveFn;
+  onNavigate: () => void;
+  userStatusSuffixMap: Record<string, string>;
+}) {
+  const navTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearNavTimeout = () => {
+    if (navTimeoutRef.current) {
+      clearTimeout(navTimeoutRef.current);
+      navTimeoutRef.current = null;
+    }
+  };
+
+  const handleClick = () => {
+    clearNavTimeout();
+    navTimeoutRef.current = setTimeout(() => {
+      navTimeoutRef.current = null;
+      onNavigate();
+    }, CLICK_NAV_DELAY_MS);
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    clearNavTimeout();
+  };
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
+      className="cursor-pointer space-y-0.5 rounded px-1 py-0.5 hover:bg-muted/50"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onNavigate();
+        }
+      }}
+    >
+      <EditableCell
+        value={row.name ?? ''}
+        fieldKey="name"
+        userId={row.userId!}
+        onSave={onInlineSave}
+        placeholder="이름"
+        maxLength={10}
+        className="font-medium"
+      >
+        <div className="flex items-center gap-1 font-medium">
+          <span>{row.name || '-'}</span>
+          {(row.status === 'ON_LEAVE' || row.status === 'RESIGNED') && (
+            <span
+              className={`text-sm font-normal ${
+                row.status === 'ON_LEAVE' ? 'text-primary' : 'text-destructive'
+              }`}
+            >
+              ({userStatusSuffixMap[row.status]})
+            </span>
+          )}
+        </div>
+      </EditableCell>
+      <EditableCell
+        value={row.email ?? ''}
+        fieldKey="email"
+        userId={row.userId!}
+        onSave={onInlineSave}
+        placeholder="이메일"
+        maxLength={50}
+        className="text-sm text-gray-500"
+      >
+        <span className="block w-[220px] truncate text-sm text-gray-500">
+          {row.email || '-'}
+        </span>
+      </EditableCell>
+    </div>
+  );
+}
+
+const getUserColumns = (
+  currentPage: number,
+  itemsPerPage: number,
+  router: ReturnType<typeof useRouter>,
+  onDeleteClick: (id: number) => void,
+  onEditClick: (userId: number) => void,
+  onPasswordResetClick: (userId: number) => void,
+  onInlineSave: InlineSaveFn,
+) => [
+  {
+    label: '',
+    className: 'text-center w-[60px]',
+    cell: (row: UserItem) => (
+      <Avatar className="h-10 w-10">
+        <AvatarImage
+          src={row.profileImageUrl || '/default-profile-image.svg'}
+          alt={row.name}
+          className="object-cover"
+        />
+      </Avatar>
+    ),
+  },
+  {
+    label: '이름',
+    className: 'text-left w-[250px]',
+    cell: (row: UserItem) => (
+      <NameCellWithDetailNav
+        row={row}
+        onInlineSave={onInlineSave}
+        onNavigate={() => router.push(`/system/users/members/${row.userId}`)}
+        userStatusSuffixMap={userStatusSuffixMap}
+      />
+    ),
+  },
+  {
+    label: '기관',
+    className: 'text-center truncate overflow-hidden whitespace-nowrap w-[250px]',
+    cell: (row: UserItem) => (
+      <EditableCell
+        value={row.organization ?? ''}
+        fieldKey="organization"
+        userId={row.userId!}
+        onSave={onInlineSave}
+        placeholder="기관"
+        maxLength={50}
+        className="flex justify-center"
+      >
+        {row.organization || '-'}
+      </EditableCell>
+    ),
+  },
+  {
+    label: '부서',
+    className: 'text-center truncate overflow-hidden whitespace-nowrap w-[150px]',
+    cell: (row: UserItem) => (
+      <EditableCell
+        value={row.department ?? ''}
+        fieldKey="department"
+        userId={row.userId!}
+        onSave={onInlineSave}
+        placeholder="부서"
+        maxLength={20}
+        className="flex justify-center"
+      >
+        {row.department || '-'}
+      </EditableCell>
+    ),
+  },
+  {
+    label: '구분',
+    className: 'text-center truncate overflow-hidden whitespace-nowrap w-[150px]',
+    cell: (row: UserItem) => (
+      <EditableCell
+        value={row.position ?? ''}
+        fieldKey="position"
+        userId={row.userId!}
+        type="position"
+        onSave={onInlineSave}
+        className="flex justify-center"
+      >
+        {row.position ? (positionLabelMap[row.position] ?? row.position) : '-'}
+      </EditableCell>
+    ),
+  },
+  {
+    label: '연구 분야',
+    className: 'text-center w-[150px]',
+    cell: (row: UserItem) => {
+      const categories = row.categories ?? [];
+      if (categories.length === 0) return '-';
+
+      const first = categories[0];
+      const othersCount = categories.length - 1;
+
+      return (
+        <div className="flex max-w-[150px] items-center gap-1 text-sm">
+          <Badge
+            variant="secondary"
+            className="max-w-[80px]"
+            title={first.name}
+          >
+            <div className="w-full truncate overflow-hidden text-ellipsis whitespace-nowrap">
+              {first.name}
+            </div>
+          </Badge>
+
+          {othersCount > 0 && (
+            <span className="text-xs text-gray-500">외 {othersCount}개</span>
+          )}
+        </div>
+      );
+    },
+  },
+  {
+    label: '연락처',
+    className: 'text-center truncate overflow-hidden whitespace-nowrap w-[150px]',
+    cell: (row: UserItem) => (
+      <EditableCell
+        value={row.phoneNumber?.trim() ?? ''}
+        fieldKey="phoneNumber"
+        userId={row.userId!}
+        onSave={onInlineSave}
+        placeholder="010-1234-5678"
+        maxLength={13}
+        className="flex justify-center"
+      >
+        {row.phoneNumber?.trim() ? (
+          <div className="flex items-center justify-center gap-1 text-sm">
+            <Phone className="h-3 w-3 text-gray-400" />
+            <span>{row.phoneNumber}</span>
+          </div>
+        ) : (
+          '-'
+        )}
+      </EditableCell>
+    ),
+  },
+  {
+    label: '좌석',
+    className: 'text-center w-[200px]',
+    cell: (row: UserItem) => (
+      <EditableCell
+        value={row.seatNumber ?? ''}
+        fieldKey="seatNumber"
+        userId={row.userId!}
+        onSave={onInlineSave}
+        placeholder="14-07"
+        className="flex justify-center"
+      >
+        <Badge
+          variant="outline"
+          title={formatSeatNumberDetail(row.seatNumber || '융합의학기술원-00-00')}
+          className="mx-auto flex max-w-[150px] items-center justify-center border-gray-300 font-mono"
+        >
+          <div className="max-w-full truncate overflow-hidden whitespace-nowrap">
+            {formatSeatNumberDetail(row.seatNumber || '융합의학기술원-00-00')}
+          </div>
+        </Badge>
+      </EditableCell>
+    ),
+  },
+  {
+    label: ' ',
+    className: 'text-center w-[50px]',
+    cell: (row: UserItem) => (
+      <div className="flex justify-end pr-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild className="pr-4">
+              <Link
+                href={`/system/users/members/${row.userId}`}
+                className="flex items-center"
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                상세보기
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onPasswordResetClick(row.userId!)}
+              className="pr-4"
+            >
+              <Mail className="mr-2 h-4 w-4" /> 비밀번호 재발급
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onEditClick(row.userId!)} className="pr-4">
+              <Pencil className="mr-2 h-4 w-4" /> 수정
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive pr-4"
+              onClick={() => {
+                onDeleteClick(row.userId!);
+              }}
+            >
+              <Trash2 className="text-destructive mr-2 h-4 w-4" /> 삭제
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    ),
+  },
+];
+
+export default function MembersClient() {
+  const router = useRouter();
+
+  // 실시간 입력값
+  const [searchTerm, setSearchTerm] = useState('');
+  // api 전송을 위한 값
+  const [committedSearchTerm, setCommittedSearchTerm] = useState('');
+
+  const [stringSortOption, setStringSortOption] = useState('all');
+  const [sortOption, setSortOption] = useState('asc');
+
+  const { currentPage, setCurrentPage, itemsPerPage, setItemsPerPage } =
+    usePaginationState();
+
+  const [users, setUsers] = useState<UserItem[]>([]);
+  const [totalPage, setTotalPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPasswordResetDialog, setShowPasswordResetDialog] = useState(false);
+  const [targetUserId, setTargetUserId] = useState<number | null>(null);
+
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
+
+  const [addModalOpen, setAddModalOpen] = useState(false);
+
+  // 리렌더를 위한 상태
+  const [shouldRefetch, setShouldRefetch] = useState(false);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const res = await userApi.getAllUsers({
+        filterBy: stringSortOption,
+        filterValue: committedSearchTerm,
+        direction: sortOption,
+        pageNo: currentPage - 1, // 0-based index
+        size: itemsPerPage,
+        criteria: 'createdAt',
+      });
+      setUsers(res.users ?? []);
+      setTotalPage(res.totalPage ?? 1);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, [
+    currentPage,
+    itemsPerPage,
+    stringSortOption,
+    sortOption,
+    committedSearchTerm,
+    shouldRefetch,
+  ]);
+
+  // 유저 정보 수정시, 상세 정보 불러오기
+  const fetchUserDetail = async (userId: number) => {
+    try {
+      const res = await adminApi.getUserById({ userId });
+      return res;
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  };
+
+  const handleUserEdit = async (userId: number) => {
+    const detail = await fetchUserDetail(userId);
+    if (detail) {
+      setSelectedUser(detail);
+      setEditModalOpen(true);
+    }
+  };
+
+  // 테이블 셀 더블클릭 인라인 수정 저장 (엑셀처럼)
+  const handleInlineSave: InlineSaveFn = async (userId, fieldKey, value) => {
+    const detail = await fetchUserDetail(userId);
+    if (!detail) {
+      toast.error('사용자 정보를 불러올 수 없습니다.');
+      return;
+    }
+    const requestBody: AdminUpdateUserRequest = {
+      name: detail.name ?? '',
+      email: detail.email ?? '',
+      organization: detail.organization ?? '',
+      department: detail.department ?? '',
+      role: (detail.role as AdminUpdateUserRequest['role']) ?? 'USER',
+      newCategoryIds: [],
+      deletedCategoryIds: [],
+      subAffiliations: detail.subAffiliations?.map((a) => ({
+        organization: a.organization ?? '',
+        department: a.department ?? '',
+        position: a.position ?? '',
+      })),
+      position:
+        fieldKey === 'position'
+          ? (value as AdminUpdateUserRequest['position']) || undefined
+          : (detail.position as AdminUpdateUserRequest['position']),
+      phoneNumber: fieldKey === 'phoneNumber' ? value : detail.phoneNumber,
+      seatNumber: fieldKey === 'seatNumber' ? value : detail.seatNumber,
+      annualLeaveCount: detail.annualLeaveCount,
+      comment: detail.comment,
+    };
+    if (fieldKey === 'name') requestBody.name = value;
+    if (fieldKey === 'email') requestBody.email = value;
+    if (fieldKey === 'organization') requestBody.organization = value;
+    if (fieldKey === 'department') requestBody.department = value;
+
+    try {
+      await adminApi.updateUserById({
+        userId,
+        adminUpdateUserRequest: requestBody,
+      });
+      setUsers((prev) =>
+        prev.map((u): UserItem => {
+          if (u.userId !== userId) return u;
+          const updated: UserItem = {
+            ...u,
+            ...(fieldKey === 'name' && { name: value }),
+            ...(fieldKey === 'email' && { email: value }),
+            ...(fieldKey === 'organization' && { organization: value }),
+            ...(fieldKey === 'department' && { department: value }),
+            ...(fieldKey === 'position' && {
+              position: (value || undefined) as UserItemPositionEnum | undefined,
+            }),
+            ...(fieldKey === 'phoneNumber' && { phoneNumber: value }),
+            ...(fieldKey === 'seatNumber' && { seatNumber: value }),
+          };
+          return updated;
+        }),
+      );
+      toast.success('저장되었습니다.');
+    } catch (err) {
+      console.error(err);
+      toast.error('저장에 실패했습니다.');
+    }
+  };
+
+  // 유저 생성시, 유저 리스트에 추가
+  const handleUserAdd = () => {
+    setShouldRefetch((prev) => !prev); // 트리거로 리렌더 유도
+  };
+
+  // 유저 정보 수정시, 정보 업데이트
+  const handleUserUpdate = (updatedUser: UserItem) => {
+    setUsers((prev) =>
+      prev.map((user) => (user.userId === updatedUser.userId ? updatedUser : user)),
+    );
+  };
+
+  const handleDelete = async () => {
+    if (targetUserId === null) return;
+
+    try {
+      await adminApi.deleteUserById({ userId: targetUserId });
+      setUsers((prev) => prev.filter((user) => user.userId !== targetUserId));
+      toast.success('사용자가 삭제되었습니다.');
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setShowDeleteDialog(false);
+      setTargetUserId(null);
+    }
+  };
+
+  const handleOpenPasswordResetDialog = async (userId: number) => {
+    const detail = await fetchUserDetail(userId);
+    if (detail) {
+      setSelectedUser(detail);
+      setTargetUserId(userId);
+      setShowPasswordResetDialog(true);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (selectedUser === null) return;
+
+    if (!selectedUser?.email) {
+      toast.error('해당 유저의 이메일이 존재하지 않습니다.');
+      return;
+    }
+
+    try {
+      await userApi.sendFindPasswordEmail({
+        findPasswordEmailRequest: { email: selectedUser.email },
+      });
+      toast.success('비밀번호가 재발급 되었습니다.');
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setShowPasswordResetDialog(false);
+      setTargetUserId(null);
+    }
+  };
+
+  const resetFilters = () => {
+    setSearchTerm('');
+    setCommittedSearchTerm('');
+    setSortOption('asc');
+    setStringSortOption('all');
+    setCurrentPage(1);
+  };
+
+  return (
+    <div>
+      {/* 헤더 */}
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">구성원</h1>
+        <div className="flex gap-2">
+          <Button onClick={() => setAddModalOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            사용자 추가
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex flex-row gap-2">
+          {/* 검색 필터 선택 */}
+          <Select value={stringSortOption} onValueChange={setStringSortOption}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="정렬 방식" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">전체</SelectItem>
+              <SelectItem value="name">이름</SelectItem>
+              <SelectItem value="email">이메일</SelectItem>
+              <SelectItem value="organization">기관</SelectItem>
+              <SelectItem value="department">부서</SelectItem>
+              <SelectItem value="position">구분</SelectItem>
+              <SelectItem value="categories">연구 분야</SelectItem>
+              <SelectItem value="phoneNumber">연락처</SelectItem>
+              <SelectItem value="seatNumber">좌석</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* 검색 */}
+          <div className="relative flex-1">
+            <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
+            <Input
+              placeholder="검색"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setCommittedSearchTerm(searchTerm);
+                  setCurrentPage(1);
+                }
+              }}
+              className="pl-8"
+            />
+          </div>
+
+          {/* 이름으로 정렬 */}
+          <Select value={sortOption} onValueChange={setSortOption}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="정렬 방식" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="asc">이름 오름차순</SelectItem>
+              <SelectItem value="desc">이름 내림차순</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* 필터링 초기화 버튼 */}
+          {committedSearchTerm && (
+            <Button
+              variant="outline"
+              onClick={resetFilters}
+              className="whitespace-nowrap"
+            >
+              초기화
+            </Button>
+          )}
+        </div>
+
+        {/* 페이지네이션 테이블 */}
+        <PaginatedTable
+          data={users}
+          rowKey={(row) => String(row.userId)}
+          columns={getUserColumns(
+            currentPage,
+            itemsPerPage,
+            router,
+            (id) => {
+              setTargetUserId(id);
+              setShowDeleteDialog(true);
+            },
+            handleUserEdit,
+            handleOpenPasswordResetDialog,
+            handleInlineSave,
+          )}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          itemsPerPage={itemsPerPage}
+          setItemsPerPage={setItemsPerPage}
+          totalPage={totalPage}
+          loading={loading}
+        />
+
+        <UserAddModal open={addModalOpen} setOpen={setAddModalOpen} onUserAdd={handleUserAdd} />
+
+        <UserEditModal
+          user={selectedUser}
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          onUserUpdate={handleUserUpdate}
+        />
+
+        <UserDeleteModal
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          onConfirm={handleDelete}
+        />
+
+        <PasswordResetModal
+          open={showPasswordResetDialog}
+          onOpenChange={setShowPasswordResetDialog}
+          onConfirm={handlePasswordReset}
+        />
+      </div>
+    </div>
+  );
+}
+

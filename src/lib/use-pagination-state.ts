@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 const STORAGE_KEY_PREFIX = 'pagination';
 
@@ -50,19 +50,23 @@ export function usePaginationState() {
   const currentPage = state.page;
   const itemsPerPage = state.size;
 
-  const setCurrentPage = (page: number | ((prev: number) => number)) => {
+  const setCurrentPage = useCallback((page: number | ((prev: number) => number)) => {
     setState((prev) => {
       const next = typeof page === 'function' ? page(prev.page) : page;
-      return { ...prev, page: Math.max(1, next) };
+      const normalized = Math.max(1, next);
+      if (prev.page === normalized) return prev;
+      return { ...prev, page: normalized };
     });
-  };
+  }, []);
 
-  const setItemsPerPage = (size: number | ((prev: number) => number)) => {
+  const setItemsPerPage = useCallback((size: number | ((prev: number) => number)) => {
     setState((prev) => {
       const next = typeof size === 'function' ? size(prev.size) : size;
-      return { ...prev, size: Math.max(1, Math.min(100, next)) };
+      const normalized = Math.max(1, Math.min(100, next));
+      if (prev.size === normalized) return prev;
+      return { ...prev, size: normalized };
     });
-  };
+  }, []);
 
   // 마운트 시 sessionStorage 복원. pathname이 바뀌면 다른 목록 페이지이므로 복원.
   useEffect(() => {

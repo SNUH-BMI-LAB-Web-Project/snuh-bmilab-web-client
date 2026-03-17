@@ -10,6 +10,7 @@ import {
   Search,
   Trash2,
   Edit,
+  Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -57,6 +58,8 @@ type SeminarEvent = {
   type: EventType;
   startDate: string;
   endDate?: string;
+  startTime?: string;
+  endTime?: string;
   description?: string;
 };
 
@@ -132,6 +135,85 @@ const overlapsDate = (ev: SeminarEvent, dayYmd: string) => {
   return ev.startDate <= dayYmd && dayYmd <= end;
 };
 
+const isValidHm = (s?: string) => {
+  if (!s) return false;
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(s);
+};
+
+const toTimeLabel = (startTime?: string, endTime?: string) => {
+  if (isValidHm(startTime) && isValidHm(endTime)) return `${startTime} ~ ${endTime}`;
+  if (isValidHm(startTime)) return `${startTime}`;
+  return '';
+};
+
+const buildNote = (description?: string, startTime?: string, endTime?: string) => {
+  const timeLabel = toTimeLabel(startTime, endTime);
+  const desc = (description ?? '').trim();
+  if (!timeLabel) return desc || undefined;
+  if (!desc) return `시간: ${timeLabel}`;
+  return `시간: ${timeLabel}\n${desc}`;
+};
+
+const parseNote = (note?: string) => {
+  if (!note) return { startTime: '', endTime: '', description: '' };
+  const lines = note.replace(/\r\n/g, '\n').split('\n');
+  const first = (lines[0] ?? '').trim();
+  const rest = lines.slice(1).join('\n').trim();
+
+  const m = first.match(
+    /^시간\s*:\s*([01]\d|2[0-3]):([0-5]\d)(?:\s*(?:~|-)\s*([01]\d|2[0-3]):([0-5]\d))?\s*$/,
+  );
+  if (!m) return { startTime: '', endTime: '', description: note.trim() };
+
+  const startTime = `${m[1]}:${m[2]}`;
+  const endTime = m[3] && m[4] ? `${m[3]}:${m[4]}` : '';
+  return { startTime, endTime, description: rest };
+};
+
+function TimePickerPopover({
+  value,
+  onChange,
+  placeholder,
+  disabled,
+  min,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  disabled?: boolean;
+  min?: string;
+}) {
+  return (
+    <Popover modal>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          className={cn('w-full justify-start font-normal', !value && 'text-muted-foreground')}
+          disabled={disabled}
+        >
+          <Clock className="mr-2 h-4 w-4" />
+          {value || placeholder}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[260px] p-3">
+        <div className="space-y-2">
+          <Label className="text-xs">시간 선택</Label>
+          <Input
+            type="time"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            min={min}
+          />
+          <div className="text-muted-foreground text-[11px]">
+            직접 입력하거나, 기본 시간 선택 UI를 사용하세요.
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 /* =========================
  * UI Pieces
  * ======================= */
@@ -175,11 +257,12 @@ function BasePill({
 
 function SingleDayPill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
+  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
       className="mx-1 rounded"
-      title={`${meta.name} · ${ev.title}`}
+      title={`${meta.name} · ${ev.title}${timeLabel ? ` · ${timeLabel}` : ''}`}
     >
       <strong className="font-semibold">{meta.name}</strong> {ev.title}
     </BasePill>
@@ -188,11 +271,12 @@ function SingleDayPill({ ev }: { ev: SeminarEvent }) {
 
 function StartPill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
+  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
       className="-mr-px ml-1 rounded-l rounded-r-none"
-      title={`${meta.name} · ${ev.title}`}
+      title={`${meta.name} · ${ev.title}${timeLabel ? ` · ${timeLabel}` : ''}`}
     >
       <strong className="font-semibold">{meta.name}</strong> {ev.title}
     </BasePill>
@@ -201,11 +285,12 @@ function StartPill({ ev }: { ev: SeminarEvent }) {
 
 function ContinuedPill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
+  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
       className="-mx-px rounded-none"
-      title={`${meta.name} · ${ev.title}`}
+      title={`${meta.name} · ${ev.title}${timeLabel ? ` · ${timeLabel}` : ''}`}
     >
       <strong className="font-semibold">{meta.name}</strong> {ev.title}
     </BasePill>
@@ -214,11 +299,12 @@ function ContinuedPill({ ev }: { ev: SeminarEvent }) {
 
 function MiddlePill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
+  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
       className="-mx-px rounded-none px-0"
-      title={`${meta.name} · ${ev.title}`}
+      title={`${meta.name} · ${ev.title}${timeLabel ? ` · ${timeLabel}` : ''}`}
     >
       <span className="sr-only">
         {meta.name} {ev.title}
@@ -229,11 +315,12 @@ function MiddlePill({ ev }: { ev: SeminarEvent }) {
 
 function ContinuedEndPill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
+  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
       className="-mx-px mr-1 rounded-l-none rounded-r"
-      title={`${meta.name} · ${ev.title}`}
+      title={`${meta.name} · ${ev.title}${timeLabel ? ` · ${timeLabel}` : ''}`}
     >
       <strong className="font-semibold">{meta.name}</strong> {ev.title}
     </BasePill>
@@ -242,11 +329,12 @@ function ContinuedEndPill({ ev }: { ev: SeminarEvent }) {
 
 function EndPill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
+  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
       className="mr-1 -ml-px rounded-l-none rounded-r px-0"
-      title={`${meta.name} · ${ev.title}`}
+      title={`${meta.name} · ${ev.title}${timeLabel ? ` · ${timeLabel}` : ''}`}
     >
       <span className="sr-only">
         {meta.name} {ev.title}
@@ -278,6 +366,8 @@ export default function SeminarCalendar() {
     title: '',
     startDate: '',
     endDate: '',
+    startTime: '',
+    endTime: '',
     description: '',
   });
 
@@ -297,14 +387,19 @@ export default function SeminarCalendar() {
       );
       if (res.ok) {
         const data = await res.json();
-        const mapped = data.seminars.map((s: Record<string, unknown>) => ({
-          id: s.id,
-          title: s.title,
-          type: s.label as EventType,
-          startDate: s.startDate,
-          endDate: s.endDate,
-          description: s.note,
-        }));
+        const mapped = data.seminars.map((s: any) => {
+          const parsed = parseNote(s.note);
+          return {
+            id: s.id,
+            title: s.title,
+            type: s.label as EventType,
+            startDate: s.startDate,
+            endDate: s.endDate,
+            startTime: parsed.startTime || undefined,
+            endTime: parsed.endTime || undefined,
+            description: parsed.description || undefined,
+          };
+        });
         setEvents(mapped);
       }
     } catch (err) {
@@ -334,14 +429,19 @@ export default function SeminarCalendar() {
         if (res.ok) {
           const data = await res.json();
           setSearchedEvents(
-            data.seminars.map((s: Record<string, unknown>) => ({
-              id: s.id,
-              title: s.title,
-              type: s.label as EventType,
-              startDate: s.startDate,
-              endDate: s.endDate,
-              description: s.note,
-            })),
+            data.seminars.map((s: any) => {
+              const parsed = parseNote(s.note);
+              return {
+                id: s.id,
+                title: s.title,
+                type: s.label as EventType,
+                startDate: s.startDate,
+                endDate: s.endDate,
+                startTime: parsed.startTime || undefined,
+                endTime: parsed.endTime || undefined,
+                description: parsed.description || undefined,
+              };
+            }),
           );
         }
       } catch (err) {
@@ -359,6 +459,8 @@ export default function SeminarCalendar() {
       title: '',
       startDate: '',
       endDate: '',
+      startTime: '',
+      endTime: '',
       description: '',
     });
   };
@@ -383,7 +485,7 @@ export default function SeminarCalendar() {
       title: formData.title,
       startDate: formData.startDate,
       endDate: formData.endDate || formData.startDate,
-      note: formData.description,
+      note: buildNote(formData.description, formData.startTime, formData.endTime),
     };
 
     try {
@@ -450,6 +552,8 @@ export default function SeminarCalendar() {
       title: ev.title,
       startDate: ev.startDate,
       endDate: ev.endDate || '',
+      startTime: ev.startTime || '',
+      endTime: ev.endTime || '',
       description: ev.description || '',
     });
     setIsModalOpen(true);
@@ -670,6 +774,33 @@ export default function SeminarCalendar() {
                       </Popover>
                     </div>
                   </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>시작 시간 (선택)</Label>
+                      <TimePickerPopover
+                        value={formData.startTime}
+                        onChange={(v) =>
+                          setFormData((s) => ({
+                            ...s,
+                            startTime: v,
+                            endTime:
+                              s.endTime && v && s.endTime < v ? '' : s.endTime,
+                          }))
+                        }
+                        placeholder="시간 선택"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>종료 시간 (선택)</Label>
+                      <TimePickerPopover
+                        value={formData.endTime}
+                        onChange={(v) => setFormData((s) => ({ ...s, endTime: v }))}
+                        placeholder="시간 선택"
+                        disabled={!formData.startTime}
+                        min={formData.startTime || undefined}
+                      />
+                    </div>
+                  </div>
                   <div className="space-y-2">
                     <Label>기타</Label>
                     <Textarea
@@ -866,8 +997,16 @@ export default function SeminarCalendar() {
                       </div>
                     </div>
                     <div className="text-muted-foreground ml-5 text-xs">
-                      {EVENT_TYPES[ev.type].name} · {ev.startDate} ~{' '}
-                      {ev.endDate || ev.startDate}
+                      {(() => {
+                        const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+                        return (
+                          <>
+                            {EVENT_TYPES[ev.type].name} · {ev.startDate} ~{' '}
+                            {ev.endDate || ev.startDate}
+                            {timeLabel ? ` · ${timeLabel}` : ''}
+                          </>
+                        );
+                      })()}
                     </div>
                     {ev.description && (
                       <div className="mt-2 ml-5 text-xs whitespace-pre-wrap">
@@ -930,7 +1069,15 @@ export default function SeminarCalendar() {
                       </Button>
                     </div>
                     <div className="text-muted-foreground text-[11px]">
-                      {ev.startDate} {ev.endDate ? `~ ${ev.endDate}` : ''}
+                      {(() => {
+                        const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+                        return (
+                          <>
+                            {ev.startDate} {ev.endDate ? `~ ${ev.endDate}` : ''}
+                            {timeLabel ? ` · ${timeLabel}` : ''}
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 ))}

@@ -1,9 +1,12 @@
 import ResearchManagementSystem from '@/components/portal/researches/achievement/achievement-management-system';
+import { Suspense } from 'react';
 
 export default function UserAchievementPage() {
   return (
     <main className="bg-background min-h-screen">
-      <ResearchManagementSystem isUserView />
+      <Suspense fallback={<div className="container mx-auto py-8">로딩중…</div>}>
+        <ResearchManagementSystem isUserView />
+      </Suspense>
     </main>
   );
 }

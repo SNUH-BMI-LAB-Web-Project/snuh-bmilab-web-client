@@ -10,7 +10,7 @@ export const leaveTyoeLabelMap: Record<LeaveDetailTypeEnum, string> = {
   ANNUAL: '일반 연차',
   HALF_AM: '일반 반차(오전)',
   HALF_PM: '일반 반차(오후)',
-  SPECIAL_ANNUAL: '특별 연차',
+  SPECIAL_ANNUAL: '특별연차',
   SPECIAL_HALF_AM: '특별 반차(오전)',
   SPECIAL_HALF_PM: '특별 반차(오후)',
   ALL: '랩실 전체 휴가',

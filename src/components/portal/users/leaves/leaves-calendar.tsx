@@ -74,7 +74,7 @@ export const VACATION_TYPES: Record<LeaveDetailTypeEnum, VacationMeta> = {
     requireReason: false,
   },
   SPECIAL_ANNUAL: {
-    name: '특별 연차',
+    name: '특별연차',
     color: 'bg-pink-200',
     requireReason: true,
   },
@@ -97,7 +97,7 @@ export const VACATION_TYPES: Record<LeaveDetailTypeEnum, VacationMeta> = {
 
 const LEGEND_VACATION_TYPES: VacationMeta[] = [
   { name: '일반 연차', color: 'bg-blue-200', requireReason: false },
-  { name: '특별 연차', color: 'bg-pink-200', requireReason: true },
+  { name: '특별연차', color: 'bg-pink-200', requireReason: true },
   {
     name: '랩실 전체 휴가',
     color: 'bg-red-400 text-white',
@@ -695,7 +695,7 @@ export default function LeavesCalendar() {
       }
 
       if (isReasonRequired() && !reason.trim()) {
-        toast.error('특별 연차 및 반차는 사유를 필수로 입력해야 합니다.');
+        toast.error('특별연차 및 반차는 사유를 필수로 입력해야 합니다.');
         return;
       }
 

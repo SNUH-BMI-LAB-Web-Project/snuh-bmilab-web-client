@@ -513,11 +513,13 @@ export function PaperForm({ initialData, onSave, onCancel }: PaperFormProps) {
         onClose={() => setShowCorrespondingModal(false)}
         onSelect={(prof) => {
           const key = getProfessorKey(prof);
-          setCorrespondingProfessors((prev) =>
-            prev.some((p) => getProfessorKey(p) === key)
-              ? prev
-              : [...prev, prof],
-          );
+          setCorrespondingProfessors((prev) => {
+            if (prev.some((p) => getProfessorKey(p) === key)) {
+              toast.info('이미 선택된 교신저자입니다.');
+              return prev;
+            }
+            return [...prev, prof];
+          });
           setShowCorrespondingModal(false);
         }}
         selectedProfessorKeys={correspondingProfessors.map(getProfessorKey)}
