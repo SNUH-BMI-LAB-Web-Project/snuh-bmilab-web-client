@@ -43,7 +43,43 @@ import { Progress } from '@/components/ui/progress';
 import { positionLabelMap } from '@/constants/position-enum';
 import { formatSeatNumber } from '@/utils/user-utils';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { differenceInCalendarDays } from 'date-fns';
+import {
+  AdminLeaveApi,
+  LeaveDetail,
+  LeaveDetailTypeEnum,
+} from '@/generated-api';
+import { getApiConfig } from '@/lib/config';
+
+const countLeaveDays = (leave: LeaveDetail): number => {
+  const type = leave.type;
+  if (
+    type === LeaveDetailTypeEnum.HalfAm ||
+    type === LeaveDetailTypeEnum.HalfPm ||
+    type === LeaveDetailTypeEnum.SpecialHalfAm ||
+    type === LeaveDetailTypeEnum.SpecialHalfPm
+  ) {
+    return 0.5;
+  }
+
+  const start = leave.startDate ? new Date(leave.startDate) : undefined;
+  const end = leave.endDate ? new Date(leave.endDate) : start;
+  if (!start) return 0;
+
+  const inclusiveDays = differenceInCalendarDays(end ?? start, start) + 1;
+  return Math.max(0, inclusiveDays);
+};
+
+const isSpecialLeaveType = (type?: string) =>
+  type === LeaveDetailTypeEnum.SpecialAnnual ||
+  type === LeaveDetailTypeEnum.SpecialHalfAm ||
+  type === LeaveDetailTypeEnum.SpecialHalfPm;
+
+const isAnnualLeaveType = (type?: string) =>
+  type === LeaveDetailTypeEnum.Annual ||
+  type === LeaveDetailTypeEnum.HalfAm ||
+  type === LeaveDetailTypeEnum.HalfPm;
 
 interface UserDetailProps {
   user: UserDetailType;
@@ -52,6 +88,10 @@ interface UserDetailProps {
 
 export default function AdminUserDetail({ user, projects }: UserDetailProps) {
   const [showSubAffiliations, setShowSubAffiliations] = useState(false);
+  const [showYearlyLeave, setShowYearlyLeave] = useState(false);
+  const [approvedLeaves, setApprovedLeaves] = useState<LeaveDetail[]>([]);
+
+  const adminLeaveApi = useMemo(() => new AdminLeaveApi(getApiConfig()), []);
 
   if (!user) return null;
 
@@ -87,6 +127,88 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
   const remainingLeave = annualLeaveCount - usedLeaveCount;
   const leaveUsagePercentage =
     annualLeaveCount > 0 ? (usedLeaveCount / annualLeaveCount) * 100 : 0;
+
+  const currentYear = new Date().getFullYear();
+
+  const currentYearSpecialUsed = useMemo(() => {
+    return approvedLeaves
+      .filter((l) => l.user?.userId === user.userId)
+      .filter((l) => (l.startDate ? new Date(l.startDate).getFullYear() : -1) === currentYear)
+      .filter((l) => isSpecialLeaveType(l.type))
+      .reduce((acc, l) => acc + countLeaveDays(l), 0);
+  }, [approvedLeaves, currentYear, user.userId]);
+
+  const yearlyLeaveStats = useMemo(() => {
+    const byYear = new Map<
+      number,
+      { usedAnnual: number; usedSpecial: number }
+    >();
+
+    approvedLeaves
+      .filter((l) => l.user?.userId === user.userId)
+      .forEach((leave) => {
+        const year = leave.startDate
+          ? new Date(leave.startDate).getFullYear()
+          : undefined;
+        if (!year) return;
+
+        const days = countLeaveDays(leave);
+        const cur = byYear.get(year) ?? { usedAnnual: 0, usedSpecial: 0 };
+
+        if (isSpecialLeaveType(leave.type)) cur.usedSpecial += days;
+        else if (isAnnualLeaveType(leave.type)) cur.usedAnnual += days;
+
+        byYear.set(year, cur);
+      });
+
+    return Array.from(byYear.entries())
+      .map(([year, v]) => ({
+        year,
+        annualLeaveCount,
+        usedAnnual: v.usedAnnual,
+        usedSpecial: v.usedSpecial,
+        remainingAnnual: annualLeaveCount - v.usedAnnual,
+      }))
+      .sort((a, b) => b.year - a.year);
+  }, [approvedLeaves, annualLeaveCount, user.userId]);
+
+  useEffect(() => {
+    const fetchApprovedLeaves = async () => {
+      try {
+        const all: LeaveDetail[] = [];
+        let page = 0;
+        const size = 200;
+
+        // 첫 페이지로 totalPage 확인
+        const first = await adminLeaveApi.getLeaves1({
+          status: 'APPROVED',
+          page,
+          size,
+          sort: ['applicatedAt,DESC'],
+        });
+        all.push(...(first.leaves ?? []));
+
+        const totalPage = first.totalPage ?? 1;
+        for (page = 1; page < totalPage; page += 1) {
+          const res = await adminLeaveApi.getLeaves1({
+            status: 'APPROVED',
+            page,
+            size,
+            sort: ['applicatedAt,DESC'],
+          });
+          all.push(...(res.leaves ?? []));
+        }
+
+        setApprovedLeaves(all);
+      } catch (e) {
+        // 연도별 요약은 부가 기능이므로 실패해도 화면은 유지
+        console.error('승인된 휴가 목록 불러오기 실패:', e);
+        setApprovedLeaves([]);
+      }
+    };
+
+    fetchApprovedLeaves();
+  }, [adminLeaveApi]);
 
   return (
     <div className="min-h-screen">
@@ -479,7 +601,7 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                       </h2>
                     </div>
 
-                    <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+                    <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-4">
                       <div className="rounded-xl border border-blue-100 bg-blue-50 p-6 text-center">
                         <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
                           <Calendar className="h-6 w-6 text-blue-600" />
@@ -515,6 +637,18 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                           남은 연차
                         </p>
                       </div>
+
+                      <div className="rounded-xl border border-violet-100 bg-violet-50 p-6 text-center">
+                        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-violet-100">
+                          <CalendarDays className="h-6 w-6 text-violet-600" />
+                        </div>
+                        <p className="text-2xl font-bold text-violet-900">
+                          {currentYearSpecialUsed}
+                        </p>
+                        <p className="text-sm font-medium text-violet-600">
+                          특별연차
+                        </p>
+                      </div>
                     </div>
 
                     {/* 연차 사용률 프로그레스 바 */}
@@ -533,6 +667,67 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                           ? `${remainingLeave}일의 연차가 남아있습니다.`
                           : '모든 연차를 사용했습니다.'}
                       </p>
+                    </div>
+
+                    {/* 연도별 휴가 요약 */}
+                    <div className="mt-8">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                        onClick={() => setShowYearlyLeave((prev) => !prev)}
+                      >
+                        연도별 휴가 현황
+                        {showYearlyLeave ? <ChevronUp /> : <ChevronDown />}
+                      </Button>
+
+                      {showYearlyLeave && (
+                        <div className="mt-4 overflow-hidden rounded-lg border border-gray-200">
+                          <div className="grid grid-cols-5 gap-0 bg-gray-50 text-xs font-semibold text-gray-600">
+                            <div className="px-4 py-3">연도</div>
+                            <div className="px-4 py-3 text-right">
+                              연간연차
+                            </div>
+                            <div className="px-4 py-3 text-right">
+                              특별연차
+                            </div>
+                            <div className="px-4 py-3 text-right">
+                              사용한연차
+                            </div>
+                            <div className="px-4 py-3 text-right">남은연차</div>
+                          </div>
+
+                          <div className="divide-y divide-gray-200">
+                            {yearlyLeaveStats.length === 0 ? (
+                              <div className="px-4 py-4 text-sm text-gray-500">
+                                표시할 휴가 사용 내역이 없습니다.
+                              </div>
+                            ) : (
+                              yearlyLeaveStats.map((row) => (
+                                <div
+                                  key={row.year}
+                                  className="grid grid-cols-5 items-center bg-white text-sm"
+                                >
+                                  <div className="px-4 py-3 font-medium text-gray-900">
+                                    {row.year}
+                                  </div>
+                                  <div className="px-4 py-3 text-right font-medium text-gray-900">
+                                    {row.annualLeaveCount}
+                                  </div>
+                                  <div className="px-4 py-3 text-right font-medium text-violet-700">
+                                    {row.usedSpecial}
+                                  </div>
+                                  <div className="px-4 py-3 text-right font-medium text-gray-900">
+                                    {row.usedAnnual}
+                                  </div>
+                                  <div className="px-4 py-3 text-right font-medium text-gray-900">
+                                    {row.remainingAnnual}
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

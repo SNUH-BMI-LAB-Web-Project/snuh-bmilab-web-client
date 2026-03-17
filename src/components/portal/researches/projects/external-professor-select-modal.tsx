@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -76,6 +77,7 @@ export default function ExternalProfessorSelectModal({
   onDeleteProfessor,
 }: ExternalProfessorSelectModalProps) {
   const [professors, setProfessors] = useState<ExternalProfessorItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [editingProfessor, setEditingProfessor] =
     useState<ExternalProfessorItem | null>(null);
   const [deleteProfessor, setDeleteProfessor] =
@@ -101,8 +103,26 @@ export default function ExternalProfessorSelectModal({
   useEffect(() => {
     if (open) {
       fetchProfessors();
+      setSearchQuery('');
     }
   }, [open]);
+
+  const filteredProfessors = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return professors;
+
+    return professors.filter((p) => {
+      const hay = [
+        p.name ?? '',
+        p.organization ?? '',
+        p.department ?? '',
+        p.position ?? '',
+      ]
+        .join(' ')
+        .toLowerCase();
+      return hay.includes(q);
+    });
+  }, [professors, searchQuery]);
 
   // 폼 초기화
   const resetForm = () => {
@@ -351,16 +371,28 @@ export default function ExternalProfessorSelectModal({
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">외부 인사 목록</CardTitle>
                 <Badge variant="secondary" className="text-sm">
-                  총 {professors.length}명
+                  총 {filteredProfessors.length}명
                 </Badge>
               </div>
             </CardHeader>
 
             <CardContent className="p-0">
-              {professors.length === 0 ? (
+              <div className="border-b p-4">
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="이름/기관/부서/직책으로 검색..."
+                />
+              </div>
+
+              {filteredProfessors.length === 0 ? (
                 <div className="py-8 text-center">
                   <UserCheck className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-                  <p className="text-gray-500">등록된 외부 인사가 없습니다.</p>
+                  <p className="text-gray-500">
+                    {professors.length === 0
+                      ? '등록된 외부 인사가 없습니다.'
+                      : '검색 결과가 없습니다.'}
+                  </p>
                 </div>
               ) : (
                 <Table className="min-w-[768px]">
@@ -375,7 +407,7 @@ export default function ExternalProfessorSelectModal({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {professors.map((professor) => {
+                    {filteredProfessors.map((professor) => {
                       const key = getProfessorKey(professor);
                       const isSelected = selectedProfessorKeys?.includes(key);
 
@@ -406,7 +438,13 @@ export default function ExternalProfessorSelectModal({
                             <Button
                               size="sm"
                               className="px-3"
-                              onClick={() => onSelect(professor)}
+                              onClick={() => {
+                                if (isSelected) {
+                                  toast.info('이미 선택된 인사입니다.');
+                                  return;
+                                }
+                                onSelect(professor);
+                              }}
                               disabled={isSelected}
                             >
                               {isSelected ? '선택됨' : '선택'}
