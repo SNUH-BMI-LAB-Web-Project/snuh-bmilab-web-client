@@ -81,8 +81,8 @@ const isAnnualLeaveType = (type?: string) =>
   type === LeaveDetailTypeEnum.HalfAm ||
   type === LeaveDetailTypeEnum.HalfPm;
 
-/** API에 특별휴가 필드 추가 시 사용. 스웨거 UserDetail 확장 */
-type UserDetailWithSpecialLeave = UserDetailType & {
+/** (확장 필드) 특별연차 관련 값이 내려오는 경우 대비 */
+type UserDetailWithSpecialAnnual = UserDetailType & {
   specialLeaveCount?: number;
   usedSpecialLeaveCount?: number;
 };
@@ -129,9 +129,9 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
   const usedLeaveCount = user.usedLeaveCount ?? 0;
   const annualLeaveCount = user.annualLeaveCount ?? 0;
   const specialLeaveCount =
-    (user as UserDetailWithSpecialLeave).specialLeaveCount ?? 0;
+    (user as UserDetailWithSpecialAnnual).specialLeaveCount ?? 0;
   const usedSpecialLeaveCount =
-    (user as UserDetailWithSpecialLeave).usedSpecialLeaveCount ?? 0;
+    (user as UserDetailWithSpecialAnnual).usedSpecialLeaveCount ?? 0;
 
   // 연차 관련 연산
   const remainingLeave = annualLeaveCount - usedLeaveCount;
@@ -624,18 +624,6 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                         </p>
                       </div>
 
-                      <div className="rounded-xl border border-violet-100 bg-violet-50 p-6 text-center">
-                        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-violet-100">
-                          <CalendarDays className="h-6 w-6 text-violet-600" />
-                        </div>
-                        <p className="text-2xl font-bold text-violet-900">
-                          {specialLeaveCount}
-                        </p>
-                        <p className="text-sm font-medium text-violet-600">
-                          특별휴가
-                        </p>
-                      </div>
-
                       <div className="rounded-xl border border-red-100 bg-red-50 p-6 text-center">
                         <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
                           <Plane className="h-6 w-6 text-red-600" />
@@ -665,7 +653,7 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                           <CalendarDays className="h-6 w-6 text-violet-600" />
                         </div>
                         <p className="text-2xl font-bold text-violet-900">
-                          {currentYearSpecialUsed}
+                          {usedSpecialLeaveCount || currentYearSpecialUsed}
                         </p>
                         <p className="text-sm font-medium text-violet-600">
                           특별연차
