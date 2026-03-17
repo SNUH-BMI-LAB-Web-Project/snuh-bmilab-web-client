@@ -445,7 +445,9 @@ export default function TaskManagementClient() {
                     {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events */}
                     <div
                       className="p-8"
-                      onClick={() => router.push(`assignment/task/${task.id}`)}
+                      onClick={() =>
+                        router.push(`/portal/researches/assignment/task/${task.id}`)
+                      }
                     >
                       <div className="mb-8">
                         <h3 className="mb-3 text-2xl leading-tight font-bold text-gray-900">

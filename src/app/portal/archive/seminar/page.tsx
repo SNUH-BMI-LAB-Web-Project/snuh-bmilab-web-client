@@ -10,6 +10,7 @@ import {
   Search,
   Trash2,
   Edit,
+  Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -168,6 +169,50 @@ const parseNote = (note?: string) => {
   const endTime = m[3] && m[4] ? `${m[3]}:${m[4]}` : '';
   return { startTime, endTime, description: rest };
 };
+
+function TimePickerPopover({
+  value,
+  onChange,
+  placeholder,
+  disabled,
+  min,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  disabled?: boolean;
+  min?: string;
+}) {
+  return (
+    <Popover modal>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          className={cn('w-full justify-start font-normal', !value && 'text-muted-foreground')}
+          disabled={disabled}
+        >
+          <Clock className="mr-2 h-4 w-4" />
+          {value || placeholder}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[260px] p-3">
+        <div className="space-y-2">
+          <Label className="text-xs">시간 선택</Label>
+          <Input
+            type="time"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            min={min}
+          />
+          <div className="text-muted-foreground text-[11px]">
+            직접 입력하거나, 기본 시간 선택 UI를 사용하세요.
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 /* =========================
  * UI Pieces
@@ -732,22 +777,25 @@ export default function SeminarCalendar() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>시작 시간 (선택)</Label>
-                      <Input
-                        type="time"
+                      <TimePickerPopover
                         value={formData.startTime}
-                        onChange={(e) =>
-                          setFormData((s) => ({ ...s, startTime: e.target.value }))
+                        onChange={(v) =>
+                          setFormData((s) => ({
+                            ...s,
+                            startTime: v,
+                            endTime:
+                              s.endTime && v && s.endTime < v ? '' : s.endTime,
+                          }))
                         }
+                        placeholder="시간 선택"
                       />
                     </div>
                     <div className="space-y-2">
                       <Label>종료 시간 (선택)</Label>
-                      <Input
-                        type="time"
+                      <TimePickerPopover
                         value={formData.endTime}
-                        onChange={(e) =>
-                          setFormData((s) => ({ ...s, endTime: e.target.value }))
-                        }
+                        onChange={(v) => setFormData((s) => ({ ...s, endTime: v }))}
+                        placeholder="시간 선택"
                         disabled={!formData.startTime}
                         min={formData.startTime || undefined}
                       />
