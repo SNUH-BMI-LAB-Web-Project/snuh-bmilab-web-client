@@ -9,13 +9,19 @@ import YearlyFileSection from './YearlyFileSection';
 import MidtermReportSection from './MidtermReportSection';
 import AnnualReportSection from './AnnualReportSection';
 
-export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
+export default function YearlyTab({
+  taskInfo,
+}: {
+  taskInfo?: Record<string, unknown>;
+}) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [taskId, setTaskId] = useState<number | null>(null);
   const [yearTabs, setYearTabs] = useState<
     { year: number; periodId: number }[]
   >([]);
-  const [yearlyData, setYearlyData] = useState<Record<number, any>>({});
+  const [yearlyData, setYearlyData] = useState<
+    Record<number, Record<string, unknown>>
+  >({});
 
   const getToken = () => {
     const raw = localStorage.getItem('auth-storage');
@@ -49,14 +55,15 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
       const data = await res.json();
       const periods = Array.isArray(data?.periods) ? data.periods : [];
 
-      const tabs = periods.map((p: any) => ({
+      const tabs = periods.map((p: Record<string, unknown>) => ({
         year: Number(p.yearNumber),
         periodId: Number(p.id),
       }));
 
       setYearTabs(tabs);
 
-      const fetched: Record<number, any> = {};
+      const fetched: Record<number, Record<string, unknown>> = {};
+      /* eslint-disable no-restricted-syntax, no-await-in-loop -- sequential fetch per period */
       for (const p of tabs) {
         const dRes = await fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/tasks/${taskId}/periods/${p.periodId}`,
@@ -65,9 +72,12 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
         const detail = await dRes.json();
         fetched[p.year] = detail;
       }
+      /* eslint-enable no-restricted-syntax, no-await-in-loop */
 
       setYearlyData(fetched);
-    } catch (error) {}
+    } catch {
+      // ignore
+    }
   };
 
   useEffect(() => {
@@ -79,29 +89,38 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
     if (!taskId || !token) return;
 
     try {
+      /* eslint-disable no-restricted-syntax, no-await-in-loop -- sequential PATCH per period */
       for (const { year, periodId } of yearTabs) {
-        const period = yearlyData[year] || {};
+        const period = (yearlyData[year] || {}) as Record<string, unknown>;
 
         const managerId =
-          period.managerId ??
-          period.manager?.userId ??
-          period.manager?.id ??
+          (period.managerId as number | null) ??
+          (period.manager as Record<string, unknown> | undefined)?.userId ??
+          (period.manager as Record<string, unknown> | undefined)?.id ??
           null;
 
         const memberIds = Array.isArray(period.members)
-          ? period.members.map((m: any) => m.userId)
+          ? (period.members as Record<string, unknown>[]).map(
+              (m) => m.userId as number,
+            )
           : [];
 
         const periodFileIds = Array.isArray(period.periodFiles)
-          ? period.periodFiles.map((f: any) => f.fileId)
+          ? (period.periodFiles as Record<string, unknown>[]).map(
+              (f) => f.fileId as string,
+            )
           : [];
 
         const interimReportFileIds = Array.isArray(period.interimReportFiles)
-          ? period.interimReportFiles.map((f: any) => f.fileId)
+          ? (period.interimReportFiles as Record<string, unknown>[]).map(
+              (f) => f.fileId as string,
+            )
           : [];
 
         const annualReportFileIds = Array.isArray(period.annualReportFiles)
-          ? period.annualReportFiles.map((f: any) => f.fileId)
+          ? (period.annualReportFiles as Record<string, unknown>[]).map(
+              (f) => f.fileId as string,
+            )
           : [];
 
         const startDate = period.startDate ?? null;
@@ -130,6 +149,7 @@ export default function YearlyTab({ taskInfo }: { taskInfo?: any }) {
         );
         if (!res.ok) throw new Error();
       }
+      /* eslint-enable no-restricted-syntax, no-await-in-loop */
 
       await fetchPeriods();
       setIsEditMode(false);

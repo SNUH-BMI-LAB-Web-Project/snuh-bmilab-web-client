@@ -29,6 +29,7 @@ import {
 // 실제 API 응답 양식에 맞춘 타입 정의 (내부: userName, 외부: externalProfessorName)
 interface PatentData {
   id: number;
+  createdBy?: number | null;
   applicationDate: string;
   applicationNumber: string;
   patentName: string;
@@ -52,9 +53,7 @@ interface PatentData {
   }>;
 }
 
-function authorDisplayName(
-  a: PatentData['patentAuthors'][0],
-): string {
+function authorDisplayName(a: PatentData['patentAuthors'][0]): string {
   return a.userName ?? a.externalProfessorName ?? '';
 }
 
@@ -62,6 +61,8 @@ interface PatentTableProps {
   data: PatentData[];
   onEdit: (item: PatentData, type: string) => void;
   onDelete: (id: number, type: string) => void;
+  canEditRow?: (item: { createdBy?: number | null } | null) => boolean;
+  canDeleteRow?: (item: { createdBy?: number | null } | null) => boolean;
 }
 
 type SortOrder = 'asc' | 'desc';
@@ -74,7 +75,13 @@ const getToken = () => {
   return raw ? JSON.parse(raw)?.state?.accessToken : null;
 };
 
-export function PatentTable({ data, onEdit, onDelete }: PatentTableProps) {
+export function PatentTable({
+  data,
+  onEdit,
+  onDelete,
+  canEditRow,
+  canDeleteRow,
+}: PatentTableProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchColumn, setSearchColumn] = useState<string>('all');
@@ -188,7 +195,9 @@ export function PatentTable({ data, onEdit, onDelete }: PatentTableProps) {
             ) : (
               sortedData.map((item, index) => {
                 const labApplicants =
-                  item.patentAuthors?.map((a) => authorDisplayName(a)).join(', ') ?? '-';
+                  item.patentAuthors
+                    ?.map((a) => authorDisplayName(a))
+                    .join(', ') ?? '-';
 
                 return (
                   <TableRow key={item.id} className="hover:bg-muted/50">
@@ -240,26 +249,33 @@ export function PatentTable({ data, onEdit, onDelete }: PatentTableProps) {
                       )}
                     </TableCell>
                     <TableCell className="text-center">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => onEdit(item, 'patent')}
-                          >
-                            <Pencil className="mr-2 h-4 w-4" /> 수정
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => onDelete(item.id, 'patent')}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" /> 삭제
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      {(canEditRow?.(item) ?? true) ||
+                      (canDeleteRow?.(item) ?? true) ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {(canEditRow?.(item) ?? true) && (
+                              <DropdownMenuItem
+                                onClick={() => onEdit(item, 'patent')}
+                              >
+                                <Pencil className="mr-2 h-4 w-4" /> 수정
+                              </DropdownMenuItem>
+                            )}
+                            {(canDeleteRow?.(item) ?? true) && (
+                              <DropdownMenuItem
+                                onClick={() => onDelete(item.id, 'patent')}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" /> 삭제
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : null}
                     </TableCell>
                   </TableRow>
                 );

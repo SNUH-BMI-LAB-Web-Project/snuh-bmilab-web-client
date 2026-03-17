@@ -19,9 +19,15 @@ function getStored(pathname: string): { page: number; size: number } | null {
   }
 }
 
-function getFromUrl(searchParams: URLSearchParams): { page: number; size: number } {
+function getFromUrl(searchParams: URLSearchParams): {
+  page: number;
+  size: number;
+} {
   const page = Math.max(1, Number(searchParams.get('page')) || 1);
-  const size = Math.max(1, Math.min(100, Number(searchParams.get('size')) || 10));
+  const size = Math.max(
+    1,
+    Math.min(100, Number(searchParams.get('size')) || 10),
+  );
   return { page, size };
 }
 
@@ -90,7 +96,10 @@ export function usePaginationState() {
   // page/size 변경 시 sessionStorage 저장 + URL 반영
   useEffect(() => {
     const key = `${STORAGE_KEY_PREFIX}-${pathname}`;
-    sessionStorage.setItem(key, JSON.stringify({ page: state.page, size: state.size }));
+    sessionStorage.setItem(
+      key,
+      JSON.stringify({ page: state.page, size: state.size }),
+    );
 
     const urlPage = Number(searchParams.get('page')) || 1;
     const urlSize = Number(searchParams.get('size')) || 10;

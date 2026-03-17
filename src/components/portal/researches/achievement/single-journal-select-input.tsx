@@ -119,11 +119,8 @@ export function SingleJournalSelectInput({
       selectJournal(created);
       toast.success(`저널 "${name}"이(가) 추가되었습니다.`);
     } catch (e: unknown) {
-      const message =
-        e && typeof e === 'object' && 'message' in e
-          ? String((e as { message: unknown }).message)
-          : '저널 추가에 실패했습니다.';
-      toast.error(message);
+      console.error('Journal add error:', e);
+      toast.error('저널 추가에 실패했습니다.');
     } finally {
       setCreating(false);
     }

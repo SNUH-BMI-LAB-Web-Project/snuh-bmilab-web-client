@@ -84,7 +84,7 @@ export default function PatentsTab() {
       try {
         const res = await taskApi.getTaskPatents({ taskId });
 
-        const mapped = (res as any[]).map((item) => ({
+        const mapped = (res as unknown as Patent[]).map((item) => ({
           ...item,
           applicationDate: item.applicationDate
             ? new Date(item.applicationDate).toISOString().slice(0, 10)
@@ -221,7 +221,9 @@ export default function PatentsTab() {
             ) : (
               sortedData.map((item, index) => {
                 const labApplicants =
-                  item.patentAuthors?.map((a) => authorDisplayName(a)).join(', ') ?? '-';
+                  item.patentAuthors
+                    ?.map((a) => authorDisplayName(a))
+                    .join(', ') ?? '-';
 
                 return (
                   <TableRow key={item.id}>

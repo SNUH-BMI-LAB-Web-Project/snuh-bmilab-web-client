@@ -32,6 +32,7 @@ import { toast } from 'sonner';
 import { TaskApi, GetAllTasksStatusEnum } from '@/generated-api/apis/TaskApi';
 import type { TaskSummaryResponse } from '@/generated-api';
 import { getApiConfig } from '@/lib/config';
+import { useAuthStore } from '@/store/auth-store';
 import { getThreeFiveRuleLabel } from '@/lib/constants/threeFiveRule';
 import TaskEditModal from './TaskEditModal';
 
@@ -111,6 +112,7 @@ type UiTask = {
   snuhPI?: string;
   professorRole?: string;
   practicalManager?: string;
+  practicalManagerId?: number; // 실무 책임자 ID (권한 판단용)
 
   participatingInstitutions?: { name: string }[];
 
@@ -165,6 +167,7 @@ function normalizeTask(item: TaskSummaryResponse): UiTask {
       : undefined,
 
     practicalManager: item.practicalManagerName ?? '',
+    practicalManagerId: item.practicalManagerId,
 
     participatingInstitutions,
 
@@ -181,11 +184,21 @@ export default function TaskHeaderCard() {
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
+  const { user, role } = useAuthStore();
 
   const taskId = useMemo(() => Number(params?.id), [params]);
 
   const [task, setTask] = useState<UiTask | null>(null);
   const [openModal, setOpenModal] = useState(false);
+
+  const currentUserId = user?.userId != null ? Number(user.userId) : null;
+  const canEdit =
+    !!task &&
+    !!currentUserId &&
+    (role === 'ADMIN' ||
+      (task.practicalManagerId != null &&
+        currentUserId === task.practicalManagerId));
+  const canDelete = !!task && role === 'ADMIN';
 
   const fetchTaskDetail = async () => {
     if (!taskId) return;
@@ -217,8 +230,21 @@ export default function TaskHeaderCard() {
       } else {
         router.push('/portal/researches/assignment');
       }
-    } catch (e) {
-      console.error(e);
+    } catch (e: unknown) {
+      const status =
+        e && typeof e === 'object' && 'response' in e
+          ? (e as { response: Response }).response?.status
+          : undefined;
+      if (status === 403) {
+        toast.error('삭제 권한이 없습니다.');
+      } else if (status === 500 || status === 400) {
+        toast.error(
+          '이 과제에 연결된 연구 성과(논문 등)가 있어 삭제할 수 없습니다. 연결을 해제한 뒤 다시 시도해 주세요.',
+        );
+      } else {
+        console.error(e);
+        toast.error('삭제에 실패했습니다.');
+      }
     }
   };
 
@@ -254,32 +280,38 @@ export default function TaskHeaderCard() {
               {task.progressStage ?? '—'}
             </span>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-gray-500 hover:text-gray-700"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
+            {(canEdit || canDelete) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-gray-500 hover:text-gray-700"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" className="w-32">
-                <DropdownMenuItem onClick={() => setOpenModal(true)}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  수정
-                </DropdownMenuItem>
+                <DropdownMenuContent align="end" className="w-32">
+                  {canEdit && (
+                    <DropdownMenuItem onClick={() => setOpenModal(true)}>
+                      <Pencil className="mr-2 h-4 w-4" />
+                      수정
+                    </DropdownMenuItem>
+                  )}
 
-                <DropdownMenuItem
-                  onClick={handleDelete}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="text-destructive mr-2 h-4 w-4" />
-                  삭제
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  {canDelete && (
+                    <DropdownMenuItem
+                      onClick={handleDelete}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="text-destructive mr-2 h-4 w-4" />
+                      삭제
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
 

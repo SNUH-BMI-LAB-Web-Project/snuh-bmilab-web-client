@@ -81,6 +81,12 @@ const isAnnualLeaveType = (type?: string) =>
   type === LeaveDetailTypeEnum.HalfAm ||
   type === LeaveDetailTypeEnum.HalfPm;
 
+/** API에 특별휴가 필드 추가 시 사용. 스웨거 UserDetail 확장 */
+type UserDetailWithSpecialLeave = UserDetailType & {
+  specialLeaveCount?: number;
+  usedSpecialLeaveCount?: number;
+};
+
 interface UserDetailProps {
   user: UserDetailType;
   projects: UserProjectItem[];
@@ -122,6 +128,10 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
 
   const usedLeaveCount = user.usedLeaveCount ?? 0;
   const annualLeaveCount = user.annualLeaveCount ?? 0;
+  const specialLeaveCount =
+    (user as UserDetailWithSpecialLeave).specialLeaveCount ?? 0;
+  const usedSpecialLeaveCount =
+    (user as UserDetailWithSpecialLeave).usedSpecialLeaveCount ?? 0;
 
   // 연차 관련 연산
   const remainingLeave = annualLeaveCount - usedLeaveCount;
@@ -611,6 +621,18 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
                         </p>
                         <p className="text-sm font-medium text-blue-600">
                           연간 연차
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl border border-violet-100 bg-violet-50 p-6 text-center">
+                        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-violet-100">
+                          <CalendarDays className="h-6 w-6 text-violet-600" />
+                        </div>
+                        <p className="text-2xl font-bold text-violet-900">
+                          {specialLeaveCount}
+                        </p>
+                        <p className="text-sm font-medium text-violet-600">
+                          특별휴가
                         </p>
                       </div>
 
