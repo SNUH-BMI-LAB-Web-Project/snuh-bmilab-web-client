@@ -10,7 +10,6 @@ import {
   Search,
   Trash2,
   Edit,
-  Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -255,7 +254,7 @@ function BasePill({
 
 function SingleDayPill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
-  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+  const timeLabel = formatTimeRange(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
@@ -269,7 +268,7 @@ function SingleDayPill({ ev }: { ev: SeminarEvent }) {
 
 function StartPill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
-  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+  const timeLabel = formatTimeRange(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
@@ -283,7 +282,7 @@ function StartPill({ ev }: { ev: SeminarEvent }) {
 
 function ContinuedPill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
-  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+  const timeLabel = formatTimeRange(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
@@ -297,7 +296,7 @@ function ContinuedPill({ ev }: { ev: SeminarEvent }) {
 
 function MiddlePill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
-  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+  const timeLabel = formatTimeRange(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
@@ -313,7 +312,7 @@ function MiddlePill({ ev }: { ev: SeminarEvent }) {
 
 function ContinuedEndPill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
-  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+  const timeLabel = formatTimeRange(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
@@ -327,7 +326,7 @@ function ContinuedEndPill({ ev }: { ev: SeminarEvent }) {
 
 function EndPill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
-  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+  const timeLabel = formatTimeRange(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
@@ -1068,7 +1067,10 @@ export default function SeminarCalendar() {
                     </div>
                     <div className="text-muted-foreground ml-5 text-xs">
                       {(() => {
-                        const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+                        const timeLabel = formatTimeRange(
+                          ev.startTime,
+                          ev.endTime,
+                        );
                         return (
                           <>
                             {EVENT_TYPES[ev.type].name} · {ev.startDate} ~{' '}
@@ -1163,7 +1165,10 @@ export default function SeminarCalendar() {
                     </div>
                     <div className="text-muted-foreground text-[11px]">
                       {(() => {
-                        const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+                        const timeLabel = formatTimeRange(
+                          ev.startTime,
+                          ev.endTime,
+                        );
                         return (
                           <>
                             {ev.startDate} {ev.endDate ? `~ ${ev.endDate}` : ''}

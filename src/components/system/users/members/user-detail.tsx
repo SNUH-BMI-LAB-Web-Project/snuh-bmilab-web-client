@@ -23,7 +23,10 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import {
+  AdminLeaveApi,
   GetAllProjectsStatusEnum,
+  LeaveDetail,
+  LeaveDetailTypeEnum,
   UserDetail as UserDetailType,
   UserEducationSummaryStatusEnum,
   UserProjectItem,
@@ -38,22 +41,16 @@ import {
   PROJECT_STATUS_CLASSES_USER_DETAIL,
   PROJECT_STATUS_LABELS,
 } from '@/constants/project-enum';
-import { format } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
 import { positionLabelMap } from '@/constants/position-enum';
 import { formatSeatNumber } from '@/utils/user-utils';
 import { Button } from '@/components/ui/button';
 import { useEffect, useMemo, useState } from 'react';
-import { differenceInCalendarDays } from 'date-fns';
-import {
-  AdminLeaveApi,
-  LeaveDetail,
-  LeaveDetailTypeEnum,
-} from '@/generated-api';
+import { differenceInCalendarDays, format } from 'date-fns';
 import { getApiConfig } from '@/lib/config';
 
 const countLeaveDays = (leave: LeaveDetail): number => {
-  const type = leave.type;
+  const { type } = leave;
   if (
     type === LeaveDetailTypeEnum.HalfAm ||
     type === LeaveDetailTypeEnum.HalfPm ||
@@ -99,8 +96,6 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
 
   const adminLeaveApi = useMemo(() => new AdminLeaveApi(getApiConfig()), []);
 
-  if (!user) return null;
-
   const getEducationStatusInfo = (
     status: string,
   ): { label: string; color: string } => {
@@ -128,8 +123,6 @@ export default function AdminUserDetail({ user, projects }: UserDetailProps) {
 
   const usedLeaveCount = user.usedLeaveCount ?? 0;
   const annualLeaveCount = user.annualLeaveCount ?? 0;
-  const specialLeaveCount =
-    (user as UserDetailWithSpecialAnnual).specialLeaveCount ?? 0;
   const usedSpecialLeaveCount =
     (user as UserDetailWithSpecialAnnual).usedSpecialLeaveCount ?? 0;
 
