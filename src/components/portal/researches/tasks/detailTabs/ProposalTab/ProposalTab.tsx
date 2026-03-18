@@ -40,7 +40,9 @@ export default function ProposalTab({ taskInfo }: { taskInfo?: any }) {
       if (typeof parsed.state === 'string') {
         try {
           parsed.state = JSON.parse(parsed.state);
-        } catch {}
+        } catch {
+          // noop: legacy storage format
+        }
       }
 
       return (
@@ -110,7 +112,7 @@ export default function ProposalTab({ taskInfo }: { taskInfo?: any }) {
       });
 
       const respText = await res.text();
-      if (!res.ok) throw new Error(`PATCH 실패 (${res.status})`);
+      if (!res.ok) throw new Error(`PATCH 실패 (${res.status}): ${respText}`);
 
       await fetchProposal();
       setIsEditMode(false);

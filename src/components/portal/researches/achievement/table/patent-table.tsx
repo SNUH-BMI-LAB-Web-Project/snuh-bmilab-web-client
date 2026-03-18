@@ -67,14 +67,6 @@ interface PatentTableProps {
 
 type SortOrder = 'asc' | 'desc';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-const getToken = () => {
-  if (typeof window === 'undefined') return null;
-  const raw = localStorage.getItem('auth-storage');
-  return raw ? JSON.parse(raw)?.state?.accessToken : null;
-};
-
 export function PatentTable({
   data,
   onEdit,
