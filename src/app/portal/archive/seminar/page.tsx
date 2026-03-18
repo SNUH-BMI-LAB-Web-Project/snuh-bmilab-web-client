@@ -803,7 +803,9 @@ export default function SeminarCalendar() {
                     <div className="space-y-2">
                       <Label>시작 시간 (선택)</Label>
                       <Input
-                        type="time"
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="예: 23:30"
                         value={formData.startTime}
                         onChange={(e) =>
                           setFormData((s) => ({
@@ -817,13 +819,21 @@ export default function SeminarCalendar() {
                                 : s.endTime,
                           }))
                         }
-                        step={60}
+                        onBlur={() => {
+                          const norm = normalizeTime(formData.startTime);
+                          if (formData.startTime && norm) {
+                            setFormData((s) => ({ ...s, startTime: norm }));
+                          }
+                        }}
+                        maxLength={8}
                       />
                     </div>
                     <div className="space-y-2">
                       <Label>종료 시간 (선택)</Label>
                       <Input
-                        type="time"
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="예: 23:30"
                         value={formData.endTime}
                         onChange={(e) =>
                           setFormData((s) => ({
@@ -831,7 +841,13 @@ export default function SeminarCalendar() {
                             endTime: e.target.value,
                           }))
                         }
-                        step={60}
+                        onBlur={() => {
+                          const norm = normalizeTime(formData.endTime);
+                          if (formData.endTime && norm) {
+                            setFormData((s) => ({ ...s, endTime: norm }));
+                          }
+                        }}
+                        maxLength={8}
                       />
                     </div>
                   </div>
@@ -1013,36 +1029,41 @@ export default function SeminarCalendar() {
                         />
                         <div className="text-sm font-medium">{ev.title}</div>
                       </div>
-                      <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                        {ev.googleCalendarLink && (
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8"
+                          disabled={!ev.googleCalendarLink}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!ev.googleCalendarLink) {
+                              toast.error('캘린더 추가 링크가 없습니다.');
+                              return;
+                            }
+                            window.open(ev.googleCalendarLink, '_blank');
+                          }}
+                        >
+                          내 캘린더에 추가
+                        </Button>
+                        <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                           <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              window.open(ev.googleCalendarLink, '_blank');
-                            }}
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => openEditModal(ev)}
                           >
-                            내 캘린더에 추가
+                            <Edit className="h-4 w-4" />
                           </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => openEditModal(ev)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive h-8 w-8"
-                          onClick={() => handleDelete(ev.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive h-8 w-8"
+                            onClick={() => handleDelete(ev.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     <div className="text-muted-foreground ml-5 text-xs">
@@ -1110,17 +1131,35 @@ export default function SeminarCalendar() {
                         />
                         <div className="text-sm font-medium">{ev.title}</div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 opacity-0 group-hover:opacity-100"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openEditModal(ev);
-                        }}
-                      >
-                        <Edit className="h-3 w-3" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-2 text-[11px]"
+                          disabled={!ev.googleCalendarLink}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!ev.googleCalendarLink) {
+                              toast.error('캘린더 추가 링크가 없습니다.');
+                              return;
+                            }
+                            window.open(ev.googleCalendarLink, '_blank');
+                          }}
+                        >
+                          내 캘린더에 추가
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditModal(ev);
+                          }}
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                     <div className="text-muted-foreground text-[11px]">
                       {(() => {
