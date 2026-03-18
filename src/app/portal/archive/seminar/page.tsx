@@ -1028,12 +1028,11 @@ export default function SeminarCalendar() {
                         />
                         <div className="text-sm font-medium">{ev.title}</div>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                         <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8"
-                          disabled={!ev.googleCalendarLink}
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!ev.googleCalendarLink) {
@@ -1043,9 +1042,9 @@ export default function SeminarCalendar() {
                             window.open(ev.googleCalendarLink, '_blank');
                           }}
                         >
-                          내 캘린더에 추가
+                          <Plus className="h-4 w-4" />
                         </Button>
-                        <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                        <div className="flex gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
@@ -1135,10 +1134,9 @@ export default function SeminarCalendar() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 px-2 text-[11px]"
-                          disabled={!ev.googleCalendarLink}
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!ev.googleCalendarLink) {
@@ -1148,12 +1146,12 @@ export default function SeminarCalendar() {
                             window.open(ev.googleCalendarLink, '_blank');
                           }}
                         >
-                          내 캘린더에 추가
+                          <Plus className="h-3 w-3" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                          className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100"
                           onClick={(e) => {
                             e.stopPropagation();
                             openEditModal(ev);
