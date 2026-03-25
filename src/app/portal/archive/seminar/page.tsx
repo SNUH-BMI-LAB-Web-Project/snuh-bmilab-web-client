@@ -604,6 +604,8 @@ export default function SeminarCalendar() {
       startTime: ev.startTime || legacy.startTime || '',
       endTime: ev.endTime || legacy.endTime || '',
       description: legacy.note || '',
+      repeatType: '',
+      repeatEndDate: '',
     });
     setIsModalOpen(true);
   };
