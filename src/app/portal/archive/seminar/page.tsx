@@ -11,6 +11,7 @@ import {
   Trash2,
   Edit,
   Repeat,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -352,6 +353,7 @@ export default function SeminarCalendar() {
   // 모달 관리
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   type RepeatType = '' | 'WEEKLY' | 'MONTHLY';
   const [formData, setFormData] = useState({
     type: '' as '' | EventType,
@@ -522,6 +524,7 @@ export default function SeminarCalendar() {
       body.repeatEndDate = formData.repeatEndDate;
     }
 
+    setIsSubmitting(true);
     try {
       const method = editingId ? 'PUT' : 'POST';
       const url = editingId
@@ -560,6 +563,8 @@ export default function SeminarCalendar() {
     } catch (err) {
       console.error('Seminar submit error:', err);
       toast.error('실패하였습니다.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -970,12 +975,14 @@ export default function SeminarCalendar() {
                       type="button"
                       variant="outline"
                       onClick={handleCloseModal}
+                      disabled={isSubmitting}
                     >
                       취소
                     </Button>
                     <Button
                       type="submit"
                       disabled={
+                        isSubmitting ||
                         !formData.type ||
                         !formData.title ||
                         !formData.startDate ||
@@ -984,7 +991,16 @@ export default function SeminarCalendar() {
                         (!!formData.repeatType && !formData.repeatEndDate)
                       }
                     >
-                      {editingId ? '수정' : '추가'}
+                      {isSubmitting && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      {isSubmitting
+                        ? formData.repeatType
+                          ? '반복 일정 생성 중...'
+                          : '처리 중...'
+                        : editingId
+                          ? '수정'
+                          : '추가'}
                     </Button>
                   </div>
                 </form>
