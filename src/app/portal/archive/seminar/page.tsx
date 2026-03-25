@@ -10,6 +10,7 @@ import {
   Search,
   Trash2,
   Edit,
+  Repeat,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -358,6 +359,7 @@ export default function SeminarCalendar() {
   // 모달 관리
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  type RepeatType = '' | 'WEEKLY' | 'MONTHLY';
   const [formData, setFormData] = useState({
     type: '' as '' | EventType,
     title: '',
@@ -366,6 +368,8 @@ export default function SeminarCalendar() {
     startTime: '',
     endTime: '',
     description: '',
+    repeatType: '' as RepeatType,
+    repeatEndDate: '',
   });
 
   const days = useMemo(() => generateCalendarDays(currentDate), [currentDate]);
@@ -469,6 +473,8 @@ export default function SeminarCalendar() {
       startTime: '',
       endTime: '',
       description: '',
+      repeatType: '',
+      repeatEndDate: '',
     });
   };
 
@@ -477,9 +483,17 @@ export default function SeminarCalendar() {
     e.preventDefault();
     if (!formData.type || !formData.title.trim() || !formData.startDate) return;
 
-    // 시작일이 종료일보다 뒤면 수정/추가 불가
     if (formData.endDate && formData.startDate > formData.endDate) {
       toast.error('시작일은 종료일보다 늦을 수 없습니다.');
+      return;
+    }
+
+    if (formData.repeatType && !formData.repeatEndDate) {
+      toast.error('반복 종료일을 선택해 주세요.');
+      return;
+    }
+    if (formData.repeatType && formData.repeatEndDate && formData.startDate > formData.repeatEndDate) {
+      toast.error('반복 종료일은 시작일 이후여야 합니다.');
       return;
     }
 
@@ -500,16 +514,20 @@ export default function SeminarCalendar() {
       return;
     }
 
-    const body = {
+    const body: Record<string, unknown> = {
       label: formData.type,
       title: formData.title,
       startDate: formData.startDate,
       endDate: formData.endDate || formData.startDate,
       startTime: startTime ? toLocalTime(startTime) : undefined,
       endTime: endTime ? toLocalTime(endTime) : undefined,
-      // 레거시로 note에 섞여있던 "시간:" 라인은 제거하고 저장
       note: legacy.note?.trim() ? legacy.note : undefined,
     };
+
+    if (!editingId && formData.repeatType) {
+      body.repeatType = formData.repeatType;
+      body.repeatEndDate = formData.repeatEndDate;
+    }
 
     try {
       const method = editingId ? 'PUT' : 'POST';
@@ -527,8 +545,15 @@ export default function SeminarCalendar() {
       });
 
       if (res.ok) {
-        toast.success(editingId ? '수정되었습니다.' : '일정이 추가되었습니다.');
-        // 수정/생성 성공 시 fetchEvents 호출하여 뷰 갱신
+        if (editingId) {
+          toast.success('수정되었습니다.');
+        } else if (formData.repeatType) {
+          const data = await res.json();
+          const count = data.seminarIds?.length ?? 0;
+          toast.success(`반복 일정 ${count}건이 생성되었습니다.`);
+        } else {
+          toast.success('일정이 추가되었습니다.');
+        }
         fetchEvents();
         handleCloseModal();
       } else if (res.status === 403) {
@@ -850,6 +875,83 @@ export default function SeminarCalendar() {
                       />
                     </div>
                   </div>
+                  {!editingId && (
+                    <div className="space-y-3 rounded-md border p-3">
+                      <div className="flex items-center gap-2">
+                        <Repeat className="text-muted-foreground h-4 w-4" />
+                        <Label className="text-sm font-medium">반복 설정</Label>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>반복 유형</Label>
+                          <Select
+                            value={formData.repeatType || 'NONE'}
+                            onValueChange={(v) =>
+                              setFormData((s) => ({
+                                ...s,
+                                repeatType: (v === 'NONE' ? '' : v) as RepeatType,
+                                repeatEndDate: v === 'NONE' ? '' : s.repeatEndDate,
+                              }))
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="반복 없음" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="NONE">반복 없음</SelectItem>
+                              <SelectItem value="WEEKLY">매주 반복</SelectItem>
+                              <SelectItem value="MONTHLY">매월 반복</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {formData.repeatType && (
+                          <div className="space-y-2">
+                            <Label>
+                              반복 종료일{' '}
+                              <span className="text-destructive">*</span>
+                            </Label>
+                            <Popover modal>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className="w-full justify-start font-normal"
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {formData.repeatEndDate || '날짜 선택'}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                  mode="single"
+                                  selected={fromYmdLocal(formData.repeatEndDate)}
+                                  onSelect={(d) =>
+                                    d &&
+                                    setFormData((s) => ({
+                                      ...s,
+                                      repeatEndDate: toYmd(d),
+                                    }))
+                                  }
+                                  locale={ko}
+                                  disabled={
+                                    formData.startDate
+                                      ? { before: fromYmdLocal(formData.startDate)! }
+                                      : undefined
+                                  }
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        )}
+                      </div>
+                      {formData.repeatType && (
+                        <p className="text-muted-foreground text-xs">
+                          {formData.startDate && formData.repeatEndDate
+                            ? `${formData.startDate}부터 ${formData.repeatEndDate}까지 ${formData.repeatType === 'WEEKLY' ? '매주' : '매월'} 반복 일정이 개별 생성됩니다.`
+                            : '시작일과 반복 종료일을 모두 선택해 주세요.'}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label>기타</Label>
                     <Textarea
@@ -879,7 +981,8 @@ export default function SeminarCalendar() {
                         !formData.title ||
                         !formData.startDate ||
                         (!!formData.endDate &&
-                          formData.startDate > formData.endDate)
+                          formData.startDate > formData.endDate) ||
+                        (!!formData.repeatType && !formData.repeatEndDate)
                       }
                     >
                       {editingId ? '수정' : '추가'}
