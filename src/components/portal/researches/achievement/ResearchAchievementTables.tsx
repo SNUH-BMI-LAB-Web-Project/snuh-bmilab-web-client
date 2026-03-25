@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { usePaginationState } from '@/lib/use-pagination-state';
 
 // 각 테이블 컴포넌트들 (경로를 프로젝트 구조에 맞게 확인하세요)
 import { BookTable } from './table/book-table';
@@ -23,7 +24,6 @@ import { ConferenceTable } from './table/conference-table';
 import { AwardTable } from './table/award-table';
 import { PaperTable } from './table/paper-table';
 import { PatentTable } from './table/patent-table';
-import { usePaginationState } from '@/lib/use-pagination-state';
 
 type ResearchType =
   | 'book'

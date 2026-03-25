@@ -19,22 +19,6 @@ export default function PresentationDeadlineSection({
   const [localDate, setLocalDate] = useState(deadlineDate ?? '');
   const [localTime, setLocalTime] = useState(deadlineTime ?? '');
 
-  // ✅ 상위 데이터 변경 시 동기화
-  useEffect(() => {
-    setLocalDate(deadlineDate ?? '');
-    setLocalTime(deadlineTime ?? '');
-  }, [deadlineDate, deadlineTime]);
-
-  const handleDateChange = (value: string) => {
-    setLocalDate(value);
-    updateParent(value, localTime);
-  };
-
-  const handleTimeChange = (value: string) => {
-    setLocalTime(value);
-    updateParent(localDate, value);
-  };
-
   // ✅ 날짜 + 시간 → ISO 문자열로 합쳐서 상위 전달
   const updateParent = (date: string, time: string) => {
     if (!setEditData) return;
@@ -52,6 +36,22 @@ export default function PresentationDeadlineSection({
         presentationDeadline: combined,
       },
     }));
+  };
+
+  // ✅ 상위 데이터 변경 시 동기화
+  useEffect(() => {
+    setLocalDate(deadlineDate ?? '');
+    setLocalTime(deadlineTime ?? '');
+  }, [deadlineDate, deadlineTime]);
+
+  const handleDateChange = (value: string) => {
+    setLocalDate(value);
+    updateParent(value, localTime);
+  };
+
+  const handleTimeChange = (value: string) => {
+    setLocalTime(value);
+    updateParent(localDate, value);
   };
 
   const readModeClass = !isEditMode

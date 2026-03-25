@@ -10,7 +10,7 @@ import {
   Search,
   Trash2,
   Edit,
-  Clock,
+  Repeat,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -61,6 +61,7 @@ type SeminarEvent = {
   startTime?: string;
   endTime?: string;
   description?: string;
+  googleCalendarLink?: string;
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -90,6 +91,7 @@ const monthNames = [
   '12월',
 ] as const;
 const weekdayLabels = ['일', '월', '화', '수', '목', '금', '토'] as const;
+const TRACK_KEYS = ['t0', 't1', 't2'] as const;
 
 /* =========================
  * Utils
@@ -135,85 +137,74 @@ const overlapsDate = (ev: SeminarEvent, dayYmd: string) => {
   return ev.startDate <= dayYmd && dayYmd <= end;
 };
 
-const isValidHm = (s?: string) => {
-  if (!s) return false;
-  return /^([01]\d|2[0-3]):[0-5]\d$/.test(s);
+type LocalTimeLike = {
+  hour?: number;
+  minute?: number;
+  second?: number;
+  nano?: number;
 };
 
-const toTimeLabel = (startTime?: string, endTime?: string) => {
-  if (isValidHm(startTime) && isValidHm(endTime)) return `${startTime} ~ ${endTime}`;
-  if (isValidHm(startTime)) return `${startTime}`;
-  return '';
+const parseLegacyTimeNote = (note?: unknown) => {
+  const raw = typeof note === 'string' ? note : '';
+  if (!raw.trim()) return { note: raw };
+
+  // 지원 포맷 예:
+  // - "시간: 23:30"
+  // - "시간: 23:30 ~ 01:00"
+  // - "시간 · 23:30~01:00"
+  // - note 여러 줄 중 한 줄에 포함
+  const re =
+    /(^|\n)\s*시간\s*[:：·]\s*([01]\d|2[0-3]):([0-5]\d)\s*(?:(?:~|-|–|—)\s*([01]\d|2[0-3]):([0-5]\d))?\s*(?=\n|$)/;
+  const m = re.exec(raw);
+  if (!m) return { note: raw };
+
+  const startTime = `${m[2]}:${m[3]}`;
+  const endTime =
+    m[4] != null && m[5] != null ? `${m[4]}:${m[5]}` : undefined;
+
+  const before = raw.slice(0, m.index) + (m[1] === '\n' ? '' : '');
+  const after = raw.slice(m.index + m[0].length);
+  const cleaned = `${before}${after}`.replace(/^\n+|\n+$/g, '').trimEnd();
+
+  return { note: cleaned, startTime, endTime };
 };
 
-const buildNote = (description?: string, startTime?: string, endTime?: string) => {
-  const timeLabel = toTimeLabel(startTime, endTime);
-  const desc = (description ?? '').trim();
-  if (!timeLabel) return desc || undefined;
-  if (!desc) return `시간: ${timeLabel}`;
-  return `시간: ${timeLabel}\n${desc}`;
+const normalizeTime = (t?: unknown): string | undefined => {
+  if (t == null) return undefined;
+
+  // 1) swagger `LocalTime` object: {hour, minute, second, nano}
+  if (typeof t === 'object') {
+    const lt = t as LocalTimeLike;
+    if (
+      typeof lt.hour === 'number' &&
+      typeof lt.minute === 'number' &&
+      lt.hour >= 0 &&
+      lt.hour <= 23 &&
+      lt.minute >= 0 &&
+      lt.minute <= 59
+    ) {
+      return `${String(lt.hour).padStart(2, '0')}:${String(lt.minute).padStart(2, '0')}`;
+    }
+    return undefined;
+  }
+
+  // 2) "HH:mm" 또는 "HH:mm:ss" 문자열
+  if (typeof t !== 'string') return undefined;
+  const trimmed = t.trim();
+  if (!trimmed) return undefined;
+  const m = /^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/.exec(trimmed);
+  if (!m) return undefined;
+  return `${m[1]}:${m[2]}`;
 };
 
-const parseNote = (note?: string) => {
-  if (!note) return { startTime: '', endTime: '', description: '' };
-  const lines = note.replace(/\r\n/g, '\n').split('\n');
-  const first = (lines[0] ?? '').trim();
-  const rest = lines.slice(1).join('\n').trim();
-
-  const m = first.match(
-    /^시간\s*:\s*([01]\d|2[0-3]):([0-5]\d)(?:\s*(?:~|-)\s*([01]\d|2[0-3]):([0-5]\d))?\s*$/,
-  );
-  if (!m) return { startTime: '', endTime: '', description: note.trim() };
-
-  const startTime = `${m[1]}:${m[2]}`;
-  const endTime = m[3] && m[4] ? `${m[3]}:${m[4]}` : '';
-  return { startTime, endTime, description: rest };
+const formatTimeRange = (startTime?: string, endTime?: string) => {
+  const st = normalizeTime(startTime);
+  const et = normalizeTime(endTime);
+  if (st && et) return `${st} ~ ${et}`;
+  if (st) return st;
+  if (et) return et;
+  return null;
 };
-
-function TimePickerPopover({
-  value,
-  onChange,
-  placeholder,
-  disabled,
-  min,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  placeholder: string;
-  disabled?: boolean;
-  min?: string;
-}) {
-  return (
-    <Popover modal>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          className={cn('w-full justify-start font-normal', !value && 'text-muted-foreground')}
-          disabled={disabled}
-        >
-          <Clock className="mr-2 h-4 w-4" />
-          {value || placeholder}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[260px] p-3">
-        <div className="space-y-2">
-          <Label className="text-xs">시간 선택</Label>
-          <Input
-            type="time"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            min={min}
-          />
-          <div className="text-muted-foreground text-[11px]">
-            직접 입력하거나, 기본 시간 선택 UI를 사용하세요.
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
 /* =========================
  * UI Pieces
  * ======================= */
@@ -257,7 +248,7 @@ function BasePill({
 
 function SingleDayPill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
-  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+  const timeLabel = formatTimeRange(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
@@ -271,7 +262,7 @@ function SingleDayPill({ ev }: { ev: SeminarEvent }) {
 
 function StartPill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
-  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+  const timeLabel = formatTimeRange(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
@@ -285,7 +276,7 @@ function StartPill({ ev }: { ev: SeminarEvent }) {
 
 function ContinuedPill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
-  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+  const timeLabel = formatTimeRange(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
@@ -299,7 +290,7 @@ function ContinuedPill({ ev }: { ev: SeminarEvent }) {
 
 function MiddlePill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
-  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+  const timeLabel = formatTimeRange(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
@@ -315,7 +306,7 @@ function MiddlePill({ ev }: { ev: SeminarEvent }) {
 
 function ContinuedEndPill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
-  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+  const timeLabel = formatTimeRange(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
@@ -329,7 +320,7 @@ function ContinuedEndPill({ ev }: { ev: SeminarEvent }) {
 
 function EndPill({ ev }: { ev: SeminarEvent }) {
   const meta = EVENT_TYPES[ev.type];
-  const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+  const timeLabel = formatTimeRange(ev.startTime, ev.endTime);
   return (
     <BasePill
       color={meta.color}
@@ -361,6 +352,7 @@ export default function SeminarCalendar() {
   // 모달 관리
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  type RepeatType = '' | 'WEEKLY' | 'MONTHLY';
   const [formData, setFormData] = useState({
     type: '' as '' | EventType,
     title: '',
@@ -369,6 +361,8 @@ export default function SeminarCalendar() {
     startTime: '',
     endTime: '',
     description: '',
+    repeatType: '' as RepeatType,
+    repeatEndDate: '',
   });
 
   const days = useMemo(() => generateCalendarDays(currentDate), [currentDate]);
@@ -387,17 +381,21 @@ export default function SeminarCalendar() {
       );
       if (res.ok) {
         const data = await res.json();
-        const mapped = data.seminars.map((s: any) => {
-          const parsed = parseNote(s.note);
+        const mapped = data.seminars.map((s: Record<string, unknown>) => {
+          const legacy = parseLegacyTimeNote(s.note);
+          const apiStartTime = normalizeTime((s as Record<string, unknown>).startTime);
+          const apiEndTime = normalizeTime((s as Record<string, unknown>).endTime);
           return {
             id: s.id,
             title: s.title,
             type: s.label as EventType,
             startDate: s.startDate,
             endDate: s.endDate,
-            startTime: parsed.startTime || undefined,
-            endTime: parsed.endTime || undefined,
-            description: parsed.description || undefined,
+            startTime: apiStartTime ?? legacy.startTime,
+            endTime: apiEndTime ?? legacy.endTime,
+            description: legacy.note,
+            googleCalendarLink: (s as Record<string, unknown>)
+              .googleCalendarLink as string | undefined,
           };
         });
         setEvents(mapped);
@@ -429,17 +427,23 @@ export default function SeminarCalendar() {
         if (res.ok) {
           const data = await res.json();
           setSearchedEvents(
-            data.seminars.map((s: any) => {
-              const parsed = parseNote(s.note);
+            data.seminars.map((s: Record<string, unknown>) => {
+              const legacy = parseLegacyTimeNote(s.note);
+              const apiStartTime = normalizeTime(
+                (s as Record<string, unknown>).startTime,
+              );
+              const apiEndTime = normalizeTime((s as Record<string, unknown>).endTime);
               return {
                 id: s.id,
                 title: s.title,
                 type: s.label as EventType,
                 startDate: s.startDate,
                 endDate: s.endDate,
-                startTime: parsed.startTime || undefined,
-                endTime: parsed.endTime || undefined,
-                description: parsed.description || undefined,
+                startTime: apiStartTime ?? legacy.startTime,
+                endTime: apiEndTime ?? legacy.endTime,
+                description: legacy.note,
+                googleCalendarLink: (s as Record<string, unknown>)
+                  .googleCalendarLink as string | undefined,
               };
             }),
           );
@@ -462,6 +466,8 @@ export default function SeminarCalendar() {
       startTime: '',
       endTime: '',
       description: '',
+      repeatType: '',
+      repeatEndDate: '',
     });
   };
 
@@ -470,23 +476,51 @@ export default function SeminarCalendar() {
     e.preventDefault();
     if (!formData.type || !formData.title.trim() || !formData.startDate) return;
 
-    // 시작일이 종료일보다 뒤면 수정/추가 불가
-    if (
-      formData.endDate &&
-      formData.startDate > formData.endDate
-    ) {
+    if (formData.endDate && formData.startDate > formData.endDate) {
       toast.error('시작일은 종료일보다 늦을 수 없습니다.');
       return;
     }
 
+    if (formData.repeatType && !formData.repeatEndDate) {
+      toast.error('반복 종료일을 선택해 주세요.');
+      return;
+    }
+    if (formData.repeatType && formData.repeatEndDate && formData.startDate > formData.repeatEndDate) {
+      toast.error('반복 종료일은 시작일 이후여야 합니다.');
+      return;
+    }
+
     const token = getToken();
-    const body = {
+    const legacy = parseLegacyTimeNote(formData.description);
+    const inferredStart = !formData.startTime ? legacy.startTime : undefined;
+    const inferredEnd = !formData.endTime ? legacy.endTime : undefined;
+
+    const startTime = normalizeTime(formData.startTime || inferredStart);
+    const endTime = normalizeTime(formData.endTime || inferredEnd);
+
+    if (formData.startTime && !startTime) {
+      toast.error('시작 시간 형식이 올바르지 않습니다. (예: 23:30)');
+      return;
+    }
+    if (formData.endTime && !endTime) {
+      toast.error('종료 시간 형식이 올바르지 않습니다. (예: 23:30)');
+      return;
+    }
+
+    const body: Record<string, unknown> = {
       label: formData.type,
       title: formData.title,
       startDate: formData.startDate,
       endDate: formData.endDate || formData.startDate,
-      note: buildNote(formData.description, formData.startTime, formData.endTime),
+      startTime: startTime || undefined,
+      endTime: endTime || undefined,
+      note: legacy.note?.trim() ? legacy.note : undefined,
     };
+
+    if (!editingId && formData.repeatType) {
+      body.repeatType = formData.repeatType;
+      body.repeatEndDate = formData.repeatEndDate;
+    }
 
     try {
       const method = editingId ? 'PUT' : 'POST';
@@ -504,16 +538,27 @@ export default function SeminarCalendar() {
       });
 
       if (res.ok) {
-        toast.success(editingId ? '수정되었습니다.' : '일정이 추가되었습니다.');
-        // 수정/생성 성공 시 fetchEvents 호출하여 뷰 갱신
+        if (editingId) {
+          toast.success('수정되었습니다.');
+        } else if (formData.repeatType) {
+          const data = await res.json();
+          const count = data.seminarIds?.length ?? 0;
+          toast.success(`반복 일정 ${count}건이 생성되었습니다.`);
+        } else {
+          toast.success('일정이 추가되었습니다.');
+        }
         fetchEvents();
         handleCloseModal();
-      } else if (res.status === 403) {
-        toast.error('권한이 없습니다.');
       } else {
-        toast.error('실패하였습니다.');
+        let msg = '실패하였습니다.';
+        try {
+          const errData = await res.json();
+          if (errData?.message) msg = errData.message;
+        } catch { /* ignore parse error */ }
+        toast.error(msg);
       }
     } catch (err) {
+      console.error('Seminar submit error:', err);
       toast.error('실패하였습니다.');
     }
   };
@@ -546,15 +591,18 @@ export default function SeminarCalendar() {
   };
 
   const openEditModal = (ev: SeminarEvent) => {
+    const legacy = parseLegacyTimeNote(ev.description);
     setEditingId(ev.id);
     setFormData({
       type: ev.type,
       title: ev.title,
       startDate: ev.startDate,
       endDate: ev.endDate || '',
-      startTime: ev.startTime || '',
-      endTime: ev.endTime || '',
-      description: ev.description || '',
+      startTime: ev.startTime || legacy.startTime || '',
+      endTime: ev.endTime || legacy.endTime || '',
+      description: legacy.note || '',
+      repeatType: '',
+      repeatEndDate: '',
     });
     setIsModalOpen(true);
   };
@@ -777,30 +825,132 @@ export default function SeminarCalendar() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>시작 시간 (선택)</Label>
-                      <TimePickerPopover
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="예: 23:30"
                         value={formData.startTime}
-                        onChange={(v) =>
+                        onChange={(e) =>
                           setFormData((s) => ({
                             ...s,
-                            startTime: v,
+                            startTime: e.target.value,
                             endTime:
-                              s.endTime && v && s.endTime < v ? '' : s.endTime,
+                              s.endTime &&
+                              e.target.value &&
+                              s.endTime < e.target.value
+                                ? ''
+                                : s.endTime,
                           }))
                         }
-                        placeholder="시간 선택"
+                        onBlur={() => {
+                          const norm = normalizeTime(formData.startTime);
+                          if (formData.startTime && norm) {
+                            setFormData((s) => ({ ...s, startTime: norm }));
+                          }
+                        }}
+                        maxLength={8}
                       />
                     </div>
                     <div className="space-y-2">
                       <Label>종료 시간 (선택)</Label>
-                      <TimePickerPopover
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="예: 23:30"
                         value={formData.endTime}
-                        onChange={(v) => setFormData((s) => ({ ...s, endTime: v }))}
-                        placeholder="시간 선택"
-                        disabled={!formData.startTime}
-                        min={formData.startTime || undefined}
+                        onChange={(e) =>
+                          setFormData((s) => ({
+                            ...s,
+                            endTime: e.target.value,
+                          }))
+                        }
+                        onBlur={() => {
+                          const norm = normalizeTime(formData.endTime);
+                          if (formData.endTime && norm) {
+                            setFormData((s) => ({ ...s, endTime: norm }));
+                          }
+                        }}
+                        maxLength={8}
                       />
                     </div>
                   </div>
+                  {!editingId && (
+                    <div className="space-y-3 rounded-md border p-3">
+                      <div className="flex items-center gap-2">
+                        <Repeat className="text-muted-foreground h-4 w-4" />
+                        <Label className="text-sm font-medium">반복 설정</Label>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>반복 유형</Label>
+                          <Select
+                            value={formData.repeatType || 'NONE'}
+                            onValueChange={(v) =>
+                              setFormData((s) => ({
+                                ...s,
+                                repeatType: (v === 'NONE' ? '' : v) as RepeatType,
+                                repeatEndDate: v === 'NONE' ? '' : s.repeatEndDate,
+                              }))
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="반복 없음" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="NONE">반복 없음</SelectItem>
+                              <SelectItem value="WEEKLY">매주 반복</SelectItem>
+                              <SelectItem value="MONTHLY">매월 반복</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {formData.repeatType && (
+                          <div className="space-y-2">
+                            <Label>
+                              반복 종료일{' '}
+                              <span className="text-destructive">*</span>
+                            </Label>
+                            <Popover modal>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className="w-full justify-start font-normal"
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {formData.repeatEndDate || '날짜 선택'}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                  mode="single"
+                                  selected={fromYmdLocal(formData.repeatEndDate)}
+                                  onSelect={(d) =>
+                                    d &&
+                                    setFormData((s) => ({
+                                      ...s,
+                                      repeatEndDate: toYmd(d),
+                                    }))
+                                  }
+                                  locale={ko}
+                                  disabled={
+                                    formData.startDate
+                                      ? { before: fromYmdLocal(formData.startDate)! }
+                                      : undefined
+                                  }
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        )}
+                      </div>
+                      {formData.repeatType && (
+                        <p className="text-muted-foreground text-xs">
+                          {formData.startDate && formData.repeatEndDate
+                            ? `${formData.startDate}부터 ${formData.repeatEndDate}까지 ${formData.repeatType === 'WEEKLY' ? '매주' : '매월'} 반복 일정이 개별 생성됩니다.`
+                            : '시작일과 반복 종료일을 모두 선택해 주세요.'}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label>기타</Label>
                     <Textarea
@@ -830,7 +980,8 @@ export default function SeminarCalendar() {
                         !formData.title ||
                         !formData.startDate ||
                         (!!formData.endDate &&
-                          formData.startDate > formData.endDate)
+                          formData.startDate > formData.endDate) ||
+                        (!!formData.repeatType && !formData.repeatEndDate)
                       }
                     >
                       {editingId ? '수정' : '추가'}
@@ -894,12 +1045,14 @@ export default function SeminarCalendar() {
                     </span>
                   </div>
                   <div className="flex flex-col gap-1">
-                    {cells.map((ev, tIdx) => {
+                    {TRACK_KEYS.map((trackKey, tIdx) => {
+                      const ev = cells[tIdx];
                       if (!ev)
                         return (
-                          // eslint-disable-next-line react/no-array-index-key -- empty slot, no stable id
-                          // prettier-ignore
-                          <div key={`empty-${dayYmd}-${tIdx}`} className="h-6" />
+                          <div
+                            key={`empty-${dayYmd}-${trackKey}`}
+                            className="h-6"
+                          />
                         );
                       const kind = getSegmentKind(ev, day);
                       if (kind === 'single')
@@ -977,28 +1130,48 @@ export default function SeminarCalendar() {
                         />
                         <div className="text-sm font-medium">{ev.title}</div>
                       </div>
-                      <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                      <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() => openEditModal(ev)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!ev.googleCalendarLink) {
+                              toast.error('캘린더 추가 링크가 없습니다.');
+                              return;
+                            }
+                            window.open(ev.googleCalendarLink, '_blank');
+                          }}
                         >
-                          <Edit className="h-4 w-4" />
+                          <Plus className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive h-8 w-8"
-                          onClick={() => handleDelete(ev.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => openEditModal(ev)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive h-8 w-8"
+                            onClick={() => handleDelete(ev.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     <div className="text-muted-foreground ml-5 text-xs">
                       {(() => {
-                        const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+                        const timeLabel = formatTimeRange(
+                          ev.startTime,
+                          ev.endTime,
+                        );
                         return (
                           <>
                             {EVENT_TYPES[ev.type].name} · {ev.startDate} ~{' '}
@@ -1008,6 +1181,11 @@ export default function SeminarCalendar() {
                         );
                       })()}
                     </div>
+                    {formatTimeRange(ev.startTime, ev.endTime) && (
+                      <div className="text-muted-foreground ml-5 text-xs">
+                        시간 · {formatTimeRange(ev.startTime, ev.endTime)}
+                      </div>
+                    )}
                     {ev.description && (
                       <div className="mt-2 ml-5 text-xs whitespace-pre-wrap">
                         {ev.description}
@@ -1056,21 +1234,41 @@ export default function SeminarCalendar() {
                         />
                         <div className="text-sm font-medium">{ev.title}</div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 opacity-0 group-hover:opacity-100"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openEditModal(ev);
-                        }}
-                      >
-                        <Edit className="h-3 w-3" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!ev.googleCalendarLink) {
+                              toast.error('캘린더 추가 링크가 없습니다.');
+                              return;
+                            }
+                            window.open(ev.googleCalendarLink, '_blank');
+                          }}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditModal(ev);
+                          }}
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                     <div className="text-muted-foreground text-[11px]">
                       {(() => {
-                        const timeLabel = toTimeLabel(ev.startTime, ev.endTime);
+                        const timeLabel = formatTimeRange(
+                          ev.startTime,
+                          ev.endTime,
+                        );
                         return (
                           <>
                             {ev.startDate} {ev.endDate ? `~ ${ev.endDate}` : ''}
@@ -1079,6 +1277,11 @@ export default function SeminarCalendar() {
                         );
                       })()}
                     </div>
+                    {formatTimeRange(ev.startTime, ev.endTime) && (
+                      <div className="text-muted-foreground mt-1 text-[11px]">
+                        {formatTimeRange(ev.startTime, ev.endTime)}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

@@ -55,6 +55,26 @@ import { usePaginationState } from '@/lib/use-pagination-state';
 
 const api = new ResearchApi(getApiConfig());
 
+type SortKey = 'year' | 'journalName';
+
+function SortIcon({
+  column,
+  sortBy,
+  sortOrder,
+}: {
+  column: SortKey;
+  sortBy: SortKey | null;
+  sortOrder: 'asc' | 'desc';
+}) {
+  if (sortBy !== column)
+    return <ArrowUpDown className="ml-1 inline h-4 w-4 opacity-50" />;
+  return sortOrder === 'asc' ? (
+    <ArrowUp className="ml-1 inline h-4 w-4" />
+  ) : (
+    <ArrowDown className="ml-1 inline h-4 w-4" />
+  );
+}
+
 type JournalForm = {
   journalName: string;
   year: string; // 연도 (필수, 년도별 분류)
@@ -104,7 +124,6 @@ export default function JournalClient() {
     issue: '',
   });
 
-  type SortKey = 'year' | 'journalName';
   const [sortBy, setSortBy] = useState<SortKey | null>('year');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
@@ -128,16 +147,6 @@ export default function JournalClient() {
       setSortBy(key);
       setSortOrder(key === 'year' ? 'desc' : 'asc');
     }
-  };
-
-  const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortBy !== column)
-      return <ArrowUpDown className="ml-1 inline h-4 w-4 opacity-50" />;
-    return sortOrder === 'asc' ? (
-      <ArrowUp className="ml-1 inline h-4 w-4" />
-    ) : (
-      <ArrowDown className="ml-1 inline h-4 w-4" />
-    );
   };
 
   const fetchJournals = async () => {
@@ -518,7 +527,7 @@ export default function JournalClient() {
                       onClick={() => toggleSort('journalName')}
                     >
                       저널명
-                      <SortIcon column="journalName" />
+                      <SortIcon column="journalName" sortBy={sortBy} sortOrder={sortOrder} />
                     </Button>
                   </TableHead>
                   <TableHead>
@@ -529,7 +538,7 @@ export default function JournalClient() {
                       onClick={() => toggleSort('year')}
                     >
                       연도 (시간순)
-                      <SortIcon column="year" />
+                      <SortIcon column="year" sortBy={sortBy} sortOrder={sortOrder} />
                     </Button>
                   </TableHead>
                   <TableHead>분류</TableHead>
