@@ -556,12 +556,16 @@ export default function SeminarCalendar() {
         }
         fetchEvents();
         handleCloseModal();
-      } else if (res.status === 403) {
-        toast.error('권한이 없습니다.');
       } else {
-        toast.error('실패하였습니다.');
+        let msg = '실패하였습니다.';
+        try {
+          const errData = await res.json();
+          if (errData?.message) msg = errData.message;
+        } catch { /* ignore parse error */ }
+        toast.error(msg);
       }
     } catch (err) {
+      console.error('Seminar submit error:', err);
       toast.error('실패하였습니다.');
     }
   };
