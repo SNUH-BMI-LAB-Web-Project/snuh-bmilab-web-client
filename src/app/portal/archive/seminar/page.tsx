@@ -197,13 +197,6 @@ const normalizeTime = (t?: unknown): string | undefined => {
   return `${m[1]}:${m[2]}`;
 };
 
-const toLocalTime = (hhmm?: string): LocalTimeLike | undefined => {
-  const norm = normalizeTime(hhmm);
-  if (!norm) return undefined;
-  const [h, m] = norm.split(':').map(Number);
-  return { hour: h, minute: m, second: 0, nano: 0 };
-};
-
 const formatTimeRange = (startTime?: string, endTime?: string) => {
   const st = normalizeTime(startTime);
   const et = normalizeTime(endTime);
@@ -519,8 +512,8 @@ export default function SeminarCalendar() {
       title: formData.title,
       startDate: formData.startDate,
       endDate: formData.endDate || formData.startDate,
-      startTime: startTime ? toLocalTime(startTime) : undefined,
-      endTime: endTime ? toLocalTime(endTime) : undefined,
+      startTime: startTime || undefined,
+      endTime: endTime || undefined,
       note: legacy.note?.trim() ? legacy.note : undefined,
     };
 
