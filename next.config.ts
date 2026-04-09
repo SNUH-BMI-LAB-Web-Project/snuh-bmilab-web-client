@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'bmilab-bucket.s3.ap-northeast-2.amazonaws.com',
+        hostname: 'bmilab-bucket-v2.s3.ap-northeast-2.amazonaws.com',
         pathname: '/**',
       },
     ],
